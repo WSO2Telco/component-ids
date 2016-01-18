@@ -1,0 +1,72 @@
+<MobileConnectConfig>
+    <DataSourceName>jdbc/CONNECT_DB</DataSourceName>
+    <EncryptAppend>
+        TheServingOperatorthencanrecognizetheyhavereceivedanencryptedMSISDNanddecryptthestringusingitsprivatekeywichisnotknowntotheOneAPI
+    </EncryptAppend>
+    <Keyfile>dialogprivate.key</Keyfile>
+    <GSMAExchangeConfig>
+        <SOHost>integration-axiatagroup.apiexchange.org</SOHost>
+        <Organization>axiatagroup</Organization>
+        <AuthToken>{ExchangeHubCredentials}</AuthToken>
+        <ServingOperator>
+            <mcc>{serving_op_mcc}</mcc>
+            <mnc>{serving_op_mnc}</mnc>
+        </ServingOperator>
+    </GSMAExchangeConfig>
+    <SMS>
+        <Endpoint>http://smshost/send</Endpoint>
+        <AuthToken>{SmsAuthToken}</AuthToken>
+        <MessageContent>Click on following URL to provide consent to application -</MessageContent>
+    </SMS>
+    <USSD>
+        <Endpoint>http://ussdhost/request</Endpoint>
+        <AuthToken>{UssdAuthToken}</AuthToken>
+        <MessageContent>Login to SP with Mobile Connect?</MessageContent>
+        <ShortCode>1721</ShortCode>
+        <Keyword>123</Keyword>
+        <Pinauth>true</Pinauth>
+        <DashBoard>connect</DashBoard>
+    </USSD>
+    <ANDROID>
+        <Endpoint>http://arimaclanka.com/api/AuthenticateUser</Endpoint>
+        <APIKey>ZTk3NDk2MWI3M2I5MzdmNjhlMDU5Njc0NjRmMjk0YjA4NmIzMWZjZDg0OGE0ZTNlYzFkMTQwOThjNDRhZWFlYw==</APIKey>
+        <DashBoard>connect</DashBoard>
+    </ANDROID>
+    <!-- Hostname/IP and port of the SMS Listener web-app. This should be set to publicly accessible hostname/IP of
+    Identity Server. By default the port would be 9763+[offset] -->
+    <!--<ListenerWebappHost>http://{is.host.name}:9764</ListenerWebappHost>-->
+
+    <HEADERENRICH>
+        <Endpoint>http://ussdhost/request</Endpoint>
+        <Enrichflg>true</Enrichflg>
+        <MobileIPRanges>
+            <IPRange>127.0.0.0:127.0.0.255</IPRange>
+            <IPRange>192.168.0.0:192.168.0.255</IPRange>
+        </MobileIPRanges>
+    </HEADERENRICH>
+
+    <MSS>
+        <Endpoint>http://54.72.52.113:9767/MSS</Endpoint>
+        <SuccessStatus>200</SuccessStatus>
+        <MssText>MSS_TEXT</MssText>
+        <MssPinText>MSS_PIN_TEXT</MssPinText>
+
+    </MSS>
+
+    <MePIN>
+        <Endpoint>https://api.mepin.com/transactions/create</Endpoint>
+        <ClientID>{MePinApplicationClientID}</ClientID>
+        <AuthToken>{MePinAuthToken}</AuthToken>
+        <!--removed-->
+        <!--Method required from the end-user to confirm the transaction - tap,swipe,pin,fp-->
+        <!--<ConfirmationPolicy>pin</ConfirmationPolicy>-->
+        <!--Short message to display on push notification-->
+        <ShortMessageText>Confirm Authentication</ShortMessageText>
+        <!--Header message to be displayed by MePIN Device App-->
+        <HeaderText>Authentication to</HeaderText>
+        <!--Message to display in MePIN Device App-->
+        <MessageText>Confirm Authentication to</MessageText>
+    </MePIN>
+
+
+</MobileConnectConfig>
