@@ -2,9 +2,15 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.axiata.dialog</groupId>
-	<artifactId>OpenIDTokenBuilder</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<parent>
+		<groupId>com.wso2telco.ids</groupId>
+		<artifactId>openid-tokenbuilder</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<groupId>com.wso2telco.ids</groupId>
+	<artifactId>openid-tokenbuilder</artifactId>
 	<packaging>bundle</packaging>
 
 	<name>OpenIDTokenBuilder</name>
@@ -12,64 +18,69 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<org.wso2.carbon.identity.oauth.version>4.2.3</org.wso2.carbon.identity.oauth.version>
+		<org.wso2.amber.version>0.22.1358727.wso2v4</org.wso2.amber.version>
+		<org.wso2.carbon.logging.version>4.2.0</org.wso2.carbon.logging.version>
+		<org.wso2.carbon.identity.base.version>4.2.2</org.wso2.carbon.identity.base.version>
+		<commons-httpclient.version>3.1</commons-httpclient.version>
+		<org.apache.sling.commons.json.version>2.0.6</org.apache.sling.commons.json.version>
+		<json.path.version>0.9.1</json.path.version>
+		<org.wso2.carbon.identity.core.version>4.2.3</org.wso2.carbon.identity.core.version>
+		<com.gsma.authenticators.version>1.0.0</com.gsma.authenticators.version>
+		<org.wso2.carbon.identity.application.authentication.framework.version>4.2.2</org.wso2.carbon.identity.application.authentication.framework.version>
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
-		</dependency>
+		
 		<dependency>
 			<groupId>org.wso2.carbon</groupId>
 			<artifactId>org.wso2.carbon.identity.oauth</artifactId>
-			<version>4.2.3</version>
+			<version>${org.wso2.carbon.identity.oauth.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.amber.wso2</groupId>
 			<artifactId>amber</artifactId>
-			<version>0.22.1358727.wso2v4</version>
+			<version>${org.wso2.amber.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon</groupId>
 			<artifactId>org.wso2.carbon.logging</artifactId>
-			<version>4.2.0</version>
+			<version>${org.wso2.carbon.logging.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon</groupId>
 			<artifactId>org.wso2.carbon.identity.base</artifactId>
-			<version>4.2.2</version>
+			<version>${org.wso2.carbon.identity.base.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-httpclient</groupId>
 			<artifactId>commons-httpclient</artifactId>
-			<version>3.1</version>
+			<version>${commons-httpclient.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.sling</groupId>
 			<artifactId>org.apache.sling.commons.json</artifactId>
-			<version>2.0.6</version>
+			<version>${org.apache.sling.commons.json.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.jayway.jsonpath</groupId>
 			<artifactId>json-path</artifactId>
-			<version>0.9.1</version>
+			<version>${json.path.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon</groupId>
 			<artifactId>org.wso2.carbon.identity.core</artifactId>
-			<version>4.2.3</version>
+			<version>${org.wso2.carbon.identity.core.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.gsma.authenticators</groupId>
 			<artifactId>com.gsma.authenticators</artifactId>
-			<version>1.0.0</version>
+			<version>${com.gsma.authenticators.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon</groupId>
 			<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
-			<version>4.2.2</version>
+			<version>${org.wso2.carbon.identity.application.authentication.framework}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-lang</groupId>
@@ -146,19 +157,5 @@
             </plugin>
         </plugins>
     </build>
-
-
-    <repositories>
-        <repository>
-            <id>wso2-nexus</id>
-            <name>WSO2 internal Repository</name>
-            <url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>
-                <checksumPolicy>ignore</checksumPolicy>
-            </releases>
-        </repository>
-    </repositories>
 
 </project>
