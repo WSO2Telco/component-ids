@@ -35,6 +35,11 @@
 				<artifactId>commons-logging</artifactId>
 				<version>${commons.logging}</version>
 			</dependency>
+			<dependency>
+				<groupId>commons-lang</groupId>
+				<artifactId>commons-lang</artifactId>
+				<version>${commons.lang.version}</version>
+			</dependency>
 		</dependencies>
 
 
@@ -148,6 +153,7 @@
 <commons.logging>1.2</commons.logging>
 <maven.compiler.plugin.version>3.3</maven.compiler.plugin.version>
 <junit.version>3.8.1</junit.version>
+<commons.lang.version>2.3</commons.lang.version>
     </properties>
 
 </project>

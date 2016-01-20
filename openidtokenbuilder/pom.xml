@@ -28,6 +28,11 @@
 		<org.wso2.carbon.identity.core.version>4.2.3</org.wso2.carbon.identity.core.version>
 		<com.gsma.authenticators.version>1.0.0</com.gsma.authenticators.version>
 		<org.wso2.carbon.identity.application.authentication.framework.version>4.2.2</org.wso2.carbon.identity.application.authentication.framework.version>
+		<nimbus.jose.jwt.version>2.26.1</nimbus.jose.jwt.version>
+		<org.wso2.carbon.identity.provider.version>4.2.2</org.wso2.carbon.identity.provider.version>
+		<json.smart.version>1.0.9</json.smart.version>
+		<org.wso2.carbon.apimgt.impl.version>1.2.2</org.wso2.carbon.apimgt.impl.version>
+		<org.wso2.carbon.identity.application.mgt.stub.version>4.2.0</org.wso2.carbon.identity.application.mgt.stub.version>
 	</properties>
 
 	<dependencies>
@@ -82,37 +87,33 @@
 			<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
 			<version>${org.wso2.carbon.identity.application.authentication.framework}</version>
 		</dependency>
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-			<version>2.3</version>
-		</dependency>
+
 		<dependency>
 			<groupId>org.wso2.carbon</groupId>
-			<artifactId>org.wso2.carbon.identity.provider</artifactId>
-			<version>4.2.2</version>
+			<artifactId></artifactId>
+			<version>${org.wso2.carbon.identity.provider.version}</version>
 		</dependency>
-        <dependency>
-            <groupId>com.nimbusds</groupId>
-            <artifactId>nimbus-jose-jwt</artifactId>
-            <version>2.26.1</version>
-        </dependency>
-        <dependency>
-            <groupId>net.minidev</groupId>
-            <artifactId>json-smart</artifactId>
-            <version>1.3</version>
-        </dependency>
-        <dependency>
-	  <groupId>org.wso2.carbon</groupId>
-	  <artifactId>org.wso2.carbon.apimgt.impl</artifactId>
-	  <version>1.2.2</version>
-	  <type>jar</type>
-	 </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.identity.application.mgt.stub</artifactId>
-            <version>4.2.0</version>
-        </dependency>
+		<dependency>
+		    <groupId>com.nimbusds</groupId>
+		    <artifactId>nimbus-jose-jwt</artifactId>
+		    <version>${nimbus.jose.jwt.version}</version>
+		</dependency>
+		<dependency>
+		    <groupId>net.minidev</groupId>
+		    <artifactId>json-smart</artifactId>
+		    <version>${json.smart.version}</version>
+		</dependency>
+		<dependency>
+		  <groupId>org.wso2.carbon</groupId>
+		  <artifactId>org.wso2.carbon.apimgt.impl</artifactId>
+		  <version>${org.wso2.carbon.apimgt.impl.version}</version>
+		  <type>jar</type>
+		 </dependency>
+		<dependency>
+		    <groupId>org.wso2.carbon</groupId>
+		    <artifactId>org.wso2.carbon.identity.application.mgt.stub</artifactId>
+		    <version>${org.wso2.carbon.identity.application.mgt.stub.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
