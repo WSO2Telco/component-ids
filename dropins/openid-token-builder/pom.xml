@@ -18,27 +18,27 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<org.wso2.carbon.identity.oauth.version>4.2.3</org.wso2.carbon.identity.oauth.version>
+		<org.wso2.carbon.identity.oauth.version>4.4.0</org.wso2.carbon.identity.oauth.version>
 		<org.wso2.amber.version>0.22.1358727.wso2v4</org.wso2.amber.version>
-		<org.wso2.carbon.logging.version>4.2.0</org.wso2.carbon.logging.version>
-		<org.wso2.carbon.identity.base.version>4.2.2</org.wso2.carbon.identity.base.version>
+		<org.wso2.carbon.logging.version>4.4.0</org.wso2.carbon.logging.version>
+		<org.wso2.carbon.identity.base.version>4.4.0</org.wso2.carbon.identity.base.version>
 		<commons-httpclient.version>3.1</commons-httpclient.version>
 		<org.apache.sling.commons.json.version>2.0.6</org.apache.sling.commons.json.version>
 		<json.path.version>0.9.1</json.path.version>
-		<org.wso2.carbon.identity.core.version>4.2.3</org.wso2.carbon.identity.core.version>
+		<org.wso2.carbon.identity.core.version>4.4.0</org.wso2.carbon.identity.core.version>
 		<com.gsma.authenticators.version>1.0.0</com.gsma.authenticators.version>
-		<org.wso2.carbon.identity.application.authentication.framework.version>4.2.2</org.wso2.carbon.identity.application.authentication.framework.version>
+		<org.wso2.carbon.identity.application.authentication.framework.version>4.4.0</org.wso2.carbon.identity.application.authentication.framework.version>
 		<nimbus.jose.jwt.version>2.26.1</nimbus.jose.jwt.version>
-		<org.wso2.carbon.identity.provider.version>4.2.2</org.wso2.carbon.identity.provider.version>
+		<org.wso2.carbon.identity.provider.version>4.4.0</org.wso2.carbon.identity.provider.version>
 		<json.smart.version>1.0.9</json.smart.version>
 		<org.wso2.carbon.apimgt.impl.version>1.2.2</org.wso2.carbon.apimgt.impl.version>
-		<org.wso2.carbon.identity.application.mgt.stub.version>4.2.0</org.wso2.carbon.identity.application.mgt.stub.version>
+		<org.wso2.carbon.identity.application.mgt.stub.version>4.4.0</org.wso2.carbon.identity.application.mgt.stub.version>
 	</properties>
 
 	<dependencies>
 		
 		<dependency>
-			<groupId>org.wso2.carbon</groupId>
+			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.oauth</artifactId>
 			<version>${org.wso2.carbon.identity.oauth.version}</version>
 		</dependency>
@@ -53,7 +53,7 @@
 			<version>${org.wso2.carbon.logging.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.wso2.carbon</groupId>
+			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.base</artifactId>
 			<version>${org.wso2.carbon.identity.base.version}</version>
 		</dependency>
@@ -73,7 +73,7 @@
 			<version>${json.path.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.wso2.carbon</groupId>
+			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.core</artifactId>
 			<version>${org.wso2.carbon.identity.core.version}</version>
 		</dependency>
@@ -83,13 +83,13 @@
 			<version>${com.gsma.authenticators.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.wso2.carbon</groupId>
+			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
 			<version>${org.wso2.carbon.identity.application.authentication.framework.version}</version>
 		</dependency>
 
 		<dependency>
-			<groupId>org.wso2.carbon</groupId>
+			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.provider</artifactId>
 			<version>${org.wso2.carbon.identity.provider.version}</version>
 		</dependency>
@@ -110,7 +110,7 @@
 		  <type>jar</type>
 		 </dependency>
 		<dependency>
-		    <groupId>org.wso2.carbon</groupId>
+		    <groupId>org.wso2.carbon.identity</groupId>
 		    <artifactId>org.wso2.carbon.identity.application.mgt.stub</artifactId>
 		    <version>${org.wso2.carbon.identity.application.mgt.stub.version}</version>
 		</dependency>
