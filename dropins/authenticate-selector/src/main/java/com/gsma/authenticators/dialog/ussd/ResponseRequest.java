@@ -1,8 +1,6 @@
 package com.gsma.authenticators.dialog.ussd;
 
-/**
- * Created by paraparan on 5/14/15.
- */
+ 
 public class ResponseRequest {
 
     private String notifyURL = "";

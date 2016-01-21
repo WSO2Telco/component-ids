@@ -21,14 +21,7 @@ import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.user.core.service.RealmService;
 
-///**
-// * @scr.component name="custom.authenticators.component" immediate="true"
-// * @scr.reference name="user.realmservice.default"
-// *                interface="org.wso2.carbon.user.core.service.RealmService"
-// *                cardinality="1..1" policy="dynamic" bind="setRealmService"
-// *                unbind="unsetRealmService"
-// *
-// */
+// 
 @Component(name = "custom.authenticators.component")
 @Reference(
         name = "user.realmservice.default",
@@ -46,7 +39,7 @@ public class CustomAuthenticatorServiceComponent {
 
     protected void activate(ComponentContext ctxt) {
 
-        /* Custom authenticators have to be registered first before we initialize the LOAConfig */
+         
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new PinAuthenticator(), null);
 

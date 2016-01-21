@@ -26,9 +26,7 @@ import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.util.Map;
 
-/**
- * SMS Authenticator for sending SMS and waiting on user response
- */
+ 
 public class SMSAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 

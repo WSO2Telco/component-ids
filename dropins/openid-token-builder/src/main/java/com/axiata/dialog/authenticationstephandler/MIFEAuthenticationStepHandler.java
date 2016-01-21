@@ -264,10 +264,7 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 		StepConfig stepConfig = sequenceConfig.getStepMap().get(currentStep);
 
 		// Set false for all steps
-		/*
-		 * stepConfig.setSubjectAttributeStep(false);
-		 * stepConfig.setSubjectIdentifierStep(false);
-		 */
+		 
 
 		ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 

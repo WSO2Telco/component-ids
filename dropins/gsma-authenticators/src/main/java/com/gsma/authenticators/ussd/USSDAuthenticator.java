@@ -39,9 +39,7 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.SAXException;
 
-/**
- * USSD Authenticator for waiting on USSD response
- */
+ 
 public class USSDAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 
@@ -101,13 +99,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             String ussdResponse = null;
 
 
-            /*   try {
-             log.info("Service provider Name: " + USSDAuthenticator.getAppInformation(context.getRelyingParty()).getApplicationName());
-             } catch (IdentityOAuth2Exception ex) {
-             Logger.getLogger(USSDAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
-             } catch (InvalidOAuthClientException ex) {
-             Logger.getLogger(USSDAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
-             }*/
+             
 
 
             //Changing SP dashboard Name
@@ -200,12 +192,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         }
     }
 
-    /**
-     * @param clientID
-     * @return
-     * @throws IdentityOAuth2Exception
-     * @throws InvalidOAuthClientException
-     */
+     
     private static OAuthAppDO getAppInformation(String clientID)
             throws IdentityOAuth2Exception, InvalidOAuthClientException {
         BaseCache<String, OAuthAppDO> appInfoCache = new BaseCache<String, OAuthAppDO>(

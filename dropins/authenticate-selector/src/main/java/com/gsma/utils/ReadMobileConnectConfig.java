@@ -19,9 +19,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.xml.sax.SAXException;
-/**
- * Created by paraparan on 5/13/15.
- */
+ 
 public class ReadMobileConnectConfig {
 
     public Map<String, String> query(String XpathExpression) throws ParserConfigurationException, SAXException,

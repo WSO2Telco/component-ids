@@ -1,15 +1,9 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+ 
 package com.gsma.authenticators.sms;
 
 import java.util.List;
 
-/**
- *
- * @author Dialog
- */
+ 
 public class SendSMSEntity {
     
     private String message = "";

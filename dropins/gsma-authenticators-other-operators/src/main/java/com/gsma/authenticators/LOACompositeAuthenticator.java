@@ -29,9 +29,7 @@ import com.gsma.authenticators.config.LOA;
 import com.gsma.authenticators.config.LOAConfig;
 import com.gsma.authenticators.config.LOA.MIFEAbstractAuthenticator;
 
-/**
- * Routes to LOA based authenticators
- */
+ 
 public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		LocalApplicationAuthenticator {
 

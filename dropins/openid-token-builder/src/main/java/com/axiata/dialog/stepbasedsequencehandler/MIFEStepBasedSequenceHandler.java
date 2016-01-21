@@ -131,7 +131,7 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
 			context.setReturning(false);
 		}
 		try {
-			/* Log SP Login History */
+			 
 			String ipAddress = retriveIPAddress(request);
 			String authenticatedUser = "";
 			String authenticators = "";

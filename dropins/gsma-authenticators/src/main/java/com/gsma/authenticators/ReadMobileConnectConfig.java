@@ -14,9 +14,7 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Map;
 
-/**
- * Created by paraparan on 5/13/15.
- */
+ 
 public class ReadMobileConnectConfig {
 
     public Map<String, String> query(String XpathExpression) throws ParserConfigurationException, SAXException,

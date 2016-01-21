@@ -8,9 +8,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
 
-/**
- * This class reads the configuration file scope-config.xml to read scopes and claims of relevant scope
- */
+ 
 public class ConfigLoader {
     private ScopeConfigs scopeConfigs;
     private static ConfigLoader loader = new ConfigLoader();

@@ -1,8 +1,6 @@
 package com.gsma.authenticators;
 
-/**
- * Constants used by the Authenticators
- */
+ 
 public final class Constants {
 
     public static final String PIN_AUTHENTICATOR_NAME = "PinAuthenticator";

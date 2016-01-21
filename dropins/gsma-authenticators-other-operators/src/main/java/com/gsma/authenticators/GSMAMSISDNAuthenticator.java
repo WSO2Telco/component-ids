@@ -30,9 +30,7 @@ import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 
 import sun.misc.BASE64Decoder;
-/**
- * GSMA MSISDN based Authenticator
- */
+ 
 public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 
@@ -163,13 +161,7 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator
 
     }
 
-    /**
-     * read Private Key From File
-     *
-     * @param fileName
-     * @return
-     * @throws IOException
-     */
+     
     public PrivateKey readPrivateKeyFromFile(String fileName) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 
         String publicK = readStringKey(fileName);

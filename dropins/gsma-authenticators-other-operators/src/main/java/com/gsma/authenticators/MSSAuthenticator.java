@@ -19,9 +19,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-/**
- * Created by nilan on 11/17/14.
- */
+ 
 public class MSSAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 

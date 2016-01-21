@@ -2,9 +2,7 @@ package com.gsma.authenticators.model;
 
 import java.io.Serializable;
 
-/**
- * Created by nilan on 11/24/14.
- */
+ 
 public class MSSResponse implements Serializable {
 
     public String msisdnNo;

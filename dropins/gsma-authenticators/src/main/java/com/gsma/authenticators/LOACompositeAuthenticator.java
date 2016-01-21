@@ -31,9 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
-/**
- * Routes to LOA based authenticators
- */
+ 
 public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		LocalApplicationAuthenticator {
 

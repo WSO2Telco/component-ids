@@ -20,9 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-/**
- * SMS Authenticator for sending SMS and waiting on user response
- */
+ 
 public class SMSAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 

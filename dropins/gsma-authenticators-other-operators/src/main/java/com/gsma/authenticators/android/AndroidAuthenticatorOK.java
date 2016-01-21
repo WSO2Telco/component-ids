@@ -29,9 +29,7 @@ import java.util.logging.Logger;
 
 //import org.wso2.carbon.identity.core.dao.OAuthAppDAO;
 
-/**
- * USSD Authenticator for waiting on USSD response
- */
+ 
 public class AndroidAuthenticatorOK extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 
@@ -108,13 +106,7 @@ public class AndroidAuthenticatorOK extends AbstractApplicationAuthenticator
             String androidResponse = null;
 
 
-            /*   try {
-             log.info("Service provider Name: " + USSDAuthenticator.getAppInformation(context.getRelyingParty()).getApplicationName());
-             } catch (IdentityOAuth2Exception ex) {
-             Logger.getLogger(USSDAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
-             } catch (InvalidOAuthClientException ex) {
-             Logger.getLogger(USSDAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
-             }*/
+             
 
 
             //Changing SP dashboard Name
@@ -204,12 +196,7 @@ public class AndroidAuthenticatorOK extends AbstractApplicationAuthenticator
         }
     }
 
-    /**
-     * @param clientID
-     * @return
-     * @throws org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception
-     * @throws org.wso2.carbon.identity.oauth.common.exception.InvalidOAuthClientException
-     */
+     
     private static OAuthAppDO getAppInformation(String clientID)
             throws IdentityOAuth2Exception, InvalidOAuthClientException {
         BaseCache<String, OAuthAppDO> appInfoCache = new BaseCache<String, OAuthAppDO>(

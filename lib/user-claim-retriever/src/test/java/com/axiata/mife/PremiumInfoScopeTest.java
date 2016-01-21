@@ -23,11 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 
 
-/**
- * This test case test the response retrieved from premiuminfo endpoint against a config file scope-config.xml
- * This test cases need a IS server to up and running in order to pass the tests. Please change  the client_id,
- * client_secret, adminUrl and jksFilePath with valid values
- */
+ 
 
 @Ignore
 public class PremiumInfoScopeTest {

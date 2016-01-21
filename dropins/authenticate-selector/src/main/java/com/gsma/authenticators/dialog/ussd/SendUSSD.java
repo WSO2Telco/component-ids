@@ -20,9 +20,7 @@ import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.util.Map;
 
-/**
- * Created by paraparan on 5/14/15.
- */
+ 
 public class SendUSSD implements AuthenticatorSelector {
 
     private static Log log = LogFactory.getLog(SendUSSD.class);
