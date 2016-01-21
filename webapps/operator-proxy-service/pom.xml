@@ -5,7 +5,7 @@
 	<artifactId>operator-proxy-service</artifactId>
 	<packaging>war</packaging>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>OperatorProxyService Maven Webapp</name>
+	<name>Operator Proxy Service</name>
 	<url>http://maven.apache.org</url>
 
 	<parent>

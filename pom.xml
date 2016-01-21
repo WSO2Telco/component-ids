@@ -19,6 +19,11 @@
 
 	<modules>
 		<module>dropins/openid-token-builder</module>
+        <module>webapps/authentication-endpoint</module>
+        <module>webapps/operator-proxy-service</module>
+        <module>webapps/url-shorten</module>
+        <module>webapps/session-updater</module>
+        <module>webapps/user-registration</module>
 	</modules>
 
 	<dependencies>
