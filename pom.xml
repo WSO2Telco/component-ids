@@ -6,7 +6,7 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.wso2telco.ids</groupId>
-	<artifactId>component-ids</artifactId>
+	<artifactId>component.ids</artifactId>
 	<packaging>pom</packaging>
 	<version>1.0.0-SNAPSHOT</version>
 	<name>WSO2Telco Core - Aggregate Pom</name>
@@ -143,6 +143,8 @@
 		<maven.compiler.plugin.version>3.3</maven.compiler.plugin.version>
 		<junit.version>3.8.1</junit.version>
 		<commons.lang.version>2.3</commons.lang.version>
+		<com.wso2telco.ids.authentic.selector.version>1.0.0-SNAPSHOT</com.wso2telco.ids.authentic.selector.version>
+		<mnc.resolver.version>1.0.0-SNAPSHOT</mnc.resolver.version>
 	</properties>
 
 </project>
