@@ -90,7 +90,7 @@
 
 		<dependency>
 			<groupId>org.wso2.carbon</groupId>
-			<artifactId></artifactId>
+			<artifactId>org.wso2.carbon.identity.provider</artifactId>
 			<version>${org.wso2.carbon.identity.provider.version}</version>
 		</dependency>
 		<dependency>
