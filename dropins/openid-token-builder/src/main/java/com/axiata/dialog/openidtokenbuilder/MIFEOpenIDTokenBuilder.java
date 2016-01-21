@@ -172,12 +172,7 @@ public class MIFEOpenIDTokenBuilder implements
 		}
 	}
 
-	/**
-	 * @param tokenReqDTO
-	 * @return
-	 * @throws IdentityOAuth2Exception
-	 * @throws InvalidOAuthClientException
-	 */
+	 
 	public OAuthAppDO getAppInformation(OAuth2AccessTokenReqDTO tokenReqDTO)
 			throws IdentityOAuth2Exception, InvalidOAuthClientException {
 		BaseCache<String, OAuthAppDO> appInfoCache = new BaseCache<String, OAuthAppDO>(
@@ -199,12 +194,7 @@ public class MIFEOpenIDTokenBuilder implements
 		}
 	}
 
-	/**
-	 * A new ACR app is provisioned and returned.
-	 * 
-	 * @param applicationName
-	 * @throws IdentityOAuth2Exception
-	 */
+	 
 	public String getACRAppID(String applicationName) throws IdentityOAuth2Exception {
 		StringBuilder requestURLBuilder = new StringBuilder();
 		requestURLBuilder.append(ACR_HOST_URI);
@@ -270,11 +260,7 @@ public class MIFEOpenIDTokenBuilder implements
 		}
 	}
 
-	/**
-	 * @param accessToken
-	 * @return
-	 * @throws IdentityOAuth2Exception
-	 */
+	 
 	public long getAccessTokenIssuedTime(String accessToken) throws IdentityOAuth2Exception {
 		AccessTokenDO accessTokenDO = null;
 		TokenMgtDAO tokenMgtDAO = new TokenMgtDAO();
@@ -305,11 +291,7 @@ public class MIFEOpenIDTokenBuilder implements
 		return timeIndMilliSeconds / 1000;
 	}
 
-	/**
-	 * @param acr
-	 * @return
-	 * @throws IdentityOAuth2Exception
-	 */
+	 
 	public String getAMRFromACR(String acr) throws IdentityOAuth2Exception {
 		List<Authenticator> authenticatorsList = null;
 
@@ -332,13 +314,7 @@ public class MIFEOpenIDTokenBuilder implements
 
 	}
 
-	/**
-	 * This method uses the ACR API specified in properties
-	 * 
-	 * @param msisdn
-	 * @return
-	 * @throws IdentityOAuth2Exception
-	 */
+	 
 	public String getACR(String msisdn) throws IdentityOAuth2Exception {
 
 		String strACR = ""; //$NON-NLS-1$
@@ -378,12 +354,7 @@ public class MIFEOpenIDTokenBuilder implements
 		return strACR;
 	}
 
-	/**
-	 * If an ACR is already created for the particular MSISDN, it's returned
-	 * 
-	 * @return
-	 * @throws IdentityOAuth2Exception
-	 */
+	 
 	public String retrieveACR(String msisdn) throws IdentityOAuth2Exception {
 
 		StringBuilder requestURLBuilder = new StringBuilder();
@@ -438,13 +409,7 @@ public class MIFEOpenIDTokenBuilder implements
 		}
 	}
 
-	/**
-	 * Create a new ACR
-	 * 
-	 * @param msisdn
-	 * @return
-	 * @throws IdentityOAuth2Exception
-	 */
+	 
 	public String createACR(String msisdn) throws IdentityOAuth2Exception {
 
 		StringBuilder requestURLBuilder = new StringBuilder();

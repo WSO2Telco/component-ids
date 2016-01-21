@@ -10,9 +10,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 
-/**
- * Created by paraparan on 5/22/15.
- */
+ 
 public class ReadMobileCountryConfig {
     public String findOperatorName(String msisdn){
         try {

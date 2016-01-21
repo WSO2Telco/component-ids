@@ -19,9 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by paraparan on 5/13/15.
- */
+ 
 public class SendSMS implements AuthenticatorSelector{
 
 //    private static final Logger LOG = Logger.getLogger(SendSMS.class.getName());

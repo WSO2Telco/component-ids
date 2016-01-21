@@ -2,9 +2,7 @@ package com.gsma.authenticators.dialog.sms;
 
 import java.util.List;
 
-/**
- * Created by paraparan on 5/13/15.
- */
+ 
 public class OutboundSMSMessageRequest {
 
     private String clientCorrelator = "";

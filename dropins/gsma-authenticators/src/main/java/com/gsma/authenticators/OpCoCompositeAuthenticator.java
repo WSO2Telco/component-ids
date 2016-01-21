@@ -44,9 +44,7 @@ import java.util.logging.Logger;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
-/**
- * Routes IDPs based on the MSISDN
- */
+ 
 public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
         LocalApplicationAuthenticator {
 

@@ -12,9 +12,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/**
- * SelfAuthenticator after success registration
- */
+ 
 public class SelfAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
     private static final long serialVersionUID = 6817280268460894001L;

@@ -51,9 +51,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 
 import org.wso2.carbon.user.api.Claim;
-/**
- * MSISDN based Authenticator
- */
+ 
 public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 

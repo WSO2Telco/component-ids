@@ -1,8 +1,6 @@
 package com.gsma.authenticators.model;
 
-/**
- * Created by Malinda on 2/12/2015.
- */
+ 
 public class AuthenticateUserRequest {
     String address;
     String requestedLOA;

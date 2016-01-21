@@ -42,9 +42,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import org.wso2.carbon.user.api.Claim;
-/**
- * MSISDN based Authenticator
- */
+ 
 public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 
@@ -201,13 +199,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
     }
 
-    /**
-     * read Private Key From File
-     *
-     * @param fileName
-     * @return
-     * @throws IOException
-     */
+     
     public PrivateKey readPrivateKeyFromFile(String fileName) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 
         String publicK = readStringKey(fileName);

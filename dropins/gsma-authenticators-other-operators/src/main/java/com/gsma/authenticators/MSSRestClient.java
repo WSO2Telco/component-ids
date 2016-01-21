@@ -8,9 +8,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 
-/**
- * Created by nilan on 12/8/14.
- */
+ 
 public class MSSRestClient extends Thread{
 
     String contextIdentifier;

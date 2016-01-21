@@ -1,4 +1,4 @@
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.CharacterEncoder"%>
+<%@ page import="com.wso2telco.carbon.identity.application.authentication.endpoint.util.CharacterEncoder"%>
 <head>
   
 </head>

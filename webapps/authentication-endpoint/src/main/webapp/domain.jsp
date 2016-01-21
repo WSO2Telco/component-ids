@@ -17,7 +17,7 @@
  ~ under the License.
  -->
 
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.CharacterEncoder"%>
+<%@ page import="com.wso2telco.carbon.identity.application.authentication.endpoint.util.CharacterEncoder"%>
 <%
     String errorMessage = "Authentication Failed";
     boolean loginFailed = false;

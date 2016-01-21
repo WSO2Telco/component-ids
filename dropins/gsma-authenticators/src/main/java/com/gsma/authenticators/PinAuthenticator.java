@@ -18,10 +18,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
-/**
- * Pin based Authenticator
- * 
- */
+ 
 public class PinAuthenticator extends AbstractApplicationAuthenticator
 		implements LocalApplicationAuthenticator {
 
@@ -138,11 +135,7 @@ public class PinAuthenticator extends AbstractApplicationAuthenticator
 		return Constants.PIN_AUTHENTICATOR_NAME;
 	}
 
-    /**
-     * Generates (random) password for user to be provisioned
-     *
-     * @return
-     */
+     
     protected String generatePassword() {
         return new BigInteger(130, random).toString(32);
     }

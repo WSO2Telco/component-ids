@@ -59,10 +59,7 @@ private static final Log log = LogFactory.getLog(DbUtil.class);
 		closeResultSet(resultSet);
 	}
 	
-    /**
-     * Close Connection
-     * @param dbConnection Connection
-     */
+     
     private static void closeConnection(Connection dbConnection) {
         if (dbConnection != null) {
             try {
@@ -74,10 +71,7 @@ private static final Log log = LogFactory.getLog(DbUtil.class);
         }
     }
 
-    /**
-     * Close ResultSet
-     * @param resultSet ResultSet
-     */
+     
     private static void closeResultSet(ResultSet resultSet) {
         if (resultSet != null) {
             try {
@@ -89,10 +83,7 @@ private static final Log log = LogFactory.getLog(DbUtil.class);
 
     }
 
-    /**
-     * Close PreparedStatement
-     * @param preparedStatement PreparedStatement
-     */
+     
     private static void closeStatement(PreparedStatement preparedStatement) {
         if (preparedStatement != null) {
             try {

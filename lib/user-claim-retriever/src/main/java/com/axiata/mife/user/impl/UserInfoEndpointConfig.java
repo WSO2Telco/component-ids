@@ -10,9 +10,7 @@ import org.wso2.carbon.identity.oauth.user.UserInfoRequestValidator;
 import org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder;
 import com.axiata.mife.util.EndpointUtil;
 
-/**
- * A singleton object holding configurations
- */
+ 
 public class UserInfoEndpointConfig {
 
     private static Log log = LogFactory.getLog(UserInfoEndpointConfig.class);

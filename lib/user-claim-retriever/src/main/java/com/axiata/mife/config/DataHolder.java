@@ -1,8 +1,6 @@
 package com.axiata.mife.config;
 
-/**
- * Singleton data holder class
- */
+ 
 public class DataHolder {
 
 

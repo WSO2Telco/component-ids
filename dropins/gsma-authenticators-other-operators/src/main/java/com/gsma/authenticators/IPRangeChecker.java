@@ -1,20 +1,11 @@
-/*
- * IPRangeChecker.java
- * Jul 15, 2014  11:27:25 AM
- * Roshan.Saputhanthri
- *
- * Copyright (C) Dialog Axiata PLC. All Rights Reserved.
- */
+ 
 
 package com.gsma.authenticators;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-/**
- * <TO-DO> <code>IPRangeChecker</code>
- * @version $Id: IPRangeChecker.java,v 1.00.000
- */
+ 
 
 public class IPRangeChecker {
 

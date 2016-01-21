@@ -33,9 +33,7 @@ import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 
-/**
- * This Authenticator authenticate users if MSISDN is whitelisted
- */
+ 
 public class WhiteListMSISDNAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 

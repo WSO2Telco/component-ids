@@ -51,10 +51,7 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-/**
- * Header based Authenticator
- *
- */
+ 
 public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 
@@ -69,21 +66,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             log.debug("Header Enrich Authenticator canHandle invoked");
         }
 
-        /*  if (log.isDebugEnabled()) {
-
-         log.debug("Request Headers:");
-         Enumeration names = request.getHeaderNames();
-         while (names.hasMoreElements()) {
-         String name = (String) names.nextElement();
-         Enumeration values = request.getHeaders(name);  // support multiple values
-         if (values != null) {
-         while (values.hasMoreElements()) {
-         String value = (String) values.nextElement();
-         log.debug(name + ": " + value);
-         }
-         }
-         }
-         }  */
+         
         String msisdn;
         try {
             msisdn = request.getHeader("msisdn");
@@ -162,8 +145,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     // Insert entry to DB only if this is not a retry
                     //DBUtils.insertUserResponse(context.getContextIdentifier(), String.valueOf(HeaderEnrichmentAuthenticator.UserResponse.PENDING));
                 }
-                /*response.sendRedirect(response.encodeRedirectURL(enrichpage + ("?" + queryParams)) + "&authenticators="
-                 + getName() + ":" + "LOCAL" + retryParam);               */
+                 
 
                 response.sendRedirect(response.encodeRedirectURL(loginprefix + loginPage + ("?" + queryParams)) + "&authenticators="
                         + getName() + ":" + "LOCAL" + retryParam);
@@ -191,12 +173,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         //check to msisdn header
 
-        /*
-         String ipAddress = request.getHeader("X-FORWARDED-FOR");
-         if (ipAddress == null) {
-         ipAddress = request.getRemoteAddr();
-         }
-         */
+         
         
         try {
             msisdn = request.getHeader("msisdn");

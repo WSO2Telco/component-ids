@@ -18,6 +18,7 @@
 	</prerequisites>
 
 	<modules>
+        <module>lib/user-claim-retriever</module>
 		<module>dropins/openid-token-builder</module>
         <module>webapps/authentication-endpoint</module>
         <module>webapps/operator-proxy-service</module>

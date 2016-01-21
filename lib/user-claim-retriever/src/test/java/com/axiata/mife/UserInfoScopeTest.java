@@ -2,12 +2,14 @@ package com.axiata.mife;
 
 import com.axiata.mife.config.Scope;
 import com.axiata.mife.config.ScopeConfigs;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.codehaus.jettison.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
@@ -17,16 +19,13 @@ import org.junit.Test;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+
 import java.io.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * This test case test the response retrieved from userinfo endpoint against a config file scope-config.xml
- * This test cases need a IS server to up and running in order to pass the tests. Please change  the client_id,
- * client_secret, adminUrl and jksFilePath with valid values
- */
+ 
 
 @Ignore
 public class UserInfoScopeTest {
@@ -117,7 +116,9 @@ public class UserInfoScopeTest {
             }
         } catch (IOException e1) {
             e1.printStackTrace();
-        }
+        } catch (JSONException e) {
+			e.printStackTrace();
+		}
         return access_token;
 
     }
@@ -168,7 +169,10 @@ public class UserInfoScopeTest {
 
     private boolean isScopeValid(String scope, String response) {
         boolean isValid = true;
-        JSONObject obj = new JSONObject(response);
+        JSONObject obj;
+		try {
+			obj = new JSONObject(response);
+		
         if (obj.toString().equals("{}")) {
             System.out.println("No claims have not null values in the scope : " + scope);
             return true;
@@ -186,6 +190,10 @@ public class UserInfoScopeTest {
             }
 
         }
+		} catch (JSONException e) {
+			e.printStackTrace();
+			return false;
+		}
         return isValid;
 
     }
