@@ -26,7 +26,17 @@
         <module>webapps/session-updater</module>
         <module>webapps/user-registration</module>
 	</modules>
-
+        <properties>
+                <maven.checkstyle.plugin.version>2.17</maven.checkstyle.plugin.version>
+                <commons.logging>1.2</commons.logging>
+                <maven.compiler.plugin.version>3.3</maven.compiler.plugin.version>
+                <junit.version>3.8.1</junit.version>
+                <commons.lang.version>2.3</commons.lang.version>
+                <com.wso2telco.ids.authentic.selector.version>1.0.0-SNAPSHOT</com.wso2telco.ids.authentic.selector.version>
+                <mnc.resolver.version>1.0.0-SNAPSHOT</mnc.resolver.version>
+                <httpclient.version>4.3.4</httpclient.version>
+                <gson.version>2.1</gson.version>
+        </properties>
 	<dependencies>
 
 		<dependency>
@@ -45,6 +55,12 @@
 			<artifactId>commons-lang</artifactId>
 			<version>${commons.lang.version}</version>
 		</dependency>
+		<dependency>
+        	    <groupId>com.google.code.gson</groupId>
+	            <artifactId>gson</artifactId>
+        	    <version>${gson.version}</version>
+	        </dependency>
+
 	</dependencies>
 
 
@@ -135,16 +151,5 @@
 			<url>http://maven.wso2telco.com:8081/nexus/content/repositories/releases/</url>
 		</repository>
 	</distributionManagement>
-
-
-	<properties>
-		<maven.checkstyle.plugin.version>2.17</maven.checkstyle.plugin.version>
-		<commons.logging>1.2</commons.logging>
-		<maven.compiler.plugin.version>3.3</maven.compiler.plugin.version>
-		<junit.version>3.8.1</junit.version>
-		<commons.lang.version>2.3</commons.lang.version>
-		<com.wso2telco.ids.authentic.selector.version>1.0.0-SNAPSHOT</com.wso2telco.ids.authentic.selector.version>
-		<mnc.resolver.version>1.0.0-SNAPSHOT</mnc.resolver.version>
-	</properties>
 
 </project>
