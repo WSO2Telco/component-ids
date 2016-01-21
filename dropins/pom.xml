@@ -30,7 +30,7 @@
 		<org.wso2.carbon.identity.provider.version>4.4.0</org.wso2.carbon.identity.provider.version>
 		<json.smart.version>1.0.9</json.smart.version>
 		<org.wso2.carbon.apimgt.impl.version>1.2.2</org.wso2.carbon.apimgt.impl.version>
-		<maven.bundle.plugin.version>3.0.0</maven.bundle.plugin.version
+		<maven.bundle.plugin.version>3.0.0</maven.bundle.plugin.version>
 		<org.wso2.carbon.core.services.version>4.4.0</org.wso2.carbon.core.services.version>
 		<org.wso2.carbon.utils.version>4.4.0</org.wso2.carbon.utils.version>
 	</properties>
@@ -85,11 +85,6 @@
 			<version>${org.wso2.carbon.identity.core.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.gsma.authenticators</groupId>
-			<artifactId>com.gsma.authenticators</artifactId>
-			<version>${com.gsma.authenticators.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
 			<version>${org.wso2.carbon.identity.application.authentication.framework.version}</version>
@@ -118,4 +113,21 @@
 		 </dependency>
 	</dependencies>
 
-</project>
+	  <build>
+        	<plugins>
+	            <plugin>
+                	<groupId>org.apache.felix</groupId>
+                	<artifactId>maven-scr-plugin</artifactId>
+             	   <version>1.9.0</version>
+                	<executions>
+                	    <execution>
+                	        <id>generate-scr-scrdescriptor</id>
+        	                <goals>
+	                            <goal>scr</goal>
+                        	</goals>
+                	    </execution>
+        	        </executions>
+	            </plugin>
+        	</plugins>
+	    </build>
+	</project>

@@ -40,7 +40,7 @@
             <groupId>com.wso2telco.core</groupId>
             <artifactId>mnc-resolver</artifactId>
             <version>${mnc.resolver.version}</version>
-            <type>jar</type>
+	    <scope>provided</scope>
         </dependency>
         
 	<dependency>
@@ -51,8 +51,8 @@
         </dependency>
         <dependency>
             <groupId>UrlShorten</groupId>
-            <artifactId>UrlShorten</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <artifactId>com.wso2telco.ids.urlshorten</artifactId>
+            <version>${com.wso2telco.ids.urlshorten.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -60,19 +60,6 @@
     </dependencies>
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-                <version>1.9.0</version>
-                <executions>
-                    <execution>
-                        <id>generate-scr-scrdescriptor</id>
-                        <goals>
-                            <goal>scr</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
