@@ -15,6 +15,14 @@
 	<name>Dropins</name>
 	<url>http://maven.apache.org</url>
 
+
+   	 <modules>
+       		<module>authenticate-selector</module>
+		<!--module>openid-token-builder</module-->
+        </modules>
+
+
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<org.wso2.carbon.identity.oauth.version>4.4.0</org.wso2.carbon.identity.oauth.version>
@@ -33,6 +41,7 @@
 		<maven.bundle.plugin.version>3.0.0</maven.bundle.plugin.version>
 		<org.wso2.carbon.core.services.version>4.4.0</org.wso2.carbon.core.services.version>
 		<org.wso2.carbon.utils.version>4.4.0</org.wso2.carbon.utils.version>
+		<org.apache.felix.scr.annotations.version>1.9.6</org.apache.felix.scr.annotations.version>
 	</properties>
 
 	<dependencies>
