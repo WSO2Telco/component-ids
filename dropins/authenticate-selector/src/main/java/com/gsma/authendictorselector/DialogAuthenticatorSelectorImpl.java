@@ -8,9 +8,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 
-/**
- * Created by paraparan on 5/15/15.
- */
+ 
 public class DialogAuthenticatorSelectorImpl extends DialogAuthenticatorSelector{
 
     @Override

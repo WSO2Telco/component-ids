@@ -16,7 +16,7 @@
  ~ specific language governing permissions and limitations
  ~ under the License.
  -->
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.CharacterEncoder"%>
+<%@ page import="com.wso2telco.carbon.identity.application.authentication.endpoint.util.CharacterEncoder"%>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
            
 <%
@@ -32,7 +32,7 @@
     }
 %>
 
-<fmt:bundle basename="org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources">
+<fmt:bundle basename="com.wso2telco.carbon.identity.application.authentication.endpoint.i18n.Resources">
 <html lang="en">
     <head>
         <meta charset="utf-8">

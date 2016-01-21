@@ -1,8 +1,6 @@
 package com.gsma.authenticators.dialog.sms;
 
-/**
- * Created by paraparan on 5/13/15.
- */
+ 
 public class OutboundSMSTextMessage {
     private String message;
 

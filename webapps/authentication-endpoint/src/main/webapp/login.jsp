@@ -29,15 +29,15 @@
 <%@page import="org.apache.log4j.Logger"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.CharacterEncoder"%>
+<%@ page import="com.wso2telco.carbon.identity.application.authentication.endpoint.util.CharacterEncoder"%>
 <%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants"%>
 <%@ page import="org.apache.log4j.Logger"%>
 <%@ page import="org.wso2.carbon.identity.oauth2.model.OAuth2Parameters"%>
   <!-- container -->
 <%@ page import="java.util.Map" %>
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.CharacterEncoder" %>
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.Constants" %>
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.Constants" %>
+<%@ page import="com.wso2telco.carbon.identity.application.authentication.endpoint.util.CharacterEncoder" %>
+<%@ page import="com.wso2telco.carbon.identity.application.authentication.endpoint.Constants" %>
+<%@ page import="com.wso2telco.carbon.identity.application.authentication.endpoint.Constants" %>
 <%@ page import="org.wso2.carbon.identity.oauth2.model.OAuth2Parameters" %>
 <%@ page import="org.wso2.carbon.identity.oauth.common.OAuthConstants" %>
 <%@ page import="org.wso2.carbon.identity.oauth.cache.*" %>
@@ -48,7 +48,7 @@
 
 <%! static Logger logger = Logger.getLogger(login_jsp.class); %>
 
-<fmt:bundle basename="org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources">
+<fmt:bundle basename="com.wso2telco.carbon.identity.application.authentication.endpoint.i18n.Resources">
 
     <html class="site no-js lang--en"lang="en">
     <input type="hidden" id="baseURL" value='<%=request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+request.getContextPath() %>'>

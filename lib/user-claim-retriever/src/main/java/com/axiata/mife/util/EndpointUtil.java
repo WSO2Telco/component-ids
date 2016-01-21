@@ -31,89 +31,50 @@ public class EndpointUtil {
 
     private static Log log = LogFactory.getLog(EndpointUtil.class);
 
-    /**
-     * Returns the {@code OAuth2Service} instance
-     *
-     * @return
-     */
+     
     public static OAuth2Service getOAuth2Service() {
         return (OAuth2Service) PrivilegedCarbonContext.getCurrentContext()
                 .getOSGiService(OAuth2Service.class);
     }
 
-    /**
-     * Returns the {@code OAuthServerConfiguration} instance
-     *
-     * @return
-     */
+     
     public static OAuthServerConfiguration getOAuthServerConfiguration() {
         return (OAuthServerConfiguration) PrivilegedCarbonContext.getCurrentContext()
                 .getOSGiService(OAuthServerConfiguration.class);
     }
 
-    /**
-     * Returns the {@code OAuthServerConfiguration} instance
-     *
-     * @return
-     */
+     
     public static OAuth2TokenValidationService getOAuth2TokenValidationService() {
         return (OAuth2TokenValidationService) PrivilegedCarbonContext.getCurrentContext()
                 .getOSGiService(OAuth2TokenValidationService.class);
     }
 
-    /**
-     * Returns the request validator class name
-     *
-     * @return
-     * @throws OAuthSystemException
-     */
+     
     public static String getUserInfoRequestValidator() throws OAuthSystemException {
         return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointRequestValidator();
     }
 
-    /**
-     * Returns the access token validator class name
-     *
-     * @return
-     */
+     
     public static String getAccessTokenValidator() {
         return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointAccessTokenValidator();
     }
 
-    /**
-     * Returns the response builder class name
-     *
-     * @return
-     */
+     
     public static String getUserInfoResponseBuilder() {
         return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointResponseBuilder();
     }
 
-    /**
-     * Returns the claim retriever class name
-     *
-     * @return
-     */
+     
     public static String getUserInfoClaimRetriever() {
         return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointClaimRetriever();
     }
 
-    /**
-     * Return the claim dialect for the claim retriever
-     *
-     * @return
-     */
+     
     public static String getUserInfoClaimDialect() {
         return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointClaimDialect();
     }
 
-    /**
-     * Extracts the username and password info from the HTTP Authorization Header
-     *
-     * @param authorizationHeader "Basic " + base64encode(username + ":" + password)
-     * @return String array with client id and client secret.
-     * @throws org.wso2.carbon.identity.base.IdentityException If the decoded data is null.
-     */
+     
     public static String[] extractCredentialsFromAuthzHeader(String authorizationHeader)
             throws OAuthClientException {
         String[] splitValues = authorizationHeader.trim().split(" ");
@@ -127,15 +88,7 @@ public class EndpointUtil {
         }
     }
 
-    /**
-     * Returns the error page URL. If appName is not <code>null</code> it will be added as query parameter
-     * to be displayed to the user. If redirect_uri is <code>null</code> the common error page URL will be returned.
-     *
-     * @param errorCode
-     * @param errorMessage
-     * @param appName
-     * @return
-     */
+     
     public static String getErrorPageURL(String errorCode, String errorMessage, String appName, String redirect_uri) {
 
         String errorPageUrl = null;
@@ -163,14 +116,7 @@ public class EndpointUtil {
         return errorPageUrl;
     }
 
-    /**
-     * Returns the login page URL.
-     *
-     * @param checkAuthentication
-     * @param forceAuthenticate
-     * @param scopes
-     * @return
-     */
+     
     public static String getLoginPageURL(String clientId, String sessionDataKey,
                                          boolean forceAuthenticate, boolean checkAuthentication, Set<String> scopes)
             throws UnsupportedEncodingException {
@@ -186,18 +132,7 @@ public class EndpointUtil {
         }
     }
 
-    /**
-     * Returns the login page URL.
-     *
-     * @param clientId
-     * @param sessionDataKey
-     * @param reqParams
-     * @param forceAuthenticate
-     * @param checkAuthentication
-     * @param scopes
-     * @return
-     * @throws UnsupportedEncodingException
-     */
+     
     public static String getLoginPageURL(String clientId, String sessionDataKey,
                                          boolean forceAuthenticate, boolean checkAuthentication, Set<String> scopes,
                                          Map<String, String[]> reqParams) throws UnsupportedEncodingException {
@@ -239,13 +174,7 @@ public class EndpointUtil {
         }
     }
 
-    /**
-     * Returns the consent page URL.
-     *
-     * @param params
-     * @param loggedInUser
-     * @return
-     */
+     
     public static String getUserConsentURL(OAuth2Parameters params, String loggedInUser, String sessionDataKey,
                                            boolean isOIDC) throws UnsupportedEncodingException {
         String queryString = "";

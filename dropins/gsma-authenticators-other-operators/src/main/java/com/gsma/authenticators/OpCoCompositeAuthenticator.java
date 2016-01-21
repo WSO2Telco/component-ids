@@ -38,9 +38,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
-/**
- * Routes IDPs based on the MSISDN
- */
+ 
 public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
 		LocalApplicationAuthenticator {
 
@@ -97,26 +95,7 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
 		}
 
 		IdentityProvider federatedIDP = getFederatedIDP(idPs, incomingUser);
-		/*String encryptedMsidn = encryptData(incomingUser);
-		
-		FederatedAuthenticatorConfig oidcAuthnConfig = new FederatedAuthenticatorConfig();
-        oidcAuthnConfig.setName("OpenIDConnectAuthenticator");
-        oidcAuthnConfig.setDisplayName("openidconnect");
-        oidcAuthnConfig.setEnabled(true);
-        
-        Property property = new Property();
-        property.setName("commonAuthQueryParams");
-        property.setValue("login_hint=" + encryptedMsidn);
-        Property[] properties = new Property[6];
-        properties[5] = property;
-        oidcAuthnConfig.setProperties(properties);
-        FederatedAuthenticatorConfig[] authenticators = federatedIDP.getFederatedAuthenticatorConfigs();
-        if (authenticators == null || authenticators.length == 0) {
-        	federatedIDP.setFederatedAuthenticatorConfigs(new FederatedAuthenticatorConfig[] { oidcAuthnConfig });
-        } else {
-        	federatedIDP.setFederatedAuthenticatorConfigs(concatArrays(
-                    new FederatedAuthenticatorConfig[] { oidcAuthnConfig }, authenticators));
-        }*/
+		 
 		
 		AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
 

@@ -133,13 +133,7 @@ public class TransactionLoggerImpl implements TransactionLogger {
 		return transactions;
 	}
 	
-	/**
-	 * Handle exception.
-	 * 
-	 * @param msg
-	 * @param t
-	 * @throws Exception
-	 */
+	 
 	private static void handleException(String msg, Throwable t)
 			throws Exception {
 		log.error(msg, t);

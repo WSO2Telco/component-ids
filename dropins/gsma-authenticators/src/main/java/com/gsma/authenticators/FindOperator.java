@@ -2,9 +2,7 @@ package com.gsma.authenticators;
 
 import com.gsma.utils.*;
 
-/**
- * Created by paraparan on 5/15/15.
- */
+ 
 public class FindOperator {
 
     public String getOperatorName(String msisdn){

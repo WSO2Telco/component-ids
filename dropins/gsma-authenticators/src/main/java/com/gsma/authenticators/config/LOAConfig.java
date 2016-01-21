@@ -48,47 +48,4 @@ public class LOAConfig {
 	}
 
 }
-/*
-@XmlRootElement(name = "LOAConfiguration")
-public class LOAConfig {
-
-
-    private List<LOA> loas;
-
-    @XmlElementWrapper(name = "LOAConfiguration", nillable = false)
-    @XmlElement(name = "LOA", nillable = false)
-    public List<LOA> getLoas() {
-        return loas;
-    }
-
-    public void setLoas(List<LOA> loas) {
-        this.loas = loas;
-    }
-
-    public LOA getLOA(String level) {
-        for (LOA loa : loas) {
-            if (loa.getLevel().equals(level)) {
-                return loa;
-            }
-        }
-        return null;
-    }
-
-    public void init() {
-        for (LOA loa : loas) {
-            loa.init();
-        }
-    }
-
-    public void print(){
-        for(LOA loa: loas){
-            List<String> l = loa.getAuthenticatorNames();
-            for(String s : l){
-                System.out.println(s);
-
-            }
-        }
-    }
-
-}
-*/
+ 

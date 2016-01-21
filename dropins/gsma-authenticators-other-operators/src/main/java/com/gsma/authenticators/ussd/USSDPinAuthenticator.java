@@ -1,10 +1,4 @@
-/*
- * USSDPinAuthenticator.java
- * Sep 23, 2014  5:22:01 PM
- * Roshan.Saputhanthri
- *
- * Copyright (C) Dialog Axiata PLC. All Rights Reserved.
- */
+ 
 package com.gsma.authenticators.ussd;
 
 import com.gsma.authenticators.AuthenticatorException;
@@ -46,12 +40,7 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-/**
- * <TO-DO>
- * <code>USSDPinAuthenticator</code>
- *
- * @version $Id: USSDPinAuthenticator.java,v 1.00.000
- */
+ 
 public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 
@@ -246,12 +235,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
     }
 
-    /**
-     * @param clientID
-     * @return
-     * @throws IdentityOAuth2Exception
-     * @throws InvalidOAuthClientException
-     */
+     
     private static OAuthAppDO getAppInformation(String clientID)
             throws IdentityOAuth2Exception, InvalidOAuthClientException {
         BaseCache<String, OAuthAppDO> appInfoCache = new BaseCache<String, OAuthAppDO>(
