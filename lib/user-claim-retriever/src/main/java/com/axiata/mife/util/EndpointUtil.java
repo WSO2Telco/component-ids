@@ -29,217 +29,199 @@ import java.util.Set;
 
 public class EndpointUtil {
 
-    private static Log log = LogFactory.getLog(EndpointUtil.class);
+	private static Log log = LogFactory.getLog(EndpointUtil.class);
 
-     
-    public static OAuth2Service getOAuth2Service() {
-        return (OAuth2Service) PrivilegedCarbonContext.getCurrentContext()
-                .getOSGiService(OAuth2Service.class);
-    }
+	public static OAuth2Service getOAuth2Service() {
+		return (OAuth2Service) PrivilegedCarbonContext.getCurrentContext().getOSGiService(OAuth2Service.class);
+	}
 
-     
-    public static OAuthServerConfiguration getOAuthServerConfiguration() {
-        return (OAuthServerConfiguration) PrivilegedCarbonContext.getCurrentContext()
-                .getOSGiService(OAuthServerConfiguration.class);
-    }
+	public static OAuthServerConfiguration getOAuthServerConfiguration() {
+		return (OAuthServerConfiguration) PrivilegedCarbonContext.getCurrentContext().getOSGiService(
+				OAuthServerConfiguration.class);
+	}
 
-     
-    public static OAuth2TokenValidationService getOAuth2TokenValidationService() {
-        return (OAuth2TokenValidationService) PrivilegedCarbonContext.getCurrentContext()
-                .getOSGiService(OAuth2TokenValidationService.class);
-    }
+	public static OAuth2TokenValidationService getOAuth2TokenValidationService() {
+		return (OAuth2TokenValidationService) PrivilegedCarbonContext.getCurrentContext().getOSGiService(
+				OAuth2TokenValidationService.class);
+	}
 
-     
-    public static String getUserInfoRequestValidator() throws OAuthSystemException {
-        return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointRequestValidator();
-    }
+	public static String getUserInfoRequestValidator() throws OAuthSystemException {
+		return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointRequestValidator();
+	}
 
-     
-    public static String getAccessTokenValidator() {
-        return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointAccessTokenValidator();
-    }
+	public static String getAccessTokenValidator() {
+		return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointAccessTokenValidator();
+	}
 
-     
-    public static String getUserInfoResponseBuilder() {
-        return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointResponseBuilder();
-    }
+	public static String getUserInfoResponseBuilder() {
+		return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointResponseBuilder();
+	}
 
-     
-    public static String getUserInfoClaimRetriever() {
-        return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointClaimRetriever();
-    }
+	public static String getUserInfoClaimRetriever() {
+		return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointClaimRetriever();
+	}
 
-     
-    public static String getUserInfoClaimDialect() {
-        return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointClaimDialect();
-    }
+	public static String getUserInfoClaimDialect() {
+		return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointClaimDialect();
+	}
 
-     
-    public static String[] extractCredentialsFromAuthzHeader(String authorizationHeader)
-            throws OAuthClientException {
-        String[] splitValues = authorizationHeader.trim().split(" ");
-        byte[] decodedBytes = Base64Utils.decode(splitValues[1].trim());
-        if (decodedBytes != null) {
-            String userNamePassword = new String(decodedBytes);
-            return userNamePassword.split(":");
-        } else {
-            String errMsg = "Error decoding authorization header. Could not retrieve client id and client secret.";
-            throw new OAuthClientException(errMsg);
-        }
-    }
+	public static String[] extractCredentialsFromAuthzHeader(String authorizationHeader) throws OAuthClientException {
+		String[] splitValues = authorizationHeader.trim().split(" ");
+		byte[] decodedBytes = Base64Utils.decode(splitValues[1].trim());
+		if (decodedBytes != null) {
+			String userNamePassword = new String(decodedBytes);
+			return userNamePassword.split(":");
+		} else {
+			String errMsg = "Error decoding authorization header. Could not retrieve client id and client secret.";
+			throw new OAuthClientException(errMsg);
+		}
+	}
 
-     
-    public static String getErrorPageURL(String errorCode, String errorMessage, String appName, String redirect_uri) {
+	public static String getErrorPageURL(String errorCode, String errorMessage, String appName, String redirect_uri) {
 
-        String errorPageUrl = null;
-        if (redirect_uri != null && !redirect_uri.equals("")) {
-            errorPageUrl = redirect_uri;
-        } else {
-            errorPageUrl = CarbonUIUtil.getAdminConsoleURL("/") + "../authenticationendpoint/oauth2_error.do";
-        }
-        try {
-            errorPageUrl += "?" + OAuthConstants.OAUTH_ERROR_CODE + "="
-                    + URLEncoder.encode(errorCode, "UTF-8") + "&" + OAuthConstants.OAUTH_ERROR_MESSAGE + "="
-                    + URLEncoder.encode(errorMessage, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            // ignore
-        }
+		String errorPageUrl = null;
+		if (redirect_uri != null && !redirect_uri.equals("")) {
+			errorPageUrl = redirect_uri;
+		} else {
+			errorPageUrl = CarbonUIUtil.getAdminConsoleURL("/") + "../authenticationendpoint/oauth2_error.do";
+		}
+		try {
+			errorPageUrl += "?" + OAuthConstants.OAUTH_ERROR_CODE + "=" + URLEncoder.encode(errorCode, "UTF-8") + "&"
+					+ OAuthConstants.OAUTH_ERROR_MESSAGE + "=" + URLEncoder.encode(errorMessage, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// ignore
+		}
 
-        if (appName != null) {
-            try {
-                errorPageUrl += "application" + "=" + URLEncoder.encode(appName, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                // ignore
-            }
-        }
+		if (appName != null) {
+			try {
+				errorPageUrl += "application" + "=" + URLEncoder.encode(appName, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				// ignore
+			}
+		}
 
-        return errorPageUrl;
-    }
+		return errorPageUrl;
+	}
 
-     
-    public static String getLoginPageURL(String clientId, String sessionDataKey,
-                                         boolean forceAuthenticate, boolean checkAuthentication, Set<String> scopes)
-            throws UnsupportedEncodingException {
+	public static String getLoginPageURL(String clientId, String sessionDataKey, boolean forceAuthenticate,
+			boolean checkAuthentication, Set<String> scopes) throws UnsupportedEncodingException {
 
-        try {
-            SessionDataCacheEntry entry = (SessionDataCacheEntry) SessionDataCache.getInstance()
-                    .getValueFromCache(new SessionDataCacheKey(sessionDataKey));
+		try {
+			SessionDataCacheEntry entry = (SessionDataCacheEntry) SessionDataCache.getInstance().getValueFromCache(
+					new SessionDataCacheKey(sessionDataKey));
 
-            return getLoginPageURL(clientId, sessionDataKey, forceAuthenticate,
-                    checkAuthentication, scopes, entry.getParamMap());
-        } finally {
-            OAuth2Util.clearClientTenantId();
-        }
-    }
+			return getLoginPageURL(clientId, sessionDataKey, forceAuthenticate, checkAuthentication, scopes,
+					entry.getParamMap());
+		} finally {
+			OAuth2Util.clearClientTenantId();
+		}
+	}
 
-     
-    public static String getLoginPageURL(String clientId, String sessionDataKey,
-                                         boolean forceAuthenticate, boolean checkAuthentication, Set<String> scopes,
-                                         Map<String, String[]> reqParams) throws UnsupportedEncodingException {
+	public static String getLoginPageURL(String clientId, String sessionDataKey, boolean forceAuthenticate,
+			boolean checkAuthentication, Set<String> scopes, Map<String, String[]> reqParams)
+			throws UnsupportedEncodingException {
 
-        try {
+		try {
 
-            String type = "oauth2";
+			String type = "oauth2";
 
-            if (scopes != null && scopes.contains("openid")) {
-                type = "oidc";
-            }
+			if (scopes != null && scopes.contains("openid")) {
+				type = "oidc";
+			}
 
-            String commonAuthURL = CarbonUIUtil.getAdminConsoleURL("/");
-            commonAuthURL = commonAuthURL.replace("carbon", "commonauth");
-            String selfPath = "/oauth2/authorize";
-            AuthenticationRequest authenticationRequest = new AuthenticationRequest();
+			String commonAuthURL = CarbonUIUtil.getAdminConsoleURL("/");
+			commonAuthURL = commonAuthURL.replace("carbon", "commonauth");
+			String selfPath = "/oauth2/authorize";
+			AuthenticationRequest authenticationRequest = new AuthenticationRequest();
 
-            // Build the authentication request context.
-            authenticationRequest.setCommonAuthCallerPath(selfPath);
-            authenticationRequest.setForceAuth(String.valueOf(forceAuthenticate));
-            authenticationRequest.setPassiveAuth(String.valueOf(checkAuthentication));
-            authenticationRequest.setRelyingParty(clientId);
-            authenticationRequest.addRequestQueryParam("tenantId",
-                    new String[]{String.valueOf(OAuth2Util.getClientTenatId())});
-            authenticationRequest.setRequestQueryParams(reqParams);
+			// Build the authentication request context.
+			authenticationRequest.setCommonAuthCallerPath(selfPath);
+			// authenticationRequest.setForceAuth(String.valueOf(forceAuthenticate));
+			authenticationRequest.setForceAuth(forceAuthenticate);
+			// authenticationRequest.setPassiveAuth(String.valueOf(checkAuthentication));
+			authenticationRequest.setPassiveAuth(checkAuthentication);
+			authenticationRequest.setRelyingParty(clientId);
+			authenticationRequest.addRequestQueryParam("tenantId",
+					new String[] { String.valueOf(OAuth2Util.getClientTenatId()) });
+			authenticationRequest.setRequestQueryParams(reqParams);
 
-            // Build an AuthenticationRequestCacheEntry which wraps AuthenticationRequestContext
-            AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(
-                    authenticationRequest);
-            FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, authRequest);
+			// Build an AuthenticationRequestCacheEntry which wraps
+			// AuthenticationRequestContext
+			AuthenticationRequestCacheEntry authRequest = new AuthenticationRequestCacheEntry(authenticationRequest);
+			FrameworkUtils.addAuthenticationRequestToCache(sessionDataKey, authRequest);
 
-            String loginQueryParams = "?sessionDataKey=" + sessionDataKey + "&" + "type" + "="
-                    + type;
+			String loginQueryParams = "?sessionDataKey=" + sessionDataKey + "&" + "type" + "=" + type;
 
-            return commonAuthURL + loginQueryParams;
+			return commonAuthURL + loginQueryParams;
 
-        } finally {
-            OAuth2Util.clearClientTenantId();
-        }
-    }
+		} finally {
+			OAuth2Util.clearClientTenantId();
+		}
+	}
 
-     
-    public static String getUserConsentURL(OAuth2Parameters params, String loggedInUser, String sessionDataKey,
-                                           boolean isOIDC) throws UnsupportedEncodingException {
-        String queryString = "";
-        if (log.isDebugEnabled()) {
-            log.debug("Received Session Data Key is :  " + sessionDataKey);
-            if (params == null) {
-                log.debug("Received OAuth2 params are Null for UserConsentURL");
-            }
-        }
-        SessionDataCacheEntry entry = (SessionDataCacheEntry) SessionDataCache.getInstance()
-                .getValueFromCache(new SessionDataCacheKey(sessionDataKey));
+	public static String getUserConsentURL(OAuth2Parameters params, String loggedInUser, String sessionDataKey,
+			boolean isOIDC) throws UnsupportedEncodingException {
+		String queryString = "";
+		if (log.isDebugEnabled()) {
+			log.debug("Received Session Data Key is :  " + sessionDataKey);
+			if (params == null) {
+				log.debug("Received OAuth2 params are Null for UserConsentURL");
+			}
+		}
+		SessionDataCacheEntry entry = (SessionDataCacheEntry) SessionDataCache.getInstance().getValueFromCache(
+				new SessionDataCacheKey(sessionDataKey));
 
+		if (entry == null) {
+			if (log.isDebugEnabled()) {
+				log.debug("Cache Entry is Null from SessionDataCache ");
+			}
+		} else {
+			queryString = URLEncoder.encode(entry.getQueryString(), "UTF-8");
+		}
 
-        if (entry == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Cache Entry is Null from SessionDataCache ");
-            }
-        } else {
-            queryString = URLEncoder.encode(entry.getQueryString(), "UTF-8");
-        }
+		String consentPage = null;
+		if (isOIDC) {
+			consentPage = CarbonUIUtil.getAdminConsoleURL("/") + "../authenticationendpoint/oauth2_consent.do";
+		} else {
+			consentPage = CarbonUIUtil.getAdminConsoleURL("/") + "../authenticationendpoint/oauth2_authz.do";
+		}
+		consentPage += "?" + OAuthConstants.OIDC_LOGGED_IN_USER + "=" + URLEncoder.encode(loggedInUser, "UTF-8") + "&"
+				+ "application" + "=" + URLEncoder.encode(params.getApplicationName(), "ISO-8859-1") + "&"
+				+ OAuthConstants.OAuth20Params.SCOPE + "="
+				+ URLEncoder.encode(EndpointUtil.getScope(params), "ISO-8859-1") + "&"
+				+ OAuthConstants.SESSION_DATA_KEY_CONSENT + "=" + URLEncoder.encode(sessionDataKey, "UTF-8") + "&"
+				+ "spQueryParams" + "=" + queryString;
+		return consentPage;
+	}
 
-        String consentPage = null;
-        if (isOIDC) {
-            consentPage = CarbonUIUtil.getAdminConsoleURL("/") +
-                    "../authenticationendpoint/oauth2_consent.do";
-        } else {
-            consentPage = CarbonUIUtil.getAdminConsoleURL("/") +
-                    "../authenticationendpoint/oauth2_authz.do";
-        }
-        consentPage += "?" + OAuthConstants.OIDC_LOGGED_IN_USER + "=" + URLEncoder.encode(loggedInUser, "UTF-8")
-                + "&" + "application" + "=" + URLEncoder.encode(params.getApplicationName(), "ISO-8859-1")
-                + "&" + OAuthConstants.OAuth20Params.SCOPE + "=" + URLEncoder.encode(EndpointUtil.getScope(params), "ISO-8859-1")
-                + "&" + OAuthConstants.SESSION_DATA_KEY_CONSENT + "=" + URLEncoder.encode(sessionDataKey, "UTF-8")
-                + "&" + "spQueryParams" + "=" + queryString;
-        return consentPage;
-    }
+	public static String getScope(OAuth2Parameters params) {
+		StringBuffer scopes = new StringBuffer();
+		for (String scope : params.getScopes()) {
+			scopes.append(EndpointUtil.getSafeText(scope) + " ");
+		}
+		return scopes.toString().trim();
+	}
 
-    public static String getScope(OAuth2Parameters params) {
-        StringBuffer scopes = new StringBuffer();
-        for (String scope : params.getScopes()) {
-            scopes.append(EndpointUtil.getSafeText(scope) + " ");
-        }
-        return scopes.toString().trim();
-    }
+	public static String getSafeText(String text) {
+		if (text == null) {
+			return text;
+		}
+		text = text.trim();
+		if (text.indexOf('<') > -1) {
+			text = text.replace("<", "&lt;");
+		}
+		if (text.indexOf('>') > -1) {
+			text = text.replace(">", "&gt;");
+		}
+		return text;
+	}
 
-    public static String getSafeText(String text) {
-        if (text == null) {
-            return text;
-        }
-        text = text.trim();
-        if (text.indexOf('<') > -1) {
-            text = text.replace("<", "&lt;");
-        }
-        if (text.indexOf('>') > -1) {
-            text = text.replace(">", "&gt;");
-        }
-        return text;
-    }
+	public static String getRealmInfo() {
+		return "Basic realm=" + getHostName();
+	}
 
-    public static String getRealmInfo() {
-        return "Basic realm=" + getHostName();
-    }
-
-    public static String getHostName() {
-        return ServerConfiguration.getInstance().getFirstProperty("HostName");
-    }
+	public static String getHostName() {
+		return ServerConfiguration.getInstance().getFirstProperty("HostName");
+	}
 
 }
