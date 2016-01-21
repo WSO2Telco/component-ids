@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	
-    <parent>
+
+	<parent>
 		<groupId>com.wso2telco.ids</groupId>
 		<artifactId>component-ids</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
-    	<groupId>org.wso2.carbon</groupId>
+	<groupId>org.wso2.carbon</groupId>
 	<artifactId>authentication-endpoint</artifactId>
 	<version>4.2.2</version>
-    	<packaging>war</packaging>
-    	
-    	<description>Identity Application Authentication Endpoint</description>
-    	<url>http://wso2.org</url>
+	<packaging>war</packaging>
+
+	<description>Identity Application Authentication Endpoint</description>
+	<url>http://wso2.org</url>
 
 	<name>Authentication Endpoint</name>
 
@@ -27,53 +27,53 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-		    <groupId>commons-logging</groupId>
-		    <artifactId>commons-logging</artifactId>
-		    <version>1.1.1</version>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.1.1</version>
 		</dependency>
 		<dependency>
-		    <groupId>commons-codec</groupId>
-		    <artifactId>commons-codec</artifactId>
-		    <version>1.9</version>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.9</version>
 		</dependency>
-       </dependencies>
+	</dependencies>
 	<build>
-	<plugins>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
-                </configuration>
-                <version>2.3.2</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>2.2</version>
-                <configuration>
-                    <webResources>
-                        <resource>
-                            <!-- this is relative to the pom.xml directory -->
-                            <directory>src/main/webapp</directory>
-                        </resource>
-                    </webResources>
-                    <warName>authenticationendpoint</warName>
-                </configuration>
-            </plugin>
-        </plugins>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>1.5</target>
+				</configuration>
+				<version>2.3.2</version>
+			</plugin>
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<webResources>
+						<resource>
+							<!-- this is relative to the pom.xml directory -->
+							<directory>src/main/webapp</directory>
+						</resource>
+					</webResources>
+					<warName>authenticationendpoint</warName>
+				</configuration>
+			</plugin>
+		</plugins>
 	</build>
 
-    <repositories>
-        <repository>
-            <id>wso2-nexus</id>
-            <name>WSO2 internal Repository</name>
-            <url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>
-            <releases>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>
-                <checksumPolicy>ignore</checksumPolicy>
-            </releases>
-        </repository>
-    </repositories>
+	<repositories>
+		<repository>
+			<id>wso2-nexus</id>
+			<name>WSO2 internal Repository</name>
+			<url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>daily</updatePolicy>
+				<checksumPolicy>ignore</checksumPolicy>
+			</releases>
+		</repository>
+	</repositories>
 
 </project>
