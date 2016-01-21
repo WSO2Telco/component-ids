@@ -1,13 +1,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+		<groupId>com.wso2telco.ids</groupId>
+		<artifactId>component-ids</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</parent>   
+
+    <modelVersion>4.0.0</modelVersion>
     <groupId>com.mycompany</groupId>
-    <artifactId>UserRegistration</artifactId>
+    <artifactId>user-registration</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
-    <name>UserRegistration</name>
+    <name>User Registration</name>
 
     <properties>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
@@ -36,10 +42,16 @@
             <version>2.1</version>
             <type>jar</type>
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>com.google.gson</groupId>
             <artifactId>gson</artifactId>
             <version>1.0.0</version>
+        </dependency-->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20090211</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.atlassian.httpclient</groupId>

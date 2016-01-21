@@ -3,16 +3,18 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>UrlShorten</groupId>
-  <artifactId>UrlShorten</artifactId>
+  <artifactId>url-shorten</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
-
-  <name>UrlShorten</name>
   <url>http://maven.apache.org</url>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-  </properties>
+  <parent>
+		<groupId>com.wso2telco.ids</groupId>
+		<artifactId>component-ids</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+  </parent>
+
+  <name>Url Shorten</name>
 
   <dependencies>
     <dependency>
@@ -74,4 +76,9 @@
         </plugin>
     </plugins>
   </build>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
 </project>
