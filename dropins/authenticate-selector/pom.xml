@@ -10,9 +10,9 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-    <artifactId>authentic-selector</artifactId>
+    <artifactId>authenticate-selector</artifactId>
     <packaging>jar</packaging>
-    <name>Authentic Selector - Dropins</name>
+    <name>Authenticate Selector - Dropins</name>
 
 	 <properties>
 		<saxon.he.version>9.6.0-1</saxon.he.version>
