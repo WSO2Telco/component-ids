@@ -1,91 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
- <parent>
-                <groupId>com.wso2telco.ids</groupId>
-                <artifactId>com.wso2telco.ids.dropins.ids</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
-                <relativePath>../pom.xml</relativePath>
-        </parent>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>com.wso2telco.ids.gsma.authenticator</artifactId>
-    <packaging>bundle</packaging>
-    <name>GSMA Application Authenticators</name>
+	<parent>
+		<groupId>com.wso2telco.ids</groupId>
+		<artifactId>dropins</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+		<relativePath>../pom.xml</relativePath>
+	</parent>
+
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>gsma-authenticator</artifactId>
+	<packaging>bundle</packaging>
+	<name>GSMA Application Authenticators - Dropins</name>
 	<properties>
 		<org.wso2.carbon.identity.application.common.version>4.4.0</org.wso2.carbon.identity.application.common.version>
 		<org.apache.felix.scr.annotations.version>1.9.6</org.apache.felix.scr.annotations.version>
 	</properties>
 
+	<dependencies>
+		<dependency>
+			<groupId>org.wso2.carbon.identity</groupId>
+			<artifactId>org.wso2.carbon.identity.application.common</artifactId>
+			<version>${org.wso2.carbon.identity.application.common.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.felix</groupId>
+			<artifactId>org.apache.felix.scr.annotations</artifactId>
+			<version>${org.apache.felix.scr.annotations.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>${httpclient.version}</version>
+			<type>jar</type>
+		</dependency>
+		<dependency>
+			<groupId>com.wso2telco.core</groupId>
+			<artifactId>mnc-resolver</artifactId>
+			<version>${mnc.resolver.version}</version>
+			<scope>provided</scope>
+		</dependency>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
-            <artifactId>org.wso2.carbon.identity.application.common</artifactId>
-            <version>${org.wso2.carbon.identity.application.common.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.scr.annotations</artifactId>
-            <version>${org.apache.felix.scr.annotations.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>${httpclient.version}</version>
-            <type>jar</type>
-        </dependency>
-	 <dependency>
-            <groupId>com.wso2telco.core</groupId>
-            <artifactId>mnc-resolver</artifactId>
-            <version>${mnc.resolver.version}</version>
-	    <scope>provided</scope>
-        </dependency>
-        
-	<dependency>
-            <groupId>com.wso2telco.ids</groupId>
-            <artifactId>com.wso2telco.ids.authentic.selector</artifactId>
-            <version>${com.wso2telco.ids.authentic.selector.version}</version>
-            <!--scope>provided</scope-->
-        </dependency>
-        <dependency>
-            <groupId>com.wso2telco.ids</groupId>
-            <artifactId>com.wso2telco.ids.urlshorten</artifactId>
-            <version>${com.wso2telco.ids.urlshorten.version}</version>
-            <scope>provided</scope>
-        </dependency>
+		<dependency>
+			<groupId>com.wso2telco.ids</groupId>
+			<artifactId>com.wso2telco.ids.authentic.selector</artifactId>
+			<version>${com.wso2telco.ids.authentic.selector.version}</version>
+			<!--scope>provided</scope -->
+		</dependency>
+		<dependency>
+			<groupId>com.wso2telco.ids</groupId>
+			<artifactId>com.wso2telco.ids.urlshorten</artifactId>
+			<version>${com.wso2telco.ids.urlshorten.version}</version>
+			<scope>provided</scope>
+		</dependency>
 
 
-    </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-		<version>${maven.bundle.plugin.version}</version>
-                <configuration>
-                    <instructions>
-                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-                        <Bundle-Name>${project.artifactId}</Bundle-Name>
-                        <Private-Package>com.gsma.authenticators.internal</Private-Package>
-                        <Import-Package>
-                            org.apache.commons.logging.*; version="1.0.4",
-                            org.osgi.framework,
-                            org.wso2.carbon.identity.application.authentication.framework.*,
-                            javax.servlet;version="[2.6.0, 3.0.0)",
-                            javax.servlet.http;version="[2.6.0, 3.0.0)",
-                            *;resolution:=optional
-                        </Import-Package>
-                        <Export-Package>!com.gsma.authenticators.internal,
-                            com.gsma.authenticators.*
-                        </Export-Package>
-                        <DynamicImport-Package>*</DynamicImport-Package>
-                    </instructions>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<version>${maven.bundle.plugin.version}</version>
+				<configuration>
+					<instructions>
+						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+						<Bundle-Name>${project.artifactId}</Bundle-Name>
+						<Private-Package>com.gsma.authenticators.internal</Private-Package>
+						<Import-Package>
+							org.apache.commons.logging.*; version="1.0.4",
+							org.osgi.framework,
+							org.wso2.carbon.identity.application.authentication.framework.*,
+							javax.servlet;version="[2.6.0, 3.0.0)",
+							javax.servlet.http;version="[2.6.0, 3.0.0)",
+							*;resolution:=optional
+						</Import-Package>
+						<Export-Package>!com.gsma.authenticators.internal,
+							com.gsma.authenticators.*
+						</Export-Package>
+						<DynamicImport-Package>*</DynamicImport-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>

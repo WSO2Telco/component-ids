@@ -5,13 +5,14 @@
     <modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.wso2telco.ids</groupId>
-		<artifactId>com.wso2telco.ids.dropins.ids</artifactId>
+		<artifactId>dropins</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-    <artifactId>com.wso2telco.ids.authentic.selector</artifactId>
+    <artifactId>authentic-selector</artifactId>
     <packaging>jar</packaging>
+    <name>Authentic Selector - Dropins</name>
 
 	 <properties>
 		<saxon.he.version>9.6.0-1</saxon.he.version>

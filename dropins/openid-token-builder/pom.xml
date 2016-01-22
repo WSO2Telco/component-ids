@@ -4,15 +4,15 @@
 
 	<parent>
 		<groupId>com.wso2telco.ids</groupId>
-		<artifactId>com.wso2telco.ids.dropins.ids</artifactId>
+		<artifactId>dropins</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>com.wso2telco.ids.openid.token.builder</artifactId>
+	<artifactId>openid-token-builder</artifactId>
 	<packaging>bundle</packaging>
 
-	<name>OpenID Token Builder</name>
+	<name>OpenID Token Builder - Dropins</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>

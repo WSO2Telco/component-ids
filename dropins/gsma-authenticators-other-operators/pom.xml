@@ -15,12 +15,18 @@ limitations under the License.
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
+    <parent>
+                <groupId>com.wso2telco.ids</groupId>
+		<artifactId>dropins</artifactId>
+                <version>1.0.0-SNAPSHOT</version>
+                <relativePath>../pom.xml</relativePath>
+        </parent>
+
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.gsma.authenticators</groupId>
-	<artifactId>com.gsma.authenticators</artifactId>
+	<artifactId>gsma-authenticators-other</artifactId>
 	<packaging>bundle</packaging>
 	<version>1.0.0</version>
-    <name>GSMA Application Authenticators</name>
+    <name>GSMA Application Authenticators Other- Dropins</name>
 
     <repositories>
         <repository>

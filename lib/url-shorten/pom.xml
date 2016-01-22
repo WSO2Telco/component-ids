@@ -17,22 +17,22 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-                <groupId>com.wso2telco.ids</groupId>
-                <artifactId>com.wso2telco.ids.lib</artifactId>
-                <version>1.0.0-SNAPSHOT</version>
+		<groupId>com.wso2telco.ids</groupId>
+		<artifactId>lib</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
-        </parent>
+	</parent>
 
-	<artifactId>com.wso2telco.ids.urlshorten</artifactId>
+	<artifactId>urlshorten</artifactId>
 	<packaging>jar</packaging>
 	<url>http://maven.apache.org</url>
 
-	<name>Url Shorten</name>
+	<name>Url Shorten - Lib</name>
 
 	<properties>
-                <json.simple.version>1.1</json.simple.version>
-                <jersey.client.version>1.8</jersey.client.version>
-        </properties>
+		<json.simple.version>1.1</json.simple.version>
+		<jersey.client.version>1.8</jersey.client.version>
+	</properties>
 
 	<dependencies>
 
