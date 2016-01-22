@@ -6,7 +6,7 @@ import com.gsma.authenticators.Constants;
 import com.gsma.authenticators.DBUtils;
 import com.gsma.authenticators.FindOperator;
 import com.gsma.authenticators.cryptosystem.AESencrp;
-import com.gsma.shorten.SelectShortUrl;
+import com.wso2telco.gsma.shorten.SelectShortUrl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
