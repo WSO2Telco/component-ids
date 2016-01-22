@@ -22,13 +22,10 @@
 		<commons-httpclient.version>3.1</commons-httpclient.version>
 		<org.apache.sling.commons.json.version>2.0.6</org.apache.sling.commons.json.version>
 		<json.path.version>0.9.1</json.path.version>
-		<org.wso2.carbon.identity.core.version>4.4.0</org.wso2.carbon.identity.core.version>
 		<com.gsma.authenticators.version>1.0.0</com.gsma.authenticators.version>
 		<nimbus.jose.jwt.version>2.26.1</nimbus.jose.jwt.version>
-		<org.wso2.carbon.identity.provider.version>4.4.0</org.wso2.carbon.identity.provider.version>
 		<json.smart.version>1.0.9</json.smart.version>
 		<org.wso2.carbon.apimgt.impl.version>1.2.2</org.wso2.carbon.apimgt.impl.version>
-		<org.wso2.carbon.identity.application.mgt.stub.version>4.4.0</org.wso2.carbon.identity.application.mgt.stub.version>
 	</properties>
 
 	<dependencies>
@@ -60,7 +57,7 @@
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.core</artifactId>
-			<version>${org.wso2.carbon.identity.core.version}</version>
+			<version>${org.wso2.carbon.identity.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.gsma.authenticators</groupId>
@@ -71,7 +68,7 @@
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.provider</artifactId>
-			<version>${org.wso2.carbon.identity.provider.version}</version>
+			<version>${org.wso2.carbon.identity.version}</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.nimbusds</groupId>
@@ -92,7 +89,7 @@
 		<dependency>
 		    <groupId>org.wso2.carbon.identity</groupId>
 		    <artifactId>org.wso2.carbon.identity.application.mgt.stub</artifactId>
-		    <version>${org.wso2.carbon.identity.application.mgt.stub.version}</version>
+		    <version>${org.wso2.carbon.identity.version}</version>
 		</dependency>
 	</dependencies>
 

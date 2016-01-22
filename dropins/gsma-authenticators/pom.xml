@@ -15,7 +15,6 @@
 	<packaging>bundle</packaging>
 	<name>GSMA Application Authenticators - Dropins</name>
 	<properties>
-		<org.wso2.carbon.identity.application.common.version>4.4.0</org.wso2.carbon.identity.application.common.version>
 		<org.apache.felix.scr.annotations.version>1.9.6</org.apache.felix.scr.annotations.version>
 	</properties>
 
@@ -23,7 +22,7 @@
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.application.common</artifactId>
-			<version>${org.wso2.carbon.identity.application.common.version}</version>
+			<version>${org.wso2.carbon.identity.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.felix</groupId>
