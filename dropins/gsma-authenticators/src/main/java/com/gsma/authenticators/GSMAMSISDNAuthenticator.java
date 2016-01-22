@@ -31,9 +31,7 @@ import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 
-import sun.misc.BASE64Decoder;
 
- 
 public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator implements
 		LocalApplicationAuthenticator {
 

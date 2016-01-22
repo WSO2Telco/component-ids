@@ -13,6 +13,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.OAuthAppDO;
@@ -212,7 +213,9 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         }
         log.info("USSD Pin Authenticator authentication success");
 
+        
         context.setSubject(msisdn);
+        
         String rememberMe = request.getParameter("chkRemember");
 
         if (rememberMe != null && "on".equals(rememberMe)) {
