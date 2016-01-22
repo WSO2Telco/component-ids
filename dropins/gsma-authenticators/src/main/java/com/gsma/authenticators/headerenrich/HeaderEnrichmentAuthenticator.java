@@ -1,55 +1,31 @@
 package com.gsma.authenticators.headerenrich;
 
-import com.gsma.authenticators.AuthenticatorException;
-import com.gsma.authenticators.Constants;
-import com.gsma.authenticators.Constants;
-import com.gsma.authenticators.DBUtils;
-import com.gsma.authenticators.DataHolder;
-import com.gsma.authenticators.DataHolder;
-import com.gsma.authenticators.IPRangeChecker;
-import com.gsma.authenticators.IPRangeChecker;
-import com.gsma.authenticators.config.MobileConnectConfig;
-import com.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
-
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.SchemeRegistryFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.exception.InvalidCredentialsException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
+
+import com.gsma.authenticators.Constants;
+import com.gsma.authenticators.DataHolder;
+import com.gsma.authenticators.IPRangeChecker;
+import com.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 
  
 public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthenticator

@@ -14,6 +14,7 @@ import javax.crypto.Cipher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
@@ -150,7 +151,8 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 
 	private String decryptData(String strData) throws IOException {
 
-		byte[] data = new BASE64Decoder().decodeBuffer(strData);
+		//byte[] data = new BASE64Decoder().decodeBuffer(strData);
+		byte[] data = Base64.decodeBase64(strData);		
 		byte[] descryptedData = null;
 
 		try {
@@ -174,7 +176,8 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 			NoSuchAlgorithmException, InvalidKeySpecException {
 
 		String publicK = readStringKey(fileName);
-		byte[] keyBytes = new BASE64Decoder().decodeBuffer(publicK);
+		//byte[] keyBytes = new BASE64Decoder().decodeBuffer(publicK);
+		byte[] keyBytes = Base64.decodeBase64(publicK);
 		PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
 		KeyFactory fact = KeyFactory.getInstance("RSA");
 		return fact.generatePrivate(keySpec);

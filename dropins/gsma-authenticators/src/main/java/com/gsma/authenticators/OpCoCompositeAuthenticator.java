@@ -15,6 +15,7 @@ import javax.crypto.Cipher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -229,7 +230,7 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
             cipher.init(Cipher.ENCRYPT_MODE, pubKey);
             encryptedData = cipher.doFinal(dataToEncrypt);
 
-            return new BASE64Encoder().encode(encryptedData);
+            return Base64.encodeBase64String(encryptedData);
 
         } catch (Exception e) {
             throw new AuthenticationFailedException(
@@ -240,7 +241,8 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
     private PublicKey readPublicKeyFromFile(String fileName) throws AuthenticationFailedException {
         try {
             String publicK = readStringKey(fileName);
-            byte[] keyBytes = new BASE64Decoder().decodeBuffer(publicK);
+            //byte[] keyBytes = new BASE64Decoder().decodeBuffer(publicK);
+            byte[] keyBytes = Base64.decodeBase64(publicK);
             X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             return keyFactory.generatePublic(spec);

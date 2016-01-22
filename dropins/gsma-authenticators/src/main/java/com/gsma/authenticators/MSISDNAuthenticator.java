@@ -5,6 +5,7 @@ import com.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import java.io.File;
 import java.io.FileInputStream;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
@@ -230,8 +231,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
         try {
 
-            String publicK = readStringKey(filename);
-        byte[] keyBytes = new BASE64Decoder().decodeBuffer(publicK);
+        String publicK = readStringKey(filename);
+        //byte[] keyBytes = new BASE64Decoder().decodeBuffer(publicK);
+        byte[] keyBytes = Base64.decodeBase64(publicK);        
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory fact = KeyFactory.getInstance("RSA");
 

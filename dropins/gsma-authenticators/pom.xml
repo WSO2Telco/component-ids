@@ -16,6 +16,7 @@
 	<name>GSMA Application Authenticators - Dropins</name>
 	<properties>
 		<org.apache.felix.scr.annotations.version>1.9.6</org.apache.felix.scr.annotations.version>
+		<commons-codec.version>1.9</commons-codec.version>
 	</properties>
 
 	<dependencies>
@@ -53,6 +54,11 @@
 			<artifactId>com.wso2telco.ids.urlshorten</artifactId>
 			<version>${com.wso2telco.ids.urlshorten.version}</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>${commons-codec.version}</version>
 		</dependency>
 
 
