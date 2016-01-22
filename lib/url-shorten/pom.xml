@@ -23,7 +23,7 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>urlshorten</artifactId>
+	<artifactId>url-shorten</artifactId>
 	<packaging>jar</packaging>
 	<url>http://maven.apache.org</url>
 

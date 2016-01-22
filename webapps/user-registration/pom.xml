@@ -249,9 +249,9 @@
 			<version>1.8</version>
 		</dependency>
 		<dependency>
-			<groupId>UrlShorten</groupId>
-			<artifactId>UrlShorten</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<groupId>com.wso2telco.ids</groupId>
+			<artifactId>url-shorten</artifactId>
+			<version>${url.shorten.version}</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
