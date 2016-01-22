@@ -3,10 +3,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.wso2telco.ids</groupId>
-	<artifactId>component.ids</artifactId>
+	<artifactId>component-ids</artifactId>
 	<packaging>pom</packaging>
 	<version>1.0.0-SNAPSHOT</version>
 	<name>WSO2Telco Core - Aggregate Pom</name>
@@ -18,24 +17,25 @@
 	</prerequisites>
 
 	<modules>
-        	<module>lib</module>
+		<module>lib</module>
 		<module>dropins</module>
-        	<!--module>webapps</module-->
+		<module>webapps</module>
 	</modules>
-        <properties>
-                <maven.checkstyle.plugin.version>2.17</maven.checkstyle.plugin.version>
-                <commons.logging>1.2</commons.logging>
-                <maven.compiler.plugin.version>3.3</maven.compiler.plugin.version>
-                <junit.version>3.8.1</junit.version>
-                <commons.lang.version>2.3</commons.lang.version>
-                <mnc.resolver.version>1.0.0-SNAPSHOT</mnc.resolver.version>
-                <httpclient.version>4.3.4</httpclient.version>
-                <gson.version>2.1</gson.version>
+
+	<properties>
+		<maven.checkstyle.plugin.version>2.17</maven.checkstyle.plugin.version>
+		<commons.logging>1.2</commons.logging>
+		<maven.compiler.plugin.version>3.3</maven.compiler.plugin.version>
+		<junit.version>3.8.1</junit.version>
+		<commons.lang.version>2.3</commons.lang.version>
+		<mnc.resolver.version>1.0.0-SNAPSHOT</mnc.resolver.version>
+		<httpclient.version>4.3.4</httpclient.version>
+		<gson.version>2.1</gson.version>
 		<com.wso2telco.ids.urlshorten.version>1.0.0-SNAPSHOT</com.wso2telco.ids.urlshorten.version>
 		<com.wso2telco.ids.authentic.selector.version>1.0.0-SNAPSHOT</com.wso2telco.ids.authentic.selector.version>
-        </properties>
-	<dependencies>
+	</properties>
 
+	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -53,14 +53,11 @@
 			<version>${commons.lang.version}</version>
 		</dependency>
 		<dependency>
-        	    <groupId>com.google.code.gson</groupId>
-	            <artifactId>gson</artifactId>
-        	    <version>${gson.version}</version>
-	        </dependency>
-
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>${gson.version}</version>
+		</dependency>
 	</dependencies>
-
-
 
 	<scm>
 		<url>https://github.com/WSO2Telco/core-util.git</url>
@@ -98,7 +95,6 @@
 	</build>
 
 	<repositories>
-
 		<repository>
 			<id>wso2telco-nexus</id>
 			<name>WSO2Telco internal Repository</name>
