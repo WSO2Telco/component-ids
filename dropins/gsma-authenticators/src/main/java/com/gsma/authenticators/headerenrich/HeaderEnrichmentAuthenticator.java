@@ -26,6 +26,7 @@ import com.gsma.authenticators.Constants;
 import com.gsma.authenticators.DataHolder;
 import com.gsma.authenticators.IPRangeChecker;
 import com.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
+import com.gsma.authenticators.util.AuthenticationContextHelper;
 
  
 public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthenticator
@@ -191,7 +192,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     throw new AuthenticationFailedException(e.getMessage(), e);
                 }
 
-                context.setSubject(msisdn);
+                AuthenticationContextHelper.setSubject(context, msisdn);
             }
 
         }

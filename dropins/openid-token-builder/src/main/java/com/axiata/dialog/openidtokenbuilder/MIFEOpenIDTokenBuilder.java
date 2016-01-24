@@ -101,7 +101,7 @@ public class MIFEOpenIDTokenBuilder implements
 		String subject = getACR(msisdn);
 
 		// Get access token issued time
-		long accessTokenIssuedTime = getAccessTokenIssuedTime(tokenRespDTO.getAccessToken());
+		String accessTokenIssuedTime = String.valueOf( getAccessTokenIssuedTime(tokenRespDTO.getAccessToken()));
 
 		// Set base64 encoded value of the access token to atHash
 		String atHash = new String(Base64.encodeBase64(tokenRespDTO.getAccessToken().getBytes()));
@@ -117,11 +117,13 @@ public class MIFEOpenIDTokenBuilder implements
 		}
 
 		try {
+			int expiary =Long.valueOf(curTime).intValue()+ Long.valueOf(lifetime).intValue();
+			
 			request.addProperty("accessToken", tokenRespDTO.getAccessToken());
 			IDTokenBuilder builder = new IDTokenBuilder().setIssuer(issuer).setSubject(subject)
 					.setAudience(request.getOauth2AccessTokenReqDTO().getClientId())
 					.setAuthorizedParty(request.getOauth2AccessTokenReqDTO().getClientId())
-					.setExpiration(curTime + lifetime).setIssuedAt(curTime)
+					.setExpiration( expiary ).setIssuedAt(Long.valueOf(curTime).intValue())
 					.setAuthTime(accessTokenIssuedTime).setAtHash(atHash)
 					.setClaim("acr", acr).setClaim("amr", amr); //$NON-NLS-1$ //$NON-NLS-2$
 			// setting up custom claims

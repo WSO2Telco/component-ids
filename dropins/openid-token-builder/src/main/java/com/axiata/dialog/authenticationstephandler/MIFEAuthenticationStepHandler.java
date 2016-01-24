@@ -3,6 +3,7 @@ package com.axiata.dialog.authenticationstephandler;
 import com.axiata.dialog.claimhandler.ClaimReader;
 import com.axiata.dialog.openidtokenbuilder.Messages;
 import com.axiata.dialog.util.ApplicationManagementServiceClient;
+import com.axiata.dialog.util.AuthenticationHealper;
 import com.axiata.dialog.util.LoginAdminServiceClient;
 import com.gsma.authenticators.LOACompositeAuthenticator;
 import org.apache.axis2.AxisFault;
@@ -367,17 +368,15 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 
 	private void setAuthenticationAttributes(AuthenticationContext context, StepConfig stepConfig,
 			AuthenticatorConfig authenticatorConfig) {
-		AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
 
 		// store authenticated user
-		String authenticatedUser = context.getSubject();
-		stepConfig.setAuthenticatedUser(authenticatedUser);
-		authenticatedIdPData.setUsername(authenticatedUser);
+		stepConfig.setAuthenticatedUser(context.getSubject());
+		AuthenticatedIdPData authenticatedIdPData =		AuthenticationHealper.createAuthenticatedIdPData(context);
 
-		// store authenticated user's attributes
+		/*// store authenticated user's attributes
 		Map<ClaimMapping, String> userAttributes = context.getSubjectAttributes();
 		stepConfig.setAuthenticatedUserAttributes(userAttributes);
-		authenticatedIdPData.setUserAttributes(userAttributes);
+		authenticatedIdPData.setUserAttributes(userAttributes);*/
 
 		authenticatorConfig.setAuthenticatorStateInfo(context.getStateInfo());
 		stepConfig.setAuthenticatedAutenticator(authenticatorConfig);
@@ -399,7 +398,7 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 		if (stepConfig.isSubjectAttributeStep()) {
 			SequenceConfig sequenceConfig = context.getSequenceConfig();
 			sequenceConfig.setAuthenticatedUser(context.getSubject());
-			sequenceConfig.setUserAttributes(userAttributes);
+			sequenceConfig.setAuthenticatedUser( context.getSubject());
 			context.setSequenceConfig(sequenceConfig);
 		}
 	}

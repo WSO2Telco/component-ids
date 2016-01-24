@@ -1,5 +1,8 @@
 package com.gsma.authenticators;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
@@ -8,10 +11,8 @@ import org.wso2.carbon.identity.application.authentication.framework.LocalApplic
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import com.gsma.authenticators.util.AuthenticationContextHelper;
 
  
 public class SelfAuthenticator extends AbstractApplicationAuthenticator
@@ -35,7 +36,7 @@ public class SelfAuthenticator extends AbstractApplicationAuthenticator
         log.info("Self Authenticator authentication Start ");
         String msisdn = (String) context.getProperty("msisdn");       
         context.setProperty("msisdn", msisdn);
-        context.setSubject(msisdn);
+        AuthenticationContextHelper.setSubject(context, msisdn);
         
         String rememberMe = httpServletRequest.getParameter("chkRemember");
         if (rememberMe != null && "on".equals(rememberMe)) {

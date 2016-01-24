@@ -1,8 +1,13 @@
 package com.gsma.authenticators.ussd;
 
-import com.gsma.authendictorselector.DialogAuthenticatorSelectorImpl;
-import com.gsma.authenticators.*;
-import com.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
+import java.io.IOException;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
@@ -13,31 +18,21 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.wso2.carbon.identity.base.IdentityException;
 //import org.wso2.carbon.identity.core.dao.OAuthAppDAO;
 import org.wso2.carbon.identity.core.model.OAuthAppDO;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.oauth.cache.BaseCache;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 import org.wso2.carbon.identity.oauth.common.exception.InvalidOAuthClientException;
 import org.wso2.carbon.identity.oauth.dao.OAuthAppDAO;
 import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
-import org.wso2.carbon.user.api.UserRealm;
-import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.xml.sax.SAXException;
+
+import com.gsma.authendictorselector.DialogAuthenticatorSelectorImpl;
+import com.gsma.authenticators.AuthenticatorException;
+import com.gsma.authenticators.Constants;
+import com.gsma.authenticators.DBUtils;
+import com.gsma.authenticators.FindOperator;
+import com.gsma.authenticators.util.AuthenticationContextHelper;
 
  
 public class USSDAuthenticator extends AbstractApplicationAuthenticator
@@ -180,7 +175,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         
 
         String msisdn = (String) context.getProperty("msisdn");
-        context.setSubject(msisdn);
+        AuthenticationContextHelper.setSubject(context, msisdn);
         
         log.info("USSD Authenticator authentication success");
 

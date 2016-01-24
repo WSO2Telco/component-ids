@@ -38,12 +38,9 @@ import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import com.axiata.dialog.mife.mnc.resolver.MNCQueryClient;
-import com.axiata.dialog.mife.mnc.resolver.MobileNtException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
+import com.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.mnc.resolver.MNCQueryClient;
+import com.wso2telco.mnc.resolver.MobileNtException;
 
  
 public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
@@ -95,8 +92,7 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
                     && entry.getKey().equals("LOCAL")
                     && entry.getValue().getAuthenticator().getName()
                     .equals("GSMAMSISDNAuthenticator")) {
-                incomingUser = context.getCurrentAuthenticatedIdPs().get(entry.getKey())
-                        .getUsername();
+                incomingUser = AuthenticationContextHelper.getUser( context.getCurrentAuthenticatedIdPs().get(entry.getKey()));
                 break;
             }
         }

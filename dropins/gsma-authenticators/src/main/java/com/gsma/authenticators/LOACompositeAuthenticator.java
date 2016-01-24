@@ -1,9 +1,14 @@
 package com.gsma.authenticators;
 
-import com.gsma.authenticators.config.LOA;
-import com.gsma.authenticators.config.LOAConfig;
-import com.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
-import com.gsma.authenticators.config.LOA.MIFEAbstractAuthenticator;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -18,18 +23,15 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
-import org.wso2.carbon.identity.oauth.cache.CacheKey;
-import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
-import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
-import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
-import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.*;
+import com.gsma.authenticators.config.LOA;
+import com.gsma.authenticators.config.LOA.MIFEAbstractAuthenticator;
+import com.gsma.authenticators.config.LOAConfig;
+import com.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
+import com.gsma.authenticators.util.AuthenticationContextHelper;
 
  
 public class LOACompositeAuthenticator implements ApplicationAuthenticator,
@@ -102,7 +104,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
             StepConfig sc = stepMap.get(1);
             sc.setSubjectAttributeStep(false);
             sc.setSubjectIdentifierStep(false);
-            sc.setAuthenticatedUser(msisdn);
+            AuthenticationContextHelper.setSubject(sc,msisdn);
 
             int stepOrder = 2;
 
@@ -132,7 +134,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
             sequenceConfig.setStepMap(stepMap);
             context.setSequenceConfig(sequenceConfig);
             context.setProperty("msisdn", msisdn);
-            context.setSubject(msisdn);
+            AuthenticationContextHelper.setSubject(context, msisdn);
 
 
         }else{
@@ -224,12 +226,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 	}
 
 	private LinkedHashSet<?> getACRValues(HttpServletRequest request) {
-		String sdk = request.getParameter(OAuthConstants.SESSION_DATA_KEY);
-		CacheKey ck = new SessionDataCacheKey(sdk);
-		SessionDataCacheEntry sdce = (SessionDataCacheEntry) SessionDataCache.getInstance()
-				.getValueFromCache(ck);
-		LinkedHashSet<?> acrValues = sdce.getoAuth2Parameters().getACRValues();
-		return acrValues;
+		return AuthenticationContextHelper.getACRValues(request);
 	}
 
 }

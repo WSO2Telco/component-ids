@@ -26,6 +26,8 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 
+import com.axiata.dialog.util.AuthenticationHealper;
+
 public class MIFEStepHandler extends DefaultStepHandler {
 
 	private static Log log = LogFactory.getLog(MIFEStepHandler.class);
@@ -185,6 +187,7 @@ public class MIFEStepHandler extends DefaultStepHandler {
 		int currentStep = context.getCurrentStep();
 		StepConfig stepConfig = sequenceConfig.getStepMap().get(currentStep);
 		
+		stepConfig.setAuthenticatedUser( context.getSubject());
 		for(AuthenticatorConfig authenticatorConfig:stepConfig.getAuthenticatorList()){
 			ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
@@ -204,17 +207,15 @@ public class MIFEStepHandler extends DefaultStepHandler {
 					return;
 				}
 
-				AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
+				AuthenticatedIdPData authenticatedIdPData = AuthenticationHealper.createAuthenticatedIdPData(context);
+				
 
-				// store authenticated user
-				String authenticatedUser = context.getSubject();
-				stepConfig.setAuthenticatedUser(authenticatedUser);
-				authenticatedIdPData.setUsername(authenticatedUser);
+				
 
-				// store authenticated user's attributes
+				/*// store authenticated user's attributes
 				Map<ClaimMapping, String> userAttributes = context.getSubjectAttributes();
 				stepConfig.setAuthenticatedUserAttributes(userAttributes);
-				authenticatedIdPData.setUserAttributes(userAttributes);
+				authenticatedIdPData.setUserAttributes(userAttributes);*/
 
 				authenticatorConfig.setAuthenticatorStateInfo(context.getStateInfo());
 				stepConfig.setAuthenticatedAutenticator(authenticatorConfig);

@@ -1,9 +1,17 @@
  
 package com.gsma.authenticators.ussd;
 
-import com.gsma.authendictorselector.DialogAuthenticatorSelectorImpl;
-import com.gsma.authenticators.*;
-import com.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
@@ -13,7 +21,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.model.OAuthAppDO;
@@ -27,15 +34,13 @@ import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.xml.sax.SAXException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Map;
+import com.gsma.authendictorselector.DialogAuthenticatorSelectorImpl;
+import com.gsma.authenticators.AuthenticatorException;
+import com.gsma.authenticators.Constants;
+import com.gsma.authenticators.DBUtils;
+import com.gsma.authenticators.FindOperator;
+import com.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
+import com.gsma.authenticators.util.AuthenticationContextHelper;
 
  
 public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
@@ -214,7 +219,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         log.info("USSD Pin Authenticator authentication success");
 
         
-        context.setSubject(msisdn);
+        AuthenticationContextHelper.setSubject(context, msisdn);
         
         String rememberMe = request.getParameter("chkRemember");
 

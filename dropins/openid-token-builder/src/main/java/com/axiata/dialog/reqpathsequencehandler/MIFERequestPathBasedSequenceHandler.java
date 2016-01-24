@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 
+import com.axiata.dialog.util.AuthenticationHealper;
 import com.gsma.authenticators.DataHolder;
 import com.gsma.authenticators.config.LOA;
 import com.gsma.authenticators.config.LOAConfig;
@@ -90,22 +91,19 @@ public class MIFERequestPathBasedSequenceHandler extends DefaultRequestPathBased
 					return;
 				}
 
-				String authenticatedUser = context.getSubject();
-				seqConfig.setAuthenticatedUser(authenticatedUser);
+				seqConfig.setAuthenticatedUser(context.getSubject());
 
 				if (log.isDebugEnabled()) {
-					log.debug("Authenticated User: " + authenticatedUser);
+					log.debug("Authenticated User: " + context.getSubject().getAuthenticatedSubjectIdentifier());
 				}
 
-				AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
+				AuthenticatedIdPData authenticatedIdPData = AuthenticationHealper.createAuthenticatedIdPData(context);
 
-				// store authenticated user
-				authenticatedIdPData.setUsername(authenticatedUser);
-
+/*
 				// store authenticated user's attributes
 				Map<ClaimMapping, String> userAttributes = context.getSubjectAttributes();
 				authenticatedIdPData.setUserAttributes(userAttributes);
-
+*/
 				// store authenticated idp
 				authenticatedIdPData.setIdpName(FrameworkConstants.LOCAL_IDP_NAME);
 				reqPathAuthenticator.setAuthenticatorStateInfo(context.getStateInfo());

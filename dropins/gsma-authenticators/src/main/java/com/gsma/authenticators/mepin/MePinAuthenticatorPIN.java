@@ -1,10 +1,12 @@
 package com.gsma.authenticators.mepin;
 
-import com.google.gson.JsonObject;
-import com.gsma.authendictorselector.MePINAuthenticatorSelectorImpl;
-import com.gsma.authenticators.AuthenticatorException;
-import com.gsma.authenticators.Constants;
-import com.gsma.authenticators.DBUtils;
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
@@ -17,11 +19,12 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.xml.sax.SAXException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
-import java.io.IOException;
+import com.google.gson.JsonObject;
+import com.gsma.authendictorselector.MePINAuthenticatorSelectorImpl;
+import com.gsma.authenticators.AuthenticatorException;
+import com.gsma.authenticators.Constants;
+import com.gsma.authenticators.DBUtils;
+import com.gsma.authenticators.util.AuthenticationContextHelper;
 
 public class MePinAuthenticatorPIN extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
@@ -140,8 +143,8 @@ public class MePinAuthenticatorPIN extends AbstractApplicationAuthenticator
         }
 
         String msisdn = (String) context.getProperty("msisdn");
-        context.setSubject(msisdn);
-
+        AuthenticationContextHelper.setSubject(context, msisdn);
+        
         log.info("MePIN Authenticator authentication success");
 
         String rememberMe = request.getParameter("chkRemember");

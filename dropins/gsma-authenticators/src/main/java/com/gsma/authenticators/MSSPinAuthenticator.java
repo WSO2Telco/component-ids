@@ -1,6 +1,12 @@
 package com.gsma.authenticators;
 
-import com.gsma.authenticators.model.MSSRequest;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.http.HttpResponse;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
@@ -13,11 +19,8 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import com.gsma.authenticators.model.MSSRequest;
+import com.gsma.authenticators.util.AuthenticationContextHelper;
 
  
 public class MSSPinAuthenticator extends AbstractApplicationAuthenticator
@@ -117,7 +120,7 @@ public class MSSPinAuthenticator extends AbstractApplicationAuthenticator
         log.info("MSS PIN Authenticator authentication success for MSISDN - " + msisdn);
 
         context.setProperty("msisdn", msisdn);
-        context.setSubject(msisdn);
+        AuthenticationContextHelper.setSubject(context, msisdn);
         String rememberMe = httpServletRequest.getParameter("chkRemember");
 
         if (rememberMe != null && "on".equals(rememberMe)) {

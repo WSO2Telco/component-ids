@@ -18,6 +18,8 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
+import com.gsma.authenticators.util.AuthenticationContextHelper;
+
  
 public class PinAuthenticator extends AbstractApplicationAuthenticator
 		implements LocalApplicationAuthenticator {
@@ -105,7 +107,7 @@ public class PinAuthenticator extends AbstractApplicationAuthenticator
         }
         log.info("Pin Authenticator authentication success");
         //context.setSubject((String)context.getProperty("BasicAuthSubject"));
-        context.setSubject(pin);
+        AuthenticationContextHelper.setSubject(context, pin);
 
         String rememberMe = request.getParameter("chkRemember");
 

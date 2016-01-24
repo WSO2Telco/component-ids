@@ -20,33 +20,44 @@
 	</properties>
 
 	<dependencies>
+		 <dependency>
+                        <groupId>org.wso2.carbon.identity</groupId>
+                        <artifactId>org.wso2.carbon.identity.oauth</artifactId>
+                        <version>${org.wso2.carbon.identity.version}</version>
+                </dependency>
+
+
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.application.common</artifactId>
 			<version>${org.wso2.carbon.identity.version}</version>
+				<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.felix</groupId>
 			<artifactId>org.apache.felix.scr.annotations</artifactId>
 			<version>${org.apache.felix.scr.annotations.version}</version>
+				<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<version>${httpclient.version}</version>
+				<scope>provided</scope>
 			<type>jar</type>
 		</dependency>
 		<dependency>
 			<groupId>com.wso2telco.core</groupId>
 			<artifactId>mnc-resolver</artifactId>
 			<version>${mnc.resolver.version}</version>
-			<scope>provided</scope>
+				<scope>provided</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>com.wso2telco.ids</groupId>
 			<artifactId>com.wso2telco.ids.authentic.selector</artifactId>
 			<version>${com.wso2telco.ids.authentic.selector.version}</version>
+				<scope>provided</scope>
 			<!--scope>provided</scope -->
 		</dependency>
 		<dependency>
@@ -59,6 +70,7 @@
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
 			<version>${commons-codec.version}</version>
+				<scope>provided</scope>
 		</dependency>
 
 
