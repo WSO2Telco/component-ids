@@ -18,11 +18,13 @@ package com.wso2telco.exception;
  
 
 // TODO: Auto-generated Javadoc
+ 
 /**
  * The Class ServiceException.
  */
 public class ServiceException {
 
+     
     /**
      * Instantiates a new service exception.
      *
@@ -36,9 +38,11 @@ public class ServiceException {
         this.variables = variables;
     }
     
+     
     /** The message id. */
     private String messageId;
 
+     
     /**
      * Gets the message id.
      *
@@ -48,6 +52,7 @@ public class ServiceException {
         return messageId;
     }
 
+     
     /**
      * Sets the message id.
      *
@@ -57,9 +62,11 @@ public class ServiceException {
         this.messageId = messageId;
     }
     
+     
     /** The text. */
     private String text;
 
+     
     /**
      * Gets the text.
      *
@@ -69,6 +76,7 @@ public class ServiceException {
         return text;
     }
 
+     
     /**
      * Sets the text.
      *
@@ -78,9 +86,11 @@ public class ServiceException {
         this.text = text;
     }
     
+     
     /** The variables. */
     private String variables;
 
+     
     /**
      * Gets the variables.
      *
@@ -90,6 +100,7 @@ public class ServiceException {
         return variables;
     }
 
+     
     /**
      * Sets the variables.
      *

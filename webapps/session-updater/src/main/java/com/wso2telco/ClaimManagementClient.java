@@ -31,27 +31,31 @@ import org.wso2.carbon.um.ws.api.stub.SetUserClaimValues;
 import org.wso2.carbon.um.ws.api.stub.ClaimValue;
 import org.wso2.carbon.um.ws.api.stub.PermissionDTO;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceStub;
-// TODO: Auto-generated Javadoc
-//import org.wso2.carbon.um.ws.api.stub.getC
-       
  
+ 
+// TODO: Auto-generated Javadoc
 /**
  * The Class ClaimManagementClient.
  */
 public class ClaimManagementClient {
     
+     
     /** The service name. */
     private final String serviceName = "RemoteUserStoreManagerService";
     
+     
     /** The set user claim. */
     private SetUserClaimValues setUserClaim;
     
+     
     /** The end point. */
     private String endPoint;
     
+     
     /** The remote user. */
     private RemoteUserStoreManagerServiceStub remoteUser;
     
+     
     /**
      * Instantiates a new claim management client.
      *
@@ -78,6 +82,7 @@ public class ClaimManagementClient {
                 sessionCookie);
     }
 
+     
     /**
      * Sets the claim.
      *
@@ -88,6 +93,7 @@ public class ClaimManagementClient {
         System.out.println("Remote User " + remoteUser.getProfileNames("admin").toString());
     }
     
+     
     /**
      * Gets the pin.
      *

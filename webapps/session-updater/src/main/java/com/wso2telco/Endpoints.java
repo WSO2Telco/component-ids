@@ -56,34 +56,43 @@ import java.util.logging.Logger;
 
  
 // TODO: Auto-generated Javadoc
+ 
 /**
  * The Class Endpoints.
  */
 @Path("/endpoint")
 public class Endpoints {
 
+     
     /** The context. */
     //private static final Logger LOG = Logger.getLogger(Endpoints.class.getName());
     @Context
     private UriInfo context;
     
+     
     /** The success response. */
     String successResponse = "\"" + "amountTransaction" + "\"";
     
+     
     /** The service exception. */
     String serviceException = "\"" + "serviceException" + "\"";
     
+     
     /** The policy exception. */
     String policyException = "\"" + "policyException" + "\"";
     
+     
     /** The error return. */
     String errorReturn = "\"" + "errorreturn" + "\"";
     
+     
     /** The log. */
     private static Log log = LogFactory.getLog(Endpoints.class);
     
+     
     /** The ussd no of attempts. */
     private static Map<String, Integer> ussdNoOfAttempts = new HashMap<String, Integer>();
+     
      
     /**
      * Instantiates a new endpoints.
@@ -91,6 +100,7 @@ public class Endpoints {
     public Endpoints() {
     }
 
+     
     /**
      * Ussd receive.
      *
@@ -154,6 +164,7 @@ public class Endpoints {
         return Response.status(responseCode).entity(responseString).build();
     }
 
+     
     /**
      * Validate ussd response.
      *
@@ -176,6 +187,7 @@ public class Endpoints {
         return responseString;
     }
 
+     
     /**
      * Validate pin.
      *
@@ -224,6 +236,7 @@ public class Endpoints {
         return responseString;
     }
     
+     
     /**
      * Ussd pin receive.
      *
@@ -282,6 +295,7 @@ public class Endpoints {
     }
     
     
+     
     /**
      * User status.
      *
@@ -308,6 +322,7 @@ public class Endpoints {
         return Response.status(200).entity(responseString).build();
     }
 
+     
     /**
      * Extract msisdn.
      *
@@ -323,6 +338,7 @@ public class Endpoints {
         return null;
     }
     
+     
     /**
      * Gets the hashed pin.
      *
@@ -357,6 +373,7 @@ public class Endpoints {
         
     }
 	
+     
     /**
      * Login history.
      *
@@ -384,6 +401,7 @@ public class Endpoints {
         return Response.status(200).entity(responseString).build();
     }
     
+     
     /**
      * Login apps.
      *
@@ -403,6 +421,7 @@ public class Endpoints {
         return Response.status(200).entity(responseString).build();
     }
 
+     
     /**
      * Sms confirm.
      *
@@ -443,6 +462,7 @@ public class Endpoints {
         return Response.status(200).entity(responseString).build();
     }
 
+     
     /**
      * Mepin confirm.
      *

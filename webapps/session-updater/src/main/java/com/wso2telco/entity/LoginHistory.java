@@ -19,29 +19,37 @@ import java.sql.Date;
 
  
 // TODO: Auto-generated Javadoc
+ 
 /**
  * The Class LoginHistory.
  */
 public class LoginHistory {
     
+     
     /** The application id. */
     private String applicationId;
     
+     
     /** The auth user. */
     private String authUser;
     
+     
     /** The authenticated. */
     private String authenticated;
     
+     
     /** The authenticators. */
     private String authenticators;
     
+     
     /** The auth ipaddress. */
     private String authIpaddress;
     
+     
     /** The created date. */
     private String createdDate;
 
+     
     /**
      * Instantiates a new login history.
      *
@@ -59,6 +67,7 @@ public class LoginHistory {
         this.createdDate = createdDate;
     }   
     
+     
     /**
      * Gets the application id.
      *
@@ -68,6 +77,7 @@ public class LoginHistory {
         return applicationId;
     }
 
+     
     /**
      * Sets the application id.
      *
@@ -77,6 +87,7 @@ public class LoginHistory {
         this.applicationId = applicationId;
     }
 
+     
     /**
      * Gets the auth user.
      *
@@ -86,6 +97,7 @@ public class LoginHistory {
         return authUser;
     }
 
+     
     /**
      * Sets the auth user.
      *
@@ -95,6 +107,7 @@ public class LoginHistory {
         this.authUser = authUser;
     }
 
+     
     /**
      * Gets the authenticated.
      *
@@ -104,6 +117,7 @@ public class LoginHistory {
         return ( authenticated.equalsIgnoreCase("1") ? "SUCCESS" : "FAILED");
     }
 
+     
     /**
      * Sets the authenticated.
      *
@@ -113,6 +127,7 @@ public class LoginHistory {
         this.authenticated = authenticated;
     }
 
+     
     /**
      * Gets the authenticators.
      *
@@ -122,6 +137,7 @@ public class LoginHistory {
         return authenticators;
     }
 
+     
     /**
      * Sets the authenticators.
      *
@@ -131,6 +147,7 @@ public class LoginHistory {
         this.authenticators = authenticators;
     }
 
+     
     /**
      * Gets the auth ipaddress.
      *
@@ -140,6 +157,7 @@ public class LoginHistory {
         return authIpaddress;
     }
 
+     
     /**
      * Sets the auth ipaddress.
      *
@@ -149,6 +167,7 @@ public class LoginHistory {
         this.authIpaddress = authIpaddress;
     }
 
+     
     /**
      * Gets the created date.
      *
@@ -158,6 +177,7 @@ public class LoginHistory {
         return createdDate;
     }
 
+     
     /**
      * Sets the created date.
      *

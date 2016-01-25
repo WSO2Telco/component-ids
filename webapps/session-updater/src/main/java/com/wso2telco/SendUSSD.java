@@ -35,18 +35,22 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 
 // TODO: Auto-generated Javadoc
+ 
 /**
  * The Class SendUSSD.
  */
 public class SendUSSD {
 
+     
     /** The log. */
     private static Log log = LogFactory.getLog(SendUSSD.class);
     
+     
     /** The const mtinit. */
     //private MobileConnectConfig.USSDConfig ussdConfig;
     private static String CONST_MTINIT = "mtinit";
 
+     
     /**
      * Send ussd.
      *
@@ -108,6 +112,7 @@ public class SendUSSD {
     }
 
     
+     
     /**
      * Gets the json payload.
      *
@@ -158,6 +163,7 @@ public class SendUSSD {
        return reqString;
     }
 
+     
     /**
      * Gets the USSD json payload.
      *
@@ -206,6 +212,7 @@ public class SendUSSD {
     }
     
     
+     
     /**
      * Post request.
      *

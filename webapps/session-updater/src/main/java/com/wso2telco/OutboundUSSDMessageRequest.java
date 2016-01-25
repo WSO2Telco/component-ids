@@ -16,32 +16,41 @@
 package com.wso2telco;
 
 // TODO: Auto-generated Javadoc
+ 
 /**
  * The Class OutboundUSSDMessageRequest.
  */
 public class OutboundUSSDMessageRequest {
 
+	 
 	/** The address. */
 	private String address = "";
 	
+	 
 	/** The short code. */
 	private String shortCode = "";
 	
+	 
 	/** The keyword. */
 	private String keyword = "";
 	
+	 
 	/** The outbound ussd message. */
 	private String outboundUSSDMessage = "";
 	
+	 
 	/** The client correlator. */
 	private String clientCorrelator = "";
 	
+	 
 	/** The response request. */
 	private ResponseRequest responseRequest = null;
 	
+	 
 	/** The ussd action. */
 	private String ussdAction = "";
 	
+	 
 	/**
 	 * Gets the address.
 	 *
@@ -51,6 +60,7 @@ public class OutboundUSSDMessageRequest {
 		return address;
 	}
 	
+	 
 	/**
 	 * Sets the address.
 	 *
@@ -60,6 +70,7 @@ public class OutboundUSSDMessageRequest {
 		this.address = address;
 	}
 	
+	 
 	/**
 	 * Gets the short code.
 	 *
@@ -69,6 +80,7 @@ public class OutboundUSSDMessageRequest {
 		return shortCode;
 	}
 	
+	 
 	/**
 	 * Sets the short code.
 	 *
@@ -78,6 +90,7 @@ public class OutboundUSSDMessageRequest {
 		this.shortCode = shortCode;
 	}
 	
+	 
 	/**
 	 * Gets the keyword.
 	 *
@@ -87,6 +100,7 @@ public class OutboundUSSDMessageRequest {
 		return keyword;
 	}
 	
+	 
 	/**
 	 * Sets the keyword.
 	 *
@@ -96,6 +110,7 @@ public class OutboundUSSDMessageRequest {
 		this.keyword = keyword;
 	}
 	
+	 
 	/**
 	 * Gets the outbound ussd message.
 	 *
@@ -105,6 +120,7 @@ public class OutboundUSSDMessageRequest {
 		return outboundUSSDMessage;
 	}
 	
+	 
 	/**
 	 * Sets the outbound ussd message.
 	 *
@@ -114,6 +130,7 @@ public class OutboundUSSDMessageRequest {
 		this.outboundUSSDMessage = outboundUSSDMessage;
 	}
 	
+	 
 	/**
 	 * Gets the client correlator.
 	 *
@@ -123,6 +140,7 @@ public class OutboundUSSDMessageRequest {
 		return clientCorrelator;
 	}
 	
+	 
 	/**
 	 * Sets the client correlator.
 	 *
@@ -132,6 +150,7 @@ public class OutboundUSSDMessageRequest {
 		this.clientCorrelator = clientCorrelator;
 	}
 	
+	 
 	/**
 	 * Gets the response request.
 	 *
@@ -141,6 +160,7 @@ public class OutboundUSSDMessageRequest {
 		return responseRequest;
 	}
 	
+	 
 	/**
 	 * Sets the response request.
 	 *
@@ -150,6 +170,7 @@ public class OutboundUSSDMessageRequest {
 		this.responseRequest = responseRequest;
 	}
 	
+	 
 	/**
 	 * Gets the ussd action.
 	 *
@@ -159,6 +180,7 @@ public class OutboundUSSDMessageRequest {
 		return ussdAction;
 	}
 	
+	 
 	/**
 	 * Sets the ussd action.
 	 *

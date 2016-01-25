@@ -34,14 +34,17 @@ import java.util.*;
 
  
 // TODO: Auto-generated Javadoc
+ 
 /**
  * The Class FileUtil.
  */
 public class FileUtil {
 
+     
     /** The props. */
     private static Properties props = new Properties();
 
+     
     /**
      * Creates the directory.
      *
@@ -58,6 +61,7 @@ public class FileUtil {
         }
     }
 
+     
      
      
     /**
@@ -80,6 +84,7 @@ public class FileUtil {
         }
     }
 
+     
     /**
      * Gets the correct file name.
      *
@@ -95,6 +100,7 @@ public class FileUtil {
         return fileName;
     }
 
+     
     /**
      * File write.
      *
@@ -134,6 +140,7 @@ public class FileUtil {
     }
 
      
+     
     /**
      * Gets the application property.
      *
@@ -144,6 +151,7 @@ public class FileUtil {
         return props.getProperty(key);
     }
 
+     
     /**
      * Read fully into var.
      *
@@ -167,6 +175,7 @@ public class FileUtil {
         return result;
     }
 
+     
     /**
      * Copy.
      *

@@ -18,11 +18,13 @@ package com.wso2telco.exception;
  
 
 // TODO: Auto-generated Javadoc
+ 
 /**
  * The Class PolicyException.
  */
 public class PolicyException {
 
+     
     /**
      * Instantiates a new policy exception.
      *
@@ -36,9 +38,11 @@ public class PolicyException {
         this.variables = variables;
     }
     
+     
     /** The message id. */
     private String messageId;
     
+     
     /**
      * Gets the message id.
      *
@@ -48,6 +52,7 @@ public class PolicyException {
         return messageId;
     }
 
+     
     /**
      * Sets the message id.
      *
@@ -57,9 +62,11 @@ public class PolicyException {
         this.messageId = messageId;
     }
     
+     
     /** The text. */
     private String text;
 
+     
     /**
      * Gets the text.
      *
@@ -69,6 +76,7 @@ public class PolicyException {
         return text;
     }
 
+     
     /**
      * Sets the text.
      *
@@ -78,9 +86,11 @@ public class PolicyException {
         this.text = text;
     }
     
+     
     /** The variables. */
     private String variables;
 
+     
     /**
      * Gets the variables.
      *
@@ -90,6 +100,7 @@ public class PolicyException {
         return variables;
     }
 
+     
     /**
      * Sets the variables.
      *

@@ -28,17 +28,21 @@ import java.sql.SQLException;
 import java.util.concurrent.Callable;
 
 // TODO: Auto-generated Javadoc
+ 
 /**
  * The Class MePinStatusRequest.
  */
 public class MePinStatusRequest implements Callable<String> {
 
+     
     /** The log. */
     private static Log log = LogFactory.getLog(MePinStatusRequest.class);
     
+     
     /** The transaction id. */
     private String transactionId;
 
+     
     /**
      * Instantiates a new me pin status request.
      *
@@ -48,6 +52,7 @@ public class MePinStatusRequest implements Callable<String> {
         this.transactionId = transactionId;
     }
 
+     
     /* (non-Javadoc)
      * @see java.util.concurrent.Callable#call()
      */

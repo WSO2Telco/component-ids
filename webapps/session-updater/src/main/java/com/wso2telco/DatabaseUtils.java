@@ -35,19 +35,23 @@ import java.util.TimeZone;
 
  
 // TODO: Auto-generated Javadoc
+ 
 /**
  * The Class DatabaseUtils.
  */
 public class DatabaseUtils {
 
+     
     /** The ussd datasource. */
     private static volatile DataSource ussdDatasource = null;
     
    // private static final org.apache.log4j.Logger LOG = org.apache.log4j.Logger.getLogger(Endpoints.class.getName());
 
-    /** The log. */
+     
+   /** The log. */
    private static Log log = LogFactory.getLog(DatabaseUtils.class);
 
+     
     /**
      * Initialize data source.
      *
@@ -72,6 +76,7 @@ public class DatabaseUtils {
         }
     }
    
+      
      /**
       * Update u ser status.
       *
@@ -106,6 +111,7 @@ public class DatabaseUtils {
 		}
             
     }
+     
      
     /**
      * Update status.
@@ -145,6 +151,7 @@ public class DatabaseUtils {
             
     }
     
+     
     /**
      * Update pin status.
      *
@@ -185,6 +192,7 @@ public class DatabaseUtils {
             
     }
     
+     
      
     /**
      * Gets the u ser status.
@@ -231,6 +239,7 @@ public class DatabaseUtils {
     
 
     
+     
     /**
      * Gets the ussd db connection.
      *
@@ -247,6 +256,7 @@ public class DatabaseUtils {
         }
     }
     
+     
     /**
      * Read multiple password no of attempts.
      *
@@ -280,6 +290,7 @@ public class DatabaseUtils {
         return noOfAttempts;
     }
 
+     
     /**
      * Checks if is first pin request.
      *
@@ -312,6 +323,7 @@ public class DatabaseUtils {
         return count == 0;
     }
     
+     
     /**
      * Update multiple password no of attempts.
      *
@@ -349,6 +361,7 @@ public class DatabaseUtils {
         }
     }
     
+     
     /**
      * Delete user.
      *
@@ -373,17 +386,18 @@ public class DatabaseUtils {
         }
     }
 	
-	   /**
-   	 * Gets the login history.
-   	 *
-   	 * @param userId the user id
-   	 * @param application the application
-   	 * @param fromDate the from date
-   	 * @param toDate the to date
-   	 * @return the login history
-   	 * @throws SQLException the SQL exception
-   	 */
-   	public static List<LoginHistory> getLoginHistory(String userId, String application, Date fromDate, Date toDate) throws SQLException {
+	    
+   	/**
+	    * Gets the login history.
+	    *
+	    * @param userId the user id
+	    * @param application the application
+	    * @param fromDate the from date
+	    * @param toDate the to date
+	    * @return the login history
+	    * @throws SQLException the SQL exception
+	    */
+	   public static List<LoginHistory> getLoginHistory(String userId, String application, Date fromDate, Date toDate) throws SQLException {
         Connection connection = null;
         PreparedStatement ps = null;
         String userStatus = null;
@@ -436,6 +450,7 @@ public class DatabaseUtils {
         return loghistory;
     }
     
+     
     /**
      * Gets the login apps.
      *
@@ -475,6 +490,7 @@ public class DatabaseUtils {
         return apps;
     }
 	
+     
     /**
      * Gets the end of day.
      *
@@ -491,6 +507,7 @@ public class DatabaseUtils {
         return new java.sql.Timestamp(calendar.getTime().getTime());
     }
 
+     
     /**
      * Gets the me pin session id.
      *

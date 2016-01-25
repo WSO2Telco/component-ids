@@ -34,23 +34,29 @@ import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceStub;
 //import org.wso2.carbon.um.ws.api.stub.getC
        
  
+ 
 /**
  * The Class UserIdentityManagementClient.
  */
 public class UserIdentityManagementClient {
     
+     
     /** The service name. */
     private final String serviceName = "UserIdentityManagementAdminService";
     
+     
     /** The set user claim. */
     private SetUserClaimValues setUserClaim;
     
+     
     /** The end point. */
     private String endPoint;
     
+     
     /** The remote user. */
     private UserIdentityManagementAdminServiceStub remoteUser;
     
+     
     /**
      * Instantiates a new user identity management client.
      *
@@ -76,6 +82,7 @@ public class UserIdentityManagementClient {
                 sessionCookie);
     }
     
+     
     /**
      * Lock user.
      *

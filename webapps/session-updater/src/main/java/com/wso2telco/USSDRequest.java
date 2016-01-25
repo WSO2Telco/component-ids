@@ -17,14 +17,17 @@ package com.wso2telco;
 
 
 // TODO: Auto-generated Javadoc
+ 
 /**
  * The Class USSDRequest.
  */
 public class USSDRequest {
 	
+	 
 	/** The outbound ussd message request. */
 	private OutboundUSSDMessageRequest outboundUSSDMessageRequest = null;
 
+	 
 	/**
 	 * Gets the outbound ussd message request.
 	 *
@@ -34,6 +37,7 @@ public class USSDRequest {
 		return outboundUSSDMessageRequest;
 	}
 
+	 
 	/**
 	 * Sets the outbound ussd message request.
 	 *

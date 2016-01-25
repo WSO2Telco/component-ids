@@ -33,20 +33,25 @@ import org.apache.axis2.client.ServiceClient;
 
 
         
+ 
 /**
  * The Class LoginAdminServiceClient.
  */
 public class LoginAdminServiceClient {
 	
+	 
 	/** The service name. */
 	private final String serviceName = "AuthenticationAdmin";
     
+     
     /** The authentication admin stub. */
     private AuthenticationAdminStub authenticationAdminStub;
     
+     
     /** The end point. */
     private String endPoint;
 
+     
     /**
      * Instantiates a new login admin service client.
      *
@@ -65,6 +70,7 @@ public class LoginAdminServiceClient {
         
     }
 
+     
     /**
      * Authenticate.
      *
@@ -92,6 +98,7 @@ public class LoginAdminServiceClient {
         return sessionCookie;
     }
 
+     
     /**
      * Log out.
      *
@@ -102,6 +109,7 @@ public class LoginAdminServiceClient {
         authenticationAdminStub.logout();
     }
 
+     
     /**
      * Login user.
      *
@@ -132,6 +140,7 @@ public class LoginAdminServiceClient {
         
     }
     
+     
     /**
      * Sets the pin.
      *

@@ -16,17 +16,21 @@
 package com.wso2telco;
 
 // TODO: Auto-generated Javadoc
+ 
 /**
  * The Class ResponseRequest.
  */
 public class ResponseRequest {
 
+	 
 	/** The notify url. */
 	private String notifyURL = "";
 	
+	 
 	/** The callback data. */
 	private String callbackData = "";
 	
+	 
 	/**
 	 * Gets the notify url.
 	 *
@@ -36,6 +40,7 @@ public class ResponseRequest {
 		return notifyURL;
 	}
 	
+	 
 	/**
 	 * Sets the notify url.
 	 *
@@ -45,6 +50,7 @@ public class ResponseRequest {
 		this.notifyURL = notifyURL;
 	}
 
+	 
 	/**
 	 * Gets the callback data.
 	 *
@@ -54,6 +60,7 @@ public class ResponseRequest {
 		return callbackData;
 	}
 
+	 
 	/**
 	 * Sets the callback data.
 	 *
