@@ -1,4 +1,19 @@
-package com.axiata.mife.util;
+/*******************************************************************************
+ * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
+ * 
+ * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
+package com.wso2telco.util;
 
 import org.apache.amber.oauth2.common.exception.OAuthSystemException;
 import org.apache.axiom.util.base64.Base64Utils;
@@ -27,44 +42,97 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.Set;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class EndpointUtil.
+ */
 public class EndpointUtil {
 
+	/** The log. */
 	private static Log log = LogFactory.getLog(EndpointUtil.class);
 
+	/**
+	 * Gets the o auth2 service.
+	 *
+	 * @return the o auth2 service
+	 */
 	public static OAuth2Service getOAuth2Service() {
 		return (OAuth2Service) PrivilegedCarbonContext.getCurrentContext().getOSGiService(OAuth2Service.class);
 	}
 
+	/**
+	 * Gets the o auth server configuration.
+	 *
+	 * @return the o auth server configuration
+	 */
 	public static OAuthServerConfiguration getOAuthServerConfiguration() {
 		return (OAuthServerConfiguration) PrivilegedCarbonContext.getCurrentContext().getOSGiService(
 				OAuthServerConfiguration.class);
 	}
 
+	/**
+	 * Gets the o auth2 token validation service.
+	 *
+	 * @return the o auth2 token validation service
+	 */
 	public static OAuth2TokenValidationService getOAuth2TokenValidationService() {
 		return (OAuth2TokenValidationService) PrivilegedCarbonContext.getCurrentContext().getOSGiService(
 				OAuth2TokenValidationService.class);
 	}
 
+	/**
+	 * Gets the user info request validator.
+	 *
+	 * @return the user info request validator
+	 * @throws OAuthSystemException the o auth system exception
+	 */
 	public static String getUserInfoRequestValidator() throws OAuthSystemException {
 		return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointRequestValidator();
 	}
 
+	/**
+	 * Gets the access token validator.
+	 *
+	 * @return the access token validator
+	 */
 	public static String getAccessTokenValidator() {
 		return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointAccessTokenValidator();
 	}
 
+	/**
+	 * Gets the user info response builder.
+	 *
+	 * @return the user info response builder
+	 */
 	public static String getUserInfoResponseBuilder() {
 		return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointResponseBuilder();
 	}
 
+	/**
+	 * Gets the user info claim retriever.
+	 *
+	 * @return the user info claim retriever
+	 */
 	public static String getUserInfoClaimRetriever() {
 		return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointClaimRetriever();
 	}
 
+	/**
+	 * Gets the user info claim dialect.
+	 *
+	 * @return the user info claim dialect
+	 */
 	public static String getUserInfoClaimDialect() {
 		return getOAuthServerConfiguration().getOpenIDConnectUserInfoEndpointClaimDialect();
 	}
 
+	/**
+	 * Extract credentials from authz header.
+	 *
+	 * @param authorizationHeader the authorization header
+	 * @return the string[]
+	 * @throws OAuthClientException the o auth client exception
+	 */
 	public static String[] extractCredentialsFromAuthzHeader(String authorizationHeader) throws OAuthClientException {
 		String[] splitValues = authorizationHeader.trim().split(" ");
 		byte[] decodedBytes = Base64Utils.decode(splitValues[1].trim());
@@ -77,6 +145,15 @@ public class EndpointUtil {
 		}
 	}
 
+	/**
+	 * Gets the error page url.
+	 *
+	 * @param errorCode the error code
+	 * @param errorMessage the error message
+	 * @param appName the app name
+	 * @param redirect_uri the redirect_uri
+	 * @return the error page url
+	 */
 	public static String getErrorPageURL(String errorCode, String errorMessage, String appName, String redirect_uri) {
 
 		String errorPageUrl = null;
@@ -103,6 +180,17 @@ public class EndpointUtil {
 		return errorPageUrl;
 	}
 
+	/**
+	 * Gets the login page url.
+	 *
+	 * @param clientId the client id
+	 * @param sessionDataKey the session data key
+	 * @param forceAuthenticate the force authenticate
+	 * @param checkAuthentication the check authentication
+	 * @param scopes the scopes
+	 * @return the login page url
+	 * @throws UnsupportedEncodingException the unsupported encoding exception
+	 */
 	public static String getLoginPageURL(String clientId, String sessionDataKey, boolean forceAuthenticate,
 			boolean checkAuthentication, Set<String> scopes) throws UnsupportedEncodingException {
 
@@ -117,6 +205,18 @@ public class EndpointUtil {
 		}
 	}
 
+	/**
+	 * Gets the login page url.
+	 *
+	 * @param clientId the client id
+	 * @param sessionDataKey the session data key
+	 * @param forceAuthenticate the force authenticate
+	 * @param checkAuthentication the check authentication
+	 * @param scopes the scopes
+	 * @param reqParams the req params
+	 * @return the login page url
+	 * @throws UnsupportedEncodingException the unsupported encoding exception
+	 */
 	public static String getLoginPageURL(String clientId, String sessionDataKey, boolean forceAuthenticate,
 			boolean checkAuthentication, Set<String> scopes, Map<String, String[]> reqParams)
 			throws UnsupportedEncodingException {
@@ -159,6 +259,16 @@ public class EndpointUtil {
 		}
 	}
 
+	/**
+	 * Gets the user consent url.
+	 *
+	 * @param params the params
+	 * @param loggedInUser the logged in user
+	 * @param sessionDataKey the session data key
+	 * @param isOIDC the is oidc
+	 * @return the user consent url
+	 * @throws UnsupportedEncodingException the unsupported encoding exception
+	 */
 	public static String getUserConsentURL(OAuth2Parameters params, String loggedInUser, String sessionDataKey,
 			boolean isOIDC) throws UnsupportedEncodingException {
 		String queryString = "";
@@ -194,6 +304,12 @@ public class EndpointUtil {
 		return consentPage;
 	}
 
+	/**
+	 * Gets the scope.
+	 *
+	 * @param params the params
+	 * @return the scope
+	 */
 	public static String getScope(OAuth2Parameters params) {
 		StringBuffer scopes = new StringBuffer();
 		for (String scope : params.getScopes()) {
@@ -202,6 +318,12 @@ public class EndpointUtil {
 		return scopes.toString().trim();
 	}
 
+	/**
+	 * Gets the safe text.
+	 *
+	 * @param text the text
+	 * @return the safe text
+	 */
 	public static String getSafeText(String text) {
 		if (text == null) {
 			return text;
@@ -216,10 +338,20 @@ public class EndpointUtil {
 		return text;
 	}
 
+	/**
+	 * Gets the realm info.
+	 *
+	 * @return the realm info
+	 */
 	public static String getRealmInfo() {
 		return "Basic realm=" + getHostName();
 	}
 
+	/**
+	 * Gets the host name.
+	 *
+	 * @return the host name
+	 */
 	public static String getHostName() {
 		return ServerConfiguration.getInstance().getFirstProperty("HostName");
 	}

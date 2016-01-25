@@ -1,7 +1,21 @@
-package com.axiata.mife.user.impl;
+/*******************************************************************************
+ * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
+ * 
+ * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
+package com.wso2telco.user.impl;
 
 
-import com.axiata.mife.config.ScopeConfigs;
 import org.apache.amber.oauth2.common.exception.OAuthSystemException;
 import org.apache.amber.oauth2.common.utils.JSONUtils;
 import org.apache.commons.logging.Log;
@@ -11,21 +25,35 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.oauth.cache.AuthorizationGrantCache;
 import org.wso2.carbon.identity.oauth.cache.AuthorizationGrantCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.AuthorizationGrantCacheKey;
-import com.axiata.mife.config.ConfigLoader;
-import com.axiata.mife.config.DataHolder;
-import com.axiata.mife.config.Scope;
 import org.wso2.carbon.identity.oauth.user.UserInfoClaimRetriever;
 import org.wso2.carbon.identity.oauth.user.UserInfoEndpointException;
 import org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder;
-import com.axiata.mife.util.ClaimUtil;
+
+import com.wso2telco.config.ConfigLoader;
+import com.wso2telco.config.DataHolder;
+import com.wso2telco.config.Scope;
+import com.wso2telco.config.ScopeConfigs;
+import com.wso2telco.util.ClaimUtil;
+
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
 
 import java.util.*;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class ClaimInfoMultipleScopeResponseBuilder.
+ */
 public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBuilder {
+    
+    /** The log. */
     private static Log log = LogFactory.getLog(ClaimInfoMultipleScopeResponseBuilder.class);
+    
+    /** The openid scopes. */
     List<String> openidScopes = Arrays.asList("profile", "email", "address", "phone", "openid");
 
+    /* (non-Javadoc)
+     * @see org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder#getResponseString(org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO)
+     */
     public String getResponseString(OAuth2TokenValidationResponseDTO tokenResponse)
             throws UserInfoEndpointException,
             OAuthSystemException {
@@ -76,6 +104,12 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         }
     }
 
+    /**
+     * Gets the user attributes from cache.
+     *
+     * @param tokenResponse the token response
+     * @return the user attributes from cache
+     */
     private Map<ClaimMapping, String> getUserAttributesFromCache(OAuth2TokenValidationResponseDTO tokenResponse) {
         AuthorizationGrantCacheKey cacheKey = new AuthorizationGrantCacheKey(tokenResponse
                 .getAuthorizationContextToken().getTokenString());
@@ -86,6 +120,14 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         return cacheEntry.getUserAttributes();
     }
 
+    /**
+     * Gets the requested claims.
+     *
+     * @param scopes the scopes
+     * @param scopeConfigs the scope configs
+     * @param totalClaims the total claims
+     * @return the requested claims
+     */
     private Map<String, Object> getRequestedClaims(String[] scopes, ScopeConfigs scopeConfigs, Map<String, Object> totalClaims) {
         Map<String, Object> requestedClaims = new HashMap<String, Object>();
         String[] attributes;
@@ -108,6 +150,14 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
     }
 
 
+    /**
+     * Adds the claims.
+     *
+     * @param claims the claims
+     * @param requestedClaims the requested claims
+     * @param attributeList the attribute list
+     * @return the map
+     */
     private Map<String, Object> addClaims(Map<String, Object> claims, Map<String, Object> requestedClaims, String[] attributeList) {
         int attributeIndex = 0;
         while (attributeIndex < attributeList.length) {
@@ -119,6 +169,12 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         return requestedClaims;
     }
 
+    /**
+     * Gets the valid scopes.
+     *
+     * @param requestedScopes the requested scopes
+     * @return the valid scopes
+     */
     private String[] getValidScopes(String[] requestedScopes) {
         List<String> validScopes = new ArrayList<String>();
         for (String scope : requestedScopes) {

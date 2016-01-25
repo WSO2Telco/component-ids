@@ -1,7 +1,19 @@
-package com.axiata.mife;
-
-import com.axiata.mife.config.Scope;
-import com.axiata.mife.config.ScopeConfigs;
+/*******************************************************************************
+ * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
+ * 
+ * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
+package com.wso2telco;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -16,6 +28,9 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.wso2telco.config.Scope;
+import com.wso2telco.config.ScopeConfigs;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -27,19 +42,38 @@ import java.util.List;
 
  
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class UserInfoScopeTest.
+ */
 @Ignore
 public class UserInfoScopeTest {
 
+    /** The log. */
     private static Log log = LogFactory.getLog(UserInfoScopeTest.class);
+    
+    /** The scope configs. */
     private ScopeConfigs scopeConfigs;
+    
+    /** The client_id. */
     private String client_id = "izbtbCFWzsVNtXT8Sdg0QuP9Lg4a";
+    
+    /** The client_secret. */
     private String client_secret = "KLm_CYBd93KWFowB3kb_y0Q5Iy8a";
+    
+    /** The admin url. */
     private String adminUrl = "https://localhost:9443";
+    
+    /** The jks file path. */
     private String jksFilePath = "/home/nipuni/Nipuni/dev-service/dialog-axiata/support/MIFE-470/wso2is-5.0.0/repository/resources/security/wso2carbon.jks";
 
 
+    /** The scopes. */
     HashMap<String, Scope> scopes = new HashMap<String, Scope>();
 
+    /**
+     * Read scopes from file.
+     */
     @Before
     public void readScopesFromFile() {
         try {
@@ -52,6 +86,9 @@ public class UserInfoScopeTest {
         }
     }
 
+    /**
+     * Test profile scope.
+     */
     @Test
     public void testProfileScope() {
         String scope = "openid+profile";
@@ -63,6 +100,9 @@ public class UserInfoScopeTest {
         Assert.assertTrue(isValid);
     }
 
+    /**
+     * Test email scope.
+     */
     @Test
     public void testEmailScope() {
         String scope = "openid+email";
@@ -74,6 +114,9 @@ public class UserInfoScopeTest {
         Assert.assertTrue(isValid);
     }
 
+    /**
+     * Test phone scope.
+     */
     @Test
     public void testPhoneScope() {
         String scope = "openid+phone";
@@ -85,6 +128,9 @@ public class UserInfoScopeTest {
         Assert.assertTrue(isValid);
     }
 
+    /**
+     * Test address scope.
+     */
     @Test
     public void testAddressScope() {
         String scope = "openid+address";
@@ -97,6 +143,12 @@ public class UserInfoScopeTest {
     }
 
 
+    /**
+     * Gets the token.
+     *
+     * @param scope the scope
+     * @return the token
+     */
     private String getToken(String scope) {
         Process curlProc;
         String outputString;
@@ -123,6 +175,12 @@ public class UserInfoScopeTest {
 
     }
 
+    /**
+     * Gets the user info.
+     *
+     * @param access_token the access_token
+     * @return the user info
+     */
     private String getUserInfo(String access_token) {
         String resp = "";
         try {
@@ -146,6 +204,12 @@ public class UserInfoScopeTest {
         return resp;
     }
 
+    /**
+     * Read scopes config.
+     *
+     * @return the scope configs
+     * @throws JAXBException the JAXB exception
+     */
     private ScopeConfigs readScopesConfig() throws JAXBException {
         Unmarshaller um = null;
         ScopeConfigs userClaims = null;
@@ -161,12 +225,22 @@ public class UserInfoScopeTest {
         return userClaims;
     }
 
+    /**
+     * Read scopes.
+     */
     private void readScopes() {
         for (Scope scope : scopeConfigs.getScopes().getScopeList()) {
             scopes.put(scope.getName(), scope);
         }
     }
 
+    /**
+     * Checks if is scope valid.
+     *
+     * @param scope the scope
+     * @param response the response
+     * @return true, if is scope valid
+     */
     private boolean isScopeValid(String scope, String response) {
         boolean isValid = true;
         JSONObject obj;
