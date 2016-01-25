@@ -20,7 +20,7 @@ package com.wso2telco.client;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.gsma.shorten.SelectShortUrl;
+import com.wso2telco.gsma.shorten.SelectShortUrl;
 import com.wso2telco.sms.OutboundSMSMessageRequest;
 import com.wso2telco.sms.OutboundSMSTextMessage;
 import com.wso2telco.sms.SendSMSRequest;
