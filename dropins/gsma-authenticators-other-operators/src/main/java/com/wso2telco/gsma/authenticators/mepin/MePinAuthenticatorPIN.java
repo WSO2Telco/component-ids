@@ -16,7 +16,7 @@
 package com.wso2telco.gsma.authenticators.mepin;
 
 import com.google.gson.JsonObject;
-import com.gsma.authendictorselector.MePINAuthenticatorSelectorImpl;
+import com.wso2telco.gsma.authendictorselector.MePINAuthenticatorSelectorImpl;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
