@@ -23,14 +23,17 @@ import com.google.gdata.util.common.util.Base64;
 
  
 // TODO: Auto-generated Javadoc
+ 
 /**
  * The Class EncryptAES.
  */
 public class EncryptAES {
 
+	 
 	/** The cipher. */
 	private static Cipher cipher;
 
+	 
 	/** The key value. */
 	private static byte[] keyValue;
 
@@ -38,6 +41,7 @@ public class EncryptAES {
 		keyValue = FileUtil.getApplicationProperty("key").getBytes();
 	}
 
+	 
 	/**
 	 * Encrypt.
 	 *
