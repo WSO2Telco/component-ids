@@ -1,7 +1,22 @@
-package com.gsma.authenticators.dialog.sms;
+/*******************************************************************************
+ * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
+ * 
+ * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
+package com.wso2telco.gsma.authenticators.dialog.sms;
 
-import com.gsma.authendictorselector.AuthenticatorSelector;
-import com.gsma.utils.ReadMobileConnectConfig;
+import com.wso2telco.gsma.authendictorselector.AuthenticatorSelector;
+import com.wso2telco.gsma.utils.ReadMobileConnectConfig;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.http.HttpResponse;
@@ -20,23 +35,50 @@ import java.util.List;
 import java.util.Map;
 
  
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SendSMS.
+ */
 public class SendSMS implements AuthenticatorSelector{
 
 //    private static final Logger LOG = Logger.getLogger(SendSMS.class.getName());
+/** The read mobile connect config. */
 //    private MobileConnectConfig.SMSConfig smsConfig;
     ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
+    
+    /** The read mobile connect config result. */
     Map<String, String> readMobileConnectConfigResult;
 //    public SendSMS(String operator) throws ParserConfigurationException, SAXException, XPathExpressionException, IOException {
 //        readMobileConnectConfigResult = readMobileConnectConfig.query("SMS/" + operator);
+/** The msisdn. */
 //    }
     String msisdn;
+    
+    /** The message. */
     String message;
 
+    /**
+     * Instantiates a new send sms.
+     *
+     * @param msisdn the msisdn
+     * @param message the message
+     */
     public SendSMS(String msisdn, String message) {
         this.msisdn = msisdn;
         this.message = message;
     }
 
+    /**
+     * Send sms.
+     *
+     * @param msisdn the msisdn
+     * @param message the message
+     * @return the string
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws XPathExpressionException the x path expression exception
+     * @throws SAXException the SAX exception
+     * @throws ParserConfigurationException the parser configuration exception
+     */
     public String sendSMS(String msisdn, String message) throws IOException, XPathExpressionException, SAXException, ParserConfigurationException {
         String returnString = null;
 
@@ -79,6 +121,16 @@ public class SendSMS implements AuthenticatorSelector{
 
     }
 
+    /**
+     * Post request.
+     *
+     * @param url the url
+     * @param requestStr the request str
+     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws XPathExpressionException the x path expression exception
+     * @throws SAXException the SAX exception
+     * @throws ParserConfigurationException the parser configuration exception
+     */
     protected void postRequest(String url, String requestStr) throws IOException, XPathExpressionException, SAXException, ParserConfigurationException {
 
 
@@ -109,6 +161,9 @@ public class SendSMS implements AuthenticatorSelector{
         }
     }
 
+    /* (non-Javadoc)
+     * @see com.wso2telco.gsma.authendictorselector.AuthenticatorSelector#invokeAuthendicator()
+     */
     @Override
     public String invokeAuthendicator() throws SAXException, ParserConfigurationException, XPathExpressionException, IOException {
         return sendSMS(msisdn,message);
