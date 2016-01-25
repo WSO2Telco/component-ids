@@ -21,12 +21,14 @@ import junit.framework.TestSuite;
 
  
 // TODO: Auto-generated Javadoc
+ 
 /**
  * The Class AppTest.
  */
 public class AppTest 
     extends TestCase
 {
+     
      
     /**
      * Instantiates a new app test.
@@ -39,6 +41,7 @@ public class AppTest
     }
 
      
+     
     /**
      * Suite.
      *
@@ -49,6 +52,7 @@ public class AppTest
         return new TestSuite( AppTest.class );
     }
 
+     
      
     /**
      * Test app.

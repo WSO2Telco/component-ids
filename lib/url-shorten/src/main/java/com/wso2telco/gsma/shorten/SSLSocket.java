@@ -28,14 +28,17 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 // TODO: Auto-generated Javadoc
+ 
 /**
  * The Class SSLSocket.
  */
 public class SSLSocket extends SSLSocketFactory {
          
+          
          /** The ssl context. */
          SSLContext sslContext = SSLContext.getInstance("TLS");
 
+     
     /**
      * Instantiates a new SSL socket.
      *
@@ -63,6 +66,7 @@ public class SSLSocket extends SSLSocketFactory {
         sslContext.init(null, new TrustManager[] { tm }, null);
     }
 
+     
     /* (non-Javadoc)
      * @see org.apache.http.conn.ssl.SSLSocketFactory#createSocket(java.net.Socket, java.lang.String, int, boolean)
      */
@@ -71,6 +75,7 @@ public class SSLSocket extends SSLSocketFactory {
         return sslContext.getSocketFactory().createSocket(socket, host, port, autoClose);
     }
 
+     
     /* (non-Javadoc)
      * @see org.apache.http.conn.ssl.SSLSocketFactory#createSocket()
      */

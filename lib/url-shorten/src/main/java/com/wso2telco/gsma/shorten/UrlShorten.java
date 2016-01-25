@@ -17,11 +17,13 @@ package com.wso2telco.gsma.shorten;
 
  
 // TODO: Auto-generated Javadoc
+ 
 /**
  * The Interface UrlShorten.
  */
 public interface UrlShorten {
 
+     
     /**
      * Gets the shorten url.
      *

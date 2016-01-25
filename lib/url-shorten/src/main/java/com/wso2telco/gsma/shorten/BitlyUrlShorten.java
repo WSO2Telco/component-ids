@@ -15,6 +15,10 @@
  ******************************************************************************/
 package com.wso2telco.gsma.shorten;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.security.KeyStore;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.methods.HttpGet;
@@ -31,10 +35,6 @@ import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.protocol.HTTP;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.security.KeyStore;
 
 
  
