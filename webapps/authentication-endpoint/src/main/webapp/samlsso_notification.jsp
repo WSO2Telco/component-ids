@@ -15,15 +15,13 @@
  ~ specific language governing permissions and limitations
  ~ under the License.
  -->
-<%@ page import="com.wso2telco.carbon.identity.application.authentication.endpoint.Constants" %>
-<%@ page import="com.wso2telco.carbon.identity.application.authentication.endpoint.util.CharacterEncoder"%>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.Constants" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.CharacterEncoder"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <%
-
-    String stat = CharacterEncoder.getSafeText(request.getParameter(Constants.STATUS));
-    String statusMessage = CharacterEncoder.getSafeText(request.getParameter(Constants.STATUS_MSG));
-
+    String stat = CharacterEncoder.getSafeText((String) request.getParameter(Constants.STATUS));
+    String statusMessage = CharacterEncoder.getSafeText( (String) request.getParameter(Constants.STATUS_MSG));
     if(stat == null || statusMessage == null){
         stat = "Authentication Error !";
         statusMessage = "Something went wrong during the authentication process. Please try signing in again.";
@@ -41,7 +39,7 @@ padding:10px;
 }
 </style>
 
-<fmt:bundle basename="com.wso2telco.carbon.identity.application.authentication.endpoint.i18n.Resources">
+<fmt:bundle basename="org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources">
     <div id="middle">
         <h2><fmt:message key='saml.sso'/></h2>
 
