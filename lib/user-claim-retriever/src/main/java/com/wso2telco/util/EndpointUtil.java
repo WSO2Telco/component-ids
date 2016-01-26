@@ -15,6 +15,11 @@
  ******************************************************************************/
 package com.wso2telco.util;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.amber.oauth2.common.exception.OAuthSystemException;
 import org.apache.axiom.util.base64.Base64Utils;
 import org.apache.commons.logging.Log;
@@ -36,12 +41,6 @@ import org.wso2.carbon.identity.oauth2.model.OAuth2Parameters;
 import org.wso2.carbon.identity.oauth2.util.OAuth2Util;
 import org.wso2.carbon.ui.CarbonUIUtil;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.Set;
-
 // TODO: Auto-generated Javadoc
 /**
  * The Class EndpointUtil.
@@ -57,7 +56,7 @@ public class EndpointUtil {
 	 * @return the o auth2 service
 	 */
 	public static OAuth2Service getOAuth2Service() {
-		return (OAuth2Service) PrivilegedCarbonContext.getCurrentContext().getOSGiService(OAuth2Service.class);
+		return (OAuth2Service) PrivilegedCarbonContext.getThreadLocalCarbonContext().getOSGiService(OAuth2Service.class);
 	}
 
 	/**
@@ -66,7 +65,7 @@ public class EndpointUtil {
 	 * @return the o auth server configuration
 	 */
 	public static OAuthServerConfiguration getOAuthServerConfiguration() {
-		return (OAuthServerConfiguration) PrivilegedCarbonContext.getCurrentContext().getOSGiService(
+		return (OAuthServerConfiguration) PrivilegedCarbonContext.getThreadLocalCarbonContext().getOSGiService(
 				OAuthServerConfiguration.class);
 	}
 
@@ -76,7 +75,7 @@ public class EndpointUtil {
 	 * @return the o auth2 token validation service
 	 */
 	public static OAuth2TokenValidationService getOAuth2TokenValidationService() {
-		return (OAuth2TokenValidationService) PrivilegedCarbonContext.getCurrentContext().getOSGiService(
+		return (OAuth2TokenValidationService) PrivilegedCarbonContext.getThreadLocalCarbonContext().getOSGiService(
 				OAuth2TokenValidationService.class);
 	}
 
