@@ -24,9 +24,9 @@
 	<name>WSO2Telco supportive ibraries </name>
 
 	<modules>
-		<module>authentication-endpoint</module>
+		<!--module>authentication-endpoint</module>
 		<module>operator-proxy-service</module>
-		<module>session-updater</module>
+		<module>session-updater</module-->
 		<module>user-registration</module>
 	</modules>
 

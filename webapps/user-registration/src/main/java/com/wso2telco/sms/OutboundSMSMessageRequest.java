@@ -1,169 +1,83 @@
-/*******************************************************************************
- * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
- * 
- * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package com.wso2telco.sms;
+
+import com.wso2telco.ReceiptRequest;
 
 import java.util.List;
 
-
-// TODO: Auto-generated Javadoc
-/**
- * The Class OutboundSMSMessageRequest.
- */
 public class OutboundSMSMessageRequest {
+    
 
-    /** The client correlator. */
     private String clientCorrelator = "";
-    
-    /** The callback data. */
-    private String callbackData = "";
-    
-    /** The address. */
+//    private String callbackData = "";
     private List<String> address;
-    
-    /** The sender address. */
     private String senderAddress = "";
-    
-    /** The sender name. */
     private String senderName = "";
-
-    /** The outbound sms text message. */
+    
     private OutboundSMSTextMessage outboundSMSTextMessage;
-//    private ReceiptRequest receiptRequest;
-
-
-    /**
- * Instantiates a new outbound sms message request.
- */
-public OutboundSMSMessageRequest() {
+    private ReceiptRequest receiptRequest;
+    
+    
+    
+    public OutboundSMSMessageRequest() {
     }
 
 
-    /**
-     * Gets the client correlator.
-     *
-     * @return the client correlator
-     */
     public String getClientCorrelator() {
-        return clientCorrelator;
+            return clientCorrelator;
     }
 
-    /**
-     * Sets the client correlator.
-     *
-     * @param clientCorrelator the new client correlator
-     */
     public void setClientCorrelator(String clientCorrelator) {
-        this.clientCorrelator = clientCorrelator;
+            this.clientCorrelator = clientCorrelator;
     }
-
-    /**
-     * Gets the sender address.
-     *
-     * @return the sender address
-     */
     public String getSenderAddress() {
-        return senderAddress;
+            return senderAddress;
     }
 
-    /**
-     * Sets the sender address.
-     *
-     * @param senderAddress the new sender address
-     */
     public void setSenderAddress(String senderAddress) {
-        this.senderAddress = senderAddress;
+            this.senderAddress = senderAddress;
     }
-
-    /**
-     * Gets the callback data.
-     *
-     * @return the callback data
-     */
+    /*
     public String getCallbackData() {
-        return callbackData;
+            return callbackData;
     }
 
-    /**
-     * Sets the callback data.
-     *
-     * @param callbackData the new callback data
-     */
     public void setCallbackData(String callbackData) {
-        this.callbackData = callbackData;
+            this.callbackData = callbackData;
+    }
+    */
+     public List<String> getAddress() {
+            return address;
     }
 
-    /**
-     * Gets the address.
-     *
-     * @return the address
-     */
-    public List<String> getAddress() {
-        return address;
-    }
-
-    /**
-     * Sets the address.
-     *
-     * @param address the new address
-     */
     public void setAddress(List<String> address) {
-        this.address = address;
+            this.address = address;
     }
-
-    /**
-     * Gets the outbound text message.
-     *
-     * @return the outbound text message
-     */
+    
     public OutboundSMSTextMessage getOutboundTextMessage() {
-        return outboundSMSTextMessage;
+            return outboundSMSTextMessage;
     }
 
-    /**
-     * Sets the outbound text message.
-     *
-     * @param outboundSMSTextMessage the new outbound text message
-     */
     public void setOutboundTextMessage(OutboundSMSTextMessage outboundSMSTextMessage) {
-        this.outboundSMSTextMessage = outboundSMSTextMessage;
+            this.outboundSMSTextMessage = outboundSMSTextMessage;
+    }
+    
+    public ReceiptRequest getReceiptRequest() {
+            return receiptRequest;
     }
 
-    //    public ReceiptRequest getReceiptRequest() {
-//            return receiptRequest;
-//    }
-//
-//    public void setReceiptRequest(ReceiptRequest receiptRequest) {
-//            this.receiptRequest = receiptRequest;
-/**
-     * Gets the sender name.
-     *
-     * @return the sender name
-     */
-    //    }
+    public void setReceiptRequest(ReceiptRequest receiptRequest) {
+            this.receiptRequest = receiptRequest;
+    }
     public String getSenderName() {
-        return senderName;
+            return senderName;
     }
 
-    /**
-     * Sets the sender name.
-     *
-     * @param senderName the new sender name
-     */
     public void setSenderName(String senderName) {
-        this.senderName = senderName;
+            this.senderName = senderName;
     }
-
+    
 }
