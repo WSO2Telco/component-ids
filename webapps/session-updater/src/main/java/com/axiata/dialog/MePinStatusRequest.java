@@ -1,19 +1,4 @@
-/*******************************************************************************
- * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
- * 
- * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
-package com.wso2telco;
+package com.axiata.dialog;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -27,35 +12,15 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.util.concurrent.Callable;
 
-// TODO: Auto-generated Javadoc
- 
-/**
- * The Class MePinStatusRequest.
- */
 public class MePinStatusRequest implements Callable<String> {
 
-     
-    /** The log. */
     private static Log log = LogFactory.getLog(MePinStatusRequest.class);
-    
-     
-    /** The transaction id. */
     private String transactionId;
 
-     
-    /**
-     * Instantiates a new me pin status request.
-     *
-     * @param transactionId the transaction id
-     */
     public MePinStatusRequest(String transactionId) {
         this.transactionId = transactionId;
     }
 
-     
-    /* (non-Javadoc)
-     * @see java.util.concurrent.Callable#call()
-     */
     @Override
     public String call() {
         String allowStatus = null;
