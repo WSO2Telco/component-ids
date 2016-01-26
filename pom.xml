@@ -23,6 +23,7 @@
 	</modules>
 
 	<properties>
+		<org.wso2.carbon.version>4.4.3</org.wso2.carbon.version>
 		<org.wso2.carbon.identity.version>4.4.0</org.wso2.carbon.identity.version>
 		<maven.checkstyle.plugin.version>2.17</maven.checkstyle.plugin.version>
 		<commons.logging>1.2</commons.logging>

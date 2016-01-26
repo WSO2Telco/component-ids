@@ -3,9 +3,11 @@ package com.axiata.dialog.openidtokenbuilder;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Iterator;
+import java.util.List;
 
-import com.nimbusds.jwt.PlainJWT;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -41,11 +43,12 @@ import org.wso2.carbon.identity.oauth2.dto.OAuth2AccessTokenRespDTO;
 import org.wso2.carbon.identity.oauth2.model.AccessTokenDO;
 import org.wso2.carbon.identity.oauth2.token.OAuthTokenReqMessageContext;
 import org.wso2.carbon.identity.openidconnect.CustomClaimsCallbackHandler;
-
+import org.wso2.carbon.identity.oauth2.dao.*;
 import com.gsma.authenticators.config.Authenticator;
 import com.gsma.authenticators.config.ConfigLoader;
 import com.gsma.authenticators.config.LOAConfig;
 import com.jayway.jsonpath.JsonPath;
+import com.nimbusds.jwt.PlainJWT;
 
 public class MIFEOpenIDTokenBuilder implements
 		org.wso2.carbon.identity.openidconnect.IDTokenBuilder {

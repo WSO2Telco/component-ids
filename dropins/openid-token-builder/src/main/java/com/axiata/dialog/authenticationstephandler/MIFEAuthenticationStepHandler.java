@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 
 import com.gsma.authenticators.LOACompositeAuthenticator;
+import com.wso2telco.util.AuthenticationHealper;
 
 public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 
@@ -310,17 +311,11 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 
 	private void setAuthenticationAttributes(AuthenticationContext context, StepConfig stepConfig,
 			AuthenticatorConfig authenticatorConfig) {
-		AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
+		AuthenticatedIdPData authenticatedIdPData =AuthenticationHealper.createAuthenticatedIdPData(context);
 
 		// store authenticated user
-		String authenticatedUser = context.getSubject();
-		stepConfig.setAuthenticatedUser(authenticatedUser);
-		authenticatedIdPData.setUsername(authenticatedUser);
+		stepConfig.setAuthenticatedUser(context.getSubject());
 
-		// store authenticated user's attributes
-		Map<ClaimMapping, String> userAttributes = context.getSubjectAttributes();
-		stepConfig.setAuthenticatedUserAttributes(userAttributes);
-		authenticatedIdPData.setUserAttributes(userAttributes);
 
 		authenticatorConfig.setAuthenticatorStateInfo(context.getStateInfo());
 		stepConfig.setAuthenticatedAutenticator(authenticatorConfig);
@@ -342,7 +337,6 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 		if (stepConfig.isSubjectAttributeStep()) {
 			SequenceConfig sequenceConfig = context.getSequenceConfig();
 			sequenceConfig.setAuthenticatedUser(context.getSubject());
-			sequenceConfig.setUserAttributes(userAttributes);
 			context.setSequenceConfig(sequenceConfig);
 		}
 	}

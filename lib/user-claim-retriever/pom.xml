@@ -40,17 +40,14 @@
 		<dependency>
 			<groupId>org.wso2.carbon</groupId>
 			<artifactId>org.wso2.carbon.utils</artifactId>
-			<version>4.2.0</version>
+			<version>${org.wso2.carbon.identity.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.wso2.carbon</groupId>
+			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.oauth</artifactId>
-			<!-- <version>4.2.3</version> -->
-			<version>4.2.7</version>
+			<version>${org.wso2.carbon.identity.version}</version> 
 		</dependency>
-		<!-- <dependency> <groupId>org.wso2.carbon.identity</groupId> <artifactId>org.wso2.carbon.identity.oauth</artifactId> 
-			<version>4.4.0</version> </dependency> -->
 		<dependency>
 			<groupId>org.apache.amber.wso2</groupId>
 			<artifactId>amber</artifactId>
@@ -60,15 +57,13 @@
 		<dependency>
 			<groupId>org.wso2.carbon</groupId>
 			<artifactId>org.wso2.carbon.ui</artifactId>
-			<version>4.2.0</version>
+			<version>${org.wso2.carbon.version}</version>
 			<scope>provided</scope>
 		</dependency>
-		<!-- <dependency> <groupId>org.wso2.carbon</groupId> <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId> 
-			<version>4.2.2</version> <scope>provided</scope> </dependency> -->
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
-			<version>4.4.0</version>
+			<version>${org.wso2.carbon.identity.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -84,10 +79,6 @@
 
 	<build>
 		<plugins>
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
-			</plugin>
 			<plugin>
 				<artifactId>maven-war-plugin</artifactId>
 				<version>2.2</version>
@@ -114,16 +105,4 @@
 			</plugin>
 		</plugins>
 	</build>
-	<repositories>
-		<repository>
-			<id>wso2-nexus</id>
-			<name>WSO2 internal Repository</name>
-			<url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>daily</updatePolicy>
-				<checksumPolicy>ignore</checksumPolicy>
-			</releases>
-		</repository>
-	</repositories>
 </project>
