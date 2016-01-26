@@ -37,7 +37,7 @@
 		 <dependency>
                         <groupId>org.wso2.carbon.identity</groupId>
                         <artifactId>org.wso2.carbon.identity.oauth</artifactId>
-                        <version>${org.wso2.carbon.identity.version}</version>
+                        <version>${org.wso2.carbon.identity.oauth.version}</version>
                 </dependency>
 
 
@@ -76,7 +76,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.wso2telco.ids</groupId>
-			<artifactId>com.wso2telco.ids.urlshorten</artifactId>
+			<artifactId>url-shorten</artifactId>
 			<version>${com.wso2telco.ids.urlshorten.version}</version>
 			<scope>provided</scope>
 		</dependency>

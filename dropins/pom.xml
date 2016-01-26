@@ -32,7 +32,6 @@
 		<org.wso2.carbon.apimgt.impl.version>1.2.2</org.wso2.carbon.apimgt.impl.version>
 		<maven.bundle.plugin.version>3.0.0</maven.bundle.plugin.version>
 		<org.wso2.carbon.core.services.version>4.4.0</org.wso2.carbon.core.services.version>
-		<org.wso2.carbon.utils.version>4.4.0</org.wso2.carbon.utils.version>
 		<org.apache.felix.scr.annotations.version>1.9.6</org.apache.felix.scr.annotations.version>
 	</properties>
 
@@ -53,7 +52,7 @@
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.oauth</artifactId>
-			<version>${org.wso2.carbon.identity.version}</version>
+			<version>${org.wso2.carbon.identity.oauth.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.amber.wso2</groupId>
