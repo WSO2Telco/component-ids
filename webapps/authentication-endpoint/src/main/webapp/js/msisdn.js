@@ -1,31 +1,13 @@
 $(document).ready(function(){
-	// The template code
-	var templateSource = $("#results-template").html();
-
-	// compile the template
-	var template = Handlebars.compile(templateSource);
-	 
-	// The div/container that we are going to display the results in
-	var resultsPlaceholder = document.getElementById('content-placeholder');
+	var msisdn = getCookie("msisdn");
 	
-	//
-	
-    var baseurl = $("#baseURL").val();
-    $.getJSON(baseurl+'/languages/en.json', function(data) {
-    	resultsPlaceholder.innerHTML = template(data);
-    });
-	
-	
-	// Register a helper
-	Handlebars.registerHelper('set_msisdn', function(element){
-		var msisdn = getCookie("msisdn");
-	
-		if(msisdn != null && msisdn.length != 0) {
-			element.value = msisdn;
-			//document.getElementById('loginForm').submit();
+	if(msisdn != null && msisdn.length != 0) {
+		document.getElementById('msisdn').value = msisdn;
+		//document.getElementById('loginForm').submit();
 		
-		}
-	});
+	} else {
+		
+	}
 });
 
 function setCookie(cname, expirydays) {
@@ -77,10 +59,8 @@ function saveRequestDetails(msisdn) {
 }
 
 function submitLoginForm() {
-	if (true === $('#loginForm').parsley().isValid()) {
-		var msisdnParam=document.getElementById('msisdn').value;
-		saveRequestDetails(msisdnParam);
-		setCookie("msisdn", 1);
-		document.getElementById('loginForm').submit();
-	}
+	var msisdnParam=document.getElementById('msisdn').value;
+	saveRequestDetails(msisdnParam);
+	setCookie("msisdn", 1);
+	document.getElementById('loginForm').submit();
 }

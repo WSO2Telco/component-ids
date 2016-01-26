@@ -16,23 +16,20 @@
  ~ specific language governing permissions and limitations
  ~ under the License.
  -->
-<%@ page import="com.wso2telco.carbon.identity.application.authentication.endpoint.util.CharacterEncoder"%>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
            
 <%
     String[] profiles = request.getParameterValues("profile");
     String[] claimTags = request.getParameterValues("claimTag");
     String[] claimValues = request.getParameterValues("claimValue");
-
-    String openidreturnto = CharacterEncoder.getSafeText(request.getParameter("openid.return_to"));
-    String openididentity = CharacterEncoder.getSafeText(request.getParameter("openid.identity"));
-
+    String openidreturnto = request.getParameter("openid.return_to");
+    String openididentity = request.getParameter("openid.identity");
     if (openidreturnto!=null && openidreturnto.indexOf("?") > 0){
         openidreturnto = openidreturnto.substring(0,openidreturnto.indexOf("?"));
     }
 %>
 
-<fmt:bundle basename="com.wso2telco.carbon.identity.application.authentication.endpoint.i18n.Resources">
+<fmt:bundle basename="org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources">
 <html lang="en">
     <head>
         <meta charset="utf-8">
@@ -114,11 +111,9 @@
                                                 <th>Claim Value</th>
                                             </tr>
                                             <%for (int i = 0; i < claimTags.length; i++) {
-                                                String claimTag = CharacterEncoder.getSafeText
-                                                (claimTags[i]);
+                                                String claimTag = claimTags[i];
                                             %>
-                                                <tr><td><%=claimTag%></td><td><%=CharacterEncoder
-                                                .getSafeText(claimValues[i])%></td></tr>
+                                                <tr><td><%=claimTag%></td><td><%=claimValues[i]%></td></tr>
                                             <%
                                             } %>
                                             </table>
