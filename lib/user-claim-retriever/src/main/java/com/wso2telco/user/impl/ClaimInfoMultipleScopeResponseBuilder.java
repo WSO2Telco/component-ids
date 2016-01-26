@@ -16,7 +16,12 @@
 package com.wso2telco.user.impl;
 
 
-import org.apache.amber.oauth2.common.exception.OAuthSystemException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.apache.amber.oauth2.common.utils.JSONUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,16 +33,13 @@ import org.wso2.carbon.identity.oauth.cache.AuthorizationGrantCacheKey;
 import org.wso2.carbon.identity.oauth.user.UserInfoClaimRetriever;
 import org.wso2.carbon.identity.oauth.user.UserInfoEndpointException;
 import org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder;
+import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
 
 import com.wso2telco.config.ConfigLoader;
 import com.wso2telco.config.DataHolder;
 import com.wso2telco.config.Scope;
 import com.wso2telco.config.ScopeConfigs;
 import com.wso2telco.util.ClaimUtil;
-
-import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
-
-import java.util.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -54,9 +56,7 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder#getResponseString(org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO)
      */
-    public String getResponseString(OAuth2TokenValidationResponseDTO tokenResponse)
-            throws UserInfoEndpointException,
-            OAuthSystemException {
+    public String getResponseString(OAuth2TokenValidationResponseDTO tokenResponse) throws UserInfoEndpointException, OAuthSystemException {
 
         Map<ClaimMapping, String> userAttributes = getUserAttributesFromCache(tokenResponse);
         Map<String, Object> claims = null;

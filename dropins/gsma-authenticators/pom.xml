@@ -37,7 +37,7 @@
 		 <dependency>
                         <groupId>org.wso2.carbon.identity</groupId>
                         <artifactId>org.wso2.carbon.identity.oauth</artifactId>
-                        <version>${org.wso2.carbon.identity.version}</version>
+                        <version>${org.wso2.carbon.identity.oauth.version}</version>
                 </dependency>
 
 
