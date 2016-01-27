@@ -186,9 +186,6 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
                         throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: " + tenantId);
                     }
 
-                } catch (IdentityException e) {
-                    log.error("USSD Pin Authentication failed while trying to get the tenant ID of the user", e);
-                    throw new AuthenticationFailedException(e.getMessage(), e);
                 } catch (org.wso2.carbon.user.api.UserStoreException e) {
                     log.error("USSD Pin Authentication failed while trying to authenticate", e);
                     throw new AuthenticationFailedException(e.getMessage(), e);
