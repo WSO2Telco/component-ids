@@ -146,6 +146,7 @@ public class MIFEOpenIDTokenBuilder implements
 
 	private String getValuesFromCache(OAuthTokenReqMessageContext request, String key)
 			throws IdentityOAuth2Exception {
+        String keyValue = null;
 		AuthorizationGrantCacheKey authorizationGrantCacheKey = new AuthorizationGrantCacheKey(
 				request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
 		AuthorizationGrantCacheEntry authorizationGrantCacheEntry = (AuthorizationGrantCacheEntry) AuthorizationGrantCache
@@ -161,7 +162,7 @@ public class MIFEOpenIDTokenBuilder implements
 				acrKey = mapping;
 			}
 		}
-
+//TODO Code Diff
 		if (null != acrKey) {
 			return authorizationGrantCacheEntry.getUserAttributes().get(acrKey);
 		} else {

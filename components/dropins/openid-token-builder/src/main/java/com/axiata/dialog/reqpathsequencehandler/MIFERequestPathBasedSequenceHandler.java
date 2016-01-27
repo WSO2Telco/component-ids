@@ -21,6 +21,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.I
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.oauth.cache.CacheKey;
@@ -91,14 +92,17 @@ public class MIFERequestPathBasedSequenceHandler extends DefaultRequestPathBased
 					return;
 				}
 
-				seqConfig.setAuthenticatedUser(context.getSubject());
+				AuthenticatedUser authenticatedUser = context.getSubject();
+				seqConfig.setAuthenticatedUser(authenticatedUser);
 
 				if (log.isDebugEnabled()) {
-					log.debug("Authenticated User: " + context.getSubject().getAuthenticatedSubjectIdentifier());
+					log.debug("Authenticated User: " + authenticatedUser);
 				}
 
-				AuthenticatedIdPData authenticatedIdPData = AuthenticationHealper.createAuthenticatedIdPData(context);
+				AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
 
+				// store authenticated user
+				authenticatedIdPData.setUser(authenticatedUser);
 
 				// store authenticated idp
 				authenticatedIdPData.setIdpName(FrameworkConstants.LOCAL_IDP_NAME);
