@@ -24,7 +24,7 @@
 
 	<properties>
 		<org.wso2.carbon.version>4.4.3</org.wso2.carbon.version>
-		<org.wso2.carbon.identity.version>4.4.0</org.wso2.carbon.identity.version>
+		<org.wso2.carbon.identity.version>5.0.7</org.wso2.carbon.identity.version>
 		<org.wso2.carbon.identity.oauth.version>5.0.7</org.wso2.carbon.identity.oauth.version>
 		<org.wso2.carbon.utils.version>4.4.3</org.wso2.carbon.utils.version>
 		<maven.checkstyle.plugin.version>2.17</maven.checkstyle.plugin.version>
