@@ -143,7 +143,7 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
 					List<String> amr = (ArrayList<String>) amrValue;
 					authenticators = amr.toString();
 				}
-				authenticatedUser = context.getSequenceConfig().getAuthenticatedUser();
+				authenticatedUser = context.getSequenceConfig().getAuthenticatedUser().getUserName();
 
 			} else {
 				// authenticators

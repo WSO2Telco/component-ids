@@ -37,9 +37,11 @@ import org.wso2.carbon.identity.oauth.common.exception.InvalidOAuthClientExcepti
 import org.wso2.carbon.identity.oauth.config.OAuthServerConfiguration;
 import org.wso2.carbon.identity.oauth.dao.OAuthAppDAO;
 import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
+import org.wso2.carbon.identity.oauth2.authz.OAuthAuthzReqMessageContext;
 import org.wso2.carbon.identity.oauth2.dao.TokenMgtDAO;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2AccessTokenReqDTO;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2AccessTokenRespDTO;
+import org.wso2.carbon.identity.oauth2.dto.OAuth2AuthorizeRespDTO;
 import org.wso2.carbon.identity.oauth2.model.AccessTokenDO;
 import org.wso2.carbon.identity.oauth2.token.OAuthTokenReqMessageContext;
 import org.wso2.carbon.identity.openidconnect.CustomClaimsCallbackHandler;
@@ -133,7 +135,9 @@ public class MIFEOpenIDTokenBuilder implements
 			// setting up custom claims
 			CustomClaimsCallbackHandler claimsCallBackHandler = OAuthServerConfiguration
 					.getInstance().getOpenIDConnectCustomClaimsCallbackHandler();
-			claimsCallBackHandler.handleCustomClaims(builder, request);
+			//TODO CODE COMMENTED#
+			//claimsCallBackHandler.handleCustomClaims(builder, request);
+			
             String plainIDToken = builder.buildIDToken();
             return new PlainJWT((com.nimbusds.jwt.JWTClaimsSet) PlainJWT.parse(plainIDToken).getJWTClaimsSet()).serialize();
 		} catch (IDTokenException e) {
@@ -146,6 +150,7 @@ public class MIFEOpenIDTokenBuilder implements
 
 	private String getValuesFromCache(OAuthTokenReqMessageContext request, String key)
 			throws IdentityOAuth2Exception {
+        String keyValue = null;
 		AuthorizationGrantCacheKey authorizationGrantCacheKey = new AuthorizationGrantCacheKey(
 				request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
 		AuthorizationGrantCacheEntry authorizationGrantCacheEntry = (AuthorizationGrantCacheEntry) AuthorizationGrantCache
@@ -161,7 +166,7 @@ public class MIFEOpenIDTokenBuilder implements
 				acrKey = mapping;
 			}
 		}
-
+//TODO Code Diff
 		if (null != acrKey) {
 			return authorizationGrantCacheEntry.getUserAttributes().get(acrKey);
 		} else {
@@ -191,7 +196,8 @@ public class MIFEOpenIDTokenBuilder implements
 		if (oAuthAppDO != null) {
 			return oAuthAppDO;
 		} else {
-			oAuthAppDO = new OAuthAppDAO().getAppInformation(tokenReqDTO.getClientId());
+			//TODO CODE COMMENTED#
+			//oAuthAppDO = new OAuthAppDAO().getAppInformation(tokenReqDTO.getClientId());
 			appInfoCache.addToCache(tokenReqDTO.getClientId(), oAuthAppDO);
 			return oAuthAppDO;
 		}
@@ -279,16 +285,19 @@ public class MIFEOpenIDTokenBuilder implements
 
 		OAuthCache oauthCache = OAuthCache.getInstance();
 		CacheKey cacheKey = new OAuthCacheKey(accessToken);
-		CacheEntry result = oauthCache.getValueFromCache(cacheKey);
+		//TODO CODE COMMENTED#
+		//CacheEntry result = oauthCache.getValueFromCache(cacheKey);
 
 		// cache hit, do the type check.
-		if (result instanceof AccessTokenDO) {
-			accessTokenDO = (AccessTokenDO) result;
-		}
+		//TODO CODE COMMENTED#
+		//if (result instanceof AccessTokenDO) {
+			//accessTokenDO = (AccessTokenDO) result;
+		//}
 
 		// Cache miss, load the access token info from the database.
 		if (null == accessTokenDO) {
-			accessTokenDO = tokenMgtDAO.retrieveAccessToken(accessToken);
+			//TODO CODE COMMENTED#
+			//accessTokenDO = tokenMgtDAO.retrieveAccessToken(accessToken);
 		}
 
 		// if the access token or client id is not valid
@@ -309,14 +318,19 @@ public class MIFEOpenIDTokenBuilder implements
 	 * @throws IdentityOAuth2Exception
 	 */
 	public String getAMRFromACR(String acr) throws IdentityOAuth2Exception {
-		List<Authenticator> authenticatorsList = null;
+		//TODO CODE COMMENTED#
+		//List<Authenticator> authenticatorsList = null;
 
-		LOAConfig config = ConfigLoader.getInstance().getLoaConfig();
+		//TODO CODE COMMENTED#
+		//LOAConfig config = ConfigLoader.getInstance().getLoaConfig();
 		if (null != acr && !"".equals(acr) && !" ".equals(acr)) { //$NON-NLS-1$ //$NON-NLS-2$
-			authenticatorsList = config.getLOA(acr).getAuthentication().getAuthenticatorList()
-					.get(0).getAuthenticators();
+			//TODO CODE COMMENTED#
+			//authenticatorsList = config.getLOA(acr).getAuthentication().getAuthenticatorList()
+			//TODO CODE COMMENTED#
+			//.get(0).getAuthenticators();
 		}
-
+		//TODO CODE COMMENTED#
+		/*
 		if (null != authenticatorsList) {
 			List<String> authenticatorNames = new ArrayList<String>();
 			for (Authenticator auth : authenticatorsList) {
@@ -326,8 +340,8 @@ public class MIFEOpenIDTokenBuilder implements
 		} else {
 			log.error("Error occured while getting AMR from ACR"); //$NON-NLS-1$
 			throw new IdentityOAuth2Exception("Error occured while getting AMR from ACR"); //$NON-NLS-1$
-		}
-
+		}*/
+			return null;
 	}
 
 	/**
@@ -494,6 +508,12 @@ public class MIFEOpenIDTokenBuilder implements
 			log.error("Error occured while creating ACR", e); //$NON-NLS-1$
 			throw new IdentityOAuth2Exception("Error occured while creating ACR", e); //$NON-NLS-1$
 		}
+	}
+
+	public String buildIDToken(OAuthAuthzReqMessageContext tokReqMsgCtx,
+			OAuth2AuthorizeRespDTO tokenRespDTO) throws IdentityOAuth2Exception {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
