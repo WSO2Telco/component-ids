@@ -33,7 +33,7 @@
 		<junit.version>4.4</junit.version>
 		<commons.lang.version>2.3</commons.lang.version>
 		<mnc.resolver.version>1.0.5-SNAPSHOT</mnc.resolver.version>
-		<httpclient.version>4.3.4</httpclient.version>
+		<httpclient.version>4.3.1</httpclient.version>
 		<gson.version>2.1</gson.version>
 		<com.wso2telco.ids.urlshorten.version>1.0.0-SNAPSHOT</com.wso2telco.ids.urlshorten.version>
 		<com.wso2telco.ids.authentic.selector.version>1.0.0-SNAPSHOT</com.wso2telco.ids.authentic.selector.version>
