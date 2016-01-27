@@ -220,7 +220,7 @@ public class MIFEStepHandler extends DefaultStepHandler {
 					return;
 				}
 
-				AuthenticatedIdPData authenticatedIdPData  new AuthenticatedIdPData();
+				AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
 
 				// store authenticated user
 				AuthenticatedUser authenticatedUser = context.getSubject();
