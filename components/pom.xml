@@ -40,8 +40,10 @@
 		<com.wso2telco.ids.urlshorten.version>1.0.0-SNAPSHOT</com.wso2telco.ids.urlshorten.version>
 		<com.wso2telco.ids.authentic.selector.version>1.0.0-SNAPSHOT</com.wso2telco.ids.authentic.selector.version>
 		<com.gsma.authenticators.version>1.0.0-SNAPSHOT</com.gsma.authenticators.version>
-		<org.apache.felix.version>2.3.7</org.apache.felix.version>
-		<felix.framework.version>1.0.3</felix.framework.version>
+		<url.shorten.version>1.0.0-SNAPSHOT</url.shorten.version> 
+		<maven.bundle.plugin.version>2.3.7</maven.bundle.plugin.version>
+		<org.apache.felix.version>1.0.3</org.apache.felix.version>
+		
 	</properties>
 
 	<dependencies>
