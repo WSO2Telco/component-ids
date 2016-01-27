@@ -29,6 +29,7 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
 import com.gsma.authenticators.LOACompositeAuthenticator;
 import com.wso2telco.util.AuthenticationHealper;
@@ -116,8 +117,14 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 						log.debug("Re-authenticating with " + idp + " IdP");
 					}
 
-					context.setExternalIdP(ConfigurationFacade.getInstance().getIdPConfigByName(
-							idp, context.getTenantDomain()));
+					try {
+						context.setExternalIdP(ConfigurationFacade.getInstance().getIdPConfigByName(
+								idp, context.getTenantDomain()));
+					} catch (IdentityProviderManagementException e) {
+						e.printStackTrace();
+						log.error(e);
+						throw new FrameworkException(e.toString());
+					}
 					doAuthentication(request, response, context, authenticatorConfig);
 					return;
 				} else {
@@ -160,9 +167,15 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 						}
 
 						// set the IdP to be called in the context
-						context.setExternalIdP(ConfigurationFacade.getInstance()
-								.getIdPConfigByName(authenticatorConfig.getIdpNames().get(0),
-										context.getTenantDomain()));
+						try {
+							context.setExternalIdP(ConfigurationFacade.getInstance()
+									.getIdPConfigByName(authenticatorConfig.getIdpNames().get(0),
+											context.getTenantDomain()));
+						} catch (IdentityProviderManagementException e) {
+							e.printStackTrace();
+							log.error(e);
+							throw new FrameworkException(e.toString());
+						}
 					}
 
 					doAuthentication(request, response, context, authenticatorConfig);
