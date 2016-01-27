@@ -6,6 +6,7 @@ import com.gsma.authenticators.IPRangeChecker;
 import com.gsma.authenticators.config.MobileConnectConfig;
 import com.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import com.gsma.authenticators.util.DecryptionAES;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
@@ -15,6 +16,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -26,6 +28,7 @@ import com.gsma.authenticators.util.AuthenticationContextHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
@@ -255,7 +258,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 // Check the authentication by checking if username exists
 				log.info("Check whether user account exists");
                 try {
-                    int tenantId = IdentityUtil.getTenantIdOFUser(msisdn);
+                	int tenantId = -1234;
                     UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService()
                             .getTenantUserRealm(tenantId);
 
@@ -265,15 +268,13 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     } else {
                         throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: " + tenantId);
                     }
-                } catch (IdentityException e) {
-                    log.error("HeaderEnrichment Authentication failed while trying to get the tenant ID of the user", e);
-                    throw new AuthenticationFailedException(e.getMessage(), e);
                 } catch (org.wso2.carbon.user.api.UserStoreException e) {
                     log.error("HeaderEnrichment Authentication failed while trying to authenticate", e);
                     throw new AuthenticationFailedException(e.getMessage(), e);
                 }
 
-                AuthenticationContextHelper.setSubject(context,msisdn);
+                AuthenticatedUser user=new AuthenticatedUser();
+                context.setSubject(user);
             }
 
         }

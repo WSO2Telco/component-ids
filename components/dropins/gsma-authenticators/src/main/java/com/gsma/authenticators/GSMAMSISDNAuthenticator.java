@@ -23,6 +23,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.oauth.cache.CacheKey;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
@@ -143,7 +144,9 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 		log.info("GSMA MSISDN Authenticator authentication success for MSISDN - " + msisdn);
 
 		context.setProperty("msisdn", msisdn);
-		AuthenticationContextHelper.setSubject(context,msisdn);
+		//context.setSubject(msisdn);
+		AuthenticatedUser user=new AuthenticatedUser();
+		context.setSubject(user);
 		String rememberMe = request.getParameter("chkRemember");
 
 		if (rememberMe != null && "on".equals(rememberMe)) {
@@ -233,8 +236,9 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 		try {
 			String sdk = request.getParameter(OAuthConstants.SESSION_DATA_KEY);
 			CacheKey ck = new SessionDataCacheKey(sdk);
+			SessionDataCacheKey sessionDataCacheKey=new SessionDataCacheKey(sdk);
 			SessionDataCacheEntry sdce = (SessionDataCacheEntry) SessionDataCache.getInstance()
-					.getValueFromCache(ck);
+					.getValueFromCache(sessionDataCacheKey);
 			loginHintValues = sdce.getoAuth2Parameters().getLoginHint();
 		} catch (Exception e) {
 		}
@@ -245,8 +249,9 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 	private LinkedHashSet<?> getACRValues(HttpServletRequest request) {
 		String sdk = request.getParameter(OAuthConstants.SESSION_DATA_KEY);
 		CacheKey ck = new SessionDataCacheKey(sdk);
+		SessionDataCacheKey sessionDataCacheKey=new SessionDataCacheKey(sdk);
 		SessionDataCacheEntry sdce = (SessionDataCacheEntry) SessionDataCache.getInstance()
-				.getValueFromCache(ck);
+				.getValueFromCache(sessionDataCacheKey);
 		LinkedHashSet<?> acrValues = sdce.getoAuth2Parameters().getACRValues();
 		return acrValues;
 	}

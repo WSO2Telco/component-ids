@@ -97,7 +97,8 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
                     && entry.getKey().equals("LOCAL")
                     && entry.getValue().getAuthenticator().getName()
                     .equals("GSMAMSISDNAuthenticator")) {
-                incomingUser = AuthenticationContextHelper.getUser( context.getCurrentAuthenticatedIdPs().get(entry.getKey()));
+                incomingUser = context.getCurrentAuthenticatedIdPs().get(entry.getKey())
+                        .getUser().getUserName();
                 break;
             }
         }
@@ -106,8 +107,14 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
         IdentityProvider federatedIDP = getFederatedIDP(idPs, incomingUser);
 
         // Set login_hint and acr_values params to idp configuration
-        ExternalIdPConfig idPConfigByName = ConfigurationFacade.getInstance().getIdPConfigByName(
-                federatedIDP.getIdentityProviderName(), context.getTenantDomain());
+                ExternalIdPConfig idPConfigByName = null;
+		try {
+			idPConfigByName = ConfigurationFacade.getInstance().getIdPConfigByName(
+			        federatedIDP.getIdentityProviderName(), context.getTenantDomain());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = idPConfigByName
                 .getIdentityProvider().getFederatedAuthenticatorConfigs();
 

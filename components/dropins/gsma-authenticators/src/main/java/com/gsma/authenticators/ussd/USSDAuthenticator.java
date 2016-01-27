@@ -15,6 +15,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.core.model.OAuthAppDO;
 import org.wso2.carbon.identity.oauth.cache.BaseCache;
@@ -170,7 +171,8 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         
 
         String msisdn = (String) context.getProperty("msisdn");
-        AuthenticationContextHelper.setSubject(context,msisdn);
+        AuthenticatedUser user=new AuthenticatedUser();
+        context.setSubject(user);
         
         log.info("USSD Authenticator authentication success");
 

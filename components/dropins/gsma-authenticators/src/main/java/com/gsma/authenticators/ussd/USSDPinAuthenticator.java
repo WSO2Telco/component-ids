@@ -23,14 +23,15 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.identity.core.model.OAuthAppDO;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.oauth.cache.BaseCache;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 import org.wso2.carbon.identity.oauth.common.exception.InvalidOAuthClientException;
 import org.wso2.carbon.identity.oauth.dao.OAuthAppDAO;
+import org.wso2.carbon.identity.oauth.dao.OAuthAppDO;
 import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -157,7 +158,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
                 //MSISDN will be saved in the context in the MSISDNAuthenticator
                 msisdn = ((String) context.getProperty("msisdn")).replace("+", "").trim();
                 try {
-                    int tenantId = IdentityUtil.getTenantIdOFUser(msisdn);
+                	int tenantId = -1234;
                     UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService()
                             .getTenantUserRealm(tenantId);
 
@@ -211,7 +212,8 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         }
         log.info("USSD Pin Authenticator authentication success");
 
-        AuthenticationContextHelper.setSubject(context,msisdn);
+        AuthenticatedUser user=new AuthenticatedUser();
+        context.setSubject(user);
         String rememberMe = request.getParameter("chkRemember");
 
         if (rememberMe != null && "on".equals(rememberMe)) {

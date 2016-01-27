@@ -10,6 +10,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -113,11 +114,11 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
 
     	String msisdn = request.getParameter("msisdn");
-        if((msisdn==null) & ((request.getParameter("msisdn_header") != null) && (request.getParameter("msisdn_header") != ""))){
-        	msisdn=context.getSubject();
-        	log.info("Reading header_msisdn from HeaderEnrichment and assigned to msisdn" +context.getSubject());
+        //if((msisdn==null) & ((request.getParameter("msisdn_header") != null) && (request.getParameter("msisdn_header") != ""))){
+        	//msisdn=context.getSubject();
+        	//log.info("Reading header_msisdn from HeaderEnrichment and assigned to msisdn" +context.getSubject());
         	
-        }  
+        //}//COMMENTED  
      //   context.setProperty("redirectURI",request.getParameter("redirect_uri"));
         boolean isAuthenticated = false;
 
@@ -148,7 +149,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             	log.info("MSISDN by request parameter or context parameter: " + msisdn);
             }
             context.setProperty("msisdn", msisdn);
-            int tenantId = IdentityUtil.getTenantIdOFUser(msisdn);
+            int tenantId = -1234;
             UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService()
                     .getTenantUserRealm(tenantId);
 
@@ -189,9 +190,10 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         }
         log.info("MSISDN Authenticator authentication success for MSISDN - " + msisdn);
         
-        AuthenticationContextHelper.setSubject(context,msisdn);
-       
-        
+        context.setProperty("msisdn", msisdn);
+        //context.setSubject(msisdn);
+        AuthenticatedUser user=new AuthenticatedUser();
+		context.setSubject(user);
         String rememberMe = request.getParameter("chkRemember");
 
         if (rememberMe != null && "on".equals(rememberMe)) {
@@ -298,8 +300,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         try {
             String sdk = request.getParameter(OAuthConstants.SESSION_DATA_KEY);
             CacheKey ck = new SessionDataCacheKey(sdk);
+            SessionDataCacheKey sessionDataCacheKey=new SessionDataCacheKey(sdk);            
             SessionDataCacheEntry sdce =
-                    (SessionDataCacheEntry) SessionDataCache.getInstance().getValueFromCache(ck);
+                    (SessionDataCacheEntry) SessionDataCache.getInstance().getValueFromCache(sessionDataCacheKey);
             loginHintValues = sdce.getoAuth2Parameters().getLoginHint();
         } catch (Exception e) {
             e.printStackTrace();

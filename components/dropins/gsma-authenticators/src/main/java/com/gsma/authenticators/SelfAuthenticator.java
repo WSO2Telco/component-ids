@@ -8,6 +8,7 @@ import org.wso2.carbon.identity.application.authentication.framework.LocalApplic
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import com.gsma.authenticators.util.AuthenticationContextHelper;
 
 import javax.servlet.http.HttpServletRequest;
@@ -37,7 +38,8 @@ public class SelfAuthenticator extends AbstractApplicationAuthenticator
         log.info("Self Authenticator authentication Start ");
         String msisdn = (String) context.getProperty("msisdn");
         context.setProperty("msisdn", msisdn);
-        AuthenticationContextHelper.setSubject(context,msisdn);
+        AuthenticatedUser user=new AuthenticatedUser();
+        context.setSubject(user);
         String rememberMe = httpServletRequest.getParameter("chkRemember");
         if (rememberMe != null && "on".equals(rememberMe)) {
             context.setRememberMe(true);

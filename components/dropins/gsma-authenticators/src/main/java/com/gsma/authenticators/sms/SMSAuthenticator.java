@@ -20,6 +20,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -159,7 +160,8 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
       
         
         String msisdn = (String) context.getProperty("msisdn");
-        AuthenticationContextHelper.setSubject(context,msisdn);
+        AuthenticatedUser user=new AuthenticatedUser();
+        context.setSubject(user);
         
         log.info("SMS Authenticator authentication success");
 

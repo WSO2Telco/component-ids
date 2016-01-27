@@ -15,6 +15,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -65,7 +66,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
             try {
                 AuthenticationData authenticationData = DBUtils.getAuthenticateData(tokenId);
                 int status = authenticationData.getStatus();
-                int tenantId = IdentityUtil.getTenantIdOFUser(msisdn);
+                int tenantId = -1234;
                 UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService().getTenantUserRealm(tenantId);
 
                 if (userRealm != null) {
@@ -105,7 +106,11 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
             StepConfig sc = stepMap.get(1);
             sc.setSubjectAttributeStep(false);
             sc.setSubjectIdentifierStep(false);
-            AuthenticationContextHelper.setSubject(sc,msisdn);
+            
+            AuthenticatedUser user=new AuthenticatedUser();
+            //context.setSubject(user);
+            sc.setAuthenticatedUser(user);
+
 
             int stepOrder = 2;
 
@@ -135,7 +140,8 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
             sequenceConfig.setStepMap(stepMap);
             context.setSequenceConfig(sequenceConfig);
             context.setProperty("msisdn", msisdn);
-            AuthenticationContextHelper.setSubject(context, msisdn);
+            AuthenticatedUser aUser=new AuthenticatedUser();
+            context.setSubject(aUser);
 
 
         }else{
@@ -231,8 +237,9 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 	private LinkedHashSet<?> getACRValues(HttpServletRequest request) {
 		String sdk = request.getParameter(OAuthConstants.SESSION_DATA_KEY);
 		CacheKey ck = new SessionDataCacheKey(sdk);
+		SessionDataCacheKey sessionDataCacheKey=new SessionDataCacheKey(sdk);		
 		SessionDataCacheEntry sdce = (SessionDataCacheEntry) SessionDataCache.getInstance()
-				.getValueFromCache(ck);
+				.getValueFromCache(sessionDataCacheKey);
 		LinkedHashSet<?> acrValues = sdce.getoAuth2Parameters().getACRValues();
 		return acrValues;
 	}

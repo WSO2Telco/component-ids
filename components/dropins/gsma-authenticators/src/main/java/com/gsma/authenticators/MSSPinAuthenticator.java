@@ -11,6 +11,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import com.gsma.authenticators.util.AuthenticationContextHelper;
 
@@ -120,7 +121,8 @@ public class MSSPinAuthenticator extends AbstractApplicationAuthenticator
         log.info("MSS PIN Authenticator authentication success for MSISDN - " + msisdn);
 
         context.setProperty("msisdn", msisdn);
-        AuthenticationContextHelper.setSubject(context,msisdn);
+        AuthenticatedUser user=new AuthenticatedUser();
+        context.setSubject(user);
         String rememberMe = httpServletRequest.getParameter("chkRemember");
 
         if (rememberMe != null && "on".equals(rememberMe)) {
