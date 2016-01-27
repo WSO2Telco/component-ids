@@ -69,8 +69,9 @@ public class AuthenticationContextHelper {
 	public static LinkedHashSet<?> getACRValues(HttpServletRequest request) {
 		String sdk = request.getParameter(OAuthConstants.SESSION_DATA_KEY);
 		CacheKey ck = new SessionDataCacheKey(sdk);
+		SessionDataCacheKey sessionDataCacheKey=new SessionDataCacheKey(sdk);
 		SessionDataCacheEntry sdce = (SessionDataCacheEntry) SessionDataCache.getInstance()
-				.getValueFromCache(ck);
+				.getValueFromCache(sessionDataCacheKey);
 		LinkedHashSet<?> acrValues = sdce.getoAuth2Parameters().getACRValues();
 		return null;
 	}

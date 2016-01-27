@@ -34,14 +34,17 @@ import org.wso2.carbon.identity.application.common.IdentityApplicationManagement
 import org.wso2.carbon.identity.application.common.model.FederatedAuthenticatorConfig;
 import org.wso2.carbon.identity.application.common.model.IdentityProvider;
 import org.wso2.carbon.identity.application.common.model.Property;
+import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
-import com.gsma.authenticators.util.AuthenticationContextHelper;
 
+import com.gsma.authenticators.util.AuthenticationContextHelper;
 import com.axiata.dialog.mife.mnc.resolver.MNCQueryClient;
 import com.axiata.dialog.mife.mnc.resolver.MobileNtException;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
@@ -68,12 +71,12 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
         List<IdentityProvider> idPs = null;
 
         try {
-            idPs = IdentityProviderManager.getInstance().getIdPs(
-                    MultitenantUtils.getTenantDomain(request));
-        } catch (IdentityApplicationManagementException e) {
-            log.error("No registered IDPs found.", e);
-            return AuthenticatorFlowStatus.INCOMPLETE;
-        }
+			idPs = IdentityProviderManager.getInstance().getIdPs(
+			        MultitenantUtils.getTenantDomain(request));
+		} catch (IdentityProviderManagementException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         Map<Integer, StepConfig> stepMap = sequenceConfig.getStepMap();
