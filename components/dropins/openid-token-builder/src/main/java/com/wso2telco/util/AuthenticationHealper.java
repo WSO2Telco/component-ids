@@ -17,25 +17,32 @@ package com.wso2telco.util;
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
+import org.wso2.carbon.identity.oauth2.token.OAuthTokenReqMessageContext;
 
 // TODO: Auto-generated Javadoc
 /**
  * The Class AuthenticationHealper.
  */
 public class AuthenticationHealper {
-	
+
 	/**
 	 * Creates the authenticated id p data.
-	 *
-	 * @param context the context
+	 * 
+	 * @param context
+	 *            the context
 	 * @return the authenticated id p data
 	 */
-	public static AuthenticatedIdPData createAuthenticatedIdPData(AuthenticationContext context){
+	public static AuthenticatedIdPData createAuthenticatedIdPData(
+			AuthenticationContext context) {
 		AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
 		// store authenticated user
 		authenticatedIdPData.setUser(context.getSubject());
 		return authenticatedIdPData;
-		
+
+	}
+
+	public static String getUser(OAuthTokenReqMessageContext context) {
+		return context.getAuthorizedUser().getAuthenticatedSubjectIdentifier();
 	}
 
 }

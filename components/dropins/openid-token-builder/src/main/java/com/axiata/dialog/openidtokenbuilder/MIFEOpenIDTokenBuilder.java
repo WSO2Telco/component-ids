@@ -44,11 +44,13 @@ import org.wso2.carbon.identity.oauth2.model.AccessTokenDO;
 import org.wso2.carbon.identity.oauth2.token.OAuthTokenReqMessageContext;
 import org.wso2.carbon.identity.openidconnect.CustomClaimsCallbackHandler;
 import org.wso2.carbon.identity.oauth2.dao.*;
+
 import com.gsma.authenticators.config.Authenticator;
 import com.gsma.authenticators.config.ConfigLoader;
 import com.gsma.authenticators.config.LOAConfig;
 import com.jayway.jsonpath.JsonPath;
 import com.nimbusds.jwt.PlainJWT;
+import com.wso2telco.util.AuthenticationHealper;
 
 public class MIFEOpenIDTokenBuilder implements
 		org.wso2.carbon.identity.openidconnect.IDTokenBuilder {
@@ -81,7 +83,9 @@ public class MIFEOpenIDTokenBuilder implements
 		int lifetime = Integer.parseInt(config.getOpenIDConnectIDTokenExpiration()) * 1000;
 		int curTime = (int) Calendar.getInstance().getTimeInMillis();
 
-		String msisdn = request.getAuthorizedUser().replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
+		//String msisdn = request.getAuthorizedUser().replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
+		String msisdn = AuthenticationHealper.getUser(request).replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
+		
 		msisdn = "tel:+".concat(msisdn); //$NON-NLS-1$
 
 		// Loading respective application data
