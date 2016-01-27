@@ -17,9 +17,9 @@
 	</prerequisites>
 
 	<modules>
-		<module>lib</module>
+		<!--module>lib</module-->
 		<module>dropins</module>
-		<module>webapps</module>
+		<!--module>webapps</module-->
 	</modules>
 
 	<properties>
