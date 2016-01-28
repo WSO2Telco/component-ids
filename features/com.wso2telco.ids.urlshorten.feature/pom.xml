@@ -2,18 +2,27 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
-	 <groupId>com.wso2telco.ids</groupId>
-        <artifactId>component-ids-feature</artifactId>
-        <packaging>pom</packaging>
+    <parent>
+       <groupId>com.wso2telco.ids</groupId>
+	<artifactId>component-ids</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-    	<modelVersion>4.0.0</modelVersion>
+	<relativePath>../pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
 
+    <artifactId>com.wso2telco.ids.urlshorten.feature</artifactId>
     <packaging>pom</packaging>
-    <name>WSO2Telco  - Identit  Manager Server Feature</name>
+    <name>WSO2Telco Carbon - Identity Server Feature</name>
     <url>http://wso2.org</url>
-    <description>This feature contains the server bundles required for Back-end IDS Management functionality</description>
+    <description>This feature contains the server bundles required for Back-end Student Management functionality</description>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.wso2telco.ids</groupId>
+            <artifactId>url-shorten</artifactId>
+            <version>${org.wso2telco.ids.version}</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
@@ -29,8 +38,8 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>com.wso2Telco.ids.server</id>
-                            <propertiesFile>feature.properties</propertiesFile>
+                            <id>com.wso2telco.ids.urlshorten.feature</id>
+                            <propertiesFile>../feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
                                     <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
@@ -38,7 +47,7 @@
                                 </properties>
                             </adviceFile>
                             <bundles>
-                                <bundleDef>org.wso2.carbon:org.wso2.carbon.student.mgt</bundleDef>
+                                <bundleDef>com.wso2telco.ids:url-shorten:${org.wso2telco.ids.version}</bundleDef>
                             </bundles>
                         </configuration>
                     </execution>
