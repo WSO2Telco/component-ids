@@ -26,7 +26,7 @@
 	</parent>
 
     <artifactId>authenticate-selector</artifactId>
-    <packaging>jar</packaging>
+    <packaging>bundle</packaging>
     <name>Authenticate Selector - Dropins</name>
 
 	 <properties>
@@ -38,24 +38,19 @@
 
 
     <dependencies>
-        <dependency>
-            <groupId>net.sf.saxon</groupId>
-            <artifactId>Saxon-HE</artifactId>
-            <version>${saxon.he.version}</version>
-<scope>provided</scope>
-        </dependency>
+        
         <dependency>
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.application.common</artifactId>
             <version>${org.wso2.carbon.identity.version}</version>
 <scope>provided</scope>
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>org.apache.felix</groupId>
             <artifactId>org.apache.felix.scr.annotations</artifactId>
             <version>${org.apache.felix.scr.annotations.version}</version>
 <scope>provided</scope>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>org.wso2.carbon</groupId>
             <artifactId>org.wso2.carbon.utils</artifactId>
@@ -68,12 +63,12 @@
             <version>${org.wso2.carbon.identity.version}</version>
 <scope>provided</scope>
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>${gson.version}</version>
 <scope>provided</scope>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
