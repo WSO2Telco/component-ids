@@ -46,7 +46,6 @@
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.oauth</artifactId>
-			<version>${org.wso2.carbon.identity.oauth.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.amber.wso2</groupId>
@@ -63,8 +62,6 @@
 		<dependency>
 			<groupId>commons-httpclient</groupId>
 			<artifactId>commons-httpclient</artifactId>
-			<version>${commons-httpclient.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.sling</groupId>
