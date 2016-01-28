@@ -15,12 +15,10 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.cryptosystem;
 
+import org.apache.commons.codec.binary.Base64;
 import org.xml.sax.SAXException;
 
 import com.wso2telco.gsma.authenticators.config.ReadMobileConnectConfig;
-
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
@@ -60,8 +58,9 @@ public class AESencrp {
         Cipher c = Cipher.getInstance(ALGO);
         c.init(Cipher.ENCRYPT_MODE, key);
         byte[] encVal = c.doFinal(Data.getBytes());
-        String encryptedValue = new BASE64Encoder().encode(encVal);
-        return encryptedValue;
+        //String encryptedValue = new BASE64Encoder().encode(encVal);
+        byte[] encryptedValue = Base64.encodeBase64(encVal);
+        return new String(encryptedValue);
     }
 
     /**
@@ -75,7 +74,8 @@ public class AESencrp {
         Key key = generateKey();
         Cipher c = Cipher.getInstance(ALGO);
         c.init(Cipher.DECRYPT_MODE, key);
-        byte[] decordedValue = new BASE64Decoder().decodeBuffer(encryptedData);
+        //byte[] decordedValue = new BASE64Decoder().decodeBuffer(encryptedData);
+        byte[] decordedValue = Base64.decodeBase64(encryptedData.getBytes());
         byte[] decValue = c.doFinal(decordedValue);
         String decryptedValue = new String(decValue);
         return decryptedValue;
