@@ -41,9 +41,8 @@
                                     <propertyDef>org.eclipse.equinox.p2.type.group:false</propertyDef>
                                 </properties>
                             </adviceFile>
-                            <bundles>
-				                <!--bundleDef>org.wso2.orbit.org.apache.httpcomponents:httpclient</bundleDef>
-                                <bundleDef>com.wso2telco.ids:url-shorten:${org.wso2telco.ids.version}</bundleDef-->
+                            <bundles>				
+                                <bundleDef>com.wso2telco.ids:url-shorten:${org.wso2telco.ids.version}</bundleDef>
                             </bundles>
                         </configuration>
                     </execution>
