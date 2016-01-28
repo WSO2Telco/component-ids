@@ -38,6 +38,7 @@
         <modules>
                 <module>components/lib</module>
                 <module>components/dropins</module>
+                <module>features</module>
                 <!--module>webapps</module-->
         </modules>
 
@@ -48,12 +49,7 @@
         <tag>HEAD</tag>
     </scm>
 
-    <modules>
-
-        <module>components</module>
-        <module>features</module>
-    </modules>
-
+   
     <repositories>
 
         <repository>
