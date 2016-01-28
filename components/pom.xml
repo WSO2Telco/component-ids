@@ -17,7 +17,7 @@
 	</prerequisites>
 
 	<modules>
-		<!--module>lib</module-->
+		<module>lib</module>
 		<module>dropins</module>
 		<!--module>webapps</module-->
 	</modules>
@@ -42,10 +42,7 @@
 		<com.wso2telco.ids.authentic.selector.version>1.0.0-SNAPSHOT</com.wso2telco.ids.authentic.selector.version>
 		<com.gsma.authenticators.version>1.0.0-SNAPSHOT</com.gsma.authenticators.version>
 		<url.shorten.version>1.0.0-SNAPSHOT</url.shorten.version> 
-		<maven.bundle.plugin.version>2.3.7</maven.bundle.plugin.version>
-		<org.apache.felix.version>1.0.3</org.apache.felix.version>
-		<felix.framework.version>1.0.3</felix.framework.version>
-		
+		<maven.bundle.plugin.version>2.3.7</maven.bundle.plugin.version>				
 	</properties>
 
 	<dependencies>

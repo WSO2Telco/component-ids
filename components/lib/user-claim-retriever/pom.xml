@@ -66,12 +66,7 @@
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
 			<version>${json.version}</version>
-		</dependency>
-		<dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.framework</artifactId>
-            <version>${felix.framework.version}</version>
-        </dependency> 
+		</dependency>		
 	</dependencies>
 
 	<build>
@@ -91,7 +86,7 @@
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
-				<version>${org.apache.felix.version}</version>
+				<version>${maven.bundle.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
 					<instructions>
