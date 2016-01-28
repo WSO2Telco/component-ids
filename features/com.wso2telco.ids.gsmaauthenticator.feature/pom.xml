@@ -3,26 +3,21 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-       <groupId>org.wso2.carbon.identity</groupId>
-	<artifactId>component-ids-feature</artifactId>
+        <groupId>org.wso2.carbon.identity</groupId>
+        <artifactId>component-ids-feature</artifactId>
         <version>5.0.8-SNAPSHOT</version>
 	<relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>com.wso2telco.ids.urlshorten.feature</artifactId>
+    <artifactId>com.wso2telco.ids.gsmaauthenticator.feature</artifactId>
     <packaging>pom</packaging>
-    <name>WSO2Telco Carbon - Identity Server Feature</name>
-    <url>http://wso2.org</url>
-    <description>This feature contains the server bundles required for Back-end Student Management functionality</description>
+    <name>GSMA Authenticator Feature</name>
+    <url>http://wso2telco.com</url>
+    <description>This feature contains the server bundles required for database utility</description>
 
-    <!--dependencies>
-        <dependency>
-            <groupId>com.wso2telco.ids</groupId>
-            <artifactId>user-claim-retriever</artifactId>
-            <version>${org.wso2telco.ids.version}</version>
-        </dependency>
-    </dependencies-->
+    <dependencies>
+    </dependencies>
 
     <build>
         <plugins>
@@ -38,7 +33,7 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>com.wso2telco.ids.urlshorten.feature</id>
+                            <id>com.wso2telco.ids.gsmaauthenticator.feature</id>
                             <propertiesFile>../feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
@@ -46,12 +41,9 @@
                                     <propertyDef>org.eclipse.equinox.p2.type.group:false</propertyDef>
                                 </properties>
                             </adviceFile>
-                            <bundles>
-                                <bundleDef>com.wso2telco.ids:user-claim-retriever:${org.wso2telco.ids.version}</bundleDef>
-				<bundleDef>org.wso2.carbon:org.wso2.carbon.logging:${carbon.kernel.version}</bundleDef>
-				<bundleDef>org.apache.amber.wso2:amber:${org.wso2.amber.version}</bundleDef>
-				<bundleDef>org.apache.sling:org.apache.sling.commons.json:${org.apache.sling.commons.json.version}</bundleDef>
-				<bundleDef>com.jayway.jsonpath:json-path:${json.path.version}</bundleDef>
+                            <bundles>				
+                                <bundleDef>com.wso2telco.ids:url-shorten:${org.wso2telco.ids.version}</bundleDef>
+				<bundleDef>commons-codec.wso2:commons-codec:${commons-codec.version}</bundleDef>
                             </bundles>
                         </configuration>
                     </execution>
