@@ -10,18 +10,36 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.wso2.carbon.identity</groupId>
+    <!--groupId>org.wso2.carbon.identity</groupId>
     <artifactId>carbon-identity</artifactId>
     <packaging>pom</packaging>
     <version>5.0.8-SNAPSHOT</version>
     <name>WSO2 Carbon - Platform Aggregator Pom</name>
-    <url>http://wso2.org</url>
+    <url>http://wso2.org</url-->
 
     <parent>
         <groupId>org.wso2</groupId>
         <artifactId>wso2</artifactId>
         <version>1</version>
     </parent>
+
+  <groupId>com.wso2telco.ids</groupId>
+        <artifactId>component-ids</artifactId>
+        <packaging>pom</packaging>
+        <version>1.0.0-SNAPSHOT</version>
+        <name>WSO2Telco Core - Aggregate Pom</name>
+        <description>WSO2Telco Core Aggregate Pom</description>
+        <url>http://wso2telco.com</url>
+
+        <prerequisites>
+                <maven>3.0.0</maven>
+        </prerequisites>
+
+        <modules>
+                <module>components/lib</module>
+                <module>components/dropins</module>
+                <!--module>webapps</module-->
+        </modules>
 
     <scm>
         <url>https://github.com/wso2/carbon-identity.git</url>
@@ -30,11 +48,6 @@
         <tag>HEAD</tag>
     </scm>
 
-    <modules>
-
-        <module>components</module>
-        <!--module>features</module-->
-    </modules>
 
     <repositories>
 
