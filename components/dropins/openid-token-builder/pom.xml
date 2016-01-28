@@ -32,11 +32,8 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<org.wso2.amber.version>0.22.1358727.wso2v4</org.wso2.amber.version>
 		<org.wso2.carbon.logging.version>4.4.3</org.wso2.carbon.logging.version>
 		<commons-httpclient.version>3.1</commons-httpclient.version>
-		<org.apache.sling.commons.json.version>2.0.6</org.apache.sling.commons.json.version>
-		<json.path.version>0.9.1</json.path.version>
 		<nimbus.jose.jwt.version>2.26.1</nimbus.jose.jwt.version>
 		<json.smart.version>1.0.9</json.smart.version>
 		<org.wso2.carbon.apimgt.impl.version>1.2.2</org.wso2.carbon.apimgt.impl.version>
@@ -50,8 +47,6 @@
 		<dependency>
 			<groupId>org.apache.amber.wso2</groupId>
 			<artifactId>amber</artifactId>
-			<version>${org.wso2.amber.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon</groupId>
@@ -66,14 +61,10 @@
 		<dependency>
 			<groupId>org.apache.sling</groupId>
 			<artifactId>org.apache.sling.commons.json</artifactId>
-			<version>${org.apache.sling.commons.json.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.jayway.jsonpath</groupId>
 			<artifactId>json-path</artifactId>
-			<version>${json.path.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>

@@ -164,7 +164,11 @@
     <dependencyManagement>
         <dependencies>
             <!--Components Dependencies Starts-->
-
+	<dependency>
+		<groupId>org.apache.sling</groupId>
+		<artifactId>org.apache.sling.commons.json</artifactId>
+		<version>${org.apache.sling.commons.json.version}</version>
+	</dependency>
 	  <dependency>
                 <groupId>com.googlecode.json-simple</groupId>
                 <artifactId>json-simple</artifactId>
@@ -1856,15 +1860,22 @@
                 <artifactId>ehcache</artifactId>
                 <version>${ehcache.version}</version>
             </dependency>
+
+	<dependency>
+		<groupId>com.jayway.jsonpath</groupId>
+		<artifactId>json-path</artifactId>
+		<version>${json.path.version}</version>
+	</dependency>
         </dependencies>
 
     </dependencyManagement>
     <properties>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
+	<json.path.version>0.9.1</json.path.version>
         <!-- Carbon kernel version -->
-        <carbon.kernel.version>4.4.3</carbon.kernel.version>
+ 
+       <carbon.kernel.version>4.4.3</carbon.kernel.version>
         <carbon.kernel.package.import.version.range>[4.4.0, 5.0.0)</carbon.kernel.package.import.version.range>
         <carbon.kernel.registry.imp.pkg.version>[1.0.1, 2.0.0)</carbon.kernel.registry.imp.pkg.version>
 
@@ -1878,7 +1889,7 @@
         <carbon.commons.imp.pkg.version>[4.4.0, 5.0.0)</carbon.commons.imp.pkg.version>
 
         <!--Carbon identity version-->
-        <carbon.identity.version>5.0.8-SNAPSHOT</carbon.identity.version>
+        <carbon.identity.version>5.0.5</carbon.identity.version>
         <carbon.identity.package.export.version>${carbon.identity.version}</carbon.identity.package.export.version>
         <carbon.identity.package.import.version.range>[5.0.0, 6.0.0)</carbon.identity.package.import.version.range>
 
@@ -2078,6 +2089,8 @@
         <ehcache.version>1.5.0.wso2v3</ehcache.version>
 	<json.simple.version>1.1</json.simple.version>
         <project.scm.id>my-scm-server</project.scm.id>
+	<!--- wso2 telco  -->
+	<org.apache.sling.commons.json.version>2.0.6</org.apache.sling.commons.json.version>
     </properties>
 
     <build>
