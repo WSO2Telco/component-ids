@@ -29,8 +29,7 @@
 	<packaging>bundle</packaging>
 	<name>GSMA Application Authenticators - Dropins</name>
 	<properties>
-		<org.apache.felix.scr.annotations.version>1.9.6</org.apache.felix.scr.annotations.version>
-		<commons-codec.version>1.4.0.wso2v1</commons-codec.version>
+		<org.apache.felix.scr.annotations.version>1.9.6</org.apache.felix.scr.annotations.version>		
 	</properties>
 
 	<dependencies>
