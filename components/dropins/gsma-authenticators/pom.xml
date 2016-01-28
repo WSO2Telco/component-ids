@@ -30,7 +30,7 @@
 	<name>GSMA Application Authenticators - Dropins</name>
 	<properties>
 		<org.apache.felix.scr.annotations.version>1.9.6</org.apache.felix.scr.annotations.version>
-		<commons-codec.version>1.9</commons-codec.version>
+		<commons-codec.version>1.4.0.wso2v1</commons-codec.version>
 	</properties>
 
 	<dependencies>
@@ -80,7 +80,7 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>commons-codec</groupId>
+			<groupId>commons-codec.wso2</groupId>
 			<artifactId>commons-codec</artifactId>
 			<version>${commons-codec.version}</version>
 			<scope>provided</scope>
