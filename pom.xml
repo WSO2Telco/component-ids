@@ -125,7 +125,8 @@
 
     </repositories>
 
-   <pluginRepositories>
+
+    <pluginRepositories>
         <pluginRepository>
             <id>wso2telco-nexus</id>
             <name>WSO2Telco internal Repository</name>
@@ -2091,6 +2092,7 @@
         <project.scm.id>my-scm-server</project.scm.id>
 	<!--- wso2 telco  -->
 	<org.apache.sling.commons.json.version>2.0.6</org.apache.sling.commons.json.version>
+    <org.wso2.amber.version>0.22.1358727.wso2v4</org.wso2.amber.version>
     </properties>
 
     <build>
