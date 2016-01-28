@@ -47,6 +47,7 @@
                                 </properties>
                             </adviceFile>
                             <bundles>
+				<bundleDef>org.wso2.orbit.org.apache.httpcomponents:httpclient</bundleDef>
                                 <bundleDef>com.wso2telco.ids:url-shorten:${org.wso2telco.ids.version}</bundleDef>
                             </bundles>
                         </configuration>
