@@ -17,9 +17,7 @@
 
     <modules>
         <module>com.wso2telco.ids.urlshorten.feature</module>
+	<module>com.wso2telco.ids.userclaimretriever.feature</module>
     </modules>
-
-
-
 
 </project>
