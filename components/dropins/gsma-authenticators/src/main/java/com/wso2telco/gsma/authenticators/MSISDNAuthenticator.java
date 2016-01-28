@@ -293,7 +293,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
             String publicK = readStringKey(filename);
             //byte[] keyBytes = new BASE64Decoder().decodeBuffer(publicK);
-            byte[] keyBytes = Base64.decodeBase64(publicK);
+            byte[] keyBytes = Base64.decodeBase64(publicK.getBytes());
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
             KeyFactory fact = KeyFactory.getInstance("RSA");
 

@@ -59,8 +59,8 @@ public class AESencrp {
         c.init(Cipher.ENCRYPT_MODE, key);
         byte[] encVal = c.doFinal(Data.getBytes());
         //String encryptedValue = new BASE64Encoder().encode(encVal);
-        String encryptedValue = Base64.encodeBase64String(encVal);
-        return encryptedValue;
+        byte[] encryptedValue = Base64.encodeBase64(encVal);
+        return new String(encryptedValue);
     }
 
     /**
@@ -75,7 +75,7 @@ public class AESencrp {
         Cipher c = Cipher.getInstance(ALGO);
         c.init(Cipher.DECRYPT_MODE, key);
         //byte[] decordedValue = new BASE64Decoder().decodeBuffer(encryptedData);
-        byte[] decordedValue = Base64.decodeBase64(encryptedData);
+        byte[] decordedValue = Base64.decodeBase64(encryptedData.getBytes());
         byte[] decValue = c.doFinal(decordedValue);
         String decryptedValue = new String(decValue);
         return decryptedValue;

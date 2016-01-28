@@ -196,7 +196,7 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 	private String decryptData(String strData) throws IOException {
 
 		//byte[] data = new BASE64Decoder().decodeBuffer(strData);
-		byte[] data = Base64.decodeBase64(strData);
+		byte[] data = Base64.decodeBase64(strData.getBytes());
 		byte[] descryptedData = null;
 
 		try {
@@ -230,7 +230,7 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 
 		String publicK = readStringKey(fileName);
 		//byte[] keyBytes = new BASE64Decoder().decodeBuffer(publicK);
-		byte[] keyBytes = Base64.decodeBase64(publicK);
+		byte[] keyBytes = Base64.decodeBase64(publicK.getBytes());
 		PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
 		KeyFactory fact = KeyFactory.getInstance("RSA");
 		return fact.generatePrivate(keySpec);
