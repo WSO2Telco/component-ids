@@ -34,12 +34,7 @@
 			<artifactId>httpclient</artifactId>
 			<version>${httpclient.version}</version>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.jersey</groupId>
-			<artifactId>jersey-client</artifactId>
-			<version>${jersey.client.version}</version>
-		</dependency>
+		</dependency>		
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
 			<artifactId>json-simple</artifactId>
