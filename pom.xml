@@ -34,7 +34,6 @@
 	</prerequisites>
 
 	<modules>
-		<module>components/lib</module>
 		<module>components/dropins</module>
 		<module>components/url-shorten</module>
 		<module>components/user-claim-retriever</module>
@@ -1857,26 +1856,32 @@
 				<version>${json.path.version}</version>
 			</dependency>
 
-            <dependency>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>org.apache.felix.scr.annotations</artifactId>
-                <version>${org.apache.felix.scr.annotations.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.wso2telco.core</groupId>
-                <artifactId>mnc-resolver</artifactId>
-                <version>${mnc.resolver.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.wso2telco.ids</groupId>
-                <artifactId>authenticate-selector</artifactId>
-                <version>${authentic.selector.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.wso2telco.ids</groupId>
-                <artifactId>url-shorten</artifactId>
-                <version>${com.wso2telco.ids.urlshorten.version}</version>
-            </dependency>
+			<dependency>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>org.apache.felix.scr.annotations</artifactId>
+				<version>${org.apache.felix.scr.annotations.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.wso2telco.core</groupId>
+				<artifactId>mnc-resolver</artifactId>
+				<version>${mnc.resolver.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.wso2telco.ids</groupId>
+				<artifactId>authenticate-selector</artifactId>
+				<version>${authentic.selector.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.wso2telco.ids</groupId>
+				<artifactId>url-shorten</artifactId>
+				<version>${com.wso2telco.ids.urlshorten.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.wso2telco.core</groupId>
+				<artifactId>dbutils</artifactId>
+				<version>1.0.0-SNAPSHOT</version>
+			</dependency>
 		</dependencies>
 
 	</dependencyManagement>
