@@ -21,7 +21,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>openid-token-builder</artifactId>
 	<packaging>jar</packaging>
-	<name>WSO2Telco OpenID Token Builder</name>
+	<name>OpenID Token Builder</name>
 
 	<dependencies>
 		<dependency>
