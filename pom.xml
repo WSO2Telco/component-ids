@@ -38,6 +38,8 @@
 		<module>components/dropins</module>
 		<module>components/url-shorten</module>
 		<module>components/user-claim-retriever</module>
+		<module>components/authenticate-selector</module>
+		<module>components/gsma-authenticators</module>
 		<module>features</module>
 		<!--module>webapps</module -->
 	</modules>
