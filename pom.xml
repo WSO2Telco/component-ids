@@ -127,6 +127,16 @@
 	<dependencyManagement>
 		<dependencies>
 
+			<dependency>
+				<groupId>org.json</groupId>
+				<artifactId>json</artifactId>
+				<version>${json.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.amber.wso2</groupId>
+				<artifactId>amber</artifactId>
+				<version>${amber.version}</version>
+			</dependency>
 			<!-- Url shorten dependencies -->
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
@@ -1848,6 +1858,10 @@
 	<properties>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+		<json.version>20140107</json.version>
+		<amber.version>0.22.1358727.wso2v2</amber.version>
+
 		<json.path.version>0.9.1</json.path.version>
 		<!-- Carbon kernel version -->
 

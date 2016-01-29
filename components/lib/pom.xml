@@ -30,9 +30,7 @@
 	</modules>
 
 	<properties>
-		<json.version>20140107</json.version>
 		<cxf-bundle.versrion>2.6.1.wso2v2</cxf-bundle.versrion>
-		<amber.version>0.22.1358727.wso2v2</amber.version>
 		<org.wso2.carbon.ui.version>4.4.3</org.wso2.carbon.ui.version>
 		<org.wso2.carbon.identity.application.authentication.framework.version>5.0.7</org.wso2.carbon.identity.application.authentication.framework.version>
 	</properties>
