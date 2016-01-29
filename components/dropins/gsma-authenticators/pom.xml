@@ -64,11 +64,10 @@
 			<version>${mnc.resolver.version}</version>
 			<scope>provided</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>com.wso2telco.ids</groupId>
-			<artifactId>com.wso2telco.ids.authentic.selector</artifactId>
-			<version>${com.wso2telco.ids.authentic.selector.version}</version>
+			<artifactId>authenticate-selector</artifactId>
+			<version>${authentic.selector.version}</version>
 			<scope>provided</scope>
 			<!--scope>provided</scope -->
 		</dependency>
