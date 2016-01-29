@@ -17,7 +17,7 @@
 
 	<modules>
 		<module>authenticate-selector</module>
-		<module>gsma-authenticators</module>
+		<!--<module>gsma-authenticators</module>-->
 		<module>openid-token-builder</module>
 	</modules>
 
