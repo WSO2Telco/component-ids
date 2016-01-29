@@ -18,61 +18,49 @@
 
 	<parent>
 		<groupId>com.wso2telco.ids</groupId>
-		<artifactId>lib</artifactId>
+		<artifactId>component-ids</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
+		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>user-claim-retriever</artifactId>
-	<name>User Claim Retriever - Lib</name>
+	<name>User Claim Retriever - Components</name>
 	<packaging>bundle</packaging>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.cxf.wso2</groupId>
 			<artifactId>cxf-bundle</artifactId>
-			<version>${cxf-bundle.versrion}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon</groupId>
 			<artifactId>org.wso2.carbon.utils</artifactId>
-			<version>${org.wso2.carbon.utils.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.oauth</artifactId>
-			<version>${org.wso2.carbon.identity.oauth.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.amber.wso2</groupId>
 			<artifactId>amber</artifactId>
-			<version>${amber.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon</groupId>
 			<artifactId>org.wso2.carbon.ui</artifactId>
-			<version>${org.wso2.carbon.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
-			<version>${org.wso2.carbon.identity.application.authentication.framework.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
-			<version>${json.version}</version>
 		</dependency>		
 	</dependencies>
 
@@ -93,7 +81,6 @@
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
-				<version>${maven.bundle.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
 					<instructions>

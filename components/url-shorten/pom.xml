@@ -11,16 +11,16 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.wso2telco.ids</groupId>
-		<artifactId>lib</artifactId>
+		<artifactId>component-ids</artifactId>
 		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
+		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
 	<artifactId>url-shorten</artifactId>
 	<packaging>bundle</packaging>
 	<url>http://maven.apache.org</url>
 
-	<name>Url Shorten - Lib</name>
+	<name>Url Shorten - Components</name>
 
 	<properties>
 		<json.simple.version>1.1</json.simple.version>
@@ -28,30 +28,27 @@
 	</properties>
 
 	<dependencies>
-	<dependency>
-		<groupId>junit</groupId>
-		<artifactId>junit</artifactId>
-	</dependency>
-	<dependency>
-		<groupId>org.apache.httpcomponents</groupId>
-		<artifactId>httpclient</artifactId>
-		<version>${httpclient.version}</version>
-		<scope>provided</scope>
-	</dependency>
-	<dependency>
-		<groupId>com.googlecode.json-simple</groupId>
-		<artifactId>json-simple</artifactId>
-		<version>${json.simple.version}</version>
-		<scope>provided</scope>
-	</dependency>
-</dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
 	<build>
 		<plugins>
-			
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
-				<version>${maven.bundle.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
 					<instructions>
@@ -67,7 +64,6 @@
 					</instructions>
 				</configuration>
 			</plugin>
-
 		</plugins>
 	</build>
 

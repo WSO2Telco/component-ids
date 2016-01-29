@@ -30,6 +30,7 @@ import javax.crypto.Cipher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -54,9 +55,6 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import com.wso2telco.mnc.resolver.MNCQueryClient;
 import com.wso2telco.mnc.resolver.MobileNtException;
-
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 
  
 // TODO: Auto-generated Javadoc
@@ -282,9 +280,8 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
             PublicKey pubKey = readPublicKeyFromFile(getPublicKeyFile());
             Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher.init(Cipher.ENCRYPT_MODE, pubKey);
-            encryptedData = cipher.doFinal(dataToEncrypt);
-
-            return new BASE64Encoder().encode(encryptedData);
+            encryptedData = cipher.doFinal(dataToEncrypt);            
+            return new String(Base64.encodeBase64(encryptedData));
 
         } catch (Exception e) {
             throw new AuthenticationFailedException(
@@ -301,8 +298,8 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
      */
     private PublicKey readPublicKeyFromFile(String fileName) throws AuthenticationFailedException {
         try {
-            String publicK = readStringKey(fileName);
-            byte[] keyBytes = new BASE64Decoder().decodeBuffer(publicK);
+            String publicK = readStringKey(fileName);           
+            byte[] keyBytes = Base64.decodeBase64(publicK.getBytes());;
             X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             return keyFactory.generatePublic(spec);

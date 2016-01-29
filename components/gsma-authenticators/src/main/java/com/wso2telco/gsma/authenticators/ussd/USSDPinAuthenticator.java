@@ -26,39 +26,45 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.oauth.dao.OAuthAppDO;
-import org.wso2.carbon.identity.oauth.cache.BaseCache;
+import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.base.IdentityException;
+
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 import org.wso2.carbon.identity.oauth.common.exception.InvalidOAuthClientException;
 import org.wso2.carbon.identity.oauth.dao.OAuthAppDAO;
+import org.wso2.carbon.identity.oauth.dao.OAuthAppDO;
 import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
+import org.wso2.carbon.user.api.UserRealm;
+import org.wso2.carbon.user.core.UserStoreManager;
 
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.DataHolder;
+import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-
-// TODO: Auto-generated Javadoc
-//import org.wso2.carbon.identity.core.dao.OAuthAppDAO;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
  
+// TODO: Auto-generated Javadoc
 /**
- * The Class USSDAuthenticator.
+ * The Class USSDPinAuthenticator.
  */
-public class USSDAuthenticator extends AbstractApplicationAuthenticator
+public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 
     /** The Constant serialVersionUID. */
-    private static final long serialVersionUID = 7785133722588291677L;
+    private static final long serialVersionUID = 7785133722588291678L;
     
     /** The log. */
-    private static Log log = LogFactory.getLog(USSDAuthenticator.class);
+    private static Log log = LogFactory.getLog(USSDPinAuthenticator.class);
     
     /** The Constant PIN_CLAIM. */
     private static final String PIN_CLAIM = "http://wso2.org/claims/pin";
@@ -114,42 +120,36 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             } else {
                 // Insert entry to DB only if this is not a retry
-                DBUtils.insertUserResponse(context.getContextIdentifier(), String.valueOf(UserResponse.PENDING));
+                DBUtils.insertUserResponse(context.getContextIdentifier(), String.valueOf(USSDPinAuthenticator.UserResponse.PENDING));
             }
 
             //MSISDN will be saved in the context in the MSISDNAuthenticator
             String msisdn = (String) context.getProperty("msisdn");
 
-            //String pinEnabled = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinauth();
-            String ussdResponse = null;
 
-
-             
-
-
-            //Changing SP dashboard Name
             String serviceProviderName = null;
 
             serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
-
 
             log.info("Service Provider Name = " + serviceProviderName);
             if (serviceProviderName.equals("wso2_sp_dashboard")) {
                 serviceProviderName = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getDashBoard();
 
             }
-            //String operator= request.getParameter("operator");
+
+            // String pinEnabled =
+            // DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinauth();
+            String ussdResponse = null;
+
             String operator = (String) context.getProperty("operator");
             
             log.info("operator:" + operator);
-
-            ussdResponse = new SendUSSD().sendUSSD(msisdn, context.getContextIdentifier(), serviceProviderName,operator);
-
-            log.info("query params: " + queryParams);
-            
-            log.info("Context_RedirectURI:" + (String) context.getProperty("redirectURI"));
-            response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams))+ "&redirect_uri=" + (String) context.getProperty("redirectURI") + "&authenticators="
-                    + getName() + ":" + "LOCAL" + retryParam);
+            ussdResponse = new SendUSSD().sendUSSDPIN(msisdn, context.getContextIdentifier(),
+                    serviceProviderName,operator);
+			log.info("Context_RedirectURI:" + (String) context.getProperty("redirectURI"));
+            response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams))
+            		+ "&redirect_uri=" + (String) context.getProperty("redirectURI")
+                    + "&authenticators=" + getName() + ":" + "LOCAL" + retryParam);
 
         } catch (IOException e) {
             throw new AuthenticationFailedException(e.getMessage(), e);
@@ -169,26 +169,61 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         String sessionDataKey = request.getParameter("sessionDataKey");
 
         boolean isAuthenticated = false;
+        String msisdn = null;
 
         // Check if the user has provided consent
         try {
 
             //String pinEnabled = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinauth();
 
-            String responseStatus = DBUtils.getUserResponse(sessionDataKey);
+            Pinresponse pinresponse = DBUtils.getUserPinResponse(sessionDataKey);
+            if (pinresponse.getUserPin() != null) {
 
-            if (responseStatus.equalsIgnoreCase(UserResponse.APPROVED.toString())) {
-                isAuthenticated = true;
+                //MSISDN will be saved in the context in the MSISDNAuthenticator
+                msisdn = ((String) context.getProperty("msisdn")).replace("+", "").trim();
+                try {
+                	int tenantId = -1234;
+                    UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService()
+                            .getTenantUserRealm(tenantId);
+
+                    if (userRealm != null) {
+                        UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
+                        String profilepin = userStoreManager.getUserClaimValue(msisdn, PIN_CLAIM, null);
+
+                        if (log.isDebugEnabled()) {
+                            log.debug("profile pin: " + profilepin);
+                        }
+
+                        if (profilepin != null) {
+                            String userpin = pinresponse.getUserPin();
+                            String hashedPin = getHashedPin(userpin);
+                            if (log.isDebugEnabled()) {
+                                log.debug("User pin: " + userpin + ":" + profilepin);
+                            }
+
+                            if (profilepin.equalsIgnoreCase(hashedPin)) {
+                                isAuthenticated = true;
+                            }
+                        }
+
+                    } else {
+                        throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: " + tenantId);
+                    }
+
+                } catch (org.wso2.carbon.user.api.UserStoreException e) {
+                    log.error("USSD Pin Authentication failed while trying to authenticate", e);
+                    throw new AuthenticationFailedException(e.getMessage(), e);
+                }
             }
 
         } catch (AuthenticatorException e) {
-            log.error("USSD Authentication failed while trying to authenticate", e);
+            log.error("USSD Pin Authentication failed while trying to authenticate", e);
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
 
         if (!isAuthenticated) {
-            log.info("USSD Authenticator authentication failed ");
-            context.setProperty("faileduser", (String) context.getProperty("msisdn"));
+            log.info("USSD Pin Authenticator authentication failed ");
+            context.setProperty("faileduser", msisdn);
             
             if (log.isDebugEnabled()) {
                 log.debug("User authentication failed due to user not providing consent.");
@@ -196,20 +231,49 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
             throw new AuthenticationFailedException("Authentication Failed");
         }
-        
+        log.info("USSD Pin Authenticator authentication success");
 
-        String msisdn = (String) context.getProperty("msisdn");
         AuthenticatedUser user=new AuthenticatedUser();
         context.setSubject(user);
-        
-        log.info("USSD Authenticator authentication success");
-
-//        context.setSubject(msisdn);
         String rememberMe = request.getParameter("chkRemember");
 
         if (rememberMe != null && "on".equals(rememberMe)) {
             context.setRememberMe(true);
         }
+    }
+
+    /**
+     * Gets the hashed pin.
+     *
+     * @param pinvalue the pinvalue
+     * @return the hashed pin
+     */
+    private String getHashedPin(String pinvalue) {
+        String hashString = "";
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(pinvalue.getBytes("UTF-8"));
+
+            StringBuilder hexString = new StringBuilder();
+
+            for (int i = 0; i < hash.length; i++) {
+                String hex = Integer.toHexString(0xff & hash[i]);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+
+            hashString = hexString.toString();
+
+        } catch (UnsupportedEncodingException ex) {
+            log.info("Error getHashValue");
+        } catch (NoSuchAlgorithmException ex) {
+            log.info("Error getHashValue");
+        }
+
+        return hashString;
+
     }
 
      
@@ -263,7 +327,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
      */
     @Override
     public String getFriendlyName() {
-        return Constants.USSD_AUTHENTICATOR_FRIENDLY_NAME;
+        return Constants.USSDPIN_AUTHENTICATOR_FRIENDLY_NAME;
     }
 
     /* (non-Javadoc)
@@ -271,7 +335,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
      */
     @Override
     public String getName() {
-        return Constants.USSD_AUTHENTICATOR_NAME;
+        return Constants.USSDPIN_AUTHENTICATOR_NAME;
     }
 
     /**
