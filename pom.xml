@@ -25,7 +25,7 @@
 	<artifactId>component-ids</artifactId>
 	<packaging>pom</packaging>
 	<version>1.0.0-SNAPSHOT</version>
-	<name>WSO2Telco Core - Aggregate Pom</name>
+	<name>WSO2Telco Core - Component</name>
 	<description>WSO2Telco Core Aggregate Pom</description>
 	<url>http://wso2telco.com</url>
 
@@ -1882,11 +1882,16 @@
 				<artifactId>dbutils</artifactId>
 				<version>1.0.0-SNAPSHOT</version>
 			</dependency>
+			<dependency>
+				<groupId>com.wso2telco.ids</groupId>
+				<artifactId>gsma-authenticator</artifactId>
+				<version>${com.wso2telco.ids.version}</version>
+			</dependency>
 		</dependencies>
 
 	</dependencyManagement>
 	<properties>
-
+		<com.wso2telco.ids.version>1.0.0-SNAPSHOT</com.wso2telco.ids.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<json.version>20140107</json.version>
