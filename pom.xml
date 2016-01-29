@@ -36,6 +36,8 @@
 	<modules>
 		<module>components/lib</module>
 		<module>components/dropins</module>
+		<module>components/url-shorten</module>
+		<module>components/user-claim-retriever</module>
 		<module>features</module>
 		<!--module>webapps</module -->
 	</modules>
