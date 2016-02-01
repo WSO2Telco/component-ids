@@ -45,8 +45,8 @@
 		<module>components/user-claim-retriever</module>
 		<module>components/authenticate-selector</module>
 		<module>components/gsma-authenticators</module>
-		<!--module>components/openid-token-builder</module-->
-		<module>components/session-updater</module>
+		<!--module>components/openid-token-builder</module>
+		<module>components/session-updater</module-->
                 <module>components/authentication-endpoint</module>
 		<module>features</module>
 		<!--module>webapps</module -->
@@ -2146,7 +2146,9 @@
         <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
         <javax.ws.rs.version>1.0</javax.ws.rs.version>
         <sevlet.api.version>2.5</sevlet.api.version>
-        
+	<version.tomcat>7.0.59</version.tomcat>
+        <orbit.version.tomcat.servlet.api>${version.tomcat}.wso2v1</orbit.version.tomcat.servlet.api>
+
 	</properties>
 
 	<build>

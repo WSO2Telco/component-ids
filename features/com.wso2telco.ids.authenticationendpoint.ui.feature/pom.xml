@@ -9,20 +9,16 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>org.wso2.carbon.device.mgt.ios.web.server.feature</artifactId>
+    <artifactId>com.wso2telco.ids.authenticationendpoint.ui.feature</artifactId>
     <packaging>pom</packaging>
-    <name>WSO2 EMM - iOS Device Management JAX-RS Web Application Feature</name>
-    <url>http://wso2.org</url>
+    <name>WSO2 Telco - Authentication Endpoint  Web Application Feature</name>
+    <url>http://wso2telco.com/</url>
     <description>
         This feature contains the JAX-RS web application
     </description>
 
     
-	<dependencies>
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-		</dependency>
+	<!--dependencies>
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
@@ -35,17 +31,11 @@
  			<groupId>javax.servlet</groupId>
 			<artifactId>jstl</artifactId> 
  		</dependency>
-		<dependency>
+				<dependency>
 			<groupId>commons-codec.wso2</groupId>
 			<artifactId>commons-codec</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>com.wso2telco.ids</groupId>
-			<artifactId>commons-codec</artifactId>
-		</dependency>
-
-
-	</dependencies>
+	</dependencies-->
 
     <build>
         <plugins>
@@ -108,7 +98,7 @@
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>com.wso2telco.ids</groupId>
-                                    <artifactId>component-ids</artifactId>
+                                    <artifactId>authentication-endpoint</artifactId>
                                     <version>${com.wso2telco.ids.version}</version>
                                     <type>war</type>
                                     <destFileName>authenticationendpoint.war</destFileName>
@@ -132,7 +122,7 @@
                         </goals>
                         <configuration>
                             <id>org.wso2.carbon.device.mgt.ios.web.server</id>
-                            <propertiesFile>../etc/feature.properties</propertiesFile>
+                            <propertiesFile>../feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
                                     <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
@@ -140,8 +130,8 @@
                                 </properties>
                             </adviceFile>
                             <bundles>
-                                <bundleDef>
-                                    javax.servlet:servlet-api:${javax.servlet-api.version}
+                                <!--bundleDef>
+                                    javax.servlet:servlet-api:${servlet-api.version}
                                 </bundleDef>
 				<bundleDef>
                                     commons-logging:commons-logging:${commons-logging.version}
@@ -151,7 +141,7 @@
                                 </bundleDef>
 				<bundleDef>
                                     javax.servlet:jstl:${javax.servelet.jstl.version}
-                                </bundleDef>
+                                </bundleDef-->
 				<bundleDef>
                                    commons-codec.wso2:commons-codec:${commons-codec.version}
                                 </bundleDef>
