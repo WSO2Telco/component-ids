@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
-	All Rights Reserved. WSO2.Telco Inc. licences this file to you under the 
-	Apache License, Version 2.0 (the "License"); you may not use this file except 
-	in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
-	Unless required by applicable law or agreed to in writing, software distributed 
-	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
-	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
-	the specific language governing permissions and limitations under the License. -->
+<!--
+  Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
+  
+  WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  
+    http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
@@ -38,7 +45,9 @@
 		<module>components/user-claim-retriever</module>
 		<module>components/authenticate-selector</module>
 		<module>components/gsma-authenticators</module>
-		<module>components/openid-token-builder</module>
+		<!--module>components/openid-token-builder</module>
+		<module>components/session-updater</module-->
+                <module>components/authentication-endpoint</module>
 		<module>features</module>
 		<!--module>webapps</module -->
 	</modules>
@@ -157,11 +166,6 @@
 				<groupId>org.apache.sling</groupId>
 				<artifactId>org.apache.sling.commons.json</artifactId>
 				<version>${org.apache.sling.commons.json.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.googlecode.json-simple</groupId>
-				<artifactId>json-simple</artifactId>
-				<version>${json.simple.version}</version>
 			</dependency>
 
 			<!-- Carbon Kernel Dependencies -->
@@ -2135,11 +2139,46 @@
 		<com.gsma.authenticators.version>1.0.0-SNAPSHOT</com.gsma.authenticators.version>
 		<url.shorten.version>1.0.0-SNAPSHOT</url.shorten.version>
 		<maven.bundle.plugin.version>2.3.7</maven.bundle.plugin.version>
+
+		<commons-fileupload.version>1.2.0.wso2v1</commons-fileupload.version>
+        <maven-compiler-plugin.version>1.7</maven-compiler-plugin.version>
+        <maven-war-plugin.version>2.2</maven-war-plugin.version>
+        <org.json.wso2.version>3.0.0.wso2v1</org.json.wso2.version>
+        <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
+        <javax.ws.rs.version>1.0</javax.ws.rs.version>
+        <sevlet.api.version>2.5</sevlet.api.version>
+	<version.tomcat>7.0.59</version.tomcat>
+        <orbit.version.tomcat.servlet.api>${version.tomcat}.wso2v1</orbit.version.tomcat.servlet.api>
+
 	</properties>
 
 	<build>
 		<pluginManagement>
 			<plugins>
+				<!--plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.17</version>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <configuration>
+                        <configLocation>sun_checks.xml</configLocation>
+                        <encoding>UTF-8</encoding>
+                        <consoleOutput>true</consoleOutput>
+                            <failsOnError>false</failsOnError>
+                        <failOnViolation>false</failOnViolation>
+                        <outputFile>../Checkstyle-result.xml</outputFile>
+                        <outputFileFormat>xml</outputFileFormat>
+                        <linkXRef>false</linkXRef>
+                        </configuration>
+                        <goals>
+                        <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+    			</plugin-->
 				<plugin>
 					<groupId>org.apache.felix</groupId>
 					<artifactId>maven-scr-plugin</artifactId>
@@ -2190,5 +2229,27 @@
 			</plugin>
 		</plugins>
 	</build>
+	<profiles>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>docs</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>javadoc</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>
