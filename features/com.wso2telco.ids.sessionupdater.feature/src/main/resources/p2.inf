@@ -1,0 +1,2 @@
+instructions.configure = \
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/com.wso2telco.ids.sessionupdater.feature_${feature.version}/generated/sessionupdater.war,target:${installFolder}/../../deployment/server/webapps/sessionupdater.war,overwrite:true);
