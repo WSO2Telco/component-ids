@@ -39,6 +39,7 @@
 		<module>components/authenticate-selector</module>
 		<module>components/gsma-authenticators</module>
 		<module>components/openid-token-builder</module>
+		<module>components/authentication-endpoint</module>
 		<module>features</module>
 		<!--module>webapps</module -->
 	</modules>
