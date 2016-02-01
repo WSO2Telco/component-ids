@@ -27,6 +27,7 @@
 				<exclude>.settings/</exclude>
 				<exclude>zip-descriptor.xml</exclude>
 				<exclude>pom.xml</exclude>
+				<exclude>src/</exclude>
 			</excludes>
 		</fileSet>
 	</fileSets>
