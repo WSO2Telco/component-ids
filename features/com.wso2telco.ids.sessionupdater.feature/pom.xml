@@ -14,12 +14,7 @@
     <name>Session Updater</name>
     <url>http://wso2telco.com</url>
     
-    <dependencies>       
-        <dependency>
-            <groupId>com.googlecode.json-simple</groupId>
-            <artifactId>json-simple</artifactId>
-            <version>${json.simple.version}</version>
-        </dependency>
+    <dependencies>          
         <dependency>
             <groupId>org.json.wso2</groupId>
             <artifactId>json</artifactId>
@@ -39,31 +34,91 @@
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.um.ws.api.stub</artifactId>
             <version>${carbon.identity.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>${httpclient.version}</version>
-        </dependency>
+        </dependency>       
         <dependency>
             <groupId>commons-codec.wso2</groupId>
             <artifactId>commons-codec</artifactId>
             <version>${commons-codec.version}</version>
-        </dependency>
+        </dependency>     
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>${sevlet.api.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>javax.ws.rs</artifactId>
-            <version>${javax.ws.rs.version}</version>
-        </dependency>
+            <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${httpcomponents-httpclient.wso2.version}</version>
+        </dependency>     
     </dependencies>
 
     <build>
         <plugins>
+           <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>2.6.1</version>
+                <executions>
+                    <execution>
+                        <id>auto-clean</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${project.basedir}/src/main/resources/generated</directory>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>src/main/resources</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>resources</directory>
+                                    <includes>
+                                        <include>build.properties</include>
+                                        <include>p2.inf</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.9</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.wso2telco.ids</groupId>
+                                    <artifactId>session-updater</artifactId>
+                                    <version>${com.wso2telco.ids.version}</version>
+                                    <type>war</type>
+                                    <destFileName>sessionupdater.war</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${project.basedir}/src/main/resources/generated</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.wso2.maven</groupId>
                 <artifactId>carbon-p2-plugin</artifactId>
@@ -81,11 +136,28 @@
                             <adviceFile>
                                 <properties>
                                     <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
-                                    <propertyDef>org.eclipse.equinox.p2.type.group:false</propertyDef>
+                                    <propertyDef>org.eclipse.equinox.p2.type.group:true</propertyDef>
                                 </properties>
                             </adviceFile>
-                            <bundles>
-                                <bundleDef>org.wso2telco.ids:sessionupdater:${com.wso2telco.ids.version}</bundleDef>
+                            <bundles>                                
+                                <bundleDef>
+                                    org.json.wso2:json:${org.json.wso2.version}                                    
+                                </bundleDef>
+                                <bundleDef>
+                                    org.wso2.carbon:org.wso2.carbon.authenticator.stub:${carbon.kernel.version}                                   
+                                </bundleDef>
+                                <bundleDef>
+                                    org.wso2.carbon.identity:org.wso2.carbon.identity.mgt.stub:${carbon.identity.version}                                
+                                </bundleDef>
+                                <bundleDef>
+                                    org.wso2.carbon.identity:org.wso2.carbon.um.ws.api.stub:${carbon.identity.version}                                 
+                                </bundleDef>                                
+                                <bundleDef>
+                                    commons-codec.wso2:commons-codec:${commons-codec.version}                                  
+                                </bundleDef>      
+                                <bundleDef>
+                                    org.wso2.orbit.org.apache.httpcomponents:httpclient:${httpcomponents-httpclient.wso2.version}     
+                                </bundleDef>                     
                             </bundles>
                         </configuration>
                     </execution>
