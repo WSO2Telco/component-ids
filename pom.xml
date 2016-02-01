@@ -2142,7 +2142,8 @@
         <org.json.wso2.version>3.0.0.wso2v1</org.json.wso2.version>
         <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
         <javax.ws.rs.version>1.0</javax.ws.rs.version>
-
+        <sevlet.api.version>2.5</sevlet.api.version>
+        
 	</properties>
 
 	<build>
