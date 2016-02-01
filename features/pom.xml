@@ -12,12 +12,12 @@
     <name>Component Ids Aggregated Features</name>
     <url>http://wso2.org</url>
     <modules>
-        <module>com.wso2telco.ids.urlshorten.feature</module>
-        <module>com.wso2telco.ids.gsmaauthenticator.feature</module>
-	    <module>com.wso2telco.ids.userclaimretriever.feature</module>
-        <module>com.wso2telco.ids.authenticateselector.feature</module>
-	    <module>com.wso2telco.ids.authenticationendpoint.feature</module>
-        <module>com.wso2telco.ids.sessionupdater.feature</module>
+         <module>com.wso2telco.ids.urlshorten.feature</module>
+         <module>com.wso2telco.ids.gsmaauthenticator.feature</module>
+	 <module>com.wso2telco.ids.userclaimretriever.feature</module>
+         <module>com.wso2telco.ids.authenticateselector.feature</module>
+   	 <module>com.wso2telco.ids.authenticationendpoint.ui.feature</module>
+         <!--module>com.wso2telco.ids.sessionupdater.feature</module-->
     </modules>
     <properties>
 	<org.wso2telco.ids.version>1.0.0-SNAPSHOT</org.wso2telco.ids.version>

@@ -38,7 +38,7 @@
 		<module>components/user-claim-retriever</module>
 		<module>components/authenticate-selector</module>
 		<module>components/gsma-authenticators</module>
-		<module>components/openid-token-builder</module>
+		<!--module>components/openid-token-builder</module-->
 		<module>components/session-updater</module>
                 <module>components/authentication-endpoint</module>
 		<module>features</module>
