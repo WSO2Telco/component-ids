@@ -23,7 +23,7 @@
 	<body>
 		<release version="1.0.0" date="2016-01-31" description="Subsequent release">
 			<action dev="wishmika" type="add">
-				Fuck you
+				Email added
 			</action>
 		</release>
 
