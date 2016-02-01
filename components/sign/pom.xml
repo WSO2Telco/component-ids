@@ -10,10 +10,10 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
   <groupId>com.wso2telco.ids</groupId>
-  <artifactId>dashboard</artifactId>
+  <artifactId>sign</artifactId>
   <packaging>pom</packaging>
   <name>sign</name>
-  <description>dashbaord jageryapp</description>
+  <description>sign jageryapp</description>
   <properties>
     <CApp.type>jaggery/app</CApp.type>
   </properties>
@@ -58,7 +58,7 @@
         <artifactId>maven-assembly-plugin</artifactId>
         <executions>
           <execution>
-            <id>dashboard</id>
+            <id>sign</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
