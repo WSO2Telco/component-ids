@@ -16,7 +16,7 @@
         <module>com.wso2telco.ids.gsmaauthenticator.feature</module>
 	    <module>com.wso2telco.ids.userclaimretriever.feature</module>
         <module>com.wso2telco.ids.authenticateselector.feature</module>
-	    <module>com.wso2telco.ids.authenticationendpoint.feature</module>
+	    <module>com.wso2telco.ids.authenticationendpoint.ui.feature</module>
         <module>com.wso2telco.ids.sessionupdater.ui.feature</module>
     </modules>
     <properties>
