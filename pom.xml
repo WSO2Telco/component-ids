@@ -1244,7 +1244,7 @@
 			<dependency>
 				<groupId>org.wso2.carbon.identity</groupId>
 				<artifactId>org.wso2.carbon.identity.oauth</artifactId>
-				<version>${carbon.identity.version}</version>
+				<version>${org.wso2.carbon.identity.oauth.custom.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.wso2.carbon.identity</groupId>
@@ -1895,7 +1895,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<json.version>20140107</json.version>
-		<amber.version>0.22.1358727.wso2v2</amber.version>
+		<amber.version>0.22.1358727.wso2v4</amber.version>
 
 		<json.path.version>0.9.1</json.path.version>
 		<!-- Carbon kernel version -->
@@ -2122,11 +2122,12 @@
 		<org.wso2.carbon.version>4.4.3</org.wso2.carbon.version>
 		<org.wso2.carbon.identity.version>5.0.7</org.wso2.carbon.identity.version>
 		<!--org.wso2.carbon.identity.provider.version>5.0.7</org.wso2.carbon.identity.provider.version-->
-		<!--org.wso2.carbon.identity.oauth.version>5.0.7</org.wso2.carbon.identity.oauth.version-->
+		<org.wso2.carbon.identity.oauth.custom.version>5.0.7</org.wso2.carbon.identity.oauth.custom.version>
 		<!--maven.checkstyle.plugin.version>2.17</maven.checkstyle.plugin.version-->
 		<!--commons.logging>1.2</commons.logging-->
 		<maven.compiler.plugin.version>3.3</maven.compiler.plugin.version>
 		<!--commons.lang.version>2.3</commons.lang.version-->
+		<org.apache.felix.scr.annotations.version>1.9.6</org.apache.felix.scr.annotations.version>
 		<mnc.resolver.version>1.0.0-SNAPSHOT</mnc.resolver.version>
 		<httpclient.version>4.3.1</httpclient.version>
 		<com.wso2telco.ids.urlshorten.version>1.0.0-SNAPSHOT</com.wso2telco.ids.urlshorten.version>
