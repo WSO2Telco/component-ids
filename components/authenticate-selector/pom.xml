@@ -14,10 +14,9 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.wso2telco.ids</groupId>
 		<artifactId>component-ids</artifactId>
@@ -25,70 +24,69 @@
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
-    <artifactId>authenticate-selector</artifactId>
-    <packaging>bundle</packaging>
-    <name>Authenticate Selector - Dropins</name>
+	<artifactId>authenticate-selector</artifactId>
+	<packaging>bundle</packaging>
+	<name>Authenticate Selector - Dropins</name>
 
 
-    <dependencies>
-        
-        <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
-            <artifactId>org.wso2.carbon.identity.application.common</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon</groupId>
-            <artifactId>org.wso2.carbon.utils</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
-            <artifactId>org.wso2.carbon.identity.core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-                <groupId>com.google.code.gson</groupId>
-                <artifactId>gson</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <type>jar</type>
-	       <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.wso2telco.core</groupId>
-            <artifactId>mnc-resolver</artifactId>
-            <type>jar</type>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-		<version>${maven.bundle.plugin.version}</version>
-                <configuration>
-                    <instructions>
-                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-                        <Bundle-Name>${project.artifactId}</Bundle-Name>
+	<dependencies>
 
-                        <Import-Package>
-                            org.apache.commons.logging.*; version="1.0.4",
-                            org.osgi.framework,
-                            org.wso2.carbon.identity.application.authentication.framework.*,
-                            javax.servlet;version="[2.6.0, 3.0.0)",
-                            javax.servlet.http;version="[2.6.0, 3.0.0)",
-                            *;resolution:=optional</Import-Package>
+		<dependency>
+			<groupId>org.wso2.carbon.identity</groupId>
+			<artifactId>org.wso2.carbon.identity.application.common</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.wso2.carbon</groupId>
+			<artifactId>org.wso2.carbon.utils</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.wso2.carbon.identity</groupId>
+			<artifactId>org.wso2.carbon.identity.core</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<type>jar</type>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.wso2telco.core</groupId>
+			<artifactId>mnc-resolver</artifactId>
+			<type>jar</type>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<configuration>
+					<instructions>
+						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+						<Bundle-Name>${project.artifactId}</Bundle-Name>
 
-                        <DynamicImport-Package>*</DynamicImport-Package>
-                    </instructions>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+						<Import-Package>
+							org.apache.commons.logging.*; version="1.0.4",
+							org.osgi.framework,
+							<!-- org.wso2.carbon.identity.application.authentication.framework.*, -->
+							javax.servlet;version="[2.6.0, 3.0.0)",
+							javax.servlet.http;version="[2.6.0, 3.0.0)",
+							*;resolution:=optional</Import-Package>
+
+						<DynamicImport-Package>*</DynamicImport-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>
