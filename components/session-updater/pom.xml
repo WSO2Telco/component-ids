@@ -12,9 +12,9 @@
 
 	<parent>
 		<groupId>com.wso2telco.ids</groupId>
-		<artifactId>webapps</artifactId>
+		<artifactId>component-ids</artifactId>
 		<version>2.0.0-SNAPSHOT</version>
-		
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
@@ -90,7 +90,7 @@
 							<directory>src/main/webapp</directory>
 						</resource>
 					</webResources>
-					<warName>SessionUpdater</warName>
+					<warName>sessionupdater</warName>
 				</configuration>
 			</plugin>
 		</plugins>
