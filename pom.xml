@@ -1910,11 +1910,7 @@
 				<version>${com.ibm.icu.version}</version>
 			</dependency>
 
-			<!--dependency>
-				<groupId>com.sun.jersey</groupId>
-				<artifactId>jersey-atom</artifactId>
-				<version>${com.sun.jersey.version}</version>
-		</dependency-->
+			
 
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
@@ -1922,73 +1918,14 @@
 			<version>${com.sun.jersey.version}</version>
 		</dependency>
 
-		<!--dependency>
-			<groupId>com.sun.jersey</groupId>
-			<artifactId>jersey-core</artifactId>
-			<version>${com.sun.jersey.version}</version>
-		</dependency-->
+		
 
-		<!--dependency>
-			<groupId>com.sun.jersey</groupId>
-			<artifactId>jersey-server</artifactId>
-			<version>${com.sun.jersey.version}</version>
-		</dependency-->
-
-		<!--dependency>
+		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-client</artifactId>
 			<version>${com.sun.jersey.version}</version>
-		</dependency-->
-
-		<dependency>
-			<groupId>com.sun.jersey.contribs</groupId>
-			<artifactId>jersey-atom-abdera</artifactId>
-			<version>${com.sun.jersey.version}</version>
 		</dependency>
 
-		<!--dependency>
-			<groupId>com.sun.jersey.contribs</groupId>
-			<artifactId>jersey-apache-client</artifactId>
-			<version>${com.sun.jersey.version}</version>
-		</dependency-->
-
-		<dependency>
-			<groupId>com.sun.jersey.contribs</groupId>
-			<artifactId>jersey-spring</artifactId>
-			<version>${com.sun.jersey.version}</version>
-		</dependency>
-
-
-		<dependency>
-			<groupId>com.sun.jersey.contribs</groupId>
-			<artifactId>jersey-multipart</artifactId>
-			<version>${com.sun.jersey.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.jersey.contribs</groupId>
-			<artifactId>jersey-guice</artifactId>
-			<version>${com.sun.jersey.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.jersey.contribs</groupId>
-			<artifactId>jersey-simple-server</artifactId>
-			<version>${com.sun.jersey.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.jersey.contribs.jersey-oauth</groupId>
-			<artifactId>oauth-client</artifactId>
-			<version>${com.sun.jersey.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.jersey.contribs.jersey-oauth</groupId>
-			<artifactId>oauth-server</artifactId>
-			<version>${com.sun.jersey.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.sun.jersey.contribs.jersey-oauth</groupId>
-			<artifactId>oauth-signature</artifactId>
-			<version>${com.sun.jersey.version}</version>
-		</dependency>
 
 
 
