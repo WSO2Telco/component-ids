@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-    <parent>
-        <groupId>org.wso2.carbon.devicemgt-proprietary</groupId>
-        <artifactId>ios-plugin-impl-feature</artifactId>
-        <version>2.0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+      <parent>
+       <groupId>com.wso2telco.ids</groupId>
+	<artifactId>component-ids-feature</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+	<relativePath>../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -17,38 +17,38 @@
         This feature contains the JAX-RS web application
     </description>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.wso2.carbon.devicemgt-proprietary</groupId>
-            <artifactId>emm-ios-api</artifactId>
-            <type>war</type>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.devicemgt-proprietary</groupId>
-            <artifactId>emm-ios-enrollment-api</artifactId>
-            <type>war</type>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.devicemgt-proprietary</groupId>
-            <artifactId>org.wso2.carbon.device.mgt.ios.core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>jsr311-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.devicemgt-proprietary</groupId>
-            <artifactId>org.wso2.carbon.device.mgt.ios.payload</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>commons-lang.wso2</groupId>
-            <artifactId>commons-lang</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.devicemgt-proprietary</groupId>
-            <artifactId>org.wso2.carbon.device.mgt.ios.api.utils</artifactId>
-        </dependency>
-    </dependencies>
+    
+	<dependencies>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+		</dependency>
+ 		<dependency>
+ 			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId> 
+ 			<version>${jstl.version}</version> 
+ 		</dependency>
+		<dependency>
+			<groupId>commons-codec.wso2</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>${commons-codec.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.wso2telco.ids</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>${commons-codec.version}</version>
+		</dependency>
+
+
+	</dependencies>
 
     <build>
         <plugins>
@@ -110,18 +110,11 @@
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>org.wso2.carbon.devicemgt-proprietary</groupId>
-                                    <artifactId>emm-ios-enrollment-api</artifactId>
-                                    <version>${carbon.devicemgt.proprietary.version}</version>
+                                    <groupId>com.wso2telco.ids</groupId>
+                                    <artifactId>component-ids</artifactId>
+                                    <version>${com.wso2telco.ids.version}</version>
                                     <type>war</type>
-                                    <destFileName>ios-enrollment.war</destFileName>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.wso2.carbon.devicemgt-proprietary</groupId>
-                                    <artifactId>emm-ios-api</artifactId>
-                                    <version>${carbon.devicemgt.proprietary.version}</version>
-                                    <type>war</type>
-                                    <destFileName>ios.war</destFileName>
+                                    <destFileName>authenticationendpoint.war</destFileName>
                                 </artifactItem>
                             </artifactItems>
                             <outputDirectory>${project.basedir}/src/main/resources/generated</outputDirectory>
@@ -151,24 +144,21 @@
                             </adviceFile>
                             <bundles>
                                 <bundleDef>
-                                    javax.ws.rs:jsr311-api:${jsr311-version}
+                                    javax.servlet:servlet-api:${javax.servlet-api.version}
                                 </bundleDef>
-                                <bundleDef>
-                                    commons-lang.wso2:commons-lang:${version.commons.lang}
+				<bundleDef>
+                                    commons-logging:commons-logging:${commons-logging.version}
                                 </bundleDef>
-                                <bundleDef>
-                                    org.wso2.carbon.devicemgt-proprietary:org.wso2.carbon.device.mgt.ios.core:${carbon.devicemgt.proprietary.version}
+				<bundleDef>
+                                    org.slf4j:slf4j-log4j12:${org.slf4j.verison}
                                 </bundleDef>
-                                <bundleDef>
-                                    org.wso2.carbon.devicemgt-proprietary:org.wso2.carbon.device.mgt.ios.payload:${carbon.devicemgt.proprietary.version}
+				<bundleDef>
+                                    javax.servlet:jstl:${javax.servelet.jstl.version}
                                 </bundleDef>
-                                <bundleDef>
-                                    org.wso2.carbon.devicemgt-proprietary:org.wso2.carbon.device.mgt.ios.api.utils:${carbon.devicemgt.proprietary.version}
+				<bundleDef>
+                                   commons-codec.wso2:commons-codec:${commons-codec.version}
                                 </bundleDef>
                             </bundles>
-                            <importFeatures>
-                                <importFeatureDef>org.wso2.carbon.device.mgt.ios.server:${carbon.devicemgt.proprietary.version}</importFeatureDef>
-                            </importFeatures>
                         </configuration>
                     </execution>
                 </executions>
