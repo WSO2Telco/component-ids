@@ -121,7 +121,7 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>org.wso2.carbon.device.mgt.ios.web.server</id>
+                            <id>com.wso2telco.ids.authenticationendpoint.ui.feature</id>
                             <propertiesFile>../feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
