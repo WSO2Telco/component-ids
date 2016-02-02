@@ -19,6 +19,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>operator-proxy-service</artifactId>
 	<packaging>war</packaging>
+	<name>Operator Proxy Service</name>
 
 	<dependencies>
 		<dependency>
@@ -50,7 +51,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>OperatorProxyService</finalName>
+		<finalName>operatorproxyservice</finalName>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -69,7 +70,7 @@
 							<directory>src/main/webapp</directory>
 						</resource>
 					</webResources>
-					<warName>OperatorProxyService</warName>
+					<warName>operatorproxyservice</warName>
 				</configuration>
 			</plugin>
 		</plugins>
