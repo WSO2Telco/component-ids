@@ -1881,12 +1881,12 @@
 			<dependency>
 				<groupId>com.wso2telco.ids</groupId>
 				<artifactId>authenticate-selector</artifactId>
-				<version>${authentic.selector.version}</version>
+				<version>${com.wso2telco.ids.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.wso2telco.ids</groupId>
 				<artifactId>url-shorten</artifactId>
-				<version>${com.wso2telco.ids.urlshorten.version}</version>
+				<version>${com.wso2telco.ids.version}</version>
 			</dependency>
 
 			<dependency>
@@ -1973,7 +1973,7 @@
 		<carbon.commons.imp.pkg.version>[4.4.0, 5.0.0)</carbon.commons.imp.pkg.version>
 
 		<!--Carbon identity version -->
-		<carbon.identity.version>5.0.7</carbon.identity.version>
+		<carbon.identity.version>5.0.5</carbon.identity.version>
 		<carbon.identity.custom.version>4.2.3</carbon.identity.custom.version>
 		<carbon.identity.package.export.version>${carbon.identity.version}</carbon.identity.package.export.version>
 		<carbon.identity.package.import.version.range>[5.0.0, 6.0.0)</carbon.identity.package.import.version.range>
@@ -2258,10 +2258,23 @@
 
 		<plugins>
 			<plugin>
+                            <groupId>org.apache.felix</groupId>
+                            <artifactId>maven-scr-plugin</artifactId>
+                            <version>1.7.2</version>
+                                    <executions>
+                                          <execution>
+                                            <id>generate-scr-scrdescriptor</id>
+                                            <goals>
+                                                <goal>scr</goal>
+                                            </goals>
+                                        </execution>
+                                </executions>
+                        </plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
 				<configuration>
-					<preparationGoals>clean install</preparationGoals>
+					<preparationGoals>clean install javadoc:jar</preparationGoals>
 					<autoVersionSubmodules>true</autoVersionSubmodules>
 				</configuration>
 			</plugin>
@@ -2279,6 +2292,18 @@
 					<target>1.7</target>
 				</configuration>
 			</plugin>
+
+			 <plugin>
+                                <groupId>org.apache.maven.plugins</groupId>
+                                <artifactId>maven-javadoc-plugin</artifactId>
+                                <configuration>
+                                    <aggregate>true</aggregate>
+                                    <excludePackageNames>*.internal.*</excludePackageNames>
+                                    <show>public</show>
+                                    <nohelp>true</nohelp>
+                                </configuration>
+                         </plugin>
+
 		</plugins>
 	</build>
 	<profiles>
