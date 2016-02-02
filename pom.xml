@@ -59,9 +59,9 @@
 	</modules>
 
 	<scm>
-		<url>https://github.com/WSO2Telco/component-ids.git</url>
-		<developerConnection>scm:git:https://github.com/WSO2Telco/component-ids.git</developerConnection>
-		<connection>scm:git:https://github.com/WSO2Telco/component-ids.git</connection>
+		<url>https://github.com/wso2/carbon-identity.git</url>
+		<developerConnection>scm:git:https://github.com/wso2/carbon-identity.git</developerConnection>
+		<connection>scm:git:https://github.com/wso2/carbon-identity.git</connection>
 		<tag>HEAD</tag>
 	</scm>
 
