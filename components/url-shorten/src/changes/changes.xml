@@ -18,15 +18,14 @@
 	xsi:schemaLocation="http://maven.apache.org/changes/1.0.0 http://maven.apache.org/xsd/changes-1.0.0.xsd">
 	<properties>
 		<title>Core Team - Build Report</title>
-		<author email="release@wso2telco.com">Core Team</author>		
+		<author email="core-product-tech@wso2telco.com">Core Team</author>		
 	</properties>
 	<body>
-		<release version="1.0.0" date="2016-01-31" description="Subsequent release">
-			<action dev="wishmika" type="add">
-				Email added
-			</action>
-		</release>
-
-			
+		<release version="1.0.0" date="2016-02-03" description="First release">
+			<action dev="Yasith Lokuge" type="add" issue="PRODEV-8">
+               OSGI Feature released for URL shorten artifact.
+            </action>
+		</release>		
+	</body>	
 	</body>	
 </document>
