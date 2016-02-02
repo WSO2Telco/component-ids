@@ -28,6 +28,12 @@
 	<name>WSO2Telco Core - Component</name>
 	<description>WSO2Telco Core Aggregate Pom</description>
 	<url>http://wso2telco.com</url>
+	<developers>
+		<developer>
+			<name>WSO2Telco</name>
+			<email>core-product-tech@wso2telco.com</email>
+		</developer>
+	</developers>
 
 	<prerequisites>
 		<maven>3.0.0</maven>
