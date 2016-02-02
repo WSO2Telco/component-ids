@@ -1876,7 +1876,7 @@
 			<dependency>
 				<groupId>com.wso2telco.core</groupId>
 				<artifactId>mnc-resolver</artifactId>
-				<version>${mnc.resolver.version}</version>
+				<version>${com.wso2telco.core.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.wso2telco.ids</groupId>
@@ -1892,13 +1892,24 @@
 			<dependency>
 				<groupId>org.wso2telco.core</groupId>
 				<artifactId>dbutils</artifactId>
-				<version>1.0.0-SNAPSHOT</version>
+				<version>${com.wso2telco.core.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.wso2telco.ids</groupId>
 				<artifactId>gsma-authenticator</artifactId>
 				<version>${com.wso2telco.ids.version}</version>
 			</dependency>
+			<dependency>
+                                <groupId>com.wso2telco.ids</groupId>
+                                <artifactId>user-registration</artifactId>
+                                <version>${com.wso2telco.ids.version}</version>
+                        </dependency>
+
+			<dependency>
+                                <groupId>com.wso2telco.ids</groupId>
+                                <artifactId>user-claim-retriever</artifactId>
+                                <version>${com.wso2telco.ids.version}</version>
+                        </dependency>
 
 			<!-- User registration dependacies -->
 
@@ -1922,7 +1933,6 @@
 				<version>${com.ibm.icu.version}</version>
 			</dependency>
 
-			
 
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
@@ -2187,12 +2197,7 @@
 		<!--commons.logging>1.2</commons.logging-->
 		<maven.compiler.plugin.version>3.3</maven.compiler.plugin.version>
 		<!--commons.lang.version>2.3</commons.lang.version-->
-		<mnc.resolver.version>1.0.0-SNAPSHOT</mnc.resolver.version>
 		<httpclient.version>4.3.1</httpclient.version>
-		<com.wso2telco.ids.urlshorten.version>1.0.0-SNAPSHOT</com.wso2telco.ids.urlshorten.version>
-		<authentic.selector.version>1.0.0-SNAPSHOT</authentic.selector.version>
-		<com.gsma.authenticators.version>1.0.0-SNAPSHOT</com.gsma.authenticators.version>
-		<url.shorten.version>1.0.0-SNAPSHOT</url.shorten.version>
 		<maven.bundle.plugin.version>2.3.7</maven.bundle.plugin.version>
 		<sevlet.api.version>2.5</sevlet.api.version>
 		<javax.ws.rs.version>1.0</javax.ws.rs.version>
@@ -2201,7 +2206,7 @@
 		<org.json.wso2.version>3.0.0.wso2v1</org.json.wso2.version>
 		
 		<org.apache.felix.scr.annotations.version>1.9.6</org.apache.felix.scr.annotations.version>		
-		
+		<com.wso2telco.core.version>2.0.1</com.wso2telco.core.version>	
 	</properties>
 
 	<build>
