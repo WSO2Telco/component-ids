@@ -37,7 +37,7 @@
 				<artifactId>org.wso2.carbon.identity.application.common</artifactId>
 			</dependency>
 		<dependency>
-			<groupId>org.wso2telco.core</groupId>
+			<groupId>com.wso2telco.core</groupId>
 			<artifactId>dbutils</artifactId>
 		</dependency>
 		<dependency>
