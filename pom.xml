@@ -46,6 +46,8 @@
 		<module>components/gsma-authenticators</module>
 		<module>components/openid-token-builder</module>
 		<module>components/operator-proxy-service</module>
+		<module>user-registration</module>
+		<module>sign</module>
 		<module>features</module>
 		<!--module>webapps</module -->
 	</modules>
