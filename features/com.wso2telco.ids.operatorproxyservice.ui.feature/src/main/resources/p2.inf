@@ -1,0 +1,2 @@
+instructions.configure = \
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/com.wso2telco.ids.operatorproxyservice.feature_${feature.version}/generated/operatorproxyservice.war,target:${installFolder}/../../deployment/server/webapps/operatorproxyservice.war,overwrite:true);
