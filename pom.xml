@@ -58,12 +58,12 @@
 		<!--module>webapps</module -->
 	</modules>
 
-	<scm>
-		<url>https://github.com/wso2/carbon-identity.git</url>
-		<developerConnection>scm:git:https://github.com/wso2/carbon-identity.git</developerConnection>
-		<connection>scm:git:https://github.com/wso2/carbon-identity.git</connection>
-		<tag>HEAD</tag>
-	</scm>
+	 <scm>
+                <url>https://github.com/WSO2Telco/core-util.git</url>
+                <developerConnection>scm:git:https://github.com/WSO2Telco/core-util.git</developerConnection>
+                <connection>scm:git:https://github.com/WSO2Telco/core-util.git</connection>
+                <tag>HEAD</tag>
+        </scm>
 
 
 	<repositories>
