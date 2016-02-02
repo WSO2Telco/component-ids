@@ -25,6 +25,18 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.apache.amber.wso2</groupId>
+			<artifactId>amber</artifactId>
+		</dependency>	
+		<dependency>
+			<groupId>org.wso2.carbon.identity</groupId>
+			<artifactId>org.wso2.carbon.identity.oauth</artifactId>
+		</dependency>	
+			<dependency>
+				<groupId>org.wso2.carbon.identity</groupId>
+				<artifactId>org.wso2.carbon.identity.application.common</artifactId>
+			</dependency>
+		<dependency>
 			<groupId>org.wso2telco.core</groupId>
 			<artifactId>dbutils</artifactId>
 		</dependency>

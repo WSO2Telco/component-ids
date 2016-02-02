@@ -1,19 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
-  
-  WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-  
-    http://www.apache.org/licenses/LICENSE-2.0
-  
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
--->
+<!-- Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
+	All Rights Reserved. WSO2.Telco Inc. licences this file to you under the 
+	Apache License, Version 2.0 (the "License"); you may not use this file except 
+	in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
+	Unless required by applicable law or agreed to in writing, software distributed 
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
+	the specific language governing permissions and limitations under the License. -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
@@ -46,8 +39,6 @@
 		<module>components/authenticate-selector</module>
 		<module>components/gsma-authenticators</module>
 		<module>components/openid-token-builder</module>
-		<module>components/session-updater</module>
-        <module>components/authentication-endpoint</module>
 		<module>features</module>
 		<!--module>webapps</module -->
 	</modules>
@@ -167,6 +158,11 @@
 				<artifactId>org.apache.sling.commons.json</artifactId>
 				<version>${org.apache.sling.commons.json.version}</version>
 			</dependency>
+			<!--dependency>
+				<groupId>com.googlecode.json-simple</groupId>
+				<artifactId>json-simple</artifactId>
+				<version>${json.simple.version}</version>
+			</dependency-->
 
 			<!-- Carbon Kernel Dependencies -->
 			<dependency>
@@ -1891,10 +1887,57 @@
 				<artifactId>gsma-authenticator</artifactId>
 				<version>${com.wso2telco.ids.version}</version>
 			</dependency>
+
+			<!-- User registration dependacies -->
+
+			<dependency>
+				<groupId>com.atlassian.httpclient</groupId>
+				<artifactId>atlassian-httpclient-plugin</artifactId>
+				<version> ${com.atlassian.httpclient.version}</version>
+				<type>jar</type>
+			</dependency>
+
+			<dependency>
+				<groupId>javax</groupId>
+				<artifactId>javaee-web-api</artifactId>
+				<version>${javax.version}</version>
+				<scope>provided</scope>
+			</dependency>
+
+			<dependency>
+				<groupId>com.ibm.icu</groupId>
+				<artifactId>icu4j</artifactId>
+				<version>${com.ibm.icu.version}</version>
+			</dependency>
+
+			
+
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-json</artifactId>
+			<version>${com.sun.jersey.version}</version>
+		</dependency>
+
+		
+
+		<dependency>
+			<groupId>com.sun.jersey</groupId>
+			<artifactId>jersey-client</artifactId>
+			<version>${com.sun.jersey.version}</version>
+		</dependency>
+
+
+
+
 		</dependencies>
 
 	</dependencyManagement>
 	<properties>
+		<!--User registration properties -->
+		<com.sun.jersey.version>1.8</com.sun.jersey.version>
+		<com.ibm.icu.version>2.6.1</com.ibm.icu.version>
+		<com.atlassian.httpclient.version>0.17.3</com.atlassian.httpclient.version>
+		<javax.version>6.0</javax.version>
 		<com.wso2telco.ids.version>1.0.0-SNAPSHOT</com.wso2telco.ids.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -2138,15 +2181,11 @@
 		<com.gsma.authenticators.version>1.0.0-SNAPSHOT</com.gsma.authenticators.version>
 		<url.shorten.version>1.0.0-SNAPSHOT</url.shorten.version>
 		<maven.bundle.plugin.version>2.3.7</maven.bundle.plugin.version>
-
-		<commons-fileupload.version>1.2.0.wso2v1</commons-fileupload.version>
-        <maven-compiler-plugin.version>1.7</maven-compiler-plugin.version>
-        <maven-war-plugin.version>2.2</maven-war-plugin.version>
-        <org.json.wso2.version>3.0.0.wso2v1</org.json.wso2.version>
-        <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
-        <javax.ws.rs.version>1.0</javax.ws.rs.version>
-        <sevlet.api.version>2.5</sevlet.api.version>
-        
+		<sevlet.api.version>2.5</sevlet.api.version>
+		<javax.ws.rs.version>1.0</javax.ws.rs.version>
+		<com.google.code.gson.version>2.5</com.google.code.gson.version>
+		<maven-war-plugin.version>2.1.1</maven-war-plugin.version>
+		<org.json.wso2.version>3.0.0.wso2v1</org.json.wso2.version>
 	</properties>
 
 	<build>
@@ -2227,6 +2266,38 @@
 		</plugins>
 	</build>
 	<profiles>
+		<profile>
+			<id>notify</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-changes-plugin</artifactId>
+						<version>2.11</version>
+						<configuration>
+							<smtpHost>${smtphost}</smtpHost>
+							<smtpPort implementation="java.lang.Integer">${smtpport}</smtpPort>
+							<toAddresses>
+								<toAddress implementation="java.lang.String">${toemail}</toAddress>								
+							</toAddresses>
+							<username>${username}</username>
+							<password>${password}</password>
+							<template>announcement.vm</template>
+							<templateDirectory>emailtemplates</templateDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>check-changes</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>changes-check</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 		<profile>
 			<id>release</id>
 			<build>
