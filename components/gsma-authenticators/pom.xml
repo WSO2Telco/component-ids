@@ -28,9 +28,6 @@
 	<artifactId>gsma-authenticator</artifactId>
 	<packaging>bundle</packaging>
 	<name>GSMA Application Authenticators - Dropins</name>
-	<properties>
-		<org.apache.felix.scr.annotations.version>1.9.6</org.apache.felix.scr.annotations.version>		
-	</properties>
 
 	<dependencies>
 		<dependency>
