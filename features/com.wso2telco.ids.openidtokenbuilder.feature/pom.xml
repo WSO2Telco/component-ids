@@ -20,7 +20,7 @@
         <dependency>
             <groupId>com.wso2telco.ids</groupId>
             <artifactId>url-shorten</artifactId>
-            <version>${org.wso2telco.ids.version}</version>
+            <version>${com.wso2telco.ids.version}</version>
         </dependency>
     </dependencies-->
 
@@ -47,7 +47,7 @@
                                 </properties>
                             </adviceFile>
                             <bundles>
-                                <bundleDef>com.wso2telco.ids:openid-token-builder:${org.wso2telco.ids.version}</bundleDef>
+                                <bundleDef>com.wso2telco.ids:openid-token-builder:${com.wso2telco.ids.version}</bundleDef>
                             </bundles>
 				<!--importFeatures>
 					<importFeatureDef>org.wso2.orbit.org.apache.httpcomponents:httpclient</importFeatureDef>

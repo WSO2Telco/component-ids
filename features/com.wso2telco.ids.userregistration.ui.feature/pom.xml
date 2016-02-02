@@ -339,7 +339,7 @@
                                 <bundleDef>com.sun.jersey.contribs.jersey-oauth:oauth-server:${com.sun.jersey.version}</bundleDef>
                                 <bundleDef>com.sun.jersey.contribs.jersey-oauth:oauth-signature:${com.sun.jersey.version}</bundleDef>
                                 <bundleDef>com.wso2telco.ids:url-shorten:${com.wso2telco.ids.urlshorten.version}</bundleDef>                                 <bundleDef>org.wso2.orbit.org.apache.httpcomponents:httpclient:${commons-httpclient.wso2.version}</bundleDef>
-                                <bundleDef>com.wso2telco.ids:user-registration:${org.wso2telco.ids.version}</bundleDef>
+                                <bundleDef>com.wso2telco.ids:user-registration:${com.wso2telco.ids.version}</bundleDef>
                             </bundles-->
                         </configuration>
                     </execution>

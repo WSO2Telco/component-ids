@@ -20,7 +20,7 @@
         <dependency>
             <groupId>com.wso2telco.ids</groupId>
             <artifactId>user-claim-retriever</artifactId>
-            <version>${org.wso2telco.ids.version}</version>
+            <version>${com.wso2telco.ids.version}</version>
         </dependency>
     </dependencies-->
 
@@ -47,7 +47,7 @@
                                 </properties>
                             </adviceFile>
                             <bundles>
-                                <bundleDef>com.wso2telco.ids:user-claim-retriever:${org.wso2telco.ids.version}</bundleDef>
+                                <bundleDef>com.wso2telco.ids:user-claim-retriever:${com.wso2telco.ids.version}</bundleDef>
 				<bundleDef>org.wso2.carbon:org.wso2.carbon.logging:${carbon.kernel.version}</bundleDef>
 				<bundleDef>org.apache.amber.wso2:amber:${org.wso2.amber.version}</bundleDef>
 				<bundleDef>org.apache.sling:org.apache.sling.commons.json:${org.apache.sling.commons.json.version}</bundleDef>

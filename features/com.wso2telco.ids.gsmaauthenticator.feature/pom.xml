@@ -42,7 +42,7 @@
                                 </properties>
                             </adviceFile>
                             <bundles>				
-                                <bundleDef>com.wso2telco.ids:url-shorten:${org.wso2telco.ids.version}</bundleDef>
+                                <bundleDef>com.wso2telco.ids:url-shorten:${com.wso2telco.ids.version}</bundleDef>
 				<bundleDef>commons-codec.wso2:commons-codec:${commons-codec.version}</bundleDef>
                             </bundles>
                         </configuration>

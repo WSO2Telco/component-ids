@@ -1968,7 +1968,6 @@
 		<com.ibm.icu.version>2.6.1</com.ibm.icu.version>
 		<com.atlassian.httpclient.version>0.17.3</com.atlassian.httpclient.version>
 		<javax.version>6.0</javax.version>
-		<com.wso2telco.ids.version>1.0.0-SNAPSHOT</com.wso2telco.ids.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<json.version>20140107</json.version>
@@ -2196,7 +2195,7 @@
 		<org.apache.sling.commons.json.version>2.0.6</org.apache.sling.commons.json.version>
 		<org.wso2.amber.version>0.22.1358727.wso2v4</org.wso2.amber.version>
 		<!--from intermediate pom -->
-		<org.wso2telco.ids.version>1.0.0-SNAPSHOT</org.wso2telco.ids.version>
+		<com.wso2telco.ids.version>1.0.0-SNAPSHOT</com.wso2telco.ids.version>
 		<org.wso2.carbon.version>4.4.3</org.wso2.carbon.version>
 		<org.wso2.carbon.identity.version>5.0.7</org.wso2.carbon.identity.version>
 		<!--org.wso2.carbon.identity.provider.version>5.0.7</org.wso2.carbon.identity.provider.version-->
