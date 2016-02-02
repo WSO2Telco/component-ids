@@ -21,7 +21,5 @@
 		<module>com.wso2telco.ids.sessionupdater.ui.feature</module>
 		<module>com.wso2telco.ids.operatorproxyservice.ui.feature</module>
 	</modules>
-	<properties>
-		<org.wso2telco.ids.version>1.0.0-SNAPSHOT</org.wso2telco.ids.version>
-	</properties>
+
 </project>

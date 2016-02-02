@@ -142,9 +142,9 @@
 				<bundleDef>
                                     javax.servlet:jstl:${javax.servelet.jstl.version}
                                 </bundleDef-->
-				<bundleDef>
+				<!--bundleDef>
                                    commons-codec.wso2:commons-codec:${commons-codec.version}
-                                </bundleDef>
+                                </bundleDef-->
                             </bundles>
                         </configuration>
                     </execution>
