@@ -22,10 +22,9 @@
 	</properties>
 	<body>
 		<release version="1.0.0" date="2016-02-03" description="First release">
-			<action dev="Yasith Lokuge" type="add" issue="PRODEV-8">
-               OSGI Feature released for URL shorten artifact.
-            </action>
-		</release>		
-	</body>	
+			<action dev="Priyankara" type="add" issue="PRODEV-8">
+               OSGI Feature released for openid-token-builder artifact.
+            </action>			
+		</release>	
 	</body>	
 </document>

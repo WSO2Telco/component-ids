@@ -23,9 +23,8 @@
 	<body>
 		<release version="1.0.0" date="2016-02-03" description="First release">
 			<action dev="Yasith Lokuge" type="add" issue="PRODEV-8">
-               OSGI Feature released for URL shorten artifact.
+               OSGI Feature released for Session Updater artifact.
             </action>
 		</release>		
-	</body>	
 	</body>	
 </document>

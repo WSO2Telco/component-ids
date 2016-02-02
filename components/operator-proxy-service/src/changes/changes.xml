@@ -16,16 +16,15 @@
 <document xmlns="http://maven.apache.org/changes/1.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/changes/1.0.0 http://maven.apache.org/xsd/changes-1.0.0.xsd">
-	<properties>
-		<title>Core Team - Build Report</title>
-		<author email="core-product-tech@wso2telco.com">Core Team</author>		
-	</properties>
+	    <properties>
+		    <title>Core Team - Build Report</title>
+		    <author email="core-product-tech@wso2telco.com">Core Team</author>
+	    </properties>
 	<body>
-		<release version="1.0.0" date="2016-02-03" description="First release">
-			<action dev="Yasith Lokuge" type="add" issue="PRODEV-8">
-               OSGI Feature released for URL shorten artifact.
-            </action>
+		<release version="1.0.0" date="2016-02-02" description="First release">
+			<action dev="isuru" type="add" issue="PRODEV-75">
+                OSGI Feature released for Operator Proxy Service artifact.
+			</action>
 		</release>		
-	</body>	
 	</body>	
 </document>
