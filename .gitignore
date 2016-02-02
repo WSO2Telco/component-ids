@@ -19,5 +19,6 @@ target
 .project
 *.iml
 *.iws
+*.releaseBackup
 *.ipr
 .idea
