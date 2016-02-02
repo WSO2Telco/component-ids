@@ -19,6 +19,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>operator-proxy-service</artifactId>
 	<packaging>war</packaging>
+	<name>Operator Proxy Service</name>
 
 	<dependencies>
 		<dependency>
