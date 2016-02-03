@@ -40,8 +40,8 @@
 
 	<modules>
 		<module>parent</module>
-		<!--<module>components/url-shorten</module>
-		<module>components/user-claim-retriever</module>
+		<module>components/url-shorten</module>
+		<!--<module>components/user-claim-retriever</module>
 		<module>components/authenticate-selector</module>
 		<module>components/gsma-authenticators</module>
 		<module>components/openid-token-builder</module>
