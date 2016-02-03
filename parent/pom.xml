@@ -33,15 +33,6 @@
 		<maven>3.0.0</maven>
 	</prerequisites>
 
-
-	<scm>
-		<url>https://github.com/WSO2Telco/component-ids.git</url>
-		<developerConnection>scm:git:https://github.com/WSO2Telco/component-ids.git</developerConnection>
-		<connection>scm:git:https://github.com/WSO2Telco/component-ids.git</connection>
-		<tag>HEAD</tag>
-	</scm>
-
-
 	<repositories>
 
 		<repository>
