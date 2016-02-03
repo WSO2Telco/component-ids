@@ -19,5 +19,10 @@ target
 .project
 *.iml
 *.iws
+*.releaseBackup
 *.ipr
 .idea
+*pom.xml.next
+*pom.xml.tag
+*release.properties
+

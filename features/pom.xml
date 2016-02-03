@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<groupId>com.wso2telco.ids</groupId>
+		<artifactId>component-ids-parent</artifactId>
+		<version>2.0.2-SNAPSHOT</version>
+		<relativePath>../parent/pom.xml</relativePath>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>component-ids-feature</artifactId>
+	<packaging>pom</packaging>
+	<name>Component Ids Aggregated Features</name>
+	<url>http://wso2telco.com</url>
+	<modules>
+		<module>com.wso2telco.ids.urlshorten.feature</module>
+		<module>com.wso2telco.ids.gsmaauthenticator.feature</module>
+		<module>com.wso2telco.ids.userclaimretriever.feature</module>
+		<module>com.wso2telco.ids.authenticateselector.feature</module>
+		<module>com.wso2telco.ids.authenticationendpoint.ui.feature</module>
+		<module>com.wso2telco.ids.sessionupdater.ui.feature</module>
+		<module>com.wso2telco.ids.operatorproxyservice.ui.feature</module>
+	</modules>
+
+</project>
