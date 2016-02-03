@@ -51,14 +51,13 @@
 		</dependency>
 		<dependency>
 			<groupId>com.wso2telco.ids</groupId>
-			<artifactId>authenticate-selector</artifactId>
-			<version>${com.wso2telco.ids.version}</version>
+			<artifactId>url-shorten</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.wso2telco.ids</groupId>
-			<artifactId>url-shorten</artifactId>
-			<version>${com.wso2telco.ids.version}</version>
+			<artifactId>authenticate-selector</artifactId>
 		</dependency>
+		
 		<dependency>
 			<groupId>commons-codec.wso2</groupId>
 			<artifactId>commons-codec</artifactId>
