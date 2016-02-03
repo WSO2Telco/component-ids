@@ -12,6 +12,8 @@
 	<name>Component Ids Aggregated Features</name>
 	<url>http://wso2telco.com</url>
 	<modules>
+		<module>com.wso2telco.ids.openidtokenbuilder.feature</module>
+		<module>com.wso2telco.ids.userregistration.ui.feature</module>
 		<module>com.wso2telco.ids.urlshorten.feature</module>
 		<module>com.wso2telco.ids.gsmaauthenticator.feature</module>
 		<module>com.wso2telco.ids.userclaimretriever.feature</module>
