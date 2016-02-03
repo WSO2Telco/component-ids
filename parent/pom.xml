@@ -1852,16 +1852,16 @@
 				<artifactId>mnc-resolver</artifactId>
 				<version>${com.wso2telco.core.version}</version>
 			</dependency>
-			<!--dependency>
-				<groupId>com.wso2telco.ids</groupId>
-				<artifactId>authenticate-selector</artifactId>
-				<version>${com.wso2telco.ids.version}</version>
-			</dependency-->
-			<!--dependency>
+			<dependency>
 				<groupId>com.wso2telco.ids</groupId>
 				<artifactId>url-shorten</artifactId>
 				<version>${com.wso2telco.ids.version}</version>
-			</dependency-->
+			</dependency>
+			<dependency>
+				<groupId>com.wso2telco.ids</groupId>
+				<artifactId>authenticate-selector</artifactId>
+				<version>${com.wso2telco.ids.version}</version>
+			</dependency>
 
 			<dependency>
 				<groupId>com.wso2telco.core</groupId>
