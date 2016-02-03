@@ -13,7 +13,11 @@
 	<!--groupId>org.wso2.carbon.identity</groupId> <artifactId>carbon-identity</artifactId> 
 		<packaging>pom</packaging> <version>5.0.8-SNAPSHOT</version> <name>WSO2 Carbon 
 		- Platform Aggregator Pom</name> <url>http://wso2.org</url -->
-
+	<parent>
+       		<groupId>org.wso2</groupId>
+       		<artifactId>wso2</artifactId>
+       		<version>1</version>
+   	</parent>
 	<groupId>com.wso2telco.ids</groupId>
 	<artifactId>component-ids</artifactId>
 	<packaging>pom</packaging>
@@ -68,7 +72,7 @@
 		<url>https://github.com/WSO2Telco/component-ids.git</url>
 		<developerConnection>scm:git:https://github.com/WSO2Telco/component-ids.git</developerConnection>
 		<connection>scm:git:https://github.com/WSO2Telco/component-ids.git</connection>
-		<tag>v2.0.1</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 
