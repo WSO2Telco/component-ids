@@ -45,16 +45,14 @@
 	       <module>components/authenticate-selector</module>
 		<module>components/gsma-authenticators</module>
 		<module>components/openid-token-builder</module>
-		<!--<module>components/operator-proxy-service</module>
+		<module>components/operator-proxy-service</module>
 		<module>components/user-registration</module>
 		<module>components/sign</module>
 		<module>components/session-updater</module>
 		<module>components/portal</module>
 		<module>components/dashboard</module>
 		<module>components/authentication-endpoint</module>
-		-->
 		<module>features</module> 
-		<!--module>webapps</module -->
 	</modules>
 
 	<scm>
