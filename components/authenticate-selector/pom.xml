@@ -33,17 +33,14 @@
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.application.common</artifactId>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon</groupId>
 			<artifactId>org.wso2.carbon.utils</artifactId>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.core</artifactId>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -52,14 +49,10 @@
 		<dependency>
 			<groupId>org.wso2.orbit.org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
-			<type>jar</type>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.wso2telco.core</groupId>
 			<artifactId>mnc-resolver</artifactId>
-			<type>jar</type>
-			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 	<build>

@@ -22,3 +22,7 @@ target
 *.releaseBackup
 *.ipr
 .idea
+*pom.xml.next
+*pom.xml.tag
+*release.properties
+

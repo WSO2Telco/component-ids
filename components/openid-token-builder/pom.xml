@@ -73,9 +73,10 @@
 			<artifactId>org.wso2.carbon.identity.core</artifactId>
 		</dependency>
 		<dependency>
-				<groupId>com.wso2telco.ids</groupId>
-				<artifactId>gsma-authenticator</artifactId>
-			</dependency>
+			<groupId>com.wso2telco.ids</groupId>
+			<artifactId>gsma-authenticator</artifactId>
+			<version>${com.wso2telco.ids.version}</version>
+		</dependency>
 	</dependencies>
 	
 	
