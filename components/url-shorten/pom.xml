@@ -21,11 +21,6 @@
 
 	<name>Url Shorten - Components</name>
 
-	<properties>
-		<json.simple.version>1.1</json.simple.version>
-		<jersey.client.version>1.8</jersey.client.version>
-	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
