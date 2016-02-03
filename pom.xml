@@ -44,8 +44,8 @@
 		<module>components/user-claim-retriever</module>
 	       <module>components/authenticate-selector</module>
 		<module>components/gsma-authenticators</module>
-		<!--<module>components/openid-token-builder</module>
-		<module>components/operator-proxy-service</module>
+		<module>components/openid-token-builder</module>
+		<!--<module>components/operator-proxy-service</module>
 		<module>components/user-registration</module>
 		<module>components/sign</module>
 		<module>components/session-updater</module>
