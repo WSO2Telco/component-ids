@@ -109,7 +109,7 @@
                                 <artifactItem>
                                     <groupId>com.wso2telco.ids</groupId>
                                     <artifactId>session-updater</artifactId>
-                                    <version>${com.wso2telco.ids.version}</version>
+                                    <version>${com.wso2telco.ids.custom.version}</version>
                                     <type>war</type>
                                     <destFileName>sessionupdater.war</destFileName>
                                 </artifactItem>

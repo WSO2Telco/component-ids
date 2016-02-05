@@ -75,7 +75,7 @@
 		<dependency>
 			<groupId>com.wso2telco.ids</groupId>
 			<artifactId>gsma-authenticator</artifactId>
-			<version>${com.wso2telco.ids.version}</version>
+			<version>${com.wso2telco.ids.custom.version}</version>
 		</dependency>
 	</dependencies>
 	

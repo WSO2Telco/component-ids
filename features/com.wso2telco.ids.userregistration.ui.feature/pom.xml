@@ -78,7 +78,7 @@
                                 <artifactItem>
                                     <groupId>com.wso2telco.ids</groupId>
                                     <artifactId>user-registration</artifactId>
-                                    <version>${com.wso2telco.ids.version}</version>
+                                    <version>${com.wso2telco.ids.custom.version}</version>
                                     <type>war</type>
                                     <destFileName>user-registration.war</destFileName>
                                 </artifactItem>

@@ -156,7 +156,7 @@
 		<dependency>
 			<groupId>com.wso2telco.ids</groupId>
 			<artifactId>url-shorten</artifactId>
-			<version>${com.wso2telco.ids.version}</version>
+			<version>${com.wso2telco.ids.custom.version}</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>

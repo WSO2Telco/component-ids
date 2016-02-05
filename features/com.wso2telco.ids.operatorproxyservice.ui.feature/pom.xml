@@ -102,7 +102,7 @@
 								<artifactItem>
 									<groupId>com.wso2telco.ids</groupId>
 									<artifactId>operator-proxy-service</artifactId>
-									<version>${com.wso2telco.ids.version}</version>
+									<version>${com.wso2telco.ids.custom.version}</version>
 									<type>war</type>
 									<destFileName>operatorproxyservice.war</destFileName>
 								</artifactItem>

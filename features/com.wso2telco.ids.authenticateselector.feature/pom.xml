@@ -50,7 +50,7 @@
                                 <bundleDef>org.wso2.carbon:org.wso2.carbon.utils:${carbon.kernel.version}</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.identity.application.common:${carbon.identity.version}</bundleDef>
                                 <!--bundleDef>org.wso2.orbit.org.apache.httpcomponents:httpclient:${commons-httpclient.wso2.version}</bundleDef-->
-                                <bundleDef>com.wso2telco.ids:authenticate-selector:${com.wso2telco.ids.version}</bundleDef>
+                                <bundleDef>com.wso2telco.ids:authenticate-selector:${com.wso2telco.ids.custom.version}</bundleDef>
                             </bundles>
                         </configuration>
                     </execution>

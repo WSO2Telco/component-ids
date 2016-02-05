@@ -45,7 +45,7 @@
                                 </properties>
                             </adviceFile>
                             <bundles>
-                                <bundleDef>com.wso2telco.ids:openid-token-builder:${com.wso2telco.ids.version}</bundleDef>
+                                <bundleDef>com.wso2telco.ids:openid-token-builder:${com.wso2telco.ids.custom.version}</bundleDef>
                             </bundles>
 				<!--importFeatures>
 					<importFeatureDef>org.wso2.orbit.org.apache.httpcomponents:httpclient</importFeatureDef>

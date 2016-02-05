@@ -78,7 +78,7 @@
                                 <artifactItem>
                                     <groupId>com.wso2telco.ids</groupId>
                                     <artifactId>portal</artifactId>
-                                    <version>${com.wso2telco.ids.version}</version>
+                                    <version>${com.wso2telco.ids.custom.version}</version>
                                     <type>zip</type>
                                     <destFileName>portal.zip</destFileName>
                                 </artifactItem>
