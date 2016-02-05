@@ -92,12 +92,8 @@
 						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
 						<Bundle-Name>${project.artifactId}</Bundle-Name>
 						<Import-Package>
-							org.apache.commons.logging.*; version="1.0.4",
-							org.wso2.carbon.identity.base.*,
-							org.wso2.carbon.identity.core.*,
-							org.wso2.carbon.identity.oauth.*,
-							org.wso2.carbon.identity.openidconnect.*,
-							*;resolution:=optional
+						org.osgi.framework,
+			                            *;resolution:=optional
 						</Import-Package>
 						<Export-Package>
 							com.axiata.dialog.*
