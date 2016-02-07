@@ -31,16 +31,16 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>com.wso2telco.ids.urlshorten.feature</id>
+                            <id>com.wso2telco.ids.urlshorten</id>
                             <propertiesFile>../feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
                                     <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
-                                    <propertyDef>org.eclipse.equinox.p2.type.group:false</propertyDef>
+                                    <propertyDef>org.eclipse.equinox.p2.type.group:true</propertyDef>
                                 </properties>
                             </adviceFile>
                             <bundles>
-                                <bundleDef>com.wso2telco.ids:url-shorten:${com.wso2telco.ids.custom.version}</bundleDef>
+                                <bundleDef>com.wso2telco.ids:url-shorten</bundleDef>
                             </bundles>
 				<importFeatures>
 					<importFeatureDef>org.wso2.orbit.org.apache.httpcomponents:httpclient</importFeatureDef>

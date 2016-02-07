@@ -52,12 +52,10 @@
 		<dependency>
 			<groupId>com.wso2telco.ids</groupId>
 			<artifactId>url-shorten</artifactId>
-			<version>${com.wso2telco.ids.custom.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.wso2telco.ids</groupId>
 			<artifactId>authenticate-selector</artifactId>
-			<version>${com.wso2telco.ids.custom.version}</version>
 		</dependency>
 		
 		<dependency>

@@ -78,7 +78,7 @@
                                 <artifactItem>
                                     <groupId>com.wso2telco.ids</groupId>
                                     <artifactId>dashboard</artifactId>
-                                    <version>${com.wso2telco.ids.custom.version}</version>
+                                    <version>${com.wso2telco.ids.version}</version>
                                     <type>zip</type>
                                     <destFileName>dashboard.zip</destFileName>
                                 </artifactItem>
@@ -100,12 +100,12 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>com.wso2telco.ids.user-registration.feature</id>
+                            <id>com.wso2telco.ids.dashboard.ui</id>
                             <propertiesFile>../feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
-                                    <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
-                                    <propertyDef>org.eclipse.equinox.p2.type.group:false</propertyDef>
+                                    <propertyDef>org.wso2.carbon.p2.category.type:console</propertyDef>
+                                    <propertyDef>org.eclipse.equinox.p2.type.group:true</propertyDef>
                                 </properties>
                             </adviceFile>
                         </configuration>

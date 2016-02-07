@@ -36,12 +36,12 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>com.wso2telco.ids.authenticate-selector.feature</id>
+                            <id>com.wso2telco.ids.authenticate-selector</id>
                             <propertiesFile>../feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
                                     <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
-                                    <propertyDef>org.eclipse.equinox.p2.type.group:false</propertyDef>
+                                    <propertyDef>org.eclipse.equinox.p2.type.group:true</propertyDef>
                                 </properties>
                             </adviceFile>
                             <bundles>
@@ -50,7 +50,7 @@
                                 <bundleDef>org.wso2.carbon:org.wso2.carbon.utils:${carbon.kernel.version}</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.identity.application.common:${carbon.identity.version}</bundleDef>
                                 <!--bundleDef>org.wso2.orbit.org.apache.httpcomponents:httpclient:${commons-httpclient.wso2.version}</bundleDef-->
-                                <bundleDef>com.wso2telco.ids:authenticate-selector:${com.wso2telco.ids.custom.version}</bundleDef>
+                                <bundleDef>com.wso2telco.ids:authenticate-selector:${com.wso2telco.ids.version}</bundleDef>
                             </bundles>
                         </configuration>
                     </execution>

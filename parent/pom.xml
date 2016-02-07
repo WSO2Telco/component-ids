@@ -1876,23 +1876,40 @@
 				<artifactId>dbutils</artifactId>
 				<version>${com.wso2telco.core.version}</version>
 			</dependency>
-			<!--dependency>
+			<dependency>
 				<groupId>com.wso2telco.ids</groupId>
 				<artifactId>gsma-authenticator</artifactId>
 				<version>${com.wso2telco.ids.version}</version>
-			</dependency-->
-			<!--dependency>
+			</dependency>
+			<dependency>
                                 <groupId>com.wso2telco.ids</groupId>
                                 <artifactId>user-registration</artifactId>
                                 <version>${com.wso2telco.ids.version}</version>
-                        </dependency-->
+                        </dependency>
 
-			<!--dependency>
+			<dependency>
                                 <groupId>com.wso2telco.ids</groupId>
                                 <artifactId>user-claim-retriever</artifactId>
                                 <version>${com.wso2telco.ids.version}</version>
-                        </dependency-->
+                        </dependency>
+		<dependency>
+			<groupId>com.wso2telco.ids</groupId>
+			<artifactId>url-shorten</artifactId>
+			<version>${com.wso2telco.ids.version}</version>	
+			<scope>provided</scope>
+		</dependency>
 
+		<dependency>
+			<groupId>com.wso2telco.ids</groupId>
+			<artifactId>authenticate-selector</artifactId>
+			 <version>${com.wso2telco.ids.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.wso2telco.ids</groupId>
+			<artifactId>authentication-endpoint</artifactId>
+			<version>${com.wso2telco.ids.version}</version>
+			<type>war</type>
+		</dependency>
 			<!-- User registration dependacies -->
 
 			<dependency>
@@ -2169,8 +2186,7 @@
 		<org.apache.sling.commons.json.version>2.0.6</org.apache.sling.commons.json.version>
 		<org.wso2.amber.version>0.22.1358727.wso2v4</org.wso2.amber.version>
 		<!--from intermediate pom -->
-		<com.wso2telco.ids.version>2.0.13-SNAPSHOT</com.wso2telco.ids.version>		
-		<com.wso2telco.ids.custom.version>2.0.14-SNAPSHOT</com.wso2telco.ids.custom.version>
+		<com.wso2telco.ids.version>2.0.14-SNAPSHOT</com.wso2telco.ids.version>		
 
 		<org.wso2.carbon.version>4.4.3</org.wso2.carbon.version>
 		<org.wso2.carbon.identity.version>5.0.7</org.wso2.carbon.identity.version>
@@ -2189,7 +2205,7 @@
 		<org.json.wso2.version>3.0.0.wso2v1</org.json.wso2.version>
 		
 		<org.apache.felix.scr.annotations.version>1.9.6</org.apache.felix.scr.annotations.version>		
-		<com.wso2telco.core.version>2.0.2</com.wso2telco.core.version>	
+		<com.wso2telco.core.version>2.0.9-SNAPSHOT</com.wso2telco.core.version>	
 	</properties>
 
 	<build>

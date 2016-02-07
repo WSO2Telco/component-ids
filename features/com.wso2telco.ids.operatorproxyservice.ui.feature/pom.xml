@@ -102,7 +102,7 @@
 								<artifactItem>
 									<groupId>com.wso2telco.ids</groupId>
 									<artifactId>operator-proxy-service</artifactId>
-									<version>${com.wso2telco.ids.custom.version}</version>
+									<version>${com.wso2telco.ids.version}</version>
 									<type>war</type>
 									<destFileName>operatorproxyservice.war</destFileName>
 								</artifactItem>
@@ -124,11 +124,11 @@
 							<goal>p2-feature-gen</goal>
 						</goals>
 						<configuration>
-							<id>org.wso2.carbon.device.mgt.ios.web.server</id>
+							<id>com.wso2telco.ids.operatorproxyservice.ui</id>
 							<propertiesFile>../etc/feature.properties</propertiesFile>
 							<adviceFile>
 								<properties>
-									<propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
+									<propertyDef>org.wso2.carbon.p2.category.type:console</propertyDef>
 									<propertyDef>org.eclipse.equinox.p2.type.group:true</propertyDef>
 								</properties>
 							</adviceFile>

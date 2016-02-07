@@ -18,24 +18,13 @@
     </description>
 
     
-	<!--dependencies>
+	<dependencies>
 		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
+			<groupId>com.wso2telco.ids</groupId>
+			<artifactId>authentication-endpoint</artifactId>
+			<type>war</type>			
 		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-		</dependency>
- 		<dependency>
- 			<groupId>javax.servlet</groupId>
-			<artifactId>jstl</artifactId> 
- 		</dependency>
-				<dependency>
-			<groupId>commons-codec.wso2</groupId>
-			<artifactId>commons-codec</artifactId>
-		</dependency>
-	</dependencies-->
+	</dependencies>
 
     <build>
         <plugins>
@@ -99,7 +88,7 @@
                                 <artifactItem>
                                     <groupId>com.wso2telco.ids</groupId>
                                     <artifactId>authentication-endpoint</artifactId>
-                                    <version>${com.wso2telco.ids.custom.version}</version>
+	     			 <version>${com.wso2telco.ids.version}</version>
                                     <type>war</type>
                                     <destFileName>authenticationendpoint.war</destFileName>
                                 </artifactItem>
@@ -121,11 +110,11 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>com.wso2telco.ids.authenticationendpoint.ui.feature</id>
+                            <id>com.wso2telco.ids.authenticationendpoint.ui</id>
                             <propertiesFile>../feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
-                                    <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
+                                    <propertyDef>org.wso2.carbon.p2.category.type:console</propertyDef>
                                     <propertyDef>org.eclipse.equinox.p2.type.group:true</propertyDef>
                                 </properties>
                             </adviceFile>

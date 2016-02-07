@@ -109,7 +109,7 @@
                                 <artifactItem>
                                     <groupId>com.wso2telco.ids</groupId>
                                     <artifactId>session-updater</artifactId>
-                                    <version>${com.wso2telco.ids.custom.version}</version>
+                                    <version>${com.wso2telco.ids.version}</version>
                                     <type>war</type>
                                     <destFileName>sessionupdater.war</destFileName>
                                 </artifactItem>
@@ -131,11 +131,11 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>com.wso2telco.ids.sessionupdater.ui.feature</id>
+                            <id>com.wso2telco.ids.sessionupdater.ui</id>
                             <propertiesFile>../feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
-                                    <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
+                                    <propertyDef>org.wso2.carbon.p2.category.type:console</propertyDef>
                                     <propertyDef>org.eclipse.equinox.p2.type.group:true</propertyDef>
                                 </properties>
                             </adviceFile>

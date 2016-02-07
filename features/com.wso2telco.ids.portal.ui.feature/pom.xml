@@ -78,8 +78,8 @@
                                 <artifactItem>
                                     <groupId>com.wso2telco.ids</groupId>
                                     <artifactId>portal</artifactId>
-                                    <version>${com.wso2telco.ids.custom.version}</version>
                                     <type>zip</type>
+				    <version>${com.wso2telco.ids.version}</version>
                                     <destFileName>portal.zip</destFileName>
                                 </artifactItem>
                             </artifactItems>
@@ -100,12 +100,12 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>com.wso2telco.ids.portal.feature</id>
+                            <id>com.wso2telco.ids.portal.ui</id>
                             <propertiesFile>../feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
-                                    <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
-                                    <propertyDef>org.eclipse.equinox.p2.type.group:false</propertyDef>
+                                    <propertyDef>org.wso2.carbon.p2.category.type:console</propertyDef>
+                                    <propertyDef>org.eclipse.equinox.p2.type.group:true</propertyDef>
                                 </properties>
                             </adviceFile>
                         </configuration>
