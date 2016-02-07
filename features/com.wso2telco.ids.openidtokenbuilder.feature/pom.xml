@@ -36,7 +36,7 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>com.wso2telco.ids.urlshorten</id>
+                            <id>com.wso2telco.ids.openidtokenbuilder</id>
                             <propertiesFile>../feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
