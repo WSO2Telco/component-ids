@@ -1,2 +1,2 @@
 instructions.configure = \
-org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/com.wso2telco.ids.userregistration.ui.feature_${feature.version}/generated/user-registration.war,target:${installFolder}/../../deployment/server/webapps/user-registration.war,overwrite:true);
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/com.wso2telco.ids.userregistration.ui_${feature.version}/generated/user-registration.war,target:${installFolder}/../../deployment/server/webapps/user-registration.war,overwrite:true);
