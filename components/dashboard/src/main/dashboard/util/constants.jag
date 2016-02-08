@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/<%
-include("/site/jagg/site.jag");
+//include("/site/jagg/site.jag");
+
+
+var site = require("/site/conf/site.json");
+var server = site.server;
+
+function getCarbonUrl() {
+	return "https://" + server.carbon_url;
+
+}
+
 var DEFAULT_CLAIM_URL = "http://wso2.org/claims";
 var OPENID_REG_CLAIM_URL = "http://schema.openid.net/2007/05/claims";
 var UI_USER_PERMISSIONS = "user-permissions";

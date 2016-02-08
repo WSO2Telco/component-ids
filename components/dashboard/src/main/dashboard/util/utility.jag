@@ -15,7 +15,7 @@
  ******************************************************************************/<%
 
 include("constants.jag");
-include("/site/jagg/site.jag");
+//include("/site/jagg/site.jag");
 var log = new Log();
 
 function initI18N(){
