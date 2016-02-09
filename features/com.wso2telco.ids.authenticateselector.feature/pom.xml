@@ -45,7 +45,7 @@
                                 </properties>
                             </adviceFile>
                             <bundles>
-                                <bundleDef>com.wso2telco.core:mnc-resolver</bundleDef>
+                                <bundleDef>com.wso2telco.core:mnc-resolver:${com.wso2telco.core.version}</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.identity.core:${carbon.identity.version}</bundleDef>
                                 <bundleDef>org.wso2.carbon:org.wso2.carbon.utils:${carbon.kernel.version}</bundleDef>
                                 <bundleDef>org.wso2.carbon.identity:org.wso2.carbon.identity.application.common:${carbon.identity.version}</bundleDef>
