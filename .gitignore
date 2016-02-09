@@ -25,3 +25,4 @@ target
 *pom.xml.next
 *pom.xml.tag
 *release.properties
+features/com.wso2telco.ids.dashboard.ui.feature/src/main/resources/generated/dashboard.zip
