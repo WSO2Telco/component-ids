@@ -63,14 +63,16 @@
 				<extensions>true</extensions>
 				<configuration>
 					<instructions>
-						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+						<Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
 						<Bundle-Name>${project.artifactId}</Bundle-Name>
 
 						<Import-Package>
 						org.osgi.framework,
         			                    *;resolution:=optional						
 						</Import-Package>
-
+						<Export-Package>com.wso2telco.gsma.authendictorselector.*</Export-Package>
+						<Export-Package>com.wso2telco.gsma.authenticators.*</Export-Package>
+						<Export-Package>com.wso2telco.gsma.utils.*</Export-Package>
 						<DynamicImport-Package>*</DynamicImport-Package>
 					</instructions>
 				</configuration>
