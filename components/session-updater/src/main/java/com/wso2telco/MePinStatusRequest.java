@@ -51,7 +51,6 @@ public class MePinStatusRequest implements Callable<String> {
     /* (non-Javadoc)
      * @see java.util.concurrent.Callable#call()
      */
-    @Override
     public String call() {
         String allowStatus = null;
 
