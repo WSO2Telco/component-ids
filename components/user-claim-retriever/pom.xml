@@ -86,10 +86,7 @@
 						<Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
 						<Bundle-Name>${project.artifactId}</Bundle-Name>
 						<Bundle-Version>${project.version}</Bundle-Version>							
-						<Export-Package>com.wso2telco.config.*,
-								com.wso2telco.user.impl.*,
-								com.wso2telco.util.*
-						</Export-Package>
+						<Export-Package>com.wso2telco.*</Export-Package>
 
 						<Import-Package>
                             org.osgi.framework,
