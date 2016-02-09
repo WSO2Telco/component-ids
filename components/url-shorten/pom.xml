@@ -53,7 +53,7 @@
 							org.osgi.framework,
 							*;resolution:=optional
 						</Import-Package>
-						<Export-Package>com.gsma.shorten,com.wso2telco.gsma.shorten</Export-Package>
+						<Export-Package>com.gsma.shorten,com.wso2telco.gsma.*</Export-Package>
 
 					</instructions>
 				</configuration>
