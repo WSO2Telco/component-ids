@@ -63,7 +63,7 @@
 		</dependency>
 	</dependencies>
 	<build>
-		<finalName>SessionUpdater</finalName>
+		<!--finalName>SessionUpdater</finalName-->
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
