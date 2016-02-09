@@ -88,14 +88,24 @@
 				<version>${maven.bundle.plugin.version}</version>
 				<configuration>
 					<instructions>
-						<Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
+						<Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
 						<Bundle-Name>${project.artifactId}</Bundle-Name>
 						<Import-Package>
 						org.osgi.framework,
 			                            *;resolution:=optional
 						</Import-Package>
 						<Export-Package>
-							com.axiata.dialog.*
+							com.wso2telco.claimhandler.*,
+							com.wso2telco.claimhandler.authenticationstephandler.*,
+							com.wso2telco.claimhandler.dao.*,
+							com.wso2telco.claimhandler.historylog.*,
+							com.wso2telco.claimhandler.model.*,
+							com.wso2telco.claimhandler.openidtokenbuilder.*,
+							com.wso2telco.reqpathsequencehandler.*,
+							com.wso2telco.stepbasedsequencehandler.*,
+							com.wso2telco.transaction.*,
+							com.wso2telco.util.*
+
 						</Export-Package>
 						<Embed-Dependency>
 							nimbus-jose-jwt|json-smart;scope=compile|runtime;inline=false
