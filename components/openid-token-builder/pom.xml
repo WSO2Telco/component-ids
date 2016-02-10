@@ -99,17 +99,7 @@
                             *;resolution:=optional
 						</Import-Package>
 						<Export-Package>
-							com.wso2telco.claimhandler.*,
-							com.wso2telco.claimhandler.authenticationstephandler.*,
-							com.wso2telco.claimhandler.dao.*,
-							com.wso2telco.claimhandler.historylog.*,
-							com.wso2telco.claimhandler.model.*,
-							com.wso2telco.claimhandler.openidtokenbuilder.*,
-							com.wso2telco.reqpathsequencehandler.*,
-							com.wso2telco.stepbasedsequencehandler.*,
-							com.wso2telco.transaction.*,
-							com.wso2telco.util.*
-
+							com.wso2telco.*
 						</Export-Package>
 						<Embed-Dependency>
 							nimbus-jose-jwt|json-smart;scope=compile|runtime;inline=false

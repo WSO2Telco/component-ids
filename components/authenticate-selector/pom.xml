@@ -70,9 +70,7 @@
 						org.osgi.framework,
         			                    *;resolution:=optional						
 						</Import-Package>
-						<Export-Package>com.wso2telco.gsma.authendictorselector.*,
-								com.wso2telco.gsma.authenticators.*,
-								com.wso2telco.gsma.utils.*
+						<Export-Package>com.wso2telco.*
 						</Export-Package>
 						<DynamicImport-Package>*</DynamicImport-Package>
 					</instructions>
