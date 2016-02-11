@@ -355,12 +355,8 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	 */
 	private void setAuthenticationAttributes(AuthenticationContext context, StepConfig stepConfig,
 			AuthenticatorConfig authenticatorConfig) {
-		AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
+		AuthenticatedIdPData authenticatedIdPData = AuthenticationHealper.createAuthenticatedIdPData(context);
 
-		// store authenticated user
-		AuthenticatedUser authenticatedUser = context.getSubject();
-		stepConfig.setAuthenticatedUser(authenticatedUser);
-		authenticatedIdPData.getUser().setUserName(authenticatedUser.getUserName());
 		
 
 
