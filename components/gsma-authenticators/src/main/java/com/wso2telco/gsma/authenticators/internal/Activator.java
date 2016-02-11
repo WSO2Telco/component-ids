@@ -39,17 +39,22 @@ import com.wso2telco.gsma.authenticators.sms.SMSAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDPinAuthenticator;
 
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceEvent;
+
 /**
  * This is one of the first bundles that start in Carbon.
  * <p/>
  * ServerConfiguration object is not available to this bundle.
  * Therefore we read properties but do not keep a reference to it.
  */
-public class Activator extends BundleCheckActivator {
+public class Activator implements BundleActivator {
     private static final Log log = LogFactory.getLog(Activator.class);
 
     public void startDeploy(BundleContext bundleContext) throws Exception {
-    	
+    	log.debug("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH__________0001");
     	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
                  new PinAuthenticator(), null);
 
@@ -77,13 +82,15 @@ public class Activator extends BundleCheckActivator {
     	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
                  new SelfAuthenticator(), null);
 
-
+    	 log.debug("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH__________0002");
          LOAConfig config = ConfigLoader.getInstance().getLoaConfig();
 
          DataHolder.getInstance().setLOAConfig(config);
 
          DataHolder.getInstance().setMobileConnectConfig(ConfigLoader.getInstance().getMobileConnectConfig());
-
+         
+         log.debug("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH__________0003");
+         
          if (log.isDebugEnabled()) {
              log.info("Custom Application Authenticator bundle is activated");
          }
@@ -96,5 +103,10 @@ public class Activator extends BundleCheckActivator {
     public void stop(BundleContext bundleContext) throws Exception {
 
     }
+
+	public void start(BundleContext context) throws Exception {
+		startDeploy(context);
+		
+	}
 
 }
