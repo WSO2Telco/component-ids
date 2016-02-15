@@ -16,6 +16,7 @@
 ~ specific language governing permissions and limitations
 ~ under the License.
 -->
+<%@page import="com.wso2telco.identity.application.authentication.endpoint.Constants"%>
 <%@page import="java.util.Arrays"%>
 <%@page import="java.util.ArrayList"%>
 <%@page import="java.util.List"%>
@@ -29,7 +30,11 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="fmt"     uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="com.wso2telco.identity.application.authentication.*" %>
+<%@page import="org.wso2.carbon.identity.application.authentication.framework.cache.*"%>
+<%@page import="org.wso2.carbon.identity.application.authentication.framework.context.*"%>
+<%@page import="org.wso2.carbon.identity.application.authentication.framework.model.*"%>
+<%@page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants"%>
+
 
 
 <fmt:bundle basename="com.wso2telco.identity.application.authentication.endpoint.i18n.Resources">
@@ -136,7 +141,7 @@
                                             <%
 						String sessionDataKey = request.getParameter("sessionDataKey");
 			                        AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(sessionDataKey);
-			                        Object cacheEntryObj = AuthenticationContextCache.getInstance(0).getValueFromCache(cacheKey);
+			                        Object cacheEntryObj = AuthenticationContextCache.getInstance().getValueFromCache(cacheKey);
 	                		        AuthenticationContext  authnContext = null;
 		                        	if (cacheEntryObj != null) {
                 		             		authnContext = ((AuthenticationContextCacheEntry) cacheEntryObj).getContext();
