@@ -253,7 +253,8 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			context.setAuthenticatorProperties(FrameworkUtils.getAuthenticatorPropertyMapFromIdP(
 					context.getExternalIdP(), authenticator.getName()));
 			AuthenticatorFlowStatus status = authenticator.process(request, response, context);
-
+			request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
+			
 			if (log.isDebugEnabled()) {
 				log.debug(authenticator.getName() + " returned: " + status.toString());
 			}
