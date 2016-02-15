@@ -383,6 +383,9 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			sequenceConfig.setAuthenticatedUser(context.getSubject());
 			context.setSequenceConfig(sequenceConfig);
 		}
+		log.info("===============================================================================setting authenticated user=============");
+		// Set the authenticated user as an object. 5.1.0 onwards
+		stepConfig.setAuthenticatedUser(context.getSubject());
 	}
 
 	/**
