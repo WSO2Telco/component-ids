@@ -2210,7 +2210,7 @@
 		<org.json.wso2.version>3.0.0.wso2v1</org.json.wso2.version>
 		
 		<org.apache.felix.scr.annotations.version>1.9.6</org.apache.felix.scr.annotations.version>		
-		<com.wso2telco.core.version>2.0.11-SNAPSHOT</com.wso2telco.core.version>	
+		<com.wso2telco.core.version>2.0.01</com.wso2telco.core.version>	
 	</properties>
 
 	<build>
