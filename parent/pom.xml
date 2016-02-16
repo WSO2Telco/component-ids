@@ -1866,6 +1866,11 @@
 				<version>${org.apache.felix.scr.annotations.version}</version>
 			</dependency>
 			<dependency>
+				  <groupId>com.jayway.jsonpath.wso2</groupId>
+				  <artifactId>json-path</artifactId>
+				  <version>1.2.0.wso2v1</version>
+			</dependency>
+			<dependency>
 				<groupId>com.wso2telco.core</groupId>
 				<artifactId>mnc-resolver</artifactId>
 				<version>${com.wso2telco.core.version}</version>

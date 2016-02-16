@@ -15,7 +15,6 @@
  ******************************************************************************/
 package com.wso2telco.util;
 
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.claim.mgt.ClaimManagerHandler;
@@ -34,85 +33,87 @@ import java.util.*;
  * The Class ClaimUtil.
  */
 public class ClaimUtil {
-    
-    /** The log. */
-    private static Log log = LogFactory.getLog(ClaimUtil.class);
-    
-    /** The Constant spDialect. */
-    final static String spDialect = "http://wso2.org/oidc/claim";
 
-    /**
-     * Gets the claims from user store.
-     *
-     * @param tokenResponse the token response
-     * @return the claims from user store
-     * @throws Exception the exception
-     */
-    public static Map<String, Object> getClaimsFromUserStore(OAuth2TokenValidationResponseDTO tokenResponse) throws Exception {
-        String username = tokenResponse.getAuthorizedUser();
-        String tenantUser = MultitenantUtils.getTenantAwareUsername(username);
-        String tenantDomain = MultitenantUtils.getTenantDomain(tokenResponse.getAuthorizedUser());
-        UserRealm realm;
-        Claim claims[];
-        List<String> claimURIList = new ArrayList<String>();
-        Map<String, Object> mappedAppClaims = new HashMap<String, Object>();
+	/** The log. */
+	private static Log log = LogFactory.getLog(ClaimUtil.class);
 
-        try {
-            realm = IdentityTenantUtil.getRealm(tenantDomain, username);
+	/** The Constant spDialect. */
+	final static String spDialect = "http://wso2.org/oidc/claim";
 
-            if (realm == null) {
-                log.warn("No valid tenant domain provider. Empty claim returned back");
-                return new HashMap<String, Object>();
-            }
+	/**
+	 * Gets the claims from user store.
+	 *
+	 * @param tokenResponse
+	 *            the token response
+	 * @return the claims from user store
+	 * @throws Exception
+	 *             the exception
+	 */
+	public static Map<String, Object> getClaimsFromUserStore(OAuth2TokenValidationResponseDTO tokenResponse)
+			throws Exception {
+		String username = tokenResponse.getAuthorizedUser();
+		String tenantUser = MultitenantUtils.getTenantAwareUsername(username);
+		String tenantDomain = MultitenantUtils.getTenantDomain(tokenResponse.getAuthorizedUser());
+		UserRealm realm;
+		Claim claims[];
+		List<String> claimURIList = new ArrayList<String>();
+		Map<String, Object> mappedAppClaims = new HashMap<String, Object>();
 
-            claims = realm.getUserStoreManager().getUserClaimValues(tenantUser, null);
-            Map<String, String> spToLocalClaimMappings;
+		try {
+			realm = IdentityTenantUtil.getRealm(tenantDomain, username);
 
-            UserStoreManager userstore = realm.getUserStoreManager();
+			if (realm == null) {
+				log.warn("No valid tenant domain provider. Empty claim returned back");
+				return new HashMap<String, Object>();
+			}
 
-            // need to get all the requested claims
-            Map<String, String> requestedLocalClaimMap = ClaimManagerHandler.getInstance()
-                    .getMappingsMapFromOtherDialectToCarbon(spDialect, null, tenantDomain, true);
-            if (requestedLocalClaimMap != null && requestedLocalClaimMap.size() > 0) {
-                for (Iterator<String> iterator = requestedLocalClaimMap.keySet().iterator(); iterator
-                        .hasNext(); ) {
-                    claimURIList.add(iterator.next());
+			claims = realm.getUserStoreManager().getUserClaimValues(tenantUser, null);
+			Map<String, String> spToLocalClaimMappings;
 
-                }
-                if (log.isDebugEnabled()) {
-                    log.debug("Requested number of local claims: " + claimURIList.size());
-                }
+			UserStoreManager userstore = realm.getUserStoreManager();
 
-                spToLocalClaimMappings = ClaimManagerHandler.getInstance()
-                        .getMappingsMapFromOtherDialectToCarbon(spDialect, null,
-                                tenantDomain, false);
+			// need to get all the requested claims
+			Map<String, String> requestedLocalClaimMap = ClaimManagerHandler.getInstance()
+					.getMappingsMapFromOtherDialectToCarbon(spDialect, null, tenantDomain, true);
+			if (requestedLocalClaimMap != null && requestedLocalClaimMap.size() > 0) {
+				for (Iterator<String> iterator = requestedLocalClaimMap.keySet().iterator(); iterator.hasNext();) {
+					claimURIList.add(iterator.next());
 
-                Map<String, String> userClaims = userstore.getUserClaimValues(
-                        MultitenantUtils.getTenantAwareUsername(username),
-                        claimURIList.toArray(new String[claimURIList.size()]), null);
-                if (log.isDebugEnabled()) {
-                    log.debug("User claims retrieved from user store: " + userClaims.size());
-                }
+				}
+				if (log.isDebugEnabled()) {
+					log.debug("Requested number of local claims: " + claimURIList.size());
+				}
 
-                if (userClaims == null || userClaims.size() == 0) {
-                    return new HashMap<String, Object>();
-                }
+				spToLocalClaimMappings = ClaimManagerHandler.getInstance()
+						.getMappingsMapFromOtherDialectToCarbon(spDialect, null, tenantDomain, false);
 
-                for (Iterator<Map.Entry<String, String>> iterator = spToLocalClaimMappings.entrySet().iterator(); iterator.hasNext(); ) {
-                    Map.Entry<String, String> entry = iterator.next();
-                    String value = userClaims.get(entry.getValue());
-                    if (value != null) {
-                        mappedAppClaims.put(entry.getKey(), value);
-                        if (log.isDebugEnabled()) {
-                            log.debug("Mapped claim: key -  " + entry.getKey() + " value -" + value);
-                        }
-                    }
-                }
-            }
+				Map<String, String> userClaims = userstore.getUserClaimValues(
+						MultitenantUtils.getTenantAwareUsername(username),
+						claimURIList.toArray(new String[claimURIList.size()]), null);
+				if (log.isDebugEnabled()) {
+					log.debug("User claims retrieved from user store: " + userClaims.size());
+				}
 
-        } catch (Exception e) {
-            throw new UserInfoEndpointException(e.getMessage());
-        }
-        return mappedAppClaims;
-    }
+				if (userClaims == null || userClaims.size() == 0) {
+					return new HashMap<String, Object>();
+				}
+
+				for (Iterator<Map.Entry<String, String>> iterator = spToLocalClaimMappings.entrySet()
+						.iterator(); iterator.hasNext();) {
+					Map.Entry<String, String> entry = iterator.next();
+					String value = userClaims.get(entry.getValue());
+					if (value != null) {
+						mappedAppClaims.put(entry.getKey(), value);
+						if (log.isDebugEnabled()) {
+							log.debug("Mapped claim: key -  " + entry.getKey() + " value -" + value);
+						}
+					}
+				}
+			}
+
+		} catch (Exception e) {
+			throw new UserInfoEndpointException(e.getMessage());
+		}
+		return mappedAppClaims;
+	}
 }

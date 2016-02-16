@@ -25,7 +25,7 @@ import java.util.ResourceBundle;
 public class Messages {
 	
 	/** The Constant BUNDLE_NAME. */
-	private static final String BUNDLE_NAME = "com.wso2telco.openidtokenbuilder.application"; //$NON-NLS-1$
+	private static final String BUNDLE_NAME = "application"; //$NON-NLS-1$
 
 	/** The Constant RESOURCE_BUNDLE. */
 	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME);
