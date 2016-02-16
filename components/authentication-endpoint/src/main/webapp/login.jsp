@@ -203,7 +203,7 @@ logger.info("++++++++++++++ requestURL "+ requestURL);
 logger.info("++++++++++++++ requestURI "+ requestURI);
                                                          String baseURL=requestURL.substring(0, requestURL.indexOf(requestURI));
 logger.info("++++++++++++++ baseURL "+ baseURL);
-                                                         URL url=new URL(baseURL+"/UserRegistration-1.0-SNAPSHOT/webresources/endpoint/user/authenticate/add?scope="+scope+"&redirecturi="+redirectUri+"&clientid="+clientId+"&acrvalue="+arc+"&responsetype="+responseType+"&nonce="+nonce+"&state="+state);
+                                                         URL url=new URL(baseURL+"/user-registration/webresources/endpoint/user/authenticate/add?scope="+scope+"&redirecturi="+redirectUri+"&clientid="+clientId+"&acrvalue="+arc+"&responsetype="+responseType+"&nonce="+nonce+"&state="+state);
 logger.info("++++++++++++++ url "+ url);
                                                          HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                                                             conn.setRequestMethod("GET");

@@ -50,30 +50,21 @@ function edit(){
             var ans2 = request.getParameter("ans_2");
 			
 			
-// 			log.info("**************************************************xxxxxx");
-// 			log.info("111111previousAns1>" + hashedPreviousAns1);
-// 			log.info("222222previousAns2>" + hashedPreviousAns2);
-// 			log.info("333333enteredAns1>" + ans1);
-// 			log.info("444444enteredAns2>" + ans2);
 			
 			
 
 			if(validateAnswer(hashedPreviousAns1, ans1)) {//answer1 correct
-// 				log.info("5555555enteredAns2>answer1 correct");
 				if(validateAnswer(hashedPreviousAns2, ans2)/* verifyAns2.verified == "true" */) {//answer2 correct
-// 				log.info("6666666enteredAns2>answer2 correct");
 					var msisdn = userProfileMgtClient.getMSISDN(userName);
 					//format of msisdn should be 94xxxxxxxxx
 					try {
-// 						var url = "http://localhost:9764/mavenproject1-1.0-SNAPSHOT/webresources/endpoint/ussd/pin?" + "username=" + userName + "&msisdn=" + msisdn;
-// 						var url1 = "http://localhost:9764/mavenproject1-1.0-SNAPSHOT/webresources/endpoint/ussd/pin?" + "username=" + userName + "&msisdn=" + msisdn;
 						var statusSaved = saveRequestDetails(msisdn);
 						if(statusSaved != 1) {
 							log.warn("Couldn't save to 'pendingussd' table. Phones that can’t do NI USSD will not support.");
 						}
 						
 						
-						var url = serverDetails.getWebAppsUrl() + "UserRegistration-1.0-SNAPSHOT/webresources/endpoint/ussd/pin?"+ "msisdn=" + msisdn + "&username=" + msisdn;
+						var url = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/ussd/pin?"+ "msisdn=" + msisdn + "&username=" + msisdn;
 						
 						var xhr = new XMLHttpRequest();
 						xhr.open("GET", url, true);//async=true
@@ -106,7 +97,7 @@ function edit(){
 }
 
 function saveRequestDetails(msisdn) {
-	var url = serverDetails.getWebAppsUrl() + "UserRegistration-1.0-SNAPSHOT/webresources/endpoint/ussd/saverequest?msisdn=" + msisdn + "&requesttype=3";
+	var url = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/ussd/saverequest?msisdn=" + msisdn + "&requesttype=3";
 	var xhr = new XMLHttpRequest();
 	xhr.open("GET", url, false);//async=false
 	xhr.send();

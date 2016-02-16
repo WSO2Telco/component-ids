@@ -24,8 +24,7 @@ var msisdn = request.getParameter("msisdn") ;
 getUserChallanges();
 
 function getUserChallanges() {
-		//var strBackend = "http://localhost:9763/mavenproject1-1.0-SNAPSHOT/webresources/endpoint/sms/response?msisdn=" + msisdn;
-		var strBackend = serverDetails.getWebAppsUrl() + "UserRegistration-1.0-SNAPSHOT/webresources/endpoint/sms/response?msisdn=" + msisdn;
+		var strBackend = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/sms/response?msisdn=" + msisdn;
 
 		var xhr = new XMLHttpRequest();
 		xhr.open("GET", strBackend, true);//async=true
@@ -35,29 +34,4 @@ function getUserChallanges() {
 
 }
 
-//function saveRequestDetails() {
-//	var url = serverDetails.getWebAppsUrl() + "mavenproject1-1.0-SNAPSHOT/webresources/endpoint/ussd/saverequest?msisdn=" + msisdn + "&requesttype=1";
-//	log.info("xxxxxxx>" + url);
-//	var xhr = new XMLHttpRequest();
-//	xhr.open("GET", url, false);//async=false
-//	xhr.send();
-//	log.info("fffffffffffffffffffffff>" + xhr.responseText.toString());
-//	var result = parse(xhr.responseText.toString());
-//	return result.status;
-//}
 %>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

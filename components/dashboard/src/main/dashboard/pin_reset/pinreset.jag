@@ -389,7 +389,7 @@
 
             function checkUSSDResponseStatus() {
 
-            	var url = "../../UserRegistration-1.0-SNAPSHOT/webresources/endpoint/ussd/status?username=" + userName;
+            	var url = "../../user-registration/webresources/endpoint/ussd/status?username=" + userName;
             	var STATUS_APPROVED = "Approved";
 
             	$.ajax({

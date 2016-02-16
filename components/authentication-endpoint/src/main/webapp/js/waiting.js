@@ -93,7 +93,7 @@ function getCookieAndResend() {
 	var msisdn = (name = (document.cookie + ';').match(new RegExp(name + '=.*;'))) && name[0].split(/=|;/)[1];
 
 	$.ajax({
-		url: '../UserRegistration-1.0-SNAPSHOT/webresources/endpoint/ussd/pin/resend',
+		url: '../user-registration/webresources/endpoint/ussd/pin/resend',
 		type: 'POST',
 		contentType: "application/json; charset=utf-8",
 		data: '{"sessionID":'+sessionId+',"msisdn":"tel:+tel:+'+msisdn+'"}',

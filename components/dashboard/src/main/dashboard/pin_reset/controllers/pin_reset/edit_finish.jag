@@ -74,26 +74,22 @@ function edit(){
 				
 
 			if(validateAnswer(hashedPreviousAns1, ans1)) {//answer1 correct
- 				log.info("ANS_1 OK");
  				result.ans1='true';
 				
 				if(validateAnswer(hashedPreviousAns2, ans2) ) {
-					log.info("ANS_2 OK");
 					result.ans2='true';
 
 					var msisdn = userProfileMgtClient.getMSISDN(userName);
 					//format of msisdn should be 94xxxxxxxxx
 					
 					try {
-// 						var url = "http://10.62.96.187:9764/mavenproject1-1.0-SNAPSHOT/webresources/endpoint/ussd/pin?" + "username=" + userName + "&msisdn=" + msisdn;
-// 						var url1 = "http://localhost:9764/mavenproject1-1.0-SNAPSHOT/webresources/endpoint/ussd/pin?" + "username=" + userName + "&msisdn=" + msisdn;
 
 						var statusSaved = saveRequestDetails(msisdn);
 						if(statusSaved != 1) {
 							log.warn("Couldn't save to 'pendingussd' table. Phones that can't do NI USSD will not support.");
 						}
 						
-						var url = serverDetails.getWebAppsUrl() + "UserRegistration-1.0-SNAPSHOT/webresources/endpoint/ussd/pin?"+ "msisdn=" + msisdn + "&username=" + msisdn+ "&operator=" + operator + "&action=pinreset" + "&sessionDataKey=" + sessionDataKey;
+						var url = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/ussd/pin?"+ "msisdn=" + msisdn + "&username=" + msisdn+ "&operator=" + operator + "&action=pinreset" + "&sessionDataKey=" + sessionDataKey;
 						
 						log.info("Calling endpoint: "+ url);
 						
@@ -132,7 +128,7 @@ function edit(){
 }
 
 function saveRequestDetails(msisdn) {
-	var url = serverDetails.getWebAppsUrl() + "UserRegistration-1.0-SNAPSHOT/webresources/endpoint/ussd/saverequest?msisdn=" + msisdn + "&requesttype=3";
+	var url = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/ussd/saverequest?msisdn=" + msisdn + "&requesttype=3";
 	var xhr = new XMLHttpRequest();
 	xhr.open("GET", url, false);//async=false
 	xhr.send();

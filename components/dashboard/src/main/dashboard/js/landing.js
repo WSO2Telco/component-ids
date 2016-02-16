@@ -10,7 +10,7 @@
         var callbackURL;
         var id=tokenVal;
         var username=getMSISDN(tokenVal);
-        var backendurl = "../UserRegistration-1.0-SNAPSHOT/webresources/endpoint/user/authenticate/get?tokenid="+ id;
+        var backendurl = "../user-registration/webresources/endpoint/user/authenticate/get?tokenid="+ id;
 
         $.ajax({
             type: "GET",
@@ -206,7 +206,7 @@
 
 
     var acrReturn="";
-    var url = "../UserRegistration-1.0-SNAPSHOT/webresources/endpoint/loa/authenticator?acr="+acr;
+    var url = "../user-registration/webresources/endpoint/loa/authenticator?acr="+acr;
 
     $.ajax({
         type: "GET",
@@ -239,7 +239,7 @@
  function getMSISDN(token){
 
     var msisdn='';
-    var url = "../UserRegistration-1.0-SNAPSHOT/webresources/endpoint/user/authenticate/get?tokenid="+token;
+    var url = "../user-registration/webresources/endpoint/user/authenticate/get?tokenid="+token;
     
     $.ajax({
         type: "GET",
