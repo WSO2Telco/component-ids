@@ -221,7 +221,9 @@ public class SendUSSD implements AuthenticatorSelector {
             log.error("Error occured while calling end points - " + response.getStatusLine().getStatusCode() + "-" +
                     response.getStatusLine().getReasonPhrase());
         } else {
-            log.info("Success Request");
+        	if (log.isDebugEnabled()) {
+            log.debug("Success Request");
+        	}
         }
         String responseStr = null;
         HttpEntity responseEntity = response.getEntity();
