@@ -58,7 +58,7 @@
     log.info( "operator :"+operator );
 
     var serverDetails = require("site/jagg/site.jag");
-    var strBackend = serverDetails.getWebAppsUrl() +"UserRegistration-1.0-SNAPSHOT/webresources/endpoint/user/authenticate/get?tokenid=" + token;
+    var strBackend = serverDetails.getWebAppsUrl() +"user-registration/webresources/endpoint/user/authenticate/get?tokenid=" + token;
     log.info(strBackend);
     var xhr = new XMLHttpRequest();
     xhr.open("GET", strBackend, false);

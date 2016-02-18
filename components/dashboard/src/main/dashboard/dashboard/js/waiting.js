@@ -81,7 +81,7 @@ console.log("waiting");
 		if(isTimeout){
 			var callbackURL ;
 			var id=qs("tokenid");
-			var url = "../UserRegistration-1.0-SNAPSHOT/webresources/endpoint/user/authenticate/get?tokenid="+ id;
+			var url = "../user-registration/webresources/endpoint/user/authenticate/get?tokenid="+ id;
 			
 			$.ajax({
 		 		type: "GET",
@@ -123,7 +123,7 @@ console.log("waiting");
 	var state;
       	var nonce;
  	var username=qs("username");
- 	var url = "../UserRegistration-1.0-SNAPSHOT/webresources/endpoint/user/authenticate/get?tokenid="+ id;
+ 	var url = "../user-registration/webresources/endpoint/user/authenticate/get?tokenid="+ id;
 
  	$.ajax({
  		type: "GET",
@@ -192,7 +192,7 @@ console.log("waiting");
 	
 	///var url = "../MediationTest/tnspoints/endpoint/ussd/status?sessionID=" + sessionId;
 
-	var url = "../UserRegistration-1.0-SNAPSHOT/webresources/endpoint/ussd/status?username=" + sessionId;
+	var url = "../user-registration/webresources/endpoint/ussd/status?username=" + sessionId;
 	var STATUS_APPROVED = "Approved";
 	
 	$.ajax({

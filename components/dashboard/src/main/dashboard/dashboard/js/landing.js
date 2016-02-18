@@ -434,7 +434,7 @@ function getAcrValue(){
 
 var acr=document.getElementById('acr').value;
 var acrReturn="";
-var url = "../UserRegistration-1.0-SNAPSHOT/webresources/endpoint/loa/authenticator?acr="+acr;
+var url = "../user-registration/webresources/endpoint/loa/authenticator?acr="+acr;
   //  alert("IN getAcrValue");
   $.ajax({
     type: "GET",

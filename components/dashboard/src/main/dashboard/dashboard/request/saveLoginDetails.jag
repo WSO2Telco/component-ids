@@ -5,7 +5,7 @@ var serverDetails = require("/site/jagg/site.jag");
 
 function saveLoginDetails() {
         //log.info('msisdn for saverequest : '+msisdn);		
-		var strBackend = serverDetails.getWebAppsUrl() +"UserRegistration-1.0-SNAPSHOT/webresources/endpoint/ussd/saverequest?msisdn=" + msisdn + "&" + "requesttype=2";
+		var strBackend = serverDetails.getWebAppsUrl() +"user-registration/webresources/endpoint/ussd/saverequest?msisdn=" + msisdn + "&" + "requesttype=2";
 	    //log.info(strBackend);
 		var xhr = new XMLHttpRequest();
 		xhr.open("GET", strBackend, false);//async=true

@@ -8,7 +8,7 @@ getUserChallanges();
 
 function getUserChallanges() {
 		//var strBackend = "http://localhost:9763/mavenproject1-1.0-SNAPSHOT/webresources/endpoint/sms/response?msisdn=" + msisdn;
-		var strBackend = serverDetails.getWebAppsUrl() + "UserRegistration-1.0-SNAPSHOT/webresources/endpoint/sms/response?msisdn=" + msisdn;
+		var strBackend = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/sms/response?msisdn=" + msisdn;
 
 		var xhr = new XMLHttpRequest();
 		xhr.open("GET", strBackend, true);//async=true

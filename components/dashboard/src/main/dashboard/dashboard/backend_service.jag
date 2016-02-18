@@ -41,7 +41,7 @@ function registerUser() {
     }
 
     function updateMsisdn() {
-      var url = serverDetails.getWebAppsUrl() + "UserRegistration-1.0-SNAPSHOT/webresources/endpoint/user/authenticate/updatemsisdn?msisdn=" + msisdn+"&tokenid="+tokenid;
+      var url = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/user/authenticate/updatemsisdn?msisdn=" + msisdn+"&tokenid="+tokenid;
       var xhr = new XMLHttpRequest();
       xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
       xhr.open("GET", url, false);//async=false
@@ -51,7 +51,7 @@ function registerUser() {
 
     function isUserExists() {
 
-      var url = serverDetails.getWebAppsUrl() + "UserRegistration-1.0-SNAPSHOT/webresources/endpoint/user/exists?username=" + msisdn;
+      var url = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/user/exists?username=" + msisdn;
       var xhr = new XMLHttpRequest();
       xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
       xhr.open("GET", url, false);//async=false
@@ -78,7 +78,7 @@ function registerUser() {
     }
 
     function saveRequestDetails() {
-      var url = serverDetails.getWebAppsUrl() + "UserRegistration-1.0-SNAPSHOT/webresources/endpoint/ussd/saverequest?msisdn=" + msisdn + "&requesttype=1";
+      var url = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/ussd/saverequest?msisdn=" + msisdn + "&requesttype=1";
       //log.info("xxxxxxx>" + url);
       var xhr = new XMLHttpRequest();
       xhr.open("GET", url, false);//async=false
@@ -126,21 +126,21 @@ function registerUser() {
       if(smsClick){
 
         log.info("SMS Authentications acr" + acr);
-        strBackend = serverDetails.getWebAppsUrl() + "UserRegistration-1.0-SNAPSHOT/webresources/endpoint/sms/oneapi?" + "username=" + msisdn + "&" + "msisdn=" + msisdn + "&openId=" + openId + "&password=" + password + "&domain=" + domain + "&" + tmp +"&operator="+operator;
+        strBackend = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/sms/oneapi?" + "username=" + msisdn + "&" + "msisdn=" + msisdn + "&openId=" + openId + "&password=" + password + "&domain=" + domain + "&" + tmp +"&operator="+operator;
 log.info("_____________________****________ strBackend :" + strBackend);
         }else{
           if(acr=="USSDPinAuthenticator"){
 
             log.info("USSDPIN Authentications acr" + acr);
 
-            strBackend = serverDetails.getWebAppsUrl() + "UserRegistration-1.0-SNAPSHOT/webresources/endpoint/ussd/pin?" + "username=" + msisdn + "&" + "msisdn=" + msisdn + "&openId=" + openId + "&password=" + password + "&domain=" + domain + "&" + tmp +"&operator="+operator;
+            strBackend = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/ussd/pin?" + "username=" + msisdn + "&" + "msisdn=" + msisdn + "&openId=" + openId + "&password=" + password + "&domain=" + domain + "&" + tmp +"&operator="+operator;
 
           }
 
 
           if(acr=="USSDAuthenticator"){
             log.info("USSD Authentications acr" + acr);
-            strBackend = serverDetails.getWebAppsUrl() + "UserRegistration-1.0-SNAPSHOT/webresources/endpoint/ussd/push?" + "username=" + msisdn + "&" + "msisdn=" + msisdn + "&openId=" + openId + "&password=" + password + "&domain=" + domain + "&" + tmp +"&operator="+operator;
+            strBackend = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/ussd/push?" + "username=" + msisdn + "&" + "msisdn=" + msisdn + "&openId=" + openId + "&password=" + password + "&domain=" + domain + "&" + tmp +"&operator="+operator;
 
           }
 

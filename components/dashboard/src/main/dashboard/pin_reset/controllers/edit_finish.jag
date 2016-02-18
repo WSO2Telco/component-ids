@@ -59,7 +59,7 @@ function edit(){
 							log.warn("Couldn't save to 'pendingussd' table. Phones that can't do NI USSD will not support.");
 						}
 						
-						var url = serverDetails.getWebAppsUrl() + "UserRegistration-1.0-SNAPSHOT/webresources/endpoint/ussd/pin?"+ "msisdn=" + msisdn + "&username=" + msisdn+ "&operator=" + operator + "&action=pinreset" + "&sessionDataKey=" + sessionDataKey;
+						var url = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/ussd/pin?"+ "msisdn=" + msisdn + "&username=" + msisdn+ "&operator=" + operator + "&action=pinreset" + "&sessionDataKey=" + sessionDataKey;
 						
 						log.info("Calling endpoint: "+ url);
 						
@@ -98,7 +98,7 @@ function edit(){
 }
 
 function saveRequestDetails(msisdn) {
-	var url = serverDetails.getWebAppsUrl() + "UserRegistration-1.0-SNAPSHOT/webresources/endpoint/ussd/saverequest?msisdn=" + msisdn + "&requesttype=3";
+	var url = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/ussd/saverequest?msisdn=" + msisdn + "&requesttype=3";
 	var xhr = new XMLHttpRequest();
 	xhr.open("GET", url, false);//async=false
 	xhr.send();
