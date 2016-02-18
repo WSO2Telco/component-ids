@@ -177,10 +177,14 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                         String decrypted = decryptData(loginHint);
                         log.debug("Decrypted login hint: " + decrypted);
                         msisdn = decrypted.substring(0, decrypted.indexOf(LOGIN_HINT_SEPARATOR));
+                        if (log.isDebugEnabled()) {
                         log.debug("MSISDN by encrypted login hint: " + msisdn);
+                        }
                     } else if (loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX)){
                         msisdn = loginHint.replace(LOGIN_HINT_NOENCRYPTED_PREFIX, "");
+                        if (log.isDebugEnabled()) {
                         log.debug("MSISDN by login hint: " + msisdn);
+                        }
                     } else {
                         log.warn("No supported login hint format");
                 }
@@ -274,7 +278,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             return new String(dectyptedText);
 
         } catch (Exception ex) {
-            ex.printStackTrace();
             log.error("Exception encrypting data " + ex.getClass().getName() + ": "+ ex.getMessage());
         return null;
         }
@@ -302,7 +305,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             return kf.generatePrivate(spec);
 
         } catch (Exception ex) {
-            ex.printStackTrace();
             log.error("Exception reading private key:" + ex.getMessage());
             return null;
     }
@@ -392,7 +394,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     (SessionDataCacheEntry) SessionDataCache.getInstance().getValueFromCache(sessionDataCacheKey);
             loginHintValues = sdce.getoAuth2Parameters().getLoginHint();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Exception Getting the login hint values " + e);
         }
 
         return loginHintValues;
