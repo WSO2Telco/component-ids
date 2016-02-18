@@ -242,13 +242,13 @@ public class DBUtils {
 
             }
         } catch (SQLException ex) {
-            ex.printStackTrace();
+        	log.error("authenticationData Error " + ex);
         } finally {
             if (connection != null) {
                 try {
                     connection.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    log.error("Error " + e);
                 }
             }
 
@@ -274,7 +274,7 @@ public class DBUtils {
             try {
                 connection = getConnectDBConnection();
             } catch (AuthenticatorException e) {
-                e.printStackTrace();
+                log.error("Delete authenticate data Error" + e);
             }
             ps = connection.prepareStatement(sql);
             ps.setString(1, tokenId);
@@ -282,7 +282,7 @@ public class DBUtils {
 
         }
         catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error " + e);
         } finally {
             connection.close();
         }
