@@ -30,6 +30,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
+import org.apache.commons.logging.LogFactory;
+import org.apache.commons.logging.Log;
 
 
  
@@ -41,6 +43,27 @@ public class FileUtil {
 
     /** The props. */
     private static Properties props = new Properties();
+
+    private static Log log = LogFactory.getLog(FileUtil.class);
+
+    static {
+        try {
+            props.load(FileUtil.class.getResourceAsStream("/application.properties"));
+        } catch (FileNotFoundException e) {
+            // e.printStackTrace();
+            System.err.println(
+                    "Check your Property file, it should be in application home dir, Error:"
+                            + e.getCause() + "Cant load APPLICATION.properties");
+
+            //System.exit(-1);
+        } catch (IOException e) {
+            System.err.println(
+                    "Check your Property file, it should be in application home dir, Error:"
+                            + e.getCause() + "Cant load APPLICATION.properties");
+            //System.exit(-1);
+        }
+    }
+
 
     /**
      * Creates the directory.
@@ -71,12 +94,15 @@ public class FileUtil {
             File f1 = new File(filename);
             boolean success = f1.delete();
             if (!success) {
+                log.debug("File deletion failed: " + filename);
                 //System.out.println("Deletion failed.");
                 //System.exit(0);
             } else {
+                log.debug("File deletion successful: " + filename);
                 //System.out.println("File deleted.");
             }
         } catch (Exception e) {
+            log.error("Error while deleting file: " + filename);
         }
     }
 
@@ -87,10 +113,8 @@ public class FileUtil {
      * @return the correct file name
      */
     public static String getCorrectFileName(String fileName) {
-
         // REPLACING ILLEGAL CHARACTERS, Replacing characters with an underscore '_'
         fileName = fileName.replaceAll(" ", "_");
-
 
         return fileName;
     }
@@ -108,32 +132,17 @@ public class FileUtil {
             out = new BufferedWriter(new FileWriter(filePath));
             out.write(data);
         } catch (IOException e) {
+            log.error("Error while writing to file: " + filePath);
             e.printStackTrace();
         } finally {
-            out.close();
+            if (out != null) {
+                out.close();
+            }
         }
 
     }
 
-    static {
-        try {
-            props.load(FileUtil.class.getResourceAsStream("/application.properties"));
-        } catch (FileNotFoundException e) {
-            // e.printStackTrace();
-            System.err.println(
-                    "Check your Property file, it should be in application home dir, Error:"
-                    + e.getCause() + "Cant load APPLICATION.properties");
 
-            //System.exit(-1);
-        } catch (IOException e) {
-            System.err.println(
-                    "Check your Property file, it should be in application home dir, Error:"
-                    + e.getCause() + "Cant load APPLICATION.properties");
-            //System.exit(-1);
-        }
-    }
-
-     
     /**
      * Gets the application property.
      *
@@ -162,6 +171,7 @@ public class FileUtil {
             in.close();
             result = new String(b, 0, b.length, "Cp850");
         } catch (Exception e) {
+            log.error("Error while reading file: " + fullpath);
             e.printStackTrace();
         }
         return result;

@@ -39,7 +39,7 @@ import com.wso2telco.entity.LoginHistory;
 
 
 
- 
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class DatabaseUtils.
@@ -74,7 +74,6 @@ public class DatabaseUtils {
                //log.error(e);
                throw e;
             }
-
         }
     }
    
@@ -91,28 +90,24 @@ public class DatabaseUtils {
         
         String sql = "INSERT INTO `clientstatus` (`SessionID`, `Status`) VALUES (?, ?);";
        
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
-
-                ps.setString(1, sessionID);
-                ps.setString(2, status);
-
-                // LOG.info(sql);
-                ps.execute();
-                        
+        try {
+            connection = getUssdDBConnection();
+            ps = connection.prepareStatement(sql);
+            ps.setString(1, sessionID);
+            ps.setString(2, status);
+            // LOG.info(sql);
+            ps.execute();
 		} catch (NamingException ex) {
-			log.error("Naming Error occurred: "+ex);
-                 //Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-             } 
-            catch (SQLException e) {
-    			log.error("SQL Error occurred: "+e);
-                    System.out.print(e.getMessage());
+			log.error("Error while connecting to DB: " + ex);
+            //Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+            log.error("Error in querying DB: " + e);
+            System.out.print(e.getMessage());
 		} finally {
-                        connection.close();			
+            if (connection != null) {
+                connection.close();
+            }
 		}
-            
     }
      
     /**
@@ -126,33 +121,27 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
         
-        String sql =
-		             "update `clientstatus` set "
-		                     + "Status=? where " 
-                                     + "SessionID=?;" ;
+        String sql = "update `clientstatus` set "
+                        + "Status=? where "
+                        + "SessionID=?;" ;
        
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
-
-                ps.setString(1, status);
-                ps.setString(2, sessionID);
-
-                ps.execute();
-             
-                        
-            } catch (NamingException ex) {
-    			log.error("Naming Error occurred: "+ex);
-                // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-             } 
-            catch (SQLException e) {
-    			log.error("SQL Error occurred: "+e);
-                System.out.print(e.getMessage());
-            } finally {
-                connection.close();			
+        try {
+            connection = getUssdDBConnection();
+            ps = connection.prepareStatement(sql);
+            ps.setString(1, status);
+            ps.setString(2, sessionID);
+            ps.execute();
+        } catch (NamingException ex) {
+            log.error("Error while connecting to DB: " + ex);
+            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+            log.error("Error in querying DB: " + e);
+            System.out.print(e.getMessage());
+        } finally {
+            if (connection != null) {
+                connection.close();
             }
-            
+        }
     }
     
     /**
@@ -167,32 +156,28 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
         
-        String sql =
-		             "update `clientstatus` set "
-		                     + "Status=? , pin = ? where " 
-                                     + "SessionID=?;" ;
+        String sql = "update `clientstatus` set "
+                         + "Status=? , pin = ? where "
+                         + "SessionID=?;" ;
        
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
-
-                ps.setString(1, status);
-                ps.setString(2, userpin);
-                ps.setString(3, sessionID);
-
-                ps.execute();
-             
-                        
-            } catch (NamingException ex) {
-                // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-             } 
-            catch (SQLException e) {
-                System.out.print(e.getMessage());
-            } finally {
-                connection.close();			
+        try {
+            connection = getUssdDBConnection();
+            ps = connection.prepareStatement(sql);
+            ps.setString(1, status);
+            ps.setString(2, userpin);
+            ps.setString(3, sessionID);
+            ps.execute();
+        } catch (NamingException ex) {
+            log.error("Error while connecting to DB: " + ex);
+            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+            log.error("Error in querying DB: " + e);
+            System.out.print(e.getMessage());
+        } finally {
+            if (connection != null) {
+                connection.close();
             }
-            
+        }
     }
 
     /**
@@ -207,63 +192,29 @@ public class DatabaseUtils {
     public static void updatePinStatus(String sessionID, String status, String userpin, String ussdSessionID) throws SQLException{
 
         Connection connection = null;
-
         PreparedStatement ps = null;
 
-
-
-
-
-        String sql =
-
-                "update `clientstatus` set  Status=? , pin = ?, ussdsessionid=? where SessionID=?;" ;
-
-
+        String sql = "update `clientstatus` set  Status=? , pin = ?, ussdsessionid=? where SessionID=?;" ;
 
         try {
-
             connection = getUssdDBConnection();
-
-
-
             ps = connection.prepareStatement(sql);
-
-
-
             ps.setString(1, status);
-
             ps.setString(2, userpin);
-
             ps.setString(3, ussdSessionID);
-
             ps.setString(4, sessionID);
-
-
-
             ps.execute();
-
-
-
-
-
         } catch (NamingException ex) {
-
+            log.error("Error while connecting to DB: " + ex);
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-
-        }
-
-        catch (SQLException e) {
-
+        } catch (SQLException e) {
+            log.error("Error in querying DB: " + e);
             System.out.print(e.getMessage());
-
         } finally {
-
-            connection.close();
-
+            if (connection != null) {
+                connection.close();
+            }
         }
-
-
-
     }
      
     /**
@@ -279,34 +230,33 @@ public class DatabaseUtils {
         String userStatus = null; 
         ResultSet rs = null;
         
-        String sql =
-		             "select Status "
-		                     + "from `clientstatus` where " + "SessionID=?;";
+        String sql = "select Status "
+                         + "from `clientstatus` where "
+                         + "SessionID=?;";
        
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
-            
-                ps.setString(1, sessionID);
+        try {
+            connection = getUssdDBConnection();
+            ps = connection.prepareStatement(sql);
+            ps.setString(1, sessionID);
+            rs = ps.executeQuery();
 
-                rs = ps.executeQuery();
-            
-                while (rs.next()) {
-                    userStatus = rs.getString("Status");
-                }
+            while (rs.next()) {
+                userStatus = rs.getString("Status");
+            }
                         
 		} catch (NamingException ex) {
-                   // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-                } 
-                catch (SQLException e) {
-                    System.out.print(e.getMessage());
+            log.error("Error while connecting to DB: " + ex);
+            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+            log.error("Error in querying DB: " + e);
+            System.out.print(e.getMessage());
 		} finally {
-                        connection.close();
-                        
-		}
+            if (connection != null) {
+                connection.close();
+            }
+        }
             
-            return userStatus;
+        return userStatus;
      }
     
 
@@ -342,6 +292,7 @@ public class DatabaseUtils {
         ResultSet rs = null;
 
         String sql = "select attempts from `multiplepasswords` where " + "username=?;";
+
         try {
             connection = getUssdDBConnection();
             ps = connection.prepareStatement(sql);
@@ -351,11 +302,15 @@ public class DatabaseUtils {
                 noOfAttempts = rs.getInt("attempts");
             }
         } catch (NamingException ex) {
+            log.error("Error while connecting to DB: " + ex);
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
+            log.error("Error in querying DB: " + e);
             System.out.print(e.getMessage());
         } finally {
-            connection.close();
+            if (connection != null) {
+                connection.close();
+            }
         }
         return noOfAttempts;
     }
@@ -374,6 +329,7 @@ public class DatabaseUtils {
         ResultSet rs = null;
 
         String sql = "select count(*) as total from `multiplepasswords` where " + "username=?;";
+
         try {
             connection = getUssdDBConnection();
             ps = connection.prepareStatement(sql);
@@ -383,12 +339,17 @@ public class DatabaseUtils {
                 count = rs.getInt("total");
             }
         } catch (NamingException ex) {
+            log.error("Error while connecting to DB: " + ex);
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
+            log.error("Error in querying DB: " + e);
             System.out.print(e.getMessage());
         } finally {
-            connection.close();
+            if (connection != null) {
+                connection.close();
+            }
         }
+
         return count == 0;
     }
     
@@ -405,15 +366,17 @@ public class DatabaseUtils {
         PreparedStatement ps = null;
         String sql = null;
         boolean isFirstPinRequest = isFirstPinRequest(username);
+
         if(isFirstPinRequest) {
-            sql = "INSERT INTO `multiplepasswords` set " +
-                    "attempts=?, " +
-                    "username=?;"; 
+            sql = "INSERT INTO `multiplepasswords` set "
+                    + "attempts=?, "
+                    + "username=?;";
         } else {
             sql = "update `multiplepasswords` set "
-                + "attempts=? where "
-                + "username=?;";
+                    + "attempts=? where "
+                    + "username=?;";
         }
+
         try {
             connection = getUssdDBConnection();
             ps = connection.prepareStatement(sql);
@@ -421,11 +384,15 @@ public class DatabaseUtils {
             ps.setString(2, username);
             ps.execute();
         } catch (NamingException ex) {
+            log.error("Error while connecting to DB: " + ex);
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
+            log.error("Error in querying DB: " + e);
             System.out.print(e.getMessage());
         } finally {
-            connection.close();
+            if (connection != null) {
+                connection.close();
+            }
         }
     }
     
@@ -439,17 +406,22 @@ public class DatabaseUtils {
 
         Connection connection = null;
         String sql = "delete from `multiplepasswords` where " + "username=?;";
+
         try {
             connection = getUssdDBConnection();
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, username);
             ps.execute();
         } catch (NamingException ex) {
+            log.error("Error while connecting to DB: " + ex);
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
+            log.error("Error in querying DB: " + e);
             System.out.print(e.getMessage());
         } finally {
-            connection.close();
+            if (connection != null) {
+                connection.close();
+            }
         }
     }
 	
@@ -505,12 +477,15 @@ public class DatabaseUtils {
             }
             
         } catch (NamingException ex) {
+            log.error("Error while connecting to DB: " + ex);
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
+            log.error("Error in querying DB: " + e);
             System.out.print(e.getMessage());
         } finally {
-            connection.close();
-            
+            if (connection != null) {
+                connection.close();
+            }
         }
         
         return loghistory;
@@ -544,12 +519,15 @@ public class DatabaseUtils {
             }
             
         } catch (NamingException ex) {
+            log.error("Error while connecting to DB: " + ex);
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
+            log.error("Error in querying DB: " + e);
             System.out.print(e.getMessage());
         } finally {
-            connection.close();
-            
+            if (connection != null) {
+                connection.close();
+            }
         }
         
         return apps;
@@ -605,6 +583,7 @@ public class DatabaseUtils {
                 connection.close();
             }
         }
+
         return sessionID;
     }
 }
