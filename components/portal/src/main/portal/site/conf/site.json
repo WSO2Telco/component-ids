@@ -1,6 +1,6 @@
 {
 	"server" : {
-		"carbon_url" : "Identity server URL",  //identity.example.com:9443
-		"webapps_url" : "Identity server URL",   //identity.example.com:9763
+		"carbon_url" : "locahost:9443/",
+		"webapps_url" : "locahost:9443/",
 	}
 }

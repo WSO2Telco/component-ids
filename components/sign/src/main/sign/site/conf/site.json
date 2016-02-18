@@ -1,7 +1,7 @@
 {
         "server" : {
-                "carbon_url" : "Identity server URL",  //identity.example.com:9443
-                "webapps_url" : "Identity server URL",   //identity.example.com:9763
-                "am_url" : "API Manager URL/",    // apimanager.example.com:9443
+                "carbon_url" : "locahost:9443/",
+                "webapps_url" : "locahost:9443/",
+                "am_url" : "locahost:9443/",
         }
 }
