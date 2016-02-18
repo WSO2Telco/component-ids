@@ -1,0 +1,42 @@
+<%
+var log = new Log();
+var msisdn = request.getParameter("username");
+var token = request.getParameter("token");
+var operator = request.getParameter("operator");
+var acr = request.getParameter("acr");
+
+%>
+<script src="/portal/gadgets/user_profile/js/jquery.min.js" type="text/javascript"></script>
+<script src="/portal/gadgets/user_profile/js/main.js" type="text/javascript"></script>
+<script src="/portal/gadgets/user_profile/js/modal.js" type="text/javascript"></script>
+<script src="/dashboard/js/landing.js" type="text/javascript"></script>
+
+<form class="form-horizontal" id="selfReg" name="selfReg">
+
+  <input type="hidden" name="regExp_PRIMARY" value="^[\S]{5,30}$">
+
+  <div class="control-group">
+    <div class="controls" style="display:none;" type="hidden">
+      <select name="domain">
+
+        <option value="PRIMARY">PRIMARY</option>
+
+      </select>
+    </div>
+  </div>
+
+
+  <input type="hidden" value="" id="user_name" name="userName">
+  <input type="hidden" value="" id="password" name="pwd">
+  <input type="hidden" value="" id="retype_pwd" name="retypePwd">
+  
+  <input type="hidden" name="operator" id="operator" value='<%=operator%>'/>
+  <input type="hidden" name="smsClick" id="smsClick" value='true'/>
+  <input type="hidden" name="acr" id="acr" value='<%=acr%>'/>
+  <input type="hidden" name="token" id="token" value='<%=token%>'/>
+  <input type="hidden" value="<%=msisdn%>" id="Mobile" name="http://wso2.org/claims/mobile">
+</form>
+
+<script>
+validate();
+</script>
