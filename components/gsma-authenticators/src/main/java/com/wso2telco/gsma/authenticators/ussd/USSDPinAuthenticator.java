@@ -267,9 +267,9 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             hashString = hexString.toString();
 
         } catch (UnsupportedEncodingException ex) {
-            log.info("Error getHashValue");
+            log.error("Error getHashValue" + ex);
         } catch (NoSuchAlgorithmException ex) {
-            log.info("Error getHashValue");
+            log.error("Error getHashValue"+ ex);
         }
 
         return hashString;
