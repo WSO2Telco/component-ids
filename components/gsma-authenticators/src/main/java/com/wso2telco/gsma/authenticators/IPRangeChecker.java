@@ -18,6 +18,9 @@ package com.wso2telco.gsma.authenticators;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
  
 
 // TODO: Auto-generated Javadoc
@@ -25,6 +28,9 @@ import java.net.UnknownHostException;
  * The Class IPRangeChecker.
  */
 public class IPRangeChecker {
+	
+    /** The log. */
+    private static Log log = LogFactory.getLog(IPRangeChecker.class); 
 
   /**
    * Ip to long.
@@ -58,7 +64,7 @@ public class IPRangeChecker {
 			long ipToTest = ipToLong(InetAddress.getByName(ipToCheck));
 			return (ipToTest >= ipLo && ipToTest <= ipHi);
 		} catch (UnknownHostException e) {
-			e.printStackTrace();
+			log.error("Error " + e);
 			return false;
 		}
 	}
@@ -70,7 +76,7 @@ public class IPRangeChecker {
 	 */
 	public static void main(String[] args) {
 
-		System.out.println(isValidRange("122.170.122.0", "122.170.122.255",
+		log.info(isValidRange("122.170.122.0", "122.170.122.255",
 				"122.170.122.215"));
 
 	}
