@@ -32,36 +32,47 @@
         document.cookie = "cachedroboto=true; expires=" + d.toGMTString() + "; path=/";
       }
     };
-  </script>
-  <script src="mcresources/js/vendor/webfontloader.js"></script>
-  <!-- Adds IE root class without breaking doctype -->
+    </script>
+    <script src="mcresources/js/vendor/webfontloader.js"></script>
+    <!-- Adds IE root class without breaking doctype -->
   <!--[if IE]>
 		<script>document.documentElement.className = document.documentElement.className + " ie";</script>
 		<![endif]-->
-  <script type="text/javascript" src="mcresources/js/vendor/modernizr.js"></script>
-  
-  <% var operator = request.getParameter("operator")!= null ?  request.getParameter("operator") : "";
-  	 if(operator != "")
-  {%>
-	<link href="css/branding/<%=operator%>-style.css" rel="stylesheet">
-  <%}%>
-</head>
+    <script type="text/javascript" src="mcresources/js/vendor/modernizr.js"></script>
 
-<body class="theme--light">
-  <div class="site__root">
-    <header class="site-header">
-      <div class="site-header__inner site__wrap">
-        <h1 class="visuallyhidden">Mobile&nbsp;Connect</h1>
-        <a href="/dashboard/selfcare/index.html"><img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo"></a>
-        <% if(operator != ""){ 
-			var imgPath = "img/branding/" + operator + "_logo.svg";
-		%>
-			<p class="site-header__powered-by">powered&nbsp;by	  	
-			</p>
-			<a >
-			<img class="brandLogo" src='<%= imgPath %>' alt='<%= operator %>' >
-			</a>
-		<% } %>
+
+    <%
+    var log = new Log();
+    
+
+    var operator = request.getParameter("operator")!= null ?  request.getParameter("operator") : "";
+    log.info( "operator :"+operator );
+
+    
+
+    if(operator != ""){
+      %>
+      <link href="css/branding/<%=operator%>-style.css" rel="stylesheet">
+      <%}%>
+    </head>
+
+    <body class="theme--light">
+      <div class="site__root">
+        <header class="site-header">
+          <div class="site-header__inner site__wrap">
+            <h1 class="visuallyhidden">Mobile&nbsp;Connect</h1>
+            <a href="/dashboard/selfcare/index.html"><img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo"></a>
+            
+            <% if(operator != ""){ 
+              var imgPath = "/img/branding/" + operator + "_logo.svg";
+              %>
+              <p class="site-header__powered-by">powered&nbsp;by      
+              </p>
+              <a >
+                <img class="brandLogo" src='<%= imgPath %>' alt='<%= operator %>' >
+              </a>
+              <% } %>
+            </p>
         <!-- <form action="/lang" class="site-header__lang-menu field--select field--select-plain" novalidate>
           <label for="field-select-lang" class="visuallyhidden">Language:</label>
           <select id="field-select-lang" name="lang" class="field__select-native js-transparent">
@@ -91,10 +102,10 @@
           You can now continue to The&nbsp;Guardian.
         </p>
       </div>
-      <form action="/no-page" method="post" novalidate>
+      <form action="/selfcare/home.html" method="post" novalidate>
         <div class="grid">
           <div class="grid__item one-half">
-            <button type="submit" value="cancel" class="btn btn--outline btn--full btn--large">Cancel</button>
+            <button type="button" value="cancel" onclick="cancelProcessToLogin()" class="btn btn--outline btn--full btn--large">Cancel</button>
           </div>
           <div class="grid__item one-half">
             <button type="submit" value="sign-in" class="btn btn--full btn--fill btn--large btn--color">Continue</button>

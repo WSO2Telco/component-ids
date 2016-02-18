@@ -6,7 +6,7 @@ var log = new Log();
 var msisdn = request.getParameter("username") ;
 var applicationName = request.getParameter("applicationName");
 var serverUrl = util.getServerUrl();
-serverUrl = serverUrl + "/OAuthAdminService";
+serverUrl = serverUrl + "OAuthAdminService";
 
 var ws = require('ws');
 

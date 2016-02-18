@@ -1,9 +1,0 @@
-{
-    "server" : {
-        "carbon_url" : "identity.demo.wso2telco.com/",
-        "webapps_url" : "identity.demo.wso2telco.com/",
-        "am_url" : "apimanager.demo.wso2telco.com/",
-        "services" : "identity.demo.wso2telco.com/services"
-    }
-}
-
