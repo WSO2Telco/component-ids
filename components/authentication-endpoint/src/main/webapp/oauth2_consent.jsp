@@ -17,7 +17,7 @@
 ~ under the License.
 -->
 <%@ page import="com.wso2telco.identity.application.authentication.endpoint.util.CharacterEncoder"%>
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.Constants" %>
+<%@ page import="com.wso2telco.identity.application.authentication.endpoint.Constants" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%
 	String app = CharacterEncoder.getSafeText(request.getParameter("application"));
@@ -114,4 +114,3 @@
     
 </body>
 </html>
-
