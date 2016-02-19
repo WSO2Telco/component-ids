@@ -65,9 +65,6 @@
  */
  function registration() {
 
-
-            alert("_____________IIIIIIIII______00000000____0000000________IIIIII___________________________");
-
     var authenticator=getParameterByName('authenticator');
     var callbackUrl=getParameterByName('callback_url');
     var updateProfile=getParameterByName('updateProfile');
@@ -117,31 +114,25 @@
 
     
 
-            alert("_____________11111111111______________");
 
-            alert("_________STR BK____________"+strBack+":  "+ JSON.stringify(values));   
     $.ajax({
         type: "GET",
         url: strBack,
         data: values,
-        dataType: "text",
+        dataType: "json",
         async: false
     }).done(function (data) {
-alert("_____________2222222222222222______________");
+
         if (data && data.toString() == 'true') {
 
             var msg = "User Name is already exist";
 
-            alert("_____________IIIIIIIII______11111111________IIIIII___________________________");
             return true;
 
         }else {
             if(callbackUrl){
-
-            alert("_____________IIIIIIII_____2222222222_______IIIIIII___________________________");
               window.location = callbackUrl+"&operator="+operator;
           }else{
-            alert("_____________IIIIIII_______33333333333_________IIIIIIII___________________________");
             var f = document.createElement('form');
             f.action='waiting.jsp';
             f.method='POST';
@@ -163,9 +154,7 @@ alert("_____________2222222222222222______________");
 
         }
     }
-}).fail(function(e) {
-   alert( "error_______" + JSON.stringify(e));
- });
+});
 
 
 

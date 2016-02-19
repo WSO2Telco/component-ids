@@ -39,16 +39,16 @@ function registerUser() {
 
   try {
     if (isUserExists() != "true" || updateProfile == "true") {
-      log.info("_________________registration "+isUserExists()+" : "+updateProfile);
-        saveRequestDetails();
-        getUserChallanges();
-        if(tokenid){
-          updateMsisdn();
-        }
-        print("false");
-    } else {
-      print("true");
-    }
+    log.info("_________________registration "+isUserExists()+" : "+updateProfile);
+      saveRequestDetails();
+      getUserChallanges();
+      if(tokenid){
+        updateMsisdn();
+      }
+      print("false");
+      } else {
+        print("true");
+      }
       } catch (e) {
         log.error("Error occurred while accessing server" + e);
       }
@@ -71,7 +71,6 @@ function registerUser() {
     log.info("_________________step 2 : calling isUserExists.....");
 
       var url = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/user/exists?username=" + msisdn;
-      log.info("_________________URL : " + url);
       var xhr = new XMLHttpRequest();
       xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
       xhr.open("GET", url, false);
@@ -89,7 +88,7 @@ function registerUser() {
       var xhr = new XMLHttpRequest();
       xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
       log.info("________________calling registration endpoints"+strBackend);
-      xhr.open("GET", strBackend, false);//async=true
+      xhr.open("GET", strBackend, true);//async=true
       xhr.send();
 
       //result.status = 'success';
