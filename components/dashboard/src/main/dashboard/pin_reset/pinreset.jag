@@ -95,7 +95,7 @@
 
 			console.log("MSISDN is verfied.");
 
-			url = 'wss://identity.demo.wso2telco.com/dashboard/session_manager.jag';
+			url = 'wss://india.mconnect.wso2telco.com/dashboard/session_manager.jag';
 			ws = new WebSocket(url);
 
 			ws.onopen = function () {
@@ -277,8 +277,13 @@
             	"</li>\n"+
             	"<li>\n"+
             	"<button type=\"submit\" class=\"btn btn--large btn--fill btn--full\" onclick=\"validate();\">\n"+
-            	"Next"
+            	"Next\n"+
             	"</button>\n"+
+            	"</li>\n"+
+            	"<li>\n"+
+            	"<a onclick=\"cancelProcessToLogin()\" class=\"btn btn--outline btn--full btn--large\">\n"+
+            	"Cancel\n"+
+            	"</a>\n"+
             	"</li>\n"+
             	"</ul>\n"+
             	"</main>\n"+
@@ -311,7 +316,7 @@
 				var body=  "<main class=\"site__main site__wrap section v-distribute\">\n"+
             	"<header class=\"page__header\">\n"+
             	"<h1 class=\"page__heading\">\n"+
-            	"We've sent a message to your&nbsp;mobile\n"+
+            	"We've sent the prompt to enter 4 digit PIN to your&nbsp;mobile\n"+
             	"</h1>\n"+
             	"<p>\n"+
             	"Sometimes when using Mobile Connect, you'll need to enter a PIN for extra security. Please follow the instructions on your mobile to create a&nbsp;PIN.\n"+
@@ -334,7 +339,7 @@
             	"<br>\n"+
             	"Check your&nbsp;device.\n"+
             	"</div>\n"+
-            	"<a href=\"/registration/register\" class=\"btn btn--outline btn--full btn--large\">\n"+
+            	"<a onclick=\"cancelProcessToLogin()\" class=\"btn btn--outline btn--full btn--large\">\n"+
             	"Cancel\n"+
             	"</a>\n"+
             	"</main>";
@@ -443,7 +448,7 @@
 
                 }else if(status=='TERMINATE'){
                     console.log("Pin reset done and redirecting...");
-                    window.location.href = "https://identity.demo.wso2telco.com/dashboard/";
+                    cancelProcessToLogin();
                 }
             }
 
@@ -508,8 +513,31 @@
                 
                 var sessionDataKey=qs("token");
                 console.log("Session data key: "+sessionDataKey);
-                window.location = "https://identity.demo.wso2telco.com/commonauth?sessionDataKey="+sessionDataKey;
+                window.location = "https://india.mconnect.wso2telco.com/commonauth?sessionDataKey="+sessionDataKey;
             }
+            
+            function cancelProcessToLogin() {
+
+				var sp=qs("sp");
+				var url="/dashboard/landing.jag";
+				var getCallbackURL = "/dashboard/callback.jag?applicationName="+sp;
+			
+				$.ajax({
+            		type: "GET",
+            		url:getCallbackURL,
+            		contentType: "application/json; charset=utf-8",
+            		async: false,
+            		success:function(result){
+            			var data = $.parseJSON(result);
+						url=data.return.callbackUrl+"?error=access_denied";
+						console.log("url: "+url);
+            		}
+            	});
+			
+				/*redirect to callback url*/
+				window.location.href =url;
+
+			}
 
 
             </script>
