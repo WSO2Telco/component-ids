@@ -57,6 +57,24 @@
     operator=getParameterByName('operator');
 }
 
+function randomPassword(length) {
+	var chars = "abcdefghijklmnopqrstuvwxyz!@#$%^&*()-+<>ABCDEFGHIJKLMNOP1234567890";
+	var pass = "";
+	var generate = false;
+	while(!generate){
+		pass = "";
+		for (var x = 0; x < length; x++) {
+		var i = Math.floor(Math.random() * chars.length);
+		pass += chars.charAt(i);
+		}
+		var regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*(_|[^\w])).+$/;
+		//print(pass);
+		generate = regex.test(pass);
+		//print(regex.test(pass));
+	}
+	 
+	return pass;
+}
 
 /*
  *  registering process starts and initiates the backend service process and 
@@ -69,9 +87,12 @@
     var callbackUrl=getParameterByName('callback_url');
     var updateProfile=getParameterByName('updateProfile');
     var domain="PRIMARY";
-    var pwd="cY4L3dBf@";
+    var pwd=randomPassword(10);
+    //alert(pwd);
+    var msisdn_header = getParameterByName('msisdn_header');
+
     var acr_code;
-    
+
     /*for the inline registration get acr code from acr value and msisdn (username) from token*/
     if(token){
         acr_code=getAcrValue();
@@ -94,7 +115,6 @@
 
     }
 
-    
     var strBack = "/dashboard/backend_service.jag";
 
     var values = {};
@@ -111,7 +131,7 @@
     values["updateProfile"] = updateProfile;
     values["operator"] = operator;
     values["http://wso2.org/claims/loa"] = acr;
-
+    values["isHERegistration"] = msisdn_header;
     
 
 
@@ -130,8 +150,11 @@
             return true;
 
         }else {
-            if(callbackUrl){
+          if(callbackUrl){
               window.location = callbackUrl+"&operator="+operator;
+	  } else if(msisdn_header && msisdn_header ==  "true" && acr_code == "USSDAuthenticator") {
+		console.log("HE Registration selfautherizing.....");
+		selfAuthorize(token,msisdnval,operator);
           }else{
             var f = document.createElement('form');
             f.action='waiting.jsp';
@@ -258,4 +281,41 @@
     return msisdn;
 
 }
+
+function selfAuthorize(tokenVal,msisdn,operator){
+ 	var callbackURL;
+ 	var acr;
+ 	var authendpoint;
+ 	var token;
+ 	var scope;
+ 	var id=tokenVal;
+ 	var state;
+ 	var nonce;
+ 	var username=msisdn;
+ 	var url = "../user-registration/webresources/endpoint/user/authenticate/get?tokenid="+ id;
+
+ 	$.ajax({
+ 		type: "GET",
+ 		url:url,
+ 		async: false,
+ 		dataType: 'json',
+ 		success:function(result){
+ 			if(result != null) {
+ 				scope = result.scope; 
+ 				callbackURL = result.redirectUri; 
+ 				state= result.state;
+ 				nonce=result.nonce;
+ 				clientkey = result.clientId; 
+ 				acr = result.acrValues; 
+ 				authendpoint = "../oauth2/authorize"; 
+ 				token = result.tokenID; 
+ 			}
+ 		}});
+
+ 	var url = authendpoint + "?scope="+encodeURIComponent(scope)+"&response_type=code&redirect_uri="
+ 	+ encodeURIComponent(callbackURL) + "&client_id=" + clientkey + "&acr_values=" 
+ 	+ acr+"&tokenid="+token+"&msisdn="+username+"&state="+state+"&nonce="+nonce + "&operator="+operator;
+ 	console.log("url   " + url);
+ 	window.location = url;
+ }
 

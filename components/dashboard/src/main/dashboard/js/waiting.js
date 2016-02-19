@@ -49,10 +49,10 @@ console.log("waiting");
  	window.clearInterval(pollingVar);
  	var STATUS_PENDING = "pending";
  	if(!status==STATUS_PENDING){
- 		$('.page__header').show();
+ 		//$('.page__header').show();
  		$('#sms_fallback').show();
  	}
- 	$('.page__header').hide();
+ 	//$('.page__header').hide();
  	$('#sms_fallback').hide();
 
  	setTimeout(function(){
@@ -160,6 +160,7 @@ console.log("waiting");
  		type: "GET",
  		url:url,
  		async: false,
+		cache: false,
  		success:function(result){
  			if(result != null) {
  				var responseStatus = result.status; 

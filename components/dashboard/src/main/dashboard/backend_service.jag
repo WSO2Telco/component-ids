@@ -1,20 +1,3 @@
-<!--
-/*******************************************************************************
- * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
- * 
- * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/ 
- -->
 <%
 var log = new Log();
 var serverDetails = require("/site/jagg/site.jag");
@@ -36,6 +19,8 @@ var selfReg = require('/controllers/user-registration/userRegistrationClient.jag
 var strBackend = '';
 registerUser();
 function registerUser() {
+
+  log.info("_________________step 1 : calling registerUser.....");
 
   try {
     if (isUserExists() != "true" || updateProfile == "true") {
@@ -88,7 +73,7 @@ function registerUser() {
       var xhr = new XMLHttpRequest();
       xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
       log.info("________________calling registration endpoints"+strBackend);
-      xhr.open("GET", strBackend, true);//async=true
+      xhr.open("GET", strBackend, false);//async=true
       xhr.send();
 
       //result.status = 'success';
@@ -114,6 +99,8 @@ function registerUser() {
       var openId = session.get("openIdURL");
       var password = request.getParameter("pwd");
       var claim = constants.DEFAULT_CLAIM_URL;
+      var isHERegistration = request.getParameter("isHERegistration");
+
       if (session.get('openid') != null) {
         claim = constants.OPENID_REG_CLAIM_URL;
       }
@@ -140,7 +127,11 @@ function registerUser() {
         log.info("SMS Authentications acr_code" + acr_code);
         strBackend = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/sms/oneapi?" + "username=" + msisdn + "&" + "msisdn=" + msisdn + "&openId=" + openId + "&password=" + password + "&domain=" + domain + "&" + tmp +"&operator="+operator;
 
-        }else{
+        }else if(isHERegistration != null && isHERegistration ==  "true" && acr_code=="USSDAuthenticator") {
+		strBackend = serverDetails.getWebAppsUrl() + "user-registration/webresources/endpoint/user/registration?" + "username=" + msisdn + "&" + "msisdn=" + msisdn + "&openId=" + openId + "&password=" + password + "&domain=" + domain + "&" + tmp +"&updateProfile=" +updateProfile +"&operator="+operator;
+
+		log.info ("HE Registration url :"+ strBackend);
+	}else{
           if(acr_code=="USSDPinAuthenticator"){
 
               log.info("USSDPIN Authentications acr_code" + acr_code +" : update "+ updateProfile);
