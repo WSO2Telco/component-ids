@@ -15,12 +15,13 @@
  ~ specific language governing permissions and limitations
  ~ under the License.
  -->
-
+<%@ page import="com.wso2telco.identity.application.authentication.endpoint.util.CharacterEncoder"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <%
-    String stat = request.getParameter("status");
-    String statusMessage = request.getParameter("statusMsg");
+
+    String stat = CharacterEncoder.getSafeText(request.getParameter("status"));
+    String statusMessage = CharacterEncoder.getSafeText(request.getParameter("statusMsg"));
     if(stat == null || statusMessage == null){
         stat = "Authentication Error !";
         statusMessage = "Something went wrong during the authentication process. Please try signing in again.";

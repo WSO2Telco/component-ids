@@ -15,8 +15,6 @@
  ******************************************************************************/
 package com.wso2telco.identity.application.authentication.endpoint.util;
 
- 
-// TODO: Auto-generated Javadoc
 /**
  * The Class CharacterEncoder.
  */
@@ -38,6 +36,18 @@ public class CharacterEncoder {
         }
         if (text.indexOf('>') > -1) {
             text = text.replace(">", "&gt;");
+        }
+        if(text.contains("\"")){
+            text = text.replace("\"", "&quot;");
+        }
+        if(text.contains("'")){
+            text = text.replace("'", "&#x27;");
+        }
+        if(text.contains("&")){
+            text = text.replace("&", "&amp;");
+        }
+        if(text.contains("/")){
+            text = text.replace("/", "&#x2F;");
         }
         return text;
     }
