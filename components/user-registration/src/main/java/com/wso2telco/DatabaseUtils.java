@@ -5,6 +5,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
+import com.wso2telco.enums.DBTableNames;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -58,7 +59,9 @@ public class DatabaseUtils {
         PreparedStatement ps = null;
         ResultSet results = null;
 
-        String sql = "INSERT INTO multiplepasswords (username, attempts, ussdsessionid) VALUES (?, ?, ?);";
+        StringBuffer sql = new StringBuffer("INSERT INTO ")
+                .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
+                .append(" (username, attempts, ussdsessionid) VALUES (?, ?, ?);");
 
         try {
             try {
@@ -67,7 +70,7 @@ public class DatabaseUtils {
                 Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, username);
             ps.setInt(2, 1);
             ps.setString(3, ussdSessionID);
@@ -87,11 +90,13 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        String sql = "INSERT INTO `clientstatus` (`SessionID`, `Status`) VALUES (?, ?);";
+        StringBuffer sql = new StringBuffer("INSERT INTO `")
+                .append(DBTableNames.CLIENT_STATUS.getTableName())
+                .append("` (`SessionID`, `Status`) VALUES (?, ?);");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, sessionID);
             ps.setString(2, status);
             log.info(ps.toString());
@@ -113,13 +118,15 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        String sql = "update `clientstatus` set "
-                        + "Status=? where "
-                        + "SessionID=?;";
+        StringBuffer sql = new StringBuffer("update `")
+                        .append(DBTableNames.CLIENT_STATUS.getTableName())
+                        .append("` set ")
+                        .append("Status=? where ")
+                        .append("SessionID=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, status);
             ps.setString(2, sessionID);
             log.info(ps.toString());
@@ -149,11 +156,13 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        String sql = "INSERT INTO `clientstatus` (`SessionID`, `Status`, `pin`) VALUES (?, ?, ?);";
+        StringBuffer sql = new StringBuffer("INSERT INTO `")
+                .append(DBTableNames.CLIENT_STATUS.getTableName())
+                .append("` (`SessionID`, `Status`, `pin`) VALUES (?, ?, ?);");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, sessionID);
             ps.setString(2, status);
             ps.setString(3, pin);
@@ -180,12 +189,13 @@ public class DatabaseUtils {
         String pin = null;
         ResultSet rs = null;
 
-        String sql =  "select pin "
-                        + "from `pin` where " + "SessionID=?;";
+        StringBuffer sql = new StringBuffer("select pin from `")
+                .append(DBTableNames.PIN.getTableName())
+                .append("` where " + "SessionID=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, sessionID);
             rs = ps.executeQuery();
 
@@ -216,7 +226,10 @@ public class DatabaseUtils {
         PreparedStatement ps = null;
         ResultSet results = null;
 
-        String sql = "INSERT INTO `multiplepasswords` (`username`, `attempts`) VALUES (?, ?);";
+        StringBuffer sql = new StringBuffer("INSERT INTO `")
+                .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
+                .append("` (`username`, `attempts`) VALUES (?, ?);");
+
         try {
             try {
                 connection = getUssdDBConnection();
@@ -224,7 +237,7 @@ public class DatabaseUtils {
                 Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, username);
             ps.setInt(2, 1);
             log.info(ps.toString());
@@ -247,13 +260,15 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        String sql = "update `multiplepasswords` set "
-                        + "pin=? where "
-                        + "username=?;";
+        StringBuffer sql = new StringBuffer("update `")
+                        .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
+                        .append("` set ")
+                        .append("pin=? where ")
+                        .append("username=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setInt(1, pin);
             ps.setString(2, username);
             log.info(ps.toString());
@@ -277,13 +292,15 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        String sql = "update `multiplepasswords` set "
-                        + "attempts=? where "
-                        + "username=?;";
+        StringBuffer sql = new StringBuffer("update `")
+                        .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
+                        .append("` set ")
+                        .append("attempts=? where ")
+                        .append("username=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setInt(1, attempts);
             ps.setString(2, username);
             log.info(ps.toString());
@@ -309,12 +326,13 @@ public class DatabaseUtils {
         int pin = 0;
         ResultSet rs = null;
 
-        String sql = "select pin "
-                        + "from `multiplepasswords` where " + "username=?;";
+        StringBuffer sql = new StringBuffer("select pin from `")
+                    .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
+                    .append("` where username=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, username);
             rs = ps.executeQuery();
 
@@ -345,12 +363,13 @@ public class DatabaseUtils {
         int noOfAttempts = 0;
         ResultSet rs = null;
 
-        String sql = "select attempts "
-                        + "from `multiplepasswords` where " + "username=?;";
+        StringBuffer sql = new StringBuffer("select attempts from `")
+                    .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
+                    .append("` where username=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, username);
             rs = ps.executeQuery();
             while (rs.next()) {
@@ -379,12 +398,13 @@ public class DatabaseUtils {
         String usernameDB = "noUser";
         ResultSet rs = null;
 
-        String sql = "select username "
-                        + "from `multiplepasswords` where " + "username=?;";
+        StringBuffer sql = new StringBuffer("select username from `")
+                    .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
+                    .append("` where " + "username=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, username);
             rs = ps.executeQuery();
 
@@ -421,12 +441,13 @@ public class DatabaseUtils {
         int noOfAttempts = 0;
         ResultSet rs = null;
 
-        String sql = "delete "
-                        + "from `multiplepasswords` where " + "username=?;";
+        StringBuffer sql = new StringBuffer("delete from `")
+                    .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
+                    .append("` where " + "username=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, username);
             log.info(ps.toString());
             ps.execute();
@@ -449,12 +470,13 @@ public class DatabaseUtils {
         String userStatus = null;
         ResultSet rs = null;
 
-        String sql = "select status "
-                        + "from `regstatus` where " + "username=?;";
+        StringBuffer sql = new StringBuffer("select status from `")
+                    .append(DBTableNames.REGSTATUS.getTableName())
+                    .append("` where " + "username=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, username);
             rs = ps.executeQuery();
             while (rs.next()) {
@@ -486,14 +508,17 @@ public class DatabaseUtils {
         UUID idOne = UUID.randomUUID();
         uuid = idOne.toString();
 
-        String sql = "INSERT INTO `regstatus` (`uuid`,`username`, `status`) VALUES (?,?,?);";
+        StringBuffer sql = new StringBuffer("INSERT INTO `")
+                    .append(DBTableNames.REGSTATUS.getTableName())
+                    .append("` (`uuid`,`username`, `status`) VALUES (?,?,?);");
+
         try {
             try {
                 connection = getUssdDBConnection();
             } catch (NamingException ex) {
                 Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
             }
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, uuid);
             ps.setString(2, username);
             ps.setString(3, status);
@@ -520,12 +545,13 @@ public class DatabaseUtils {
         String usernameDB = "noUser";
         ResultSet rs = null;
 
-        String sql = "select username "
-                        + "from `regstatus` where " + "username=?;";
+        StringBuffer sql = new StringBuffer("select username from `")
+                    .append(DBTableNames.REGSTATUS.getTableName())
+                    .append("` where username=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, username);
             rs = ps.executeQuery();
 
@@ -563,13 +589,13 @@ public class DatabaseUtils {
         int noOfAttempts = 0;
         ResultSet rs = null;
 
-        String sql =
-                "delete "
-                        + "from `regstatus` where " + "username=?;";
+        StringBuffer sql = new StringBuffer("delete from `")
+                    .append(DBTableNames.REGSTATUS.getTableName())
+                    .append("` where " + "username=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, username);
             log.info(ps.toString());
             ps.execute();
@@ -589,13 +615,13 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        String sql = "update `regstatus` set "
-                        + "status=? where "
-                        + "username=?;";
+        StringBuffer sql = new StringBuffer("update `")
+                    .append(DBTableNames.REGSTATUS.getTableName())
+                    .append("` set status=? where username=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, status);
             ps.setString(2, username);
             log.info(ps.toString());
@@ -619,12 +645,13 @@ public class DatabaseUtils {
         PreparedStatement ps = null;
         Integer requestType = null;
 
-        String sql = "select requesttype"
-                + " from `pendingussd` where msisdn=?;";
+        StringBuffer sql = new StringBuffer("select requesttype from `")
+                .append(DBTableNames.PENDING_USSD.getTableName())
+                .append("` where msisdn=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, msisdn);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -652,11 +679,13 @@ public class DatabaseUtils {
     static int saveRequestType(String msisdn, Integer requestType) throws SQLException, NamingException {
         Connection connection = null;
 //        String sql = "insert into pendingussd (msisdn, requesttype) values (?,?)";
-        String sql = "insert into pendingussd (msisdn, requesttype) values (?,?) ON DUPLICATE KEY UPDATE requesttype=VALUES(requesttype)";
+        StringBuffer sql = new StringBuffer("insert into ")
+                    .append(DBTableNames.PENDING_USSD.getTableName())
+                    .append(" (msisdn, requesttype) values (?,?) ON DUPLICATE KEY UPDATE requesttype=VALUES(requesttype)");
 
         try {
             connection = getUssdDBConnection();
-            PreparedStatement ps = connection.prepareStatement(sql);
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
             ps.setString(1, msisdn);
             ps.setInt(2, requestType);
             ps.executeUpdate();
@@ -678,10 +707,13 @@ public class DatabaseUtils {
 
     static void deleteRequestType(String msisdn) throws SQLException {
         Connection connection = null;
-        String sql = "delete from pendingussd where msisdn = ?";
+        StringBuffer sql = new StringBuffer("delete from ")
+                    .append(DBTableNames.PENDING_USSD.getTableName())
+                    .append(" where msisdn = ?");
+
         try {
             connection = getUssdDBConnection();
-            PreparedStatement ps = connection.prepareStatement(sql);
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
             ps.setString(1, msisdn);
             ps.executeUpdate();
         } catch (NamingException ex) {
@@ -705,11 +737,13 @@ public class DatabaseUtils {
     public static int saveAuthenticateData(AuthenticationData authenticationData) throws SQLException, NamingException {
         Connection connection = null;
 
-        String sql = "insert into authenticated_login (tokenID,scope,redirect_uri,client_id,response_type,acr_value,msisdn,state,nonce) values (?,?,?,?,?,?,?,?,?) ";
+        StringBuffer sql = new StringBuffer("insert into ")
+                .append(DBTableNames.AUTHENTICATED_LOGIN.getTableName())
+                .append(" (tokenID,scope,redirect_uri,client_id,response_type,acr_value,msisdn,state,nonce) values (?,?,?,?,?,?,?,?,?) ");
         try {
             connection = getUssdDBConnection();
 
-            PreparedStatement ps = connection.prepareStatement(sql);
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
             ps.setString(1, authenticationData.getTokenID());
             ps.setString(2, authenticationData.getScope());
             ps.setString(3, authenticationData.getRedirectUri());
@@ -744,12 +778,13 @@ public class DatabaseUtils {
         ResultSet rs = null;
         AuthenticationData authenticationData = new AuthenticationData();
 
-        String sql = "select *"
-                + " from `authenticated_login` where tokenID=?;";
+        StringBuffer sql = new StringBuffer("select * from `")
+                    .append(DBTableNames.AUTHENTICATED_LOGIN.getTableName())
+                    .append("` where tokenID=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, tokenID);
             rs = ps.executeQuery();
             while (rs.next()) {
@@ -782,14 +817,15 @@ public class DatabaseUtils {
     public static void updateAuthenticateData(String msisdn, String status) throws SQLException {
         Connection connection = null;
         PreparedStatement ps = null;
-        String sql =
-                "update `authenticated_login` set "
-                        + "status=? where "
-                        + "msisdn=?;";
+        StringBuffer sql = new StringBuffer("update `")
+                    .append(DBTableNames.AUTHENTICATED_LOGIN.getTableName())
+                    .append("` set ")
+                    .append("status=? where ")
+                    .append("msisdn=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, status);
             ps.setString(2, msisdn);
             log.info(ps.toString());
@@ -811,14 +847,15 @@ public class DatabaseUtils {
     public static void updateAuthenticateDataMsisdn(String tokenId, String msisdn) throws SQLException {
         Connection connection = null;
         PreparedStatement ps = null;
-        String sql =
-                "update `authenticated_login` set "
-                        + "msisdn=? where "
-                        + "tokenID=?;";
+        StringBuffer sql = new StringBuffer( "update `")
+                        .append(DBTableNames.AUTHENTICATED_LOGIN.getTableName())
+                        .append("` set ")
+                        .append("msisdn=? where ")
+                        .append("tokenID=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, msisdn);
             ps.setString(2, tokenId);
             log.info(ps.toString());
@@ -844,12 +881,13 @@ public class DatabaseUtils {
         String username = "noUser";
         ResultSet rs = null;
 
-        String sql =
-                "select username from `regstatus` where uuid=?;";
+        StringBuffer sql = new StringBuffer("select username from `")
+                .append(DBTableNames.REGSTATUS.getTableName())
+                .append("` where uuid=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, uuid);
             rs = ps.executeQuery();
 
