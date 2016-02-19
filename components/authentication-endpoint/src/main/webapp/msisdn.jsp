@@ -1,32 +1,35 @@
-<script src="js/msisdn.js"></script>
-<div id="loginTable1" class="identity-box">
-    <%
-        loginFailed = request.getParameter("loginFailed");
-        if (loginFailed != null) {
+<head>
+  
+</head>
+<input type="hidden" name="sessionDataKey" value='<%=request.getParameter("sessionDataKey")%>'/>
 
-    %>
-    <div class="alert alert-error">
-        <fmt:message key='<%=request.getParameter("errorMessage")%>'/>
-    </div>
-    <% } %>
+<body class="theme--dark">
+   <div class="site__root" id="content-placeholder">
+      
+   </div>
+</body>
 
-    <!--MSISDN-->
-    <div class="control-group">
-        <label class="control-label" for="msisdn"><h4><fmt:message key='msisdn'/> :</h4></label>
+<!-- The handlebar template -->
+<script id="results-template" type="text/x-handlebars-template">
 
-        <div class="controls">
-            <input type="text" id="msisdn" name="msisdn" class="input-xlarge" size="30"/>
-             <label class="control-label-3" for="msisdn">e.g.9477xxxxxx,9476xxxxxx</label>
-            <input type="hidden" name="sessionDataKey" value='<%=request.getParameter("sessionDataKey")%>'/>
-            <!--<label class="checkbox" style="margin-top:10px"><input type="checkbox" id="chkRemember" name="chkRemember"><fmt:message key='remember.me'/></label>-->
-        </div>
-    </div>
+<main class="site__main site__wrap section v-distribute">
+         <header class="page__header">
+            <h1 class="page__heading">{{msdin-entry-heading}}</h1>
+            <p>{{msdin-entry-intro}}</p>
+         </header>
+         <ul class="form-fields">
+            <li>
+               <label for="msisdn">{{msdin-entry-mobile-label}}</label>
+               <input type="tel"  id="msisdn" onfocus="this.value = this.value;" value="91" name="msisdn" autofocus required pattern="^91\d{10}$" data-parsley-error-message="{{msdin-entry-phone-number-error}}">{{set_msisdn this}}</input>
+            </li>
+            <li>
+               <button type="submit" class="btn btn--outline btn--large btn--full" onclick="submitLoginForm()" >
+               		{{continue-button}}
+               </button>
+            </li>
+         </ul>
+      </main>
+      
+</script>
 
-    <div class="form-actions">
-        <input type="submit" value='<fmt:message key='login'/>' class="btn btn-primary yellowBtn" onclick="submitLoginForm()" />
-		<a href="/dashboard/pin_reset/pinreset.jag" class="btn btn-primary yellowBtn" ><fmt:message key='pin.reset'/></a>
-    </div>
-
-</div>
-
-
+ <script type="text/javascript" src="js/msisdn.js"></script>
