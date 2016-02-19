@@ -32,6 +32,8 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+
+import com.wso2telco.enums.DBTableNames;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -88,11 +90,13 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
         
-        String sql = "INSERT INTO `clientstatus` (`SessionID`, `Status`) VALUES (?, ?);";
+        StringBuffer sql = new StringBuffer("INSERT INTO `")
+        .append(DBTableNames.CLIENT_STATUS.getTableName())
+        .append("` (`SessionID`, `Status`) VALUES (?, ?);");
        
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, sessionID);
             ps.setString(2, status);
             // LOG.info(sql);
@@ -120,14 +124,15 @@ public class DatabaseUtils {
     public static void updateStatus(String sessionID, String status) throws SQLException{
         Connection connection = null;
         PreparedStatement ps = null;
-        
-        String sql = "update `clientstatus` set "
-                        + "Status=? where "
-                        + "SessionID=?;" ;
+
+        StringBuffer sql = new StringBuffer("update `")
+                        .append(DBTableNames.CLIENT_STATUS.getTableName())
+                        .append("` set Status=? ")
+                        .append("where SessionID=?;" );
        
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, status);
             ps.setString(2, sessionID);
             ps.execute();
@@ -156,13 +161,13 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
         
-        String sql = "update `clientstatus` set "
-                         + "Status=? , pin = ? where "
-                         + "SessionID=?;" ;
+        StringBuffer sql = new StringBuffer("update `")
+                .append(DBTableNames.CLIENT_STATUS.getTableName())
+                .append("` set Status=? , pin = ? where SessionID=?;") ;
        
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, status);
             ps.setString(2, userpin);
             ps.setString(3, sessionID);
@@ -194,11 +199,13 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        String sql = "update `clientstatus` set  Status=? , pin = ?, ussdsessionid=? where SessionID=?;" ;
+        StringBuffer sql = new StringBuffer("update `")
+                .append(DBTableNames.CLIENT_STATUS.getTableName())
+                .append("` set  Status=? , pin = ?, ussdsessionid=? where SessionID=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, status);
             ps.setString(2, userpin);
             ps.setString(3, ussdSessionID);
@@ -229,14 +236,14 @@ public class DatabaseUtils {
         PreparedStatement ps = null;
         String userStatus = null; 
         ResultSet rs = null;
-        
-        String sql = "select Status "
-                         + "from `clientstatus` where "
-                         + "SessionID=?;";
+
+        StringBuffer sql = new StringBuffer("select Status from `")
+                .append(DBTableNames.CLIENT_STATUS.getTableName())
+                .append("` where SessionID=?;");
        
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, sessionID);
             rs = ps.executeQuery();
 
@@ -291,11 +298,13 @@ public class DatabaseUtils {
         int noOfAttempts = 0;
         ResultSet rs = null;
 
-        String sql = "select attempts from `multiplepasswords` where " + "username=?;";
+        StringBuffer sql = new StringBuffer("select attempts from `")
+                .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
+                .append("` where " + "username=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, username);
             rs = ps.executeQuery();
             while (rs.next()) {
@@ -328,11 +337,13 @@ public class DatabaseUtils {
         int count = 0;
         ResultSet rs = null;
 
-        String sql = "select count(*) as total from `multiplepasswords` where " + "username=?;";
+        StringBuffer sql = new StringBuffer("select count(*) as total from `")
+                .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
+                .append("` where " + "username=?;");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, username);
             rs = ps.executeQuery();
             while (rs.next()) {
@@ -364,22 +375,22 @@ public class DatabaseUtils {
 
         Connection connection = null;
         PreparedStatement ps = null;
-        String sql = null;
+        StringBuffer sql = null;
         boolean isFirstPinRequest = isFirstPinRequest(username);
 
         if(isFirstPinRequest) {
-            sql = "INSERT INTO `multiplepasswords` set "
-                    + "attempts=?, "
-                    + "username=?;";
+            sql = new StringBuffer("INSERT INTO `")
+                    .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
+                    .append("` set attempts=?, username=?;");
         } else {
-            sql = "update `multiplepasswords` set "
-                    + "attempts=? where "
-                    + "username=?;";
+            sql = new StringBuffer("update `")
+                    .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
+                    .append("` set attempts=? where username=?;");
         }
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setInt(1, attempts);
             ps.setString(2, username);
             ps.execute();
@@ -405,11 +416,13 @@ public class DatabaseUtils {
     public static void deleteUser(String username) throws SQLException {
 
         Connection connection = null;
-        String sql = "delete from `multiplepasswords` where " + "username=?;";
+        StringBuffer sql = new StringBuffer("delete from `")
+                .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
+                .append("` where " + "username=?;");
 
         try {
             connection = getUssdDBConnection();
-            PreparedStatement ps = connection.prepareStatement(sql);
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
             ps.setString(1, username);
             ps.execute();
         } catch (NamingException ex) {
@@ -446,13 +459,15 @@ public class DatabaseUtils {
         }
         
         List<LoginHistory> loghistory = new ArrayList();
-        
-        String sql = "SELECT id, reqtype, application_id, authenticated_user, isauthenticated, authenticators, ipaddress, created_date "
-                + "FROM sp_login_history "
-                + "WHERE application_id like ? "
-                + "AND authenticated_user = ? "
-                + "AND created_date between ? and ? "
-                + "order by id desc";
+
+        StringBuffer sql = new StringBuffer("SELECT id, reqtype, application_id, authenticated_user, isauthenticated, authenticators, ipaddress, created_date ")
+                .append("FROM ")
+                .append(DBTableNames.SP_LOGIN_HISTORY.getTableName())
+                .append(" ")
+                .append("WHERE application_id like ? ")
+                .append("AND authenticated_user = ? ")
+                .append("AND created_date between ? and ? ")
+                .append("order by id desc");
         
         if ((application == null) || (application.isEmpty())) {
             application = "%";
@@ -460,7 +475,7 @@ public class DatabaseUtils {
         
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, application);
             ps.setString(2, userId);
             ps.setTimestamp(3, new Timestamp(fromDate.getTime()));
@@ -503,14 +518,16 @@ public class DatabaseUtils {
         PreparedStatement ps = null;
         List<String> apps = new ArrayList();
         ResultSet rs = null;
-        
-        String sql = "SELECT distinct application_id "
-                + "FROM sp_login_history "
-                + "WHERE authenticated_user = ?";
+
+        StringBuffer sql = new StringBuffer("SELECT distinct application_id ")
+                .append("FROM ")
+                .append(DBTableNames.SP_LOGIN_HISTORY.getTableName())
+                .append(" ")
+                .append("WHERE authenticated_user = ?");
         
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, userId);
             rs = ps.executeQuery();
             
@@ -562,11 +579,13 @@ public class DatabaseUtils {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
-        String sql = "SELECT session_id FROM mepin_transactions WHERE transaction_id = ?";
+        StringBuffer sql = new StringBuffer("SELECT session_id FROM ")
+                .append(DBTableNames.MEPIN_TRANSACTIONS.getTableName())
+                .append(" WHERE transaction_id = ?");
 
         try {
             connection = getUssdDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, transactionId);
             rs = ps.executeQuery();
 
