@@ -119,7 +119,7 @@
         type: "GET",
         url: strBack,
         data: values,
-        dataType: "json",
+        dataType: "text",
         async: false
     }).done(function (data) {
 
