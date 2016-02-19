@@ -128,11 +128,6 @@
 
 	<dependencyManagement>
 		<dependencies>
- 			<dependency>
-	                        <groupId>com.jayway.jsonpath.wso2</groupId>
-                	        <artifactId>json-path</artifactId>
-				<version>${com.jayway.jsonpath.wso2.version}</version>
-	                </dependency>
 
 			<dependency>
 				<groupId>org.json</groupId>
@@ -1858,22 +1853,21 @@
 				<artifactId>ehcache</artifactId>
 				<version>${ehcache.version}</version>
 			</dependency>
-
 			<dependency>
-				<groupId>com.jayway.jsonpath</groupId>
-				<artifactId>json-path</artifactId>
-				<version>${json.path.version}</version>
+                                <groupId>com.jayway.jsonpath.wso2</groupId>
+                                <artifactId>json-path</artifactId>
+                                <version>${com.jayway.jsonpath.wso2.version}</version>
+                        </dependency>
+			<dependency>
+				<groupId>net.minidev.wso2</groupId>
+				<artifactId>json-smart</artifactId>
+				<version>${net.minidev.wso2.version}</version>
 			</dependency>
 
 			<dependency>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>org.apache.felix.scr.annotations</artifactId>
 				<version>${org.apache.felix.scr.annotations.version}</version>
-			</dependency>
-			<dependency>
-				  <groupId>com.jayway.jsonpath.wso2</groupId>
-				  <artifactId>json-path</artifactId>
-				  <version>1.2.0.wso2v1</version>
 			</dependency>
 			<dependency>
 				<groupId>com.wso2telco.core</groupId>
@@ -1964,6 +1958,7 @@
 
 	</dependencyManagement>
 	<properties>
+		<net.minidev.wso2.version>2.1.0.wso2v1</net.minidev.wso2.version>
 		<com.jayway.jsonpath.wso2.version>1.2.0.wso2v1</com.jayway.jsonpath.wso2.version>
 
 		<!--User registration properties -->
