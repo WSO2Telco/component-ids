@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.wso2telco.util.DbUtil;
+import com.wso2telco.util.TableName;
 import com.wso2telco.model.Transaction;
 
 // TODO: Auto-generated Javadoc
@@ -46,14 +47,25 @@ public class TransactionDAO {
 
 		Connection conn = null;
 		PreparedStatement ps = null;
+		
+		StringBuilder sql = new StringBuilder();
+		sql.append("INSERT INTO ");
+		sql.append(TableName.MCX_CROSS_OPERATOR_TRANSACTION_LOG);
+		sql.append(" (tx_id, tx_status, batch_id, api_id, client_id,");
+		sql.append("application_state, sub_op_mcc, sub_op_mnc, timestamp_start, timestamp_end, exchange_response_code)");
+		sql.append(" VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+		
+		if(log.isDebugEnabled()){
+			log.debug("Executing the query " + sql + "to insert transaction log");
+		}
+	
 		try {
 			conn = DbUtil.getConnectDBConnection();
-			String query = "INSERT INTO mcx_cross_operator_transaction_log (tx_id, tx_status, batch_id, api_id, client_id,"
-					+ " application_state, sub_op_mcc, sub_op_mnc, timestamp_start, timestamp_end, exchange_response_code)"
-					+ " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-			
-			
-			ps = conn.prepareStatement(query);
+			//String query = "INSERT INTO mcx_cross_operator_transaction_log (tx_id, tx_status, batch_id, api_id, client_id,"
+			//		+ " application_state, sub_op_mcc, sub_op_mnc, timestamp_start, timestamp_end, exchange_response_code)"
+			//		+ " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+						
+			ps = conn.prepareStatement(sql.toString());
 			ps.setString(1, transaction.getTx_id());
 			ps.setString(2, transaction.getTx_status());
 			ps.setString(3, contextId);

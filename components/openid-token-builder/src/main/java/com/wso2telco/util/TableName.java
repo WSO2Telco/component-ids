@@ -2,7 +2,9 @@ package com.wso2telco.util;
 
 public enum TableName {
 	
-	SP_LOGIN_HISTORY("sp_login_history");
+	SP_LOGIN_HISTORY("sp_login_history"),
+	
+	MCX_CROSS_OPERATOR_TRANSACTION_LOG("mcx_cross_operator_transaction_log");
 		
     private final String text;
 
