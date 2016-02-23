@@ -47,7 +47,8 @@
                             <bundles>
                                 <bundleDef>com.wso2telco.ids:openid-token-builder:${com.wso2telco.ids.version}</bundleDef>
 				 <bundleDef>com.jayway.jsonpath.wso2:json-path:${com.jayway.jsonpath.wso2.version}</bundleDef>
-				<bundleDef>net.minidev.wso2:json-smart:${net.minidev.wso2.version}</bundleDef>	
+				<bundleDef>net.minidev.wso2:json-smart:${net.minidev.wso2.version}</bundleDef>
+				<bundleDef>org.codehaus.jettison.wso2:jettison:${org.codehaus.jettison.wso2.version}</bundleDef>	
                             </bundles>
 				<!--includedFeatures>	    
 					<includedFeatureDef>com.fasterxml.jackson.core:jackson-core:2.2.3</includedFeatureDef>
