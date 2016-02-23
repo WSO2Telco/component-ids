@@ -90,7 +90,7 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
         
-        StringBuffer sql = new StringBuffer("INSERT INTO `")
+        StringBuilder sql = new StringBuilder("INSERT INTO `")
         .append(DBTableNames.CLIENT_STATUS.getTableName())
         .append("` (`SessionID`, `Status`) VALUES (?, ?);");
        
@@ -125,7 +125,7 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        StringBuffer sql = new StringBuffer("update `")
+        StringBuilder sql = new StringBuilder("update `")
                         .append(DBTableNames.CLIENT_STATUS.getTableName())
                         .append("` set Status=? ")
                         .append("where SessionID=?;" );
@@ -161,7 +161,7 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
         
-        StringBuffer sql = new StringBuffer("update `")
+        StringBuilder sql = new StringBuilder("update `")
                 .append(DBTableNames.CLIENT_STATUS.getTableName())
                 .append("` set Status=? , pin = ? where SessionID=?;") ;
        
@@ -199,7 +199,7 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        StringBuffer sql = new StringBuffer("update `")
+        StringBuilder sql = new StringBuilder("update `")
                 .append(DBTableNames.CLIENT_STATUS.getTableName())
                 .append("` set  Status=? , pin = ?, ussdsessionid=? where SessionID=?;");
 
@@ -237,7 +237,7 @@ public class DatabaseUtils {
         String userStatus = null; 
         ResultSet rs = null;
 
-        StringBuffer sql = new StringBuffer("select Status from `")
+        StringBuilder sql = new StringBuilder("select Status from `")
                 .append(DBTableNames.CLIENT_STATUS.getTableName())
                 .append("` where SessionID=?;");
        
@@ -298,7 +298,7 @@ public class DatabaseUtils {
         int noOfAttempts = 0;
         ResultSet rs = null;
 
-        StringBuffer sql = new StringBuffer("select attempts from `")
+        StringBuilder sql = new StringBuilder("select attempts from `")
                 .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
                 .append("` where " + "username=?;");
 
@@ -337,7 +337,7 @@ public class DatabaseUtils {
         int count = 0;
         ResultSet rs = null;
 
-        StringBuffer sql = new StringBuffer("select count(*) as total from `")
+        StringBuilder sql = new StringBuilder("select count(*) as total from `")
                 .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
                 .append("` where " + "username=?;");
 
@@ -375,15 +375,15 @@ public class DatabaseUtils {
 
         Connection connection = null;
         PreparedStatement ps = null;
-        StringBuffer sql = null;
+        StringBuilder sql = null;
         boolean isFirstPinRequest = isFirstPinRequest(username);
 
         if(isFirstPinRequest) {
-            sql = new StringBuffer("INSERT INTO `")
+            sql = new StringBuilder("INSERT INTO `")
                     .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
                     .append("` set attempts=?, username=?;");
         } else {
-            sql = new StringBuffer("update `")
+            sql = new StringBuilder("update `")
                     .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
                     .append("` set attempts=? where username=?;");
         }
@@ -416,7 +416,7 @@ public class DatabaseUtils {
     public static void deleteUser(String username) throws SQLException {
 
         Connection connection = null;
-        StringBuffer sql = new StringBuffer("delete from `")
+        StringBuilder sql = new StringBuilder("delete from `")
                 .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
                 .append("` where " + "username=?;");
 
@@ -460,7 +460,7 @@ public class DatabaseUtils {
         
         List<LoginHistory> loghistory = new ArrayList();
 
-        StringBuffer sql = new StringBuffer("SELECT id, reqtype, application_id, authenticated_user, isauthenticated, authenticators, ipaddress, created_date ")
+        StringBuilder sql = new StringBuilder("SELECT id, reqtype, application_id, authenticated_user, isauthenticated, authenticators, ipaddress, created_date ")
                 .append("FROM ")
                 .append(DBTableNames.SP_LOGIN_HISTORY.getTableName())
                 .append(" ")
@@ -519,7 +519,7 @@ public class DatabaseUtils {
         List<String> apps = new ArrayList();
         ResultSet rs = null;
 
-        StringBuffer sql = new StringBuffer("SELECT distinct application_id ")
+        StringBuilder sql = new StringBuilder("SELECT distinct application_id ")
                 .append("FROM ")
                 .append(DBTableNames.SP_LOGIN_HISTORY.getTableName())
                 .append(" ")
@@ -579,7 +579,7 @@ public class DatabaseUtils {
         PreparedStatement ps = null;
         ResultSet rs = null;
 
-        StringBuffer sql = new StringBuffer("SELECT session_id FROM ")
+        StringBuilder sql = new StringBuilder("SELECT session_id FROM ")
                 .append(DBTableNames.MEPIN_TRANSACTIONS.getTableName())
                 .append(" WHERE transaction_id = ?");
 
