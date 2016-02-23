@@ -1,46 +1,85 @@
 <%@ page import="com.wso2telco.identity.application.authentication.endpoint.util.CharacterEncoder"%>
-<div id="loginTable1" class="identity-box">
-    <%
-        loginFailed = request.getParameter("loginFailed");
-        if (loginFailed != null) {
+<head>
+  
+</head>
+<input type="hidden" name="sessionDataKey" value='<%=request.getParameter("sessionDataKey")%>'/>
 
+
+<div class="site__root" id="content-placeholder">
+  
+</div>
+
+
+<!-- The handlebar template -->
+<script id="results-template" type="text/x-handlebars-template">
+
+<main class="site__main site__wrap section v-distribute">
+    <%
+        loginFailed = CharacterEncoder.getSafeText(request.getParameter("loginFailed"));
+        if (loginFailed != null) {
     %>
-            <div class="alert alert-error">
-                <fmt:message key='<%=request.getParameter("errorMessage")%>'/>
+            <div >
+                <fmt:message key='<%=CharacterEncoder.getSafeText(request.getParameter
+                ("errorMessage"))%>'/>
             </div>
     <% } %>
-
-    <% if (request.getParameter("username") == null || "".equals(request.getParameter("username").trim())) { %>
+<ul class="form-fields">
+    <% if (CharacterEncoder.getSafeText(request.getParameter("username")) == null || "".equals
+    (CharacterEncoder.getSafeText(request.getParameter("username")).trim())) { %>
 
         <!-- Username -->
-        <div class="control-group">
+        <li>
             <label class="control-label" for="username"><fmt:message key='username'/>:</label>
 
             <div class="controls">
-                <input class="input-xlarge" type="text" id='username' name="username" size='30'/>
+                <input type="text" id='username' name="username" '/>
             </div>
-        </div>
+        </li>
 
     <%} else { %>
 
-        <input type="hidden" id='username' name='username' value='<%=request.getParameter("username")%>'/>
+        <input type="hidden" id='username' name='username' value='<%=CharacterEncoder.getSafeText
+        (request.getParameter("username"))%>'/>
 
     <% } %>
 
     <!--Password-->
-    <div class="control-group">
-        <label class="control-label" for="password"><fmt:message key='password'/>:</label>
+		<li>
+       		<label  for="password"><fmt:message key='password'/>:</label>
 
-        <div class="controls">
-            <input type="password" id='password' name="password"  class="input-xlarge" size='30'/>
-            <input type="hidden" name="sessionDataKey" value='<%=request.getParameter("sessionDataKey")%>'/>
+            <input type="password" id='password' name="password" />
+            <input type="hidden" name="sessionDataKey" value='<%=CharacterEncoder.getSafeText(request.getParameter("sessionDataKey"))%>'/>
+    	</li>
+    	<li>
             <label class="checkbox" style="margin-top:10px"><input type="checkbox" id="chkRemember" name="chkRemember"><fmt:message key='remember.me'/></label>
-        </div>
-    </div>
+    	</li>
+    
 
-    <div class="form-actions">
-        <input type="submit" value='<fmt:message key='login'/>' class="btn btn-primary">
-    </div>
+		<li>
+		    <input type="submit" value='<fmt:message key='login'/>' class="btn btn-primary">
+		    
+		</li>
+    </ul>
+</main>
+      
+</script>
 
-</div>
+ <script type="text/javascript">
+ 	$(document).ready(function(){
+		// The template code
+		var templateSource = $("#results-template").html();
 
+		// compile the template
+		var template = Handlebars.compile(templateSource);
+		 
+		// The div/container that we are going to display the results in
+		var resultsPlaceholder = document.getElementById('content-placeholder');
+	
+		//
+		var baseurl = $("#baseURL").val();
+		$.getJSON(baseurl+'/languages/en.json', function(data) {
+			resultsPlaceholder.innerHTML = template(data);
+		});
+	
+	});
+ </script>

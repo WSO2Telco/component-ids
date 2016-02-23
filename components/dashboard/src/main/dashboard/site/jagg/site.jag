@@ -22,13 +22,13 @@ function getMSISDN() {
 	return msisdn;
 }
 
-(function () {
+/*(function () {
 	var action = request.getParameter('action');
 	//log.info("HHHHHHHHHHHHHHHHH>" + action);
 	if(action == 'js') {
 		print(server);
 	}
-})();
+})();*/
 
 /* function getServerDetails() {
 	server = site.server;

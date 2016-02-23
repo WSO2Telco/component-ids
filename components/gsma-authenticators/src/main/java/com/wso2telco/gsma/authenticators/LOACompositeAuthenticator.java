@@ -101,14 +101,14 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
                 if (userRealm != null) {
                     UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
 
-                    String userLocked = userStoreManager.getUserClaimValue(msisdn, "http://wso2.org/claims/identity/accountLocked", "default");
+                   /* String userLocked = userStoreManager.getUserClaimValue(msisdn, "http://wso2.org/claims/identity/accountLocked", "default");
                     if (userLocked != null && userLocked.equalsIgnoreCase("true")) {
                         log.info("Self Authenticator authentication failed ");
                         if (log.isDebugEnabled()) {
                             log.debug("User authentication failed due to locked account.");
                         }
                         throw new AuthenticationFailedException("Self Authentication Failed");
-                    }
+                    }*/
 
                     isAuthenticated = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(msisdn));
                 } else {
