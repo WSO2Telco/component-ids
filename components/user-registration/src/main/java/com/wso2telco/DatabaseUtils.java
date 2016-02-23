@@ -59,7 +59,7 @@ public class DatabaseUtils {
         PreparedStatement ps = null;
         ResultSet results = null;
 
-        StringBuffer sql = new StringBuffer("INSERT INTO ")
+        StringBuilder sql = new StringBuilder("INSERT INTO ")
                 .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
                 .append(" (username, attempts, ussdsessionid) VALUES (?, ?, ?);");
 
@@ -90,7 +90,7 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        StringBuffer sql = new StringBuffer("INSERT INTO `")
+        StringBuilder sql = new StringBuilder("INSERT INTO `")
                 .append(DBTableNames.CLIENT_STATUS.getTableName())
                 .append("` (`SessionID`, `Status`) VALUES (?, ?);");
 
@@ -118,7 +118,7 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        StringBuffer sql = new StringBuffer("update `")
+        StringBuilder sql = new StringBuilder("update `")
                         .append(DBTableNames.CLIENT_STATUS.getTableName())
                         .append("` set ")
                         .append("Status=? where ")
@@ -156,7 +156,7 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        StringBuffer sql = new StringBuffer("INSERT INTO `")
+        StringBuilder sql = new StringBuilder("INSERT INTO `")
                 .append(DBTableNames.CLIENT_STATUS.getTableName())
                 .append("` (`SessionID`, `Status`, `pin`) VALUES (?, ?, ?);");
 
@@ -189,7 +189,7 @@ public class DatabaseUtils {
         String pin = null;
         ResultSet rs = null;
 
-        StringBuffer sql = new StringBuffer("select pin from `")
+        StringBuilder sql = new StringBuilder("select pin from `")
                 .append(DBTableNames.PIN.getTableName())
                 .append("` where " + "SessionID=?;");
 
@@ -226,7 +226,7 @@ public class DatabaseUtils {
         PreparedStatement ps = null;
         ResultSet results = null;
 
-        StringBuffer sql = new StringBuffer("INSERT INTO `")
+        StringBuilder sql = new StringBuilder("INSERT INTO `")
                 .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
                 .append("` (`username`, `attempts`) VALUES (?, ?);");
 
@@ -260,7 +260,7 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        StringBuffer sql = new StringBuffer("update `")
+        StringBuilder sql = new StringBuilder("update `")
                         .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
                         .append("` set ")
                         .append("pin=? where ")
@@ -292,7 +292,7 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        StringBuffer sql = new StringBuffer("update `")
+        StringBuilder sql = new StringBuilder("update `")
                         .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
                         .append("` set ")
                         .append("attempts=? where ")
@@ -326,7 +326,7 @@ public class DatabaseUtils {
         int pin = 0;
         ResultSet rs = null;
 
-        StringBuffer sql = new StringBuffer("select pin from `")
+        StringBuilder sql = new StringBuilder("select pin from `")
                     .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
                     .append("` where username=?;");
 
@@ -363,7 +363,7 @@ public class DatabaseUtils {
         int noOfAttempts = 0;
         ResultSet rs = null;
 
-        StringBuffer sql = new StringBuffer("select attempts from `")
+        StringBuilder sql = new StringBuilder("select attempts from `")
                     .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
                     .append("` where username=?;");
 
@@ -398,7 +398,7 @@ public class DatabaseUtils {
         String usernameDB = "noUser";
         ResultSet rs = null;
 
-        StringBuffer sql = new StringBuffer("select username from `")
+        StringBuilder sql = new StringBuilder("select username from `")
                     .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
                     .append("` where " + "username=?;");
 
@@ -441,7 +441,7 @@ public class DatabaseUtils {
         int noOfAttempts = 0;
         ResultSet rs = null;
 
-        StringBuffer sql = new StringBuffer("delete from `")
+        StringBuilder sql = new StringBuilder("delete from `")
                     .append(DBTableNames.MULTIPLE_PASSWORDS.getTableName())
                     .append("` where " + "username=?;");
 
@@ -470,7 +470,7 @@ public class DatabaseUtils {
         String userStatus = null;
         ResultSet rs = null;
 
-        StringBuffer sql = new StringBuffer("select status from `")
+        StringBuilder sql = new StringBuilder("select status from `")
                     .append(DBTableNames.REGSTATUS.getTableName())
                     .append("` where " + "username=?;");
 
@@ -508,7 +508,7 @@ public class DatabaseUtils {
         UUID idOne = UUID.randomUUID();
         uuid = idOne.toString();
 
-        StringBuffer sql = new StringBuffer("INSERT INTO `")
+        StringBuilder sql = new StringBuilder("INSERT INTO `")
                     .append(DBTableNames.REGSTATUS.getTableName())
                     .append("` (`uuid`,`username`, `status`) VALUES (?,?,?);");
 
@@ -545,7 +545,7 @@ public class DatabaseUtils {
         String usernameDB = "noUser";
         ResultSet rs = null;
 
-        StringBuffer sql = new StringBuffer("select username from `")
+        StringBuilder sql = new StringBuilder("select username from `")
                     .append(DBTableNames.REGSTATUS.getTableName())
                     .append("` where username=?;");
 
@@ -589,7 +589,7 @@ public class DatabaseUtils {
         int noOfAttempts = 0;
         ResultSet rs = null;
 
-        StringBuffer sql = new StringBuffer("delete from `")
+        StringBuilder sql = new StringBuilder("delete from `")
                     .append(DBTableNames.REGSTATUS.getTableName())
                     .append("` where " + "username=?;");
 
@@ -615,7 +615,7 @@ public class DatabaseUtils {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        StringBuffer sql = new StringBuffer("update `")
+        StringBuilder sql = new StringBuilder("update `")
                     .append(DBTableNames.REGSTATUS.getTableName())
                     .append("` set status=? where username=?;");
 
@@ -645,7 +645,7 @@ public class DatabaseUtils {
         PreparedStatement ps = null;
         Integer requestType = null;
 
-        StringBuffer sql = new StringBuffer("select requesttype from `")
+        StringBuilder sql = new StringBuilder("select requesttype from `")
                 .append(DBTableNames.PENDING_USSD.getTableName())
                 .append("` where msisdn=?;");
 
@@ -679,7 +679,7 @@ public class DatabaseUtils {
     static int saveRequestType(String msisdn, Integer requestType) throws SQLException, NamingException {
         Connection connection = null;
 //        String sql = "insert into pendingussd (msisdn, requesttype) values (?,?)";
-        StringBuffer sql = new StringBuffer("insert into ")
+        StringBuilder sql = new StringBuilder("insert into ")
                     .append(DBTableNames.PENDING_USSD.getTableName())
                     .append(" (msisdn, requesttype) values (?,?) ON DUPLICATE KEY UPDATE requesttype=VALUES(requesttype)");
 
@@ -707,7 +707,7 @@ public class DatabaseUtils {
 
     static void deleteRequestType(String msisdn) throws SQLException {
         Connection connection = null;
-        StringBuffer sql = new StringBuffer("delete from ")
+        StringBuilder sql = new StringBuilder("delete from ")
                     .append(DBTableNames.PENDING_USSD.getTableName())
                     .append(" where msisdn = ?");
 
@@ -737,7 +737,7 @@ public class DatabaseUtils {
     public static int saveAuthenticateData(AuthenticationData authenticationData) throws SQLException, NamingException {
         Connection connection = null;
 
-        StringBuffer sql = new StringBuffer("insert into ")
+        StringBuilder sql = new StringBuilder("insert into ")
                 .append(DBTableNames.AUTHENTICATED_LOGIN.getTableName())
                 .append(" (tokenID,scope,redirect_uri,client_id,response_type,acr_value,msisdn,state,nonce) values (?,?,?,?,?,?,?,?,?) ");
         try {
@@ -778,7 +778,7 @@ public class DatabaseUtils {
         ResultSet rs = null;
         AuthenticationData authenticationData = new AuthenticationData();
 
-        StringBuffer sql = new StringBuffer("select * from `")
+        StringBuilder sql = new StringBuilder("select * from `")
                     .append(DBTableNames.AUTHENTICATED_LOGIN.getTableName())
                     .append("` where tokenID=?;");
 
@@ -817,7 +817,7 @@ public class DatabaseUtils {
     public static void updateAuthenticateData(String msisdn, String status) throws SQLException {
         Connection connection = null;
         PreparedStatement ps = null;
-        StringBuffer sql = new StringBuffer("update `")
+        StringBuilder sql = new StringBuilder("update `")
                     .append(DBTableNames.AUTHENTICATED_LOGIN.getTableName())
                     .append("` set ")
                     .append("status=? where ")
@@ -847,7 +847,7 @@ public class DatabaseUtils {
     public static void updateAuthenticateDataMsisdn(String tokenId, String msisdn) throws SQLException {
         Connection connection = null;
         PreparedStatement ps = null;
-        StringBuffer sql = new StringBuffer( "update `")
+        StringBuilder sql = new StringBuilder( "update `")
                         .append(DBTableNames.AUTHENTICATED_LOGIN.getTableName())
                         .append("` set ")
                         .append("msisdn=? where ")
@@ -881,7 +881,7 @@ public class DatabaseUtils {
         String username = "noUser";
         ResultSet rs = null;
 
-        StringBuffer sql = new StringBuffer("select username from `")
+        StringBuilder sql = new StringBuilder("select username from `")
                 .append(DBTableNames.REGSTATUS.getTableName())
                 .append("` where uuid=?;");
 
