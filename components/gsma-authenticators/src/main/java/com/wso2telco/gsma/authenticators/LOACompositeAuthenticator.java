@@ -15,6 +15,15 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -26,10 +35,8 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.oauth.cache.CacheKey;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
@@ -40,14 +47,10 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import com.wso2telco.gsma.authenticators.config.LOA;
-import com.wso2telco.gsma.authenticators.config.LOAConfig;
 import com.wso2telco.gsma.authenticators.config.LOA.MIFEAbstractAuthenticator;
+import com.wso2telco.gsma.authenticators.config.LOAConfig;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.*;
 
  
 // TODO: Auto-generated Javadoc
@@ -136,9 +139,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
             sc.setSubjectAttributeStep(false);
             sc.setSubjectIdentifierStep(false);
             
-            AuthenticatedUser user=new AuthenticatedUser();
-            //context.setSubject(user);
-            sc.setAuthenticatedUser(user);
+            AuthenticationContextHelper.setSubject(context, msisdn);
 
 
             int stepOrder = 2;
@@ -169,9 +170,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
             sequenceConfig.setStepMap(stepMap);
             context.setSequenceConfig(sequenceConfig);
             context.setProperty("msisdn", msisdn);
-            AuthenticatedUser aUser=new AuthenticatedUser();
-            context.setSubject(aUser);
-
+           AuthenticationContextHelper.setSubject(context, msisdn) ;
 
         }else{
 		LOAConfig config = DataHolder.getInstance().getLOAConfig();

@@ -15,6 +15,13 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.http.HttpResponse;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
@@ -25,17 +32,10 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import com.wso2telco.gsma.authenticators.model.MSSRequest;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 
  
 // TODO: Auto-generated Javadoc
@@ -151,8 +151,7 @@ public class MSSPinAuthenticator extends AbstractApplicationAuthenticator
         log.info("MSS PIN Authenticator authentication success for MSISDN - " + msisdn);
 
         context.setProperty("msisdn", msisdn);
-        AuthenticatedUser user=new AuthenticatedUser();
-        context.setSubject(user);
+        AuthenticationContextHelper.setSubject(context, msisdn);
         String rememberMe = httpServletRequest.getParameter("chkRemember");
 
         if (rememberMe != null && "on".equals(rememberMe)) {

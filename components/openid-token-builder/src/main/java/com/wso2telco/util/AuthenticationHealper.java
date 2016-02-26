@@ -15,6 +15,8 @@
  ******************************************************************************/
 package com.wso2telco.util;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.oauth2.token.OAuthTokenReqMessageContext;
@@ -34,10 +36,22 @@ public class AuthenticationHealper {
 	 * @return the authenticated id p data
 	 */
 	public static AuthenticatedIdPData createAuthenticatedIdPData(
-			AuthenticationContext context) {
+			AuthenticationContext context,String idpName ) {
 		AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
 		// store authenticated user
 		authenticatedIdPData.setUser(context.getSubject());
+		
+
+
+		SequenceConfig sequenceConfig = context.getSequenceConfig();
+		int currentStep = context.getCurrentStep();
+		StepConfig stepConfig = sequenceConfig.getStepMap().get(currentStep);
+		
+		// store authenticated idp
+		stepConfig.setAuthenticatedIdP(idpName);
+		authenticatedIdPData.setIdpName(idpName);
+		
+		
 		return authenticatedIdPData;
 
 	}
@@ -51,5 +65,28 @@ public class AuthenticationHealper {
 	public static String getUser(OAuthTokenReqMessageContext context) {
 		return context.getAuthorizedUser().getAuthenticatedSubjectIdentifier();
 	}
+	
+	public static String getUserName(AuthenticationContext context) {
+		return context.getSubject().getAuthenticatedSubjectIdentifier();
+	}
+	public static void setSubject2StepConfig(AuthenticationContext context) {
 
+		SequenceConfig sequenceConfig = context.getSequenceConfig();
+		int currentStep = context.getCurrentStep();
+		StepConfig stepConfig = sequenceConfig.getStepMap().get(currentStep);
+		
+		
+		// Set the authenticated user as an object. 5.1.0 onwards
+		stepConfig.setAuthenticatedUser(context.getSubject());
+		
+	}
+
+	public static void setSubject2StepConfig(StepConfig stepConfig,AuthenticationContext context) {
+
+		// Set the authenticated user as an object. 5.1.0 onwards
+		stepConfig.setAuthenticatedUser(context.getSubject());
+		
+	}
+	
+	
 }

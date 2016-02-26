@@ -46,10 +46,15 @@
                             </adviceFile>
                             <bundles>
                                 <bundleDef>com.wso2telco.ids:openid-token-builder:${com.wso2telco.ids.version}</bundleDef>
+				 <bundleDef>com.jayway.jsonpath.wso2:json-path:${com.jayway.jsonpath.wso2.version}</bundleDef>
+				<bundleDef>net.minidev.wso2:json-smart:${net.minidev.wso2.version}</bundleDef>
+				<bundleDef>org.codehaus.jettison.wso2:jettison:${org.codehaus.jettison.wso2.version}</bundleDef>	
                             </bundles>
-				<!--importFeatures>
-					<importFeatureDef>org.wso2.orbit.org.apache.httpcomponents:httpclient</importFeatureDef>
-				</importFeatures-->
+				<!--includedFeatures>	    
+					<includedFeatureDef>com.fasterxml.jackson.core:jackson-core:2.2.3</includedFeatureDef>
+        		                 <includedFeatureDef>org.wso2.orbit.com.fasterxml.jackson.core:jackson-databind:2.2.3.wso2v1</includedFeatureDef>
+	                	        <includedFeatureDef>com.fasterxml.jackson.core:jackson-annotations:2.2.3</includedFeatureDef>
+				</includedFeatures-->
                         </configuration>
                     </execution>
                 </executions>

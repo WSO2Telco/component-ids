@@ -31,7 +31,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
@@ -143,8 +142,7 @@ public class PinAuthenticator extends AbstractApplicationAuthenticator
         }
         log.info("Pin Authenticator authentication success");
         //context.setSubject((String)context.getProperty("BasicAuthSubject"));
-        AuthenticatedUser user=new AuthenticatedUser();
-        context.setSubject(user);
+        AuthenticationContextHelper.setSubject(context, pin);
 
         String rememberMe = request.getParameter("chkRemember");
 

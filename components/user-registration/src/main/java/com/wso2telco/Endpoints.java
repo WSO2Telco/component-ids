@@ -39,8 +39,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONException;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
@@ -723,7 +722,7 @@ public class Endpoints {
 
 	protected void postRequest(String url, String requestStr, String operator) throws IOException {
 
-		HttpClient client = new DefaultHttpClient();
+		HttpClient client = HttpClientBuilder.create().build();
 		HttpPost postRequest = new HttpPost(url);
 
 		postRequest.addHeader("accept", "application/json");
@@ -797,7 +796,7 @@ public class Endpoints {
 	@Path("/user/setclaim")
 	@Produces("application/json")
 	public Response setUserClaimValue(@QueryParam("msisdn") String msisdn, @QueryParam("claimValue") String claimValue)
-			throws SQLException, org.codehaus.jettison.json.JSONException, JSONException, RemoteException,
+			throws SQLException, JSONException, RemoteException,
 			LoginAuthenticationExceptionException, RemoteUserStoreManagerServiceUserStoreExceptionException {
 
 		LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(FileUtil.getApplicationProperty("isadminurl"));
@@ -880,8 +879,12 @@ public class Endpoints {
 	public Response getAuthatication(@QueryParam("tokenid") String tokenid, String jsonBody)
 			throws SQLException, RemoteException, Exception {
 		AuthenticationData authenticationData = DatabaseUtils.getAuthenticateData(tokenid);
-		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-		String json = ow.writeValueAsString(authenticationData);
+		Gson gson = new Gson();
+		String json =  gson.toJson(authenticationData);
+		
+		/*ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+		String json = ow.writeValueAsString(authenticationData);*/
+		
 		return Response.status(200).entity(json.toString()).build();
 	}
 
@@ -892,8 +895,11 @@ public class Endpoints {
 			@QueryParam("msisdn") String msisdn, String jsonBody) throws SQLException, RemoteException, Exception {
 		AuthenticationData authenticationData = DatabaseUtils.getAuthenticateData(tokenid);
 		DatabaseUtils.updateAuthenticateDataMsisdn(tokenid, msisdn);
-		ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-		String json = ow.writeValueAsString(authenticationData);
+		Gson gson = new Gson();
+		String json =  gson.toJson(authenticationData);
+		/*
+		ObjectWriter ow = new ObjectMapper()..writer().withDefaultPrettyPrinter();
+		String json = ow.writeValueAsString(authenticationData);*/
 		return Response.status(200).entity(json.toString()).build();
 	}
 

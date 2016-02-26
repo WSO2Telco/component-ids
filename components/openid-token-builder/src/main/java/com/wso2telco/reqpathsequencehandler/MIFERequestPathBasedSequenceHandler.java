@@ -18,7 +18,6 @@ package com.wso2telco.reqpathsequencehandler;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -36,10 +35,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.I
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultRequestPathBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.oauth.cache.CacheKey;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
@@ -47,8 +43,8 @@ import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 
 import com.wso2telco.gsma.authenticators.DataHolder;
 import com.wso2telco.gsma.authenticators.config.LOA;
-import com.wso2telco.gsma.authenticators.config.LOAConfig;
 import com.wso2telco.gsma.authenticators.config.LOA.MIFEAbstractAuthenticator;
+import com.wso2telco.gsma.authenticators.config.LOAConfig;
 import com.wso2telco.util.AuthenticationHealper;
 
 // TODO: Auto-generated Javadoc
@@ -97,6 +93,11 @@ public class MIFERequestPathBasedSequenceHandler extends DefaultRequestPathBased
 		SequenceConfig seqConfig = context.getSequenceConfig();
 		List<AuthenticatorConfig> reqPathAuthenticators = seqConfig.getReqPathAuthenticators();
 
+		AuthenticationHealper.setSubject2StepConfig(context);
+		
+		AuthenticatedIdPData authenticatedIdPData =  AuthenticationHealper.createAuthenticatedIdPData(context, FrameworkConstants.LOCAL_IDP_NAME);
+		
+		
 		for (AuthenticatorConfig reqPathAuthenticator : reqPathAuthenticators) {
 
 			ApplicationAuthenticator authenticator = reqPathAuthenticator
@@ -122,20 +123,7 @@ public class MIFERequestPathBasedSequenceHandler extends DefaultRequestPathBased
 					return;
 				}
 
-				AuthenticatedUser authenticatedUser = context.getSubject();
-				seqConfig.setAuthenticatedUser(authenticatedUser);
 
-				if (log.isDebugEnabled()) {
-					log.debug("Authenticated User: " + authenticatedUser);
-				}
-
-				AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
-
-				// store authenticated user
-				authenticatedIdPData.setUser(authenticatedUser);
-
-				// store authenticated idp
-				authenticatedIdPData.setIdpName(FrameworkConstants.LOCAL_IDP_NAME);
 				reqPathAuthenticator.setAuthenticatorStateInfo(context.getStateInfo());
 				authenticatedIdPData.setAuthenticator(reqPathAuthenticator);
 
