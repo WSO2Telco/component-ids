@@ -122,7 +122,7 @@ public final class Constants {
     
     /** The Constant LISTNER_WEBAPP_MEPIN_CONTEXT. */
     //    public static final String LISTNER_WEBAPP_USSDPIN_CONTEXT = "/MediationTest/tnspoints/endpoint/ussd/pin";
-    public static final String LISTNER_WEBAPP_MEPIN_CONTEXT = "/SessionUpdater/tnspoints/endpoint/mepin/response";
+    public static final String LISTNER_WEBAPP_MEPIN_CONTEXT = "/sessionupdater/tnspoints/endpoint/mepin/response";
 
     /** The Constant PRIVATE_KEYFILE. */
     public static final String PRIVATE_KEYFILE = "dialogprivate.key";
