@@ -1,0 +1,158 @@
+<!doctype html>
+<html class="site no-js lang--en" lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<title>Mobile Connect</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+
+	<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+
+	
+	<script src="/portal/gadgets/user_profile/js/jquery.min.js" type="text/javascript"></script>
+	
+	<link rel="stylesheet" href="/dashboard/mcresources/css/style.css">
+
+
+	<noscript>
+		<!-- Fallback synchronous download, halt page rendering if load is slow  -->
+		<link href="//fonts.googleapis.com/css?family=Roboto:400,300,700,400italic,300italic,700italic" rel="stylesheet" type="text/css">
+	</noscript>
+	<!-- loads fonts asyncronously preventing font loading from block page render -->
+	<script>
+    // Config for loading the web fonts
+    var WebFontConfig = {
+    	google: {
+    		families: ['Roboto:400,300,700,400italic,300italic,700italic']
+    	},
+    	active: function() {
+        // Set a cookie that the font has been downloaded and should be cached
+        var d = new Date();
+        d.setTime(d.getTime() + (7 * 86400000)); // plus 7 Days
+        document.cookie = "cachedroboto=true; expires=" + d.toGMTString() + "; path=/";
+    }
+};
+</script>
+<script src="/dashboard/mcresources/js/vendor/webfontloader.js"></script>
+<!-- Adds IE root class without breaking doctype -->
+  <!--[if IE]>
+    <script>document.documentElement.className = document.documentElement.className + " ie";</script>
+    <![endif]-->
+
+    <!-- load main script early asyncronously -->
+    
+    <script type="text/javascript" src="/dashboard/mcresources/js/vendor/modernizr.js"></script>
+
+    <%
+    var log = new Log();
+    
+
+    var operator = request.getParameter("operator")!= null ?  request.getParameter("operator") : "";
+    log.info( "operator :"+operator );
+    
+
+    if(operator != ""){
+    	var imgPath = "/dashboard/img/branding/" + operator + "_logo.svg";
+    	%>
+    	<link href="/dashboard/css/branding/<%=operator%>-style.css" rel="stylesheet">
+    	<%}
+    	%>
+
+    </head>
+
+    <body class="theme--light">
+    	<div class="site__root">
+    		<header class="site-header">
+    			<div class="site-header__inner site__wrap">
+    				<h1 class="visuallyhidden">Mobile Connect</h1>
+    				<a href="/"><img src="/dashboard/mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo"></a>
+
+    				<p class="site-header__powered-by">powered by
+    					<img src='<%= imgPath %>' alt="Operator" class="brandLogo" >
+    				</p>
+
+          <!--form action="/lang" class="site-header__lang-menu field--select field--select-plain" novalidate>
+            <label for="field-select-lang" class="visuallyhidden">Language:</label>
+            <select id="field-select-lang" name="lang" class="field__select-native js-transparent">
+              <option value="en" selected>English (UK)</option>
+              <option value="de">Deutsche</option>
+              <option value="th">ภาษาไทย</option>
+              <option value="fr">fr_French</option>
+            </select>
+            <input type="hidden" name="return-url" value="/registration/02-prompt-to-create-account">
+            <input type="submit" value="Go" class="btn btn--natural btn--light js-visuallyhidden">
+        </form-->
+    </div>
+</header>
+
+
+<main class="site__main site__wrap section v-distribute v-grow">
+	<header class="page__header">
+		<h1 class="page__heading" style="font-size:16px;"><p>MOBILE CONNECT</p><p>END USER TERMS AND CONDITIONS AND PRIVACY NOTICE</p></h1>
+	</header>
+
+	<p style="font-size:12px; text-align: justify;" >WELCOME TO THE MOBILE CONNECT SERVICE (“MOBILE CONNECT” OR THE “SERVICE”) AND THANK YOU FOR CHOOSING TO USE THE SERVICE  
+		THE FOLLOWING MOBILE CONNECT END-USER TERMS AND CONDITIONS AND PRIVACY NOTICE (“TERMS AND CONDITIONS”) APPLY TO YOU WHEN YOU USE THE SERVICE. YOUR USE OF THE SERVICE MEANS THAT YOU AGREE TO THESE TERMS AND CONDITIONS. PLEASE READ THIS DOCUMENT CAREFULLY. YOU” AND “YOUR” SHALL REFER TO THE END USER (SUBSCRIBER OF THE OPERATOR) SIGNING UNTO THESE TERMS AND CONDITIONS. “WE” AND “US” SHALL REFER TO THE OPERATOR PROVIDING THE SERVICE TO THE SERVICE PROVIDER OF THE END USER. </p>
+
+		<p style="font-size:12px;">When you use the Service, You agree that:</p>
+
+		<ul style="font-size:12px; text-align: justify;">
+			<li style="margin-bottom:5px;">The Service (which includes downloading and use of the Mobile Connect App) is provided to you by your selected Mobile Operator (referred to as “We” or “Us” in these Terms and Conditions).  The Terms and Conditions constitute a legal agreement which govern Your use of the Service.</li>
+			<li style="margin-bottom:5px;">You are responsible for keeping confidential any passwords, personal identification numbers, passcodes or other security information that You use in connection with the Service. Do not reveal your security information to anyone else.  We will not be responsible for any losses arising out of the unauthorized use of your account.</li>
+			<li style="margin-bottom:5px;">We will not provide You with any support or assistance with Your use of the Service.</li>
+			<li style="margin-bottom:5px;">We may collect and use personal or other information provided by You in order to provide You with the Service.</li>
+			<li style="margin-bottom:5px;">Mobile Connect is not a certified electronic signature service and does not purport to certify Your identity, only the accuracy of a particular phone number. The Service cannot be used as a replacement for official personal identification or any other authentication means.</li>
+			<li style="margin-bottom:5px;">We may immediately suspend or terminate Your access to the Service if You violate any of the Terms and Conditions. We will have no liability or obligation to you if we suspend or terminate Your access.</li>
+			<li style="margin-bottom:5px;">We are not responsible for any third-party services that you access while using Mobile Connect. You access those services at your own risk.  You must contact the third-party service directly if you encounter any issues.</li>
+			<li style="margin-bottom:5px;">Third-party services may have their own terms and conditions, and third-parties may charge you for their services. It is Your responsibility to review and understand any third-party terms and conditions.</li>
+		</ul>
+
+		<p style="font-size:12px; margin-bottom:5px;"><strong>1. Usage Rules</strong></p>
+
+		<p style="font-size:12px; margin-bottom:5px; text-align: justify;">You agree to use the Service in compliance with these usage rules. We reserve the right to modify the usage rules at any time.</p>
+		<p style="font-size:12px; margin-bottom:5px; text-align: justify;">You are authorized to use the Service, and to download, install and use the Mobile Connect App, solely for the purpose of using the Service, and in accordance with these Terms and Conditions. This authorization is exclusive to You and is not transferrable by You.</p>
+		<p style="font-size:12px; margin-bottom:5px; text-align: justify;">You agree not to, or attempt or assist another person to, violate, circumvent, reverse-engineer, decompile, disassemble or otherwise tamper with the Service.</p>
+		<p style="font-size:12px; margin-bottom:5px; text-align: justify;">You agree not to engage in any copyright infringement or other intellectual property infringement relating in any way to the Service.</p>
+		<p style="font-size:12px; margin-bottom:5px; text-align: justify;">If any open source software is included in the Service, You agree to abide by the relevant open source license terms.</p>
+
+		<p style="font-size:12px; margin-top:10px; margin-bottom:5px;"><strong>2. Proprietary Rights.</strong></p>
+
+		<p style="font-size:12px; margin-bottom:5px; text-align: justify;">You agree that the Service, including but not limited to trademarks, user interface, scripts and software used to implement the Service, contains proprietary information owned by Us or our third-party service providers, and is protected by applicable intellectual property and other laws.  All intellectual property rights in the Service belong to Us or certain third-parties and You shall not do anything to jeopardize, limit or interfere with such intellectual property rights.</p>
+
+		<p style="font-size:12px; margin-top:10px; margin-bottom:5px;"><strong>3. Use of your Personal Information and Your Privacy</strong></p>
+
+		<p style="font-size:12px; margin-bottom:5px; text-align: justify;">We value your privacy and take the protection of your personal information seriously. We have created a Privacy Policy (available at <a href="http://www.telenor.in" target="_blank"><u>http://www.telenor.in</u></a>) to help you understand how we handle and deal with your personal data, when you use our products and services. By agreeing to the Terms and Conditions for Mobile Connect, you agree that we can use such data in accordance with our privacy policy.</p>
+		<p style="font-size:12px; margin-bottom:5px; text-align: justify;">Because We want Your experience to be as easy and convenient as possible, We also use cookies.  A ‘cookie’ is a small text file placed on Your computer, tablet or mobile device.  Our use of cookies can’t identify You personally and We don’t use them for advertising. We only use them to remember things such as your language preferences or settings for the Service, so You don’t have to do this each time you use the Service (which might be very annoying). To make it easy, We utilise a pre-checked ‘remember me’ box – just uncheck the box if You prefer not to be remembered, and definitely uncheck the box if You are using a shared computer or device.</p>
+
+		<p style="font-size:12px; margin-top:10px; margin-bottom:5px;"><strong>4. Changes</strong></p>
+
+		<p style="font-size:12px; margin-bottom:5px; text-align: justify;">We may modify the Terms and Conditions at any time and to impose new or additional terms or conditions on Your use of the Service.  Such modifications and additional terms and conditions shall be effective immediately and incorporated into these Terms and Conditions.  Your continued use of the Service will be deemed acceptance thereof.</p>
+
+
+		<p style="font-size:12px; margin-top:10px; margin-bottom:5px;"><strong>5. Termination</strong></p>
+
+		<p style="font-size:12px; margin-bottom:5px; text-align: justify;">You or We may terminate these Terms and Conditions at any time, for any reason, including for convenience. If the Terms and Conditions are terminated by either You or Us, You must stop using the Service and uninstall the Mobile Connect App forthwith such termination.</p>
+
+
+		<p style="font-size:12px; margin-top:10px; margin-bottom:5px;"><strong>6. Disclaimer of Warranties; Liability Limitation</strong></p>
+
+		<p style="font-size:12px; margin-bottom:5px; text-align: justify;">WE DO NOT GUARANTEE, REPRESENT OR WARRANT THAT YOUR USE OF THE SERVICE WILL BE UNINTERRUPTED OR ERROR-FREE, AND YOU AGREE THAT FROM TIME TO TIME WE MAY REMOVE THE SERVICE FOR INDEFINITE PERIODS OF TIME, OR CANCEL THE SERVICE AT ANY TIME, WITHOUT NOTICE TO YOU.</p>
+		<p style="font-size:12px; margin-bottom:5px; text-align: justify;">YOU EXPRESSLY AGREE THAT YOUR USE OF THE SERVICE IS AT YOUR OWN RISK AND YOU ACKNOWLEDGE THAT WE ARE NOT RESPONSIBLE FOR ANY FAULTS OR ERRORS, INCLUDING LOSS, CORRUPTION OR MISUSE OF YOUR DATA.  THE SERVICE IS PROVIDED "AS IS" AND “AS AVAILABLE” FOR YOUR USE WITHOUT WARRANTY OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OF UNINTERRUPTED USE, MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.</p>
+		<p style="font-size:12px; margin-bottom:5px; text-align: justify;">IN NO EVENT SHALL WE BE LIABLE FOR ANY DIRECT, INDIRECT, PUNITIVE, INCIDENTAL, SPECIAL, CONSEQUENTIAL DAMAGES OR ANY OTHER DAMAGES WHATSOEVER, INCLUDING WITHOUT LIMITATION, DAMAGES FOR LOSS OF USE, DATA OR PROFITS, ARISING OUT OF OR IN ANY WAY CONNECTED TO THE USE OR PERFORMANCE OF THE SERVICES. IF IN ANY RELEVANT JURIDICTION THIS LIMITATION WOULD NOT BE LEGALLY UPHELD THEN OUR TOTAL LIABILITY SHALL IN NO EVENT EXCEED THE AMOUNT OF Rs. 1000 (INDIAN RUPEES ONE THOUSAND ONLY).</p>
+
+
+		<p style="font-size:12px; margin-top:10px; margin-bottom:5px;"><strong>7. GOVERNING LAW</strong></p>
+
+		<p style="font-size:12px; margin-bottom:5px; text-align: justify;">The Service is operated by Us from our offices in India.  You agree to comply with all applicable laws, statutes, ordinances and regulations that apply to Your use of the Service.  Provision and use of the Service shall be governed by and construed in accordance with the laws of India, without regard to conflict of law rules. You expressly agree that exclusive jurisdiction for any claim or dispute with Us, or relating in any way to your use of the Service resides in the courts of Delhi, India.</p>
+
+
+		<button type="button" class="btn btn--outline btn--full btn--large" onclick="window.close();">Close</button> 
+	</main>
+</div>
+
+</body>
+
+</html>

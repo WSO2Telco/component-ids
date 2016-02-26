@@ -1,0 +1,6 @@
+{
+	"server" : {
+		"carbon_url" : "locahost:9443/",
+		"webapps_url" : "locahost:9443/",
+	}
+}

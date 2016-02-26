@@ -275,6 +275,14 @@ background: transparent;
 .brand{
     margin-top:15px;
     display: block;
+
+}
+a.brand{
+ background:transparent url(../../images/logo.png) no-repeat left top;
+    display: block;
+    width: 110px;
+    height: 35px;
+    margin-bottom:6px;
 }
 .btn-primary {
     background: rgb(245,128,32); /* Old browsers */

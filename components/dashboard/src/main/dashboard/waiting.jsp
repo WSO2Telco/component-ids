@@ -11,6 +11,7 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="mcresources/css/style.css">
 
+  
   <!-- load main script early asyncronously -->
   <script type="text/javascript" src="mcresources/js/main.js" async></script>
   <script src="/portal/gadgets/user_profile/js/jquery.min.js" type="text/javascript"></script>
@@ -46,10 +47,11 @@
         <![endif]-->
         <script type="text/javascript" src="mcresources/js/vendor/modernizr.js"></script>
         <%
-        String acr = request.getParameter("acr")!= null ?  request.getParameter("acr") : "";
-        String token = request.getParameter("tokenid")!= null ?  request.getParameter("tokenid") : "";
+        String acr = request.getParameter("http://wso2.org/claims/loa")!= null ?  request.getParameter("http://wso2.org/claims/loa") : "";
+        String token = request.getParameter("token")!= null ?  request.getParameter("token") : "";
         String operator = request.getParameter("operator")!= null ?  request.getParameter("operator") : "";
-        String msisdn = request.getParameter("username")!= null ?  request.getParameter("username") : "";
+        String msisdn = request.getParameter("msisdn")!= null ?  request.getParameter("msisdn") : "";
+        String acr_code = request.getParameter("acr_code")!= null ?  request.getParameter("acr_code") : "";
         // Boolean smsClick = Boolean.valueOf(request.getParameter("smsClick"))!= null ?  Boolean.valueOf(request.getParameter("smsClick")) : false;
         String smsClick = request.getParameter("smsClick")!= null ?  request.getParameter("smsClick") : "false";
 
@@ -58,10 +60,18 @@
         %>
         <link href="css/branding/<%=operator%>-style.css" rel="stylesheet">
         <%}%>
+        <script type="text/javascript">
+        var values = {};
+        values["msisdn"] = "<%=msisdn%>";
+        values["token"] = "<%=token%>";
+        values["acr"] = "<%=acr%>";
+        values["smsClick"] = "<%=smsClick%>";
+        values["operator"] = "<%=operator%>";
 
+        
 
-
-
+        </script> 
+        <script src="js/waiting.js"></script>
       </head>
 
       <body class="theme--light">
@@ -82,31 +92,6 @@
               <% } %>
 
 
-              <form class="form-horizontal" id="selfReg" name="selfReg">
-
-                <input type="hidden" name="regExp_PRIMARY" value="^[\S]{5,30}$">
-
-                <div class="control-group">
-                  <div class="controls" style="display:none;" type="hidden">
-                    <select name="domain">
-
-                      <option value="PRIMARY">PRIMARY</option>
-
-                    </select>
-                  </div>
-                </div>
-
-
-                <input type="hidden" value="" id="user_name" name="userName">
-                <input type="hidden" value="" id="password" name="pwd">
-                <input type="hidden" value="" id="retype_pwd" name="retypePwd">
-                <input type="hidden" name="sessionDataKey" id="sessionDataKey" value='<%=request.getParameter("sessionDataKey")%>' />
-                <input type="hidden" name="operator" id="operator" value='<%=operator%>'/>
-                <input type="hidden" name="acr" id="acr" value='<%=acr%>'/>
-                <input type="hidden" name="smsClick" id="smsClick" value='<%=smsClick%>'/>
-                <input type="hidden" name="token" id="token" value='<%=token%>'/>
-                <input type="hidden" value="<%=msisdn%>" id="Mobile" name="http://wso2.org/claims/mobile">
-              </form>
 
 
 
@@ -131,72 +116,83 @@
         <h1 class="page__heading">
           We've sent a message to your&nbsp;mobile
         </h1>
-        <div id ="LoA3" style="display:none">
-          <p>Sometimes when using Mobile Connect, you'll need to enter a PIN for extra security. Please follow the instructions on your mobile to create a&nbsp;PIN.</p>
-        </div>
-      </header>
+        <div id="instruction_USSDAuthenticator">
+         <p><strong>Reply with 1 to continue with your Registration.</strong></p>
 
-      <div class="page__illustration v-grow v-align-content">
-        <div>
+       </div>
+       <div id="instruction_SMSAuthenticator" style="display:none">
+         <p><strong>Click on the link in SMS from Mobile Connect to complete Registration.</strong></p>
 
-          <div class="timer-spinner-wrap">
-            <div class="timer-spinner">
-              <div class="pie spinner"></div>
-              <div class="pie filler"></div>
-              <div class="mask"></div>
-            </div>
-            <img src="mcresources/img/svg/phone-pin.svg" width="52" height="85">
+       </div>
+       <div id ="LoA3" style="display:none">
+        <p><strong>Please enter your 4-digit Mobile Connect PIN to continue with your Registration.</strong></p>
+        <p>Sometimes when using Mobile Connect, you'll need to enter a PIN for extra security. Please follow the instructions on your mobile to create a&nbsp;PIN.</p>
+      </div>
+    </header>
+
+    <div class="page__illustration v-grow v-align-content">
+      <div>
+
+        <div class="timer-spinner-wrap">
+          <div class="timer-spinner">
+            <div class="pie spinner"></div>
+            <div class="pie filler"></div>
+            <div class="mask"></div>
           </div>
+          <img src="mcresources/img/svg/phone-pin.svg" width="52" height="85">
         </div>
       </div>
-      <div class="error-copy space--bottom hide" id="timeout-warning">
-        Your mobile session is about to&nbsp;timeout.
-        <br>Check your&nbsp;device.
-      </div>
-      <div align="center" id ="LoA2" style="display:block">
-        <p>No message arrived? <br><u><a onclick="sendSms()" style="cursor: pointer;">Click to get a text message instead.</a><u></p>
-      </div>
-      <a onclick="cancelProcessToLogin()" class="btn btn--outline btn--full btn--large">
-        Cancel
-      </a>
-    </main>
-  </div>
+    </div>
+    <div class="error-copy space--bottom hide" id="timeout-warning">
+      Your mobile session is about to&nbsp;timeout.
+      <br>Check your&nbsp;device.
+    </div>
+    <div align="center" id ="sms_fallback" style="display:block">
+      <p>No message arrived? <br><u><a onclick="sendSms()" style="cursor: pointer;">Click to get a text message instead.</a><u></p>
+    </div>
+    <a onclick="cancelProcessToRegister('<%=token%>')" class="btn btn--outline btn--full btn--large">
+      Cancel
+    </a>
+  </main>
+</div>
 
-  
-  <script src="js/waiting.js"></script>
 
-  <script type="text/javascript">
 
-  var e1 = document.getElementById("LoA2");
-  var e2 = document.getElementById("LoA3");
-  if("<%=acr%>"=="USSDPinAuthenticator" ){
-    e1.style.display = 'none';
-    e2.style.display = 'block';
-  }
-  if("<%=acr%>"=="USSDAuthenticator" ){
-    e1.style.display = 'block';
-    e2.style.display = 'none';
-  }
-  
-  if("<%=smsClick%>"== "true"){
-    e1.style.display = 'none';
-    e2.style.display = 'none';
-  }
 
-  function sendSms(){
+<script type="text/javascript">
 
-    var smsClick = document.getElementById("smsClick");
-    smsClick.value="true";
-    e1.style.display = 'none';
-    console.log(isTimeout);
+var e1 = document.getElementById("sms_fallback");
+var e2 = document.getElementById("LoA3");
+var instruction_USSDAuthenticator = document.getElementById("instruction_USSDAuthenticator");
+var instruction_SMSAuthenticator = document.getElementById("instruction_SMSAuthenticator");
+if("<%=acr_code%>"=="USSDPinAuthenticator" ){
+  instruction_USSDAuthenticator.style.display = 'none';
+  e1.style.display = 'none';
+  e2.style.display = 'block';
+}
+if("<%=acr_code%>"=="USSDAuthenticator" ){
+  e1.style.display = 'block';
+  e2.style.display = 'none';
+}
 
-    isTimeout = true;
-    //handleTermination();
-    handleTerminationSms();
+if(values["smsClick"]=="true"){
+  e1.style.display = 'none';
+  e2.style.display = 'none';
+  instruction_USSDAuthenticator.style.display = 'none';
+  instruction_SMSAuthenticator.style.display = 'block';
+}
 
-  }
-  
-  </script>
+function sendSms(){
+
+  e1.style.display = 'none';
+  console.log(isTimeout);
+
+  isTimeout = true;
+  handleTerminationSms();
+
+}
+
+</script>
 </body>
 
 </html>
