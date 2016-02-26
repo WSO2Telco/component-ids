@@ -19,6 +19,7 @@ import java.util.LinkedHashSet;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
@@ -30,31 +31,35 @@ import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 
 // TODO: Auto-generated Javadoc
- 
+
 /**
  * The Class AuthenticationContextHelper.
  */
 public class AuthenticationContextHelper {
 
-	 
 	/**
 	 * Sets the subject.
 	 *
-	 * @param context the context
-	 * @param msisdn the msisdn
+	 * @param context
+	 *            the context
+	 * @param msisdn
+	 *            the msisdn
 	 * @return the authentication context
 	 */
 	public static AuthenticationContext setSubject(AuthenticationContext context, String msisdn) {
 		context.setSubject(AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(msisdn));
 		return context;
 	}
+	
+	
 
-	 
 	/**
 	 * Sets the subject.
 	 *
-	 * @param context the context
-	 * @param msisdn the msisdn
+	 * @param context
+	 *            the context
+	 * @param msisdn
+	 *            the msisdn
 	 * @return the step config
 	 */
 	public static StepConfig setSubject(StepConfig context, String msisdn) {
@@ -62,33 +67,52 @@ public class AuthenticationContextHelper {
 		return context;
 	}
 
-	
-	 
+	public static void setSubject2SequenceConfig(AuthenticationContext context) {
+
+		// Set sequence config
+		SequenceConfig sequenceConfig = context.getSequenceConfig();
+		sequenceConfig.setAuthenticatedUser(context.getSubject());
+		context.setSequenceConfig(sequenceConfig);
+
+	}
+
+	public static void setSubject2StepConfig(AuthenticationContext context) {
+
+		SequenceConfig sequenceConfig = context.getSequenceConfig();
+		int currentStep = context.getCurrentStep();
+		StepConfig stepConfig = sequenceConfig.getStepMap().get(currentStep);
+		
+		
+		// Set the authenticated user as an object. 5.1.0 onwards
+		stepConfig.setAuthenticatedUser(context.getSubject());
+		
+	}
 	/**
 	 * Gets the ACR values.
 	 *
-	 * @param request the request
+	 * @param request
+	 *            the request
 	 * @return the ACR values
 	 */
 	public static LinkedHashSet<?> getACRValues(HttpServletRequest request) {
 		String sdk = request.getParameter(OAuthConstants.SESSION_DATA_KEY);
 		CacheKey ck = new SessionDataCacheKey(sdk);
-		SessionDataCacheKey sessionDataCacheKey=new SessionDataCacheKey(sdk);
+		SessionDataCacheKey sessionDataCacheKey = new SessionDataCacheKey(sdk);
 		SessionDataCacheEntry sdce = (SessionDataCacheEntry) SessionDataCache.getInstance()
 				.getValueFromCache(sessionDataCacheKey);
 		LinkedHashSet<?> acrValues = sdce.getoAuth2Parameters().getACRValues();
 		return null;
 	}
-	
-	 
+
 	/**
 	 * Gets the user.
 	 *
-	 * @param authenticatedIdPData the authenticated id p data
+	 * @param authenticatedIdPData
+	 *            the authenticated id p data
 	 * @return the user
 	 */
-	public static String getUser(AuthenticatedIdPData authenticatedIdPData  ){
+	public static String getUser(AuthenticatedIdPData authenticatedIdPData) {
 		return authenticatedIdPData.getUser().getAuthenticatedSubjectIdentifier();
-		
+
 	}
 }

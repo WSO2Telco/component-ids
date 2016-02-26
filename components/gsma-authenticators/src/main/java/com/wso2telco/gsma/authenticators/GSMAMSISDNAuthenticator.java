@@ -39,7 +39,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.oauth.cache.CacheKey;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
@@ -177,8 +176,7 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 
 		context.setProperty("msisdn", msisdn);
 		//context.setSubject(msisdn);
-		AuthenticatedUser user=new AuthenticatedUser();
-		context.setSubject(user);
+		AuthenticationContextHelper.setSubject(context, msisdn);
 		String rememberMe = request.getParameter("chkRemember");
 
 		if (rememberMe != null && "on".equals(rememberMe)) {

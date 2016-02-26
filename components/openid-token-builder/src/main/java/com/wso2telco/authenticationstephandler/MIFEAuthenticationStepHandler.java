@@ -41,13 +41,12 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.I
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
 import com.wso2telco.gsma.authenticators.LOACompositeAuthenticator;
+import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.util.AuthenticationHealper;
 
 // TODO: Auto-generated Javadoc
@@ -356,7 +355,14 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	 */
 	private void setAuthenticationAttributes(AuthenticationContext context, StepConfig stepConfig,
 			AuthenticatorConfig authenticatorConfig) {
-		AuthenticatedIdPData authenticatedIdPData = AuthenticationHealper.createAuthenticatedIdPData(context);
+		
+		String idpName = FrameworkConstants.LOCAL_IDP_NAME;
+
+		if (context.getExternalIdP() != null) {
+			idpName = context.getExternalIdP().getIdPName();
+		}
+		
+		AuthenticatedIdPData authenticatedIdPData = AuthenticationHealper.createAuthenticatedIdPData(context,idpName);
 
 		
 
@@ -364,28 +370,21 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 		authenticatorConfig.setAuthenticatorStateInfo(context.getStateInfo());
 		stepConfig.setAuthenticatedAutenticator(authenticatorConfig);
 
-		String idpName = FrameworkConstants.LOCAL_IDP_NAME;
-
-		if (context.getExternalIdP() != null) {
-			idpName = context.getExternalIdP().getIdPName();
-		}
+		
 
 		// store authenticated idp
-		stepConfig.setAuthenticatedIdP(idpName);
-		authenticatedIdPData.setIdpName(idpName);
 		authenticatedIdPData.setAuthenticator(authenticatorConfig);
 		// add authenticated idp data to the session wise map
 		context.getCurrentAuthenticatedIdPs().put(idpName, authenticatedIdPData);
 
 		// Set sequence config
 		if (stepConfig.isSubjectAttributeStep()) {
-			SequenceConfig sequenceConfig = context.getSequenceConfig();
-			sequenceConfig.setAuthenticatedUser(context.getSubject());
-			context.setSequenceConfig(sequenceConfig);
+			AuthenticationContextHelper.setSubject2SequenceConfig(context);
 		}
-		log.info("===============================================================================setting authenticated user=============");
-		// Set the authenticated user as an object. 5.1.0 onwards
-		stepConfig.setAuthenticatedUser(context.getSubject());
+
+		log.debug("===============================================================================setting authenticated user=============");
+		AuthenticationContextHelper.setSubject2StepConfig(context);
+		
 	}
 
 	/**

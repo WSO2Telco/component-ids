@@ -229,7 +229,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         
         context.setProperty("msisdn", msisdn);
         AuthenticationContextHelper.setSubject(context, msisdn);
-        //context.setSubject(msisdn);
         String rememberMe = request.getParameter("chkRemember");
 
         if (rememberMe != null && "on".equals(rememberMe)) {

@@ -17,8 +17,7 @@ package com.wso2telco.stepbasedsequencehandler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -28,11 +27,11 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import com.wso2telco.historylog.DbTracelog;
 import com.wso2telco.historylog.LogHistoryException;
+import com.wso2telco.util.AuthenticationHealper;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -70,7 +69,8 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
 				context.setCurrentStep(curStep);
 				continue;
 			}
-			stepConfig.setAuthenticatedUser(context.getSubject());
+			AuthenticationHealper.setSubject2StepConfig(stepConfig, context);			
+
 			// if the current step is completed
 			if (stepConfig.isCompleted()) {
 				stepConfig.setCompleted(false);
@@ -169,7 +169,7 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
 					List<String> amr = (ArrayList<String>) amrValue;
 					authenticators = amr.toString();
 				}
-				authenticatedUser = context.getSequenceConfig().getAuthenticatedUser().getUserName();
+				authenticatedUser = AuthenticationHealper.getUserName(context);
 
 			} else {
 				// authenticators

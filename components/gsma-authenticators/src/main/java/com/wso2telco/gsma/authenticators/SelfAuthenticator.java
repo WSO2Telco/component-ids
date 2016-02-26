@@ -15,6 +15,9 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
@@ -23,12 +26,8 @@ import org.wso2.carbon.identity.application.authentication.framework.LocalApplic
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
  
 // TODO: Auto-generated Javadoc
@@ -66,8 +65,6 @@ public class SelfAuthenticator extends AbstractApplicationAuthenticator
         log.info("Self Authenticator authentication Start ");
         String msisdn = (String) context.getProperty("msisdn");
         context.setProperty("msisdn", msisdn);
-        //AuthenticatedUser user=new AuthenticatedUser();
-        
         AuthenticationContextHelper.setSubject(context, msisdn);
         
         //context.setSubject(user);

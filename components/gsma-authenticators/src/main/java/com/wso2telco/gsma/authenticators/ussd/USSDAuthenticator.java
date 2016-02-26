@@ -15,6 +15,11 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.ussd;
 
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
@@ -24,14 +29,12 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
-import org.wso2.carbon.identity.oauth.dao.OAuthAppDO;
-
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 import org.wso2.carbon.identity.oauth.common.exception.InvalidOAuthClientException;
 import org.wso2.carbon.identity.oauth.dao.OAuthAppDAO;
+import org.wso2.carbon.identity.oauth.dao.OAuthAppDO;
 import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
 
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
@@ -39,11 +42,6 @@ import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.DataHolder;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
 
 // TODO: Auto-generated Javadoc
 //import org.wso2.carbon.identity.core.dao.OAuthAppDAO;
@@ -200,9 +198,8 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         
 
         String msisdn = (String) context.getProperty("msisdn");
-        AuthenticatedUser user=new AuthenticatedUser();
-        context.setSubject(user);
         
+        AuthenticationContextHelper.setSubject(context, msisdn);
         log.info("USSD Authenticator authentication success");
 
 //        context.setSubject(msisdn);
