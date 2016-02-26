@@ -15,20 +15,7 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.LinkedHashSet;
-
-import javax.crypto.Cipher;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,7 +26,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.oauth.cache.CacheKey;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
@@ -47,7 +33,18 @@ import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import javax.crypto.Cipher;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.LinkedHashSet;
 
  
 // TODO: Auto-generated Javadoc
@@ -177,8 +174,9 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 
 		context.setProperty("msisdn", msisdn);
 		//context.setSubject(msisdn);
-		AuthenticatedUser user=new AuthenticatedUser();
-		context.setSubject(user);
+		/*AuthenticatedUser user=new AuthenticatedUser();
+		context.setSubject(user);*/
+        AuthenticationContextHelper.setSubject(context,msisdn);
 		String rememberMe = request.getParameter("chkRemember");
 
 		if (rememberMe != null && "on".equals(rememberMe)) {

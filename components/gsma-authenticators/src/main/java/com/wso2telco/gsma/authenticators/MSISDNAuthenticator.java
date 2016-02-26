@@ -16,6 +16,7 @@
 package com.wso2telco.gsma.authenticators;
 
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
+import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,7 +27,6 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.oauth.cache.CacheKey;
@@ -228,7 +228,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         context.setProperty("msisdn", msisdn);
         /*context.setSubject(msisdn);
         AuthenticatedUser user=new AuthenticatedUser();*/
-		context.setSubject(AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(msisdn));
+//		context.setSubject(AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(msisdn));
+        AuthenticationContextHelper.setSubject(context,msisdn);
         String rememberMe = request.getParameter("chkRemember");
 
         if (rememberMe != null && "on".equals(rememberMe)) {

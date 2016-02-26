@@ -15,13 +15,7 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.security.SecureRandom;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
@@ -31,10 +25,13 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.SecureRandom;
  
 // TODO: Auto-generated Javadoc
 /**
@@ -143,8 +140,10 @@ public class PinAuthenticator extends AbstractApplicationAuthenticator
         }
         log.info("Pin Authenticator authentication success");
         //context.setSubject((String)context.getProperty("BasicAuthSubject"));
-        AuthenticatedUser user=new AuthenticatedUser();
-        context.setSubject(user);
+//        AuthenticatedUser user=new AuthenticatedUser();
+//        context.setSubject(user);
+
+        AuthenticationContextHelper.setSubject(context, pin);
 
         String rememberMe = request.getParameter("chkRemember");
 
