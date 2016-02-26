@@ -87,7 +87,7 @@ function handleTermination() {
 function checkUSSDResponseStatus() {
 	
 	var sessionId = document.getElementById('sessionDataKey').value;
-	var url = "../SessionUpdater/tnspoints/endpoint/ussd/status?sessionID=" + sessionId;
+	var url = "../sessionupdater/tnspoints/endpoint/ussd/status?sessionID=" + sessionId;
 	var STATUS_PENDING = "PENDING";
 	
 	
