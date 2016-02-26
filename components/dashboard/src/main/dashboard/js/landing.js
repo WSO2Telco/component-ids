@@ -58,7 +58,7 @@
 }
 
 function randomPassword(length) {
-	var chars = "abcdefghijklmnopqrstuvwxyz!@#$%^&*()-+<>ABCDEFGHIJKLMNOP1234567890";
+	var chars = "abcdefghijklmnopqrstuvwxyz!@#$%&*ABCDEFGHIJKLMNOP1234567890";
 	var pass = "";
 	var generate = false;
 	while(!generate){
