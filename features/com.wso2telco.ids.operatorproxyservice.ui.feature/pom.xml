@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.wso2telco.ids</groupId>
 		<artifactId>component-ids-feature</artifactId>
-		<version>2.0.2-SNAPSHOT</version>
+		<version>2.0.12-SNAPSHOT</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -124,11 +124,11 @@
 							<goal>p2-feature-gen</goal>
 						</goals>
 						<configuration>
-							<id>org.wso2.carbon.device.mgt.ios.web.server</id>
+							<id>com.wso2telco.ids.operatorproxyservice.ui</id>
 							<propertiesFile>../etc/feature.properties</propertiesFile>
 							<adviceFile>
 								<properties>
-									<propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
+									<propertyDef>org.wso2.carbon.p2.category.type:console</propertyDef>
 									<propertyDef>org.eclipse.equinox.p2.type.group:true</propertyDef>
 								</properties>
 							</adviceFile>

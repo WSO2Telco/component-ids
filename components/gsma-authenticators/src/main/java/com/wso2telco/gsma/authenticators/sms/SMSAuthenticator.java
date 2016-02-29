@@ -15,7 +15,6 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.sms;
 
-import com.wso2telco.gsma.shorten.SelectShortUrl;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
@@ -25,7 +24,7 @@ import com.wso2telco.gsma.authenticators.config.ReadMobileConnectConfig;
 import com.wso2telco.gsma.authenticators.cryptosystem.AESencrp;
 import com.wso2telco.gsma.authenticators.util.Application;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-
+import com.wso2telco.gsma.shorten.SelectShortUrl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
@@ -35,12 +34,10 @@ import org.wso2.carbon.identity.application.authentication.framework.config.Conf
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.IOException;
 import java.util.Map;
 
@@ -192,8 +189,9 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
       
         
         String msisdn = (String) context.getProperty("msisdn");
-        AuthenticatedUser user=new AuthenticatedUser();
-        context.setSubject(user);
+//        AuthenticatedUser user=new AuthenticatedUser();
+//        context.setSubject(user);
+        AuthenticationContextHelper.setSubject(context, msisdn);
         
         log.info("SMS Authenticator authentication success");
 

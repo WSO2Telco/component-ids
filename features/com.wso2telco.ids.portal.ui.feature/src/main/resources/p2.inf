@@ -1,2 +1,2 @@
 instructions.configure = \
-org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/com.wso2telco.ids.portal.ui.feature_${feature.version}/generated/portal.zip,target:${installFolder}/../../deployment/server/jaggeryapps/portal.zip,overwrite:true);
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/com.wso2telco.ids.portal.ui_${feature.version}/generated/portal.zip,target:${installFolder}/../../deployment/server/jaggeryapps/portal.zip,overwrite:true);

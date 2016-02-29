@@ -13,11 +13,15 @@
 	<!--groupId>org.wso2.carbon.identity</groupId> <artifactId>carbon-identity</artifactId> 
 		<packaging>pom</packaging> <version>5.0.8-SNAPSHOT</version> <name>WSO2 Carbon 
 		- Platform Aggregator Pom</name> <url>http://wso2.org</url -->
-
+	<parent>
+      		<groupId>org.wso2</groupId>
+       		<artifactId>wso2</artifactId>
+       		<version>1</version>
+	</parent>
 	<groupId>com.wso2telco.ids</groupId>
 	<artifactId>component-ids-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>2.0.2-SNAPSHOT</version>
+	<version>2.0.12-SNAPSHOT</version>
 	<name>WSO2Telco Core - Component</name>
 	<description>WSO2Telco Core Aggregate Perent pom</description>
 	<url>http://wso2telco.com</url>
@@ -44,7 +48,7 @@
                 <url>https://github.com/WSO2Telco/component-ids.git</url>
                 <developerConnection>scm:git:https://github.com/WSO2Telco/component-ids.git</developerConnection>
                 <connection>scm:git:https://github.com/WSO2Telco/component-ids.git</connection>
-                <tag>v2.0.1</tag>
+                <tag>HEAD</tag>
         </scm>
 
 
@@ -1862,6 +1866,11 @@
 				<version>${org.apache.felix.scr.annotations.version}</version>
 			</dependency>
 			<dependency>
+				  <groupId>com.jayway.jsonpath.wso2</groupId>
+				  <artifactId>json-path</artifactId>
+				  <version>1.2.0.wso2v1</version>
+			</dependency>
+			<dependency>
 				<groupId>com.wso2telco.core</groupId>
 				<artifactId>mnc-resolver</artifactId>
 				<version>${com.wso2telco.core.version}</version>
@@ -1872,23 +1881,40 @@
 				<artifactId>dbutils</artifactId>
 				<version>${com.wso2telco.core.version}</version>
 			</dependency>
-			<!--dependency>
+			<dependency>
 				<groupId>com.wso2telco.ids</groupId>
 				<artifactId>gsma-authenticator</artifactId>
 				<version>${com.wso2telco.ids.version}</version>
-			</dependency-->
-			<!--dependency>
+			</dependency>
+			<dependency>
                                 <groupId>com.wso2telco.ids</groupId>
                                 <artifactId>user-registration</artifactId>
                                 <version>${com.wso2telco.ids.version}</version>
-                        </dependency-->
+                        </dependency>
 
-			<!--dependency>
+			<dependency>
                                 <groupId>com.wso2telco.ids</groupId>
                                 <artifactId>user-claim-retriever</artifactId>
                                 <version>${com.wso2telco.ids.version}</version>
-                        </dependency-->
+                        </dependency>
+		<dependency>
+			<groupId>com.wso2telco.ids</groupId>
+			<artifactId>url-shorten</artifactId>
+			<version>${com.wso2telco.ids.version}</version>	
+			<scope>provided</scope>
+		</dependency>
 
+		<dependency>
+			<groupId>com.wso2telco.ids</groupId>
+			<artifactId>authenticate-selector</artifactId>
+			 <version>${com.wso2telco.ids.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.wso2telco.ids</groupId>
+			<artifactId>authentication-endpoint</artifactId>
+			<version>${com.wso2telco.ids.version}</version>
+			<type>war</type>
+		</dependency>
 			<!-- User registration dependacies -->
 
 			<dependency>
@@ -1960,7 +1986,7 @@
 		<carbon.commons.imp.pkg.version>[4.4.0, 5.0.0)</carbon.commons.imp.pkg.version>
 
 		<!--Carbon identity version -->
-		<carbon.identity.version>5.0.5</carbon.identity.version>
+		<carbon.identity.version>5.0.7</carbon.identity.version>
 		<carbon.identity.custom.version>4.2.3</carbon.identity.custom.version>
 		<carbon.identity.package.export.version>${carbon.identity.version}</carbon.identity.package.export.version>
 		<carbon.identity.package.import.version.range>[5.0.0, 6.0.0)</carbon.identity.package.import.version.range>
@@ -2165,7 +2191,8 @@
 		<org.apache.sling.commons.json.version>2.0.6</org.apache.sling.commons.json.version>
 		<org.wso2.amber.version>0.22.1358727.wso2v4</org.wso2.amber.version>
 		<!--from intermediate pom -->
-		<com.wso2telco.ids.version>2.0.1-SNAPSHOT</com.wso2telco.ids.version>
+		<com.wso2telco.ids.version>2.0.12-SNAPSHOT</com.wso2telco.ids.version>		
+
 		<org.wso2.carbon.version>4.4.3</org.wso2.carbon.version>
 		<org.wso2.carbon.identity.version>5.0.7</org.wso2.carbon.identity.version>
 		<!--org.wso2.carbon.identity.provider.version>5.0.7</org.wso2.carbon.identity.provider.version-->
@@ -2183,7 +2210,7 @@
 		<org.json.wso2.version>3.0.0.wso2v1</org.json.wso2.version>
 		
 		<org.apache.felix.scr.annotations.version>1.9.6</org.apache.felix.scr.annotations.version>		
-		<com.wso2telco.core.version>2.0.2</com.wso2telco.core.version>	
+		<com.wso2telco.core.version>2.0.02</com.wso2telco.core.version>	
 	</properties>
 
 	<build>
@@ -2288,13 +2315,13 @@
 							</execution>
 						</executions>
 						<configuration>
-                        			<additionalparam>-Xdoclint:none</additionalparam>
+                        			<!--additionalparam>-Xdoclint:none</additionalparam-->
 			                        </configuration>
 					</plugin>
 		</plugins>
 	</build>
 	<profiles>
-		<profile>
+		<!--profile>
 			<id>notify</id>
 			<build>
 				<plugins>
@@ -2325,7 +2352,7 @@
 					</plugin>
 				</plugins>
 			</build>
-		</profile>
+		</profile-->
 		<profile>
 			<id>release</id>
 			<build>

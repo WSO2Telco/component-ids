@@ -1,2 +1,2 @@
 instructions.configure = \
-org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/com.wso2telco.ids.dashboard.ui.feature_${feature.version}/generated/dashboard.zip,target:${installFolder}/../../deployment/server/jaggeryapps/dashboard.zip,overwrite:true);
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/com.wso2telco.ids.dashboard.ui_${feature.version}/generated/dashboard.zip,target:${installFolder}/../../deployment/server/jaggeryapps/dashboard.zip,overwrite:true);

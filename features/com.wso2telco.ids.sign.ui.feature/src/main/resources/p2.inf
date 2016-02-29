@@ -1,2 +1,2 @@
 instructions.configure = \
-org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/com.wso2telco.ids.sign.ui.feature_${feature.version}/generated/sign.zip,target:${installFolder}/../../deployment/server/jaggeryapps/sign.zip,overwrite:true);
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/com.wso2telco.ids.sign.ui_${feature.version}/generated/sign.zip,target:${installFolder}/../../deployment/server/jaggeryapps/sign.zip,overwrite:true);

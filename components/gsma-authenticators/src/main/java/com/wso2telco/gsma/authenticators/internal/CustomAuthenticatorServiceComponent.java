@@ -17,7 +17,9 @@ package com.wso2telco.gsma.authenticators.internal;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
@@ -38,7 +40,7 @@ import com.wso2telco.gsma.authenticators.ussd.USSDPinAuthenticator;
  * The Class CustomAuthenticatorServiceComponent.
  */
 // 
-@Component(name = "custom.authenticators.component")
+@Component(name = "com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent")
 @Reference(
         name = "user.realmservice.default",
         referenceInterface = org.wso2.carbon.user.core.service.RealmService.class,
@@ -60,6 +62,7 @@ public class CustomAuthenticatorServiceComponent {
      *
      * @param ctxt the ctxt
      */
+    @Activate
     protected void activate(ComponentContext ctxt) {
 
          
@@ -107,6 +110,7 @@ public class CustomAuthenticatorServiceComponent {
      *
      * @param ctxt the ctxt
      */
+    @Deactivate
     protected void deactivate(ComponentContext ctxt) {
         if (log.isDebugEnabled()) {
             log.info("Custom Application Authenticator bundle is deactivated");

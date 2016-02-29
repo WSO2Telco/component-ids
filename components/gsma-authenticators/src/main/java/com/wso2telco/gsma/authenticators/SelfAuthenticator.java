@@ -66,8 +66,11 @@ public class SelfAuthenticator extends AbstractApplicationAuthenticator
         log.info("Self Authenticator authentication Start ");
         String msisdn = (String) context.getProperty("msisdn");
         context.setProperty("msisdn", msisdn);
-        AuthenticatedUser user=new AuthenticatedUser();
-        context.setSubject(user);
+        //AuthenticatedUser user=new AuthenticatedUser();
+        
+        AuthenticationContextHelper.setSubject(context, msisdn);
+        
+        //context.setSubject(user);
         String rememberMe = httpServletRequest.getParameter("chkRemember");
         if (rememberMe != null && "on".equals(rememberMe)) {
             context.setRememberMe(true);

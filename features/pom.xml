@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>com.wso2telco.ids</groupId>
 		<artifactId>component-ids-parent</artifactId>
-		<version>2.0.2-SNAPSHOT</version>
+		<version>2.0.12-SNAPSHOT</version>
 		<relativePath>../parent/pom.xml</relativePath>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
@@ -12,6 +12,8 @@
 	<name>Component Ids Aggregated Features</name>
 	<url>http://wso2telco.com</url>
 	<modules>
+		<module>com.wso2telco.ids.openidtokenbuilder.feature</module>
+		<module>com.wso2telco.ids.userregistration.ui.feature</module>
 		<module>com.wso2telco.ids.urlshorten.feature</module>
 		<module>com.wso2telco.ids.gsmaauthenticator.feature</module>
 		<module>com.wso2telco.ids.userclaimretriever.feature</module>
@@ -19,6 +21,9 @@
 		<module>com.wso2telco.ids.authenticationendpoint.ui.feature</module>
 		<module>com.wso2telco.ids.sessionupdater.ui.feature</module>
 		<module>com.wso2telco.ids.operatorproxyservice.ui.feature</module>
+		<module>com.wso2telco.ids.dashboard.ui.feature</module>
+		<module>com.wso2telco.ids.portal.ui.feature</module>
+		<module>com.wso2telco.ids.sign.ui.feature</module>
 	</modules>
 
 </project>

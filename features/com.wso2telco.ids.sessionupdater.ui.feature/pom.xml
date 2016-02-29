@@ -4,15 +4,15 @@
     <parent>
         <groupId>com.wso2telco.ids</groupId>
         <artifactId>component-ids-feature</artifactId>
-        <version>2.0.2-SNAPSHOT</version>
+        <version>2.0.12-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>com.wso2telco.ids.sessionupdater.ui.feature</artifactId>
     <packaging>pom</packaging>
-    <name>Session Updater</name>
-    <url>http://wso2telco.com</url>
+    <name>Session Updater Feature</name>
+    <url>http://wso2.org</url>
     
     <dependencies>          
         <dependency>
@@ -131,11 +131,11 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>com.wso2telco.ids.sessionupdater.ui.feature</id>
+                            <id>com.wso2telco.ids.sessionupdater.ui</id>
                             <propertiesFile>../feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
-                                    <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
+                                    <propertyDef>org.wso2.carbon.p2.category.type:console</propertyDef>
                                     <propertyDef>org.eclipse.equinox.p2.type.group:true</propertyDef>
                                 </properties>
                             </adviceFile>

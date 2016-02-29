@@ -7,15 +7,17 @@
 		<format>zip</format>
 	</formats>
 	<includeBaseDirectory>false</includeBaseDirectory>
-	<dependencySets>
+	<!--dependencySets>
 		<dependencySet>
 			<unpack>false</unpack>
 			<scope>runtime</scope>
 		</dependencySet>
-	</dependencySets>
+	</dependencySets-->
 	<fileSets>
 		<fileSet>
-			<directory>${project.basedir}</directory>
+			<!--directory>${project.basedir}</directory-->
+			<directory>${project.basedir}/src/main/sign</directory>
+			<outputDirectory>/</outputDirectory>
 			<includes>
 				<include>**/*</include>
 			</includes>

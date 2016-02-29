@@ -3,7 +3,7 @@
     <parent>
         <groupId>com.wso2telco.ids</groupId>
         <artifactId>component-ids-feature</artifactId>
-        <version>2.0.2-SNAPSHOT</version>
+        <version>2.0.12-SNAPSHOT</version>
 	<relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -31,15 +31,16 @@
                             <goal>p2-feature-gen</goal>
                         </goals>
                         <configuration>
-                            <id>com.wso2telco.ids.gsmaauthenticator.feature</id>
+                            <id>com.wso2telco.ids.gsmaauthenticator</id>
                             <propertiesFile>../feature.properties</propertiesFile>
                             <adviceFile>
                                 <properties>
                                     <propertyDef>org.wso2.carbon.p2.category.type:server</propertyDef>
-                                    <propertyDef>org.eclipse.equinox.p2.type.group:false</propertyDef>
+                                    <propertyDef>org.eclipse.equinox.p2.type.group:true</propertyDef>
                                 </properties>
                             </adviceFile>
                             <bundles>				
+                                <bundleDef>com.wso2telco.ids:gsma-authenticator:${com.wso2telco.ids.version}</bundleDef>
                                 <bundleDef>com.wso2telco.ids:url-shorten:${com.wso2telco.ids.version}</bundleDef>
 				<bundleDef>commons-codec.wso2:commons-codec:${commons-codec.version}</bundleDef>
                             </bundles>

@@ -253,7 +253,8 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			context.setAuthenticatorProperties(FrameworkUtils.getAuthenticatorPropertyMapFromIdP(
 					context.getExternalIdP(), authenticator.getName()));
 			AuthenticatorFlowStatus status = authenticator.process(request, response, context);
-
+			request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
+			
 			if (log.isDebugEnabled()) {
 				log.debug(authenticator.getName() + " returned: " + status.toString());
 			}
@@ -355,12 +356,8 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	 */
 	private void setAuthenticationAttributes(AuthenticationContext context, StepConfig stepConfig,
 			AuthenticatorConfig authenticatorConfig) {
-		AuthenticatedIdPData authenticatedIdPData = new AuthenticatedIdPData();
+		AuthenticatedIdPData authenticatedIdPData = AuthenticationHealper.createAuthenticatedIdPData(context);
 
-		// store authenticated user
-		AuthenticatedUser authenticatedUser = context.getSubject();
-		stepConfig.setAuthenticatedUser(authenticatedUser);
-		authenticatedIdPData.getUser().setUserName(authenticatedUser.getUserName());
 		
 
 
@@ -386,6 +383,9 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			sequenceConfig.setAuthenticatedUser(context.getSubject());
 			context.setSequenceConfig(sequenceConfig);
 		}
+		log.info("===============================================================================setting authenticated user=============");
+		// Set the authenticated user as an object. 5.1.0 onwards
+		stepConfig.setAuthenticatedUser(context.getSubject());
 	}
 
 	/**

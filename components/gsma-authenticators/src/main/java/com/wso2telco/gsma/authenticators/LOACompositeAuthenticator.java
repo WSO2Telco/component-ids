@@ -15,6 +15,11 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
+import com.wso2telco.gsma.authenticators.config.LOA;
+import com.wso2telco.gsma.authenticators.config.LOA.MIFEAbstractAuthenticator;
+import com.wso2telco.gsma.authenticators.config.LOAConfig;
+import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
+import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -29,7 +34,6 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.Property;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.oauth.cache.CacheKey;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
@@ -38,12 +42,6 @@ import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
-
-import com.wso2telco.gsma.authenticators.config.LOA;
-import com.wso2telco.gsma.authenticators.config.LOAConfig;
-import com.wso2telco.gsma.authenticators.config.LOA.MIFEAbstractAuthenticator;
-import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -101,14 +99,14 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
                 if (userRealm != null) {
                     UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
 
-                    String userLocked = userStoreManager.getUserClaimValue(msisdn, "http://wso2.org/claims/identity/accountLocked", "default");
+                   /* String userLocked = userStoreManager.getUserClaimValue(msisdn, "http://wso2.org/claims/identity/accountLocked", "default");
                     if (userLocked != null && userLocked.equalsIgnoreCase("true")) {
                         log.info("Self Authenticator authentication failed ");
                         if (log.isDebugEnabled()) {
                             log.debug("User authentication failed due to locked account.");
                         }
                         throw new AuthenticationFailedException("Self Authentication Failed");
-                    }
+                    }*/
 
                     isAuthenticated = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(msisdn));
                 } else {
@@ -169,8 +167,9 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
             sequenceConfig.setStepMap(stepMap);
             context.setSequenceConfig(sequenceConfig);
             context.setProperty("msisdn", msisdn);
-            AuthenticatedUser aUser=new AuthenticatedUser();
-            context.setSubject(aUser);
+           /* AuthenticatedUser aUser=new AuthenticatedUser();
+            context.setSubject(aUser)*/;
+            AuthenticationContextHelper.setSubject(context,msisdn);
 
 
         }else{

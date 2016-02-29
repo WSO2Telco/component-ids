@@ -28,11 +28,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.oltu.openidconnect.as.messages.IDTokenBuilder;
 import org.apache.oltu.openidconnect.as.messages.IDTokenException;
-import org.apache.sling.commons.json.JSONArray;
-import org.apache.sling.commons.json.JSONException;
-import org.apache.sling.commons.json.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.oauth.cache.*;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 import org.wso2.carbon.identity.oauth.common.exception.InvalidOAuthClientException;
@@ -46,6 +47,7 @@ import org.wso2.carbon.identity.oauth2.dto.OAuth2AccessTokenRespDTO;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2AuthorizeRespDTO;
 import org.wso2.carbon.identity.oauth2.model.AccessTokenDO;
 import org.wso2.carbon.identity.oauth2.token.OAuthTokenReqMessageContext;
+import org.wso2.carbon.identity.oauth2.util.OAuth2Util;
 import org.wso2.carbon.identity.openidconnect.CustomClaimsCallbackHandler;
 
 import java.io.IOException;
@@ -137,7 +139,7 @@ public class MIFEOpenIDTokenBuilder implements
 		String subject = getACR(msisdn);
 
 		// Get access token issued time
-		String accessTokenIssuedTime = getAccessTokenIssuedTime(tokenRespDTO.getAccessToken());
+		String accessTokenIssuedTime = getAccessTokenIssuedTime(tokenRespDTO.getAccessToken(),request);
 
 		// Set base64 encoded value of the access token to atHash
 		String atHash = new String(Base64.encodeBase64(tokenRespDTO.getAccessToken().getBytes()));
@@ -197,9 +199,13 @@ public class MIFEOpenIDTokenBuilder implements
 		ClaimMapping acrKey = null;
 		while (userAttributes.hasNext()) {
 			ClaimMapping mapping = userAttributes.next();
-			if (mapping.getLocalClaim().getClaimUri().equals(key)) {
-				acrKey = mapping;
+			if(mapping.getLocalClaim() != null ){
+				if (mapping.getLocalClaim().getClaimUri().equals(key)) {
+					acrKey = mapping;
+				}
 			}
+			
+			
 		}
 //TODO Code Diff
 		if (null != acrKey) {
@@ -211,6 +217,44 @@ public class MIFEOpenIDTokenBuilder implements
 	}
 
 	 
+	
+	
+	private String getAccessTokenIssuedTime(String accessToken, OAuthTokenReqMessageContext request)
+            throws IdentityOAuth2Exception {
+
+        AccessTokenDO accessTokenDO = null;
+        TokenMgtDAO tokenMgtDAO = new TokenMgtDAO();
+
+        OAuthCache oauthCache = OAuthCache.getInstance();
+        String authorizedUser = request.getAuthorizedUser().toString();
+        boolean isUsernameCaseSensitive = IdentityUtil.isUserStoreInUsernameCaseSensitive(authorizedUser);
+        if (!isUsernameCaseSensitive){
+            authorizedUser = authorizedUser.toLowerCase();
+        }
+
+        OAuthCacheKey cacheKey = new OAuthCacheKey(
+                request.getOauth2AccessTokenReqDTO().getClientId() + ":" + authorizedUser +
+                        ":" + OAuth2Util.buildScopeString(request.getScope()));
+        CacheEntry result = oauthCache.getValueFromCache(cacheKey);
+
+        // cache hit, do the type check.
+        if (result instanceof AccessTokenDO) {
+            accessTokenDO = (AccessTokenDO) result;
+        }
+
+        // Cache miss, load the access token info from the database.
+        if (accessTokenDO == null) {
+            accessTokenDO = tokenMgtDAO.retrieveAccessToken(accessToken, false);
+        }
+
+        // if the access token or client id is not valid
+        if (accessTokenDO == null) {
+            throw new IdentityOAuth2Exception("Access token based information is not available in cache or database");
+        }
+
+        return Long.toString(accessTokenDO.getIssuedTime().getTime() / 1000);
+    }
+	
 	/**
 	 * Gets the app information.
 	 *
@@ -322,7 +366,7 @@ public class MIFEOpenIDTokenBuilder implements
 	 * @return the access token issued time
 	 * @throws IdentityOAuth2Exception the identity o auth2 exception
 	 */
-	public String getAccessTokenIssuedTime(String accessToken) throws IdentityOAuth2Exception {
+	/*public String getAccessTokenIssuedTime(String accessToken) throws IdentityOAuth2Exception {
 		AccessTokenDO accessTokenDO = null;
 		TokenMgtDAO tokenMgtDAO = new TokenMgtDAO();
 
@@ -340,7 +384,7 @@ public class MIFEOpenIDTokenBuilder implements
 		// Cache miss, load the access token info from the database.
 		if (null == accessTokenDO) {
 			//TODO CODE COMMENTED#
-			//accessTokenDO = tokenMgtDAO.retrieveAccessToken(accessToken);
+			accessTokenDO = tokenMgtDAO.retrieveAccessToken(accessToken);
 		}
 
 		// if the access token or client id is not valid
@@ -353,7 +397,7 @@ public class MIFEOpenIDTokenBuilder implements
 		long timeIndMilliSeconds = accessTokenDO.getIssuedTime().getTime();
 
 		return Long.toString(timeIndMilliSeconds / 1000);
-	}
+	}*/
 
 	 
 	/**

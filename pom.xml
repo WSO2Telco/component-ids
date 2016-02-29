@@ -6,18 +6,23 @@
 	Unless required by applicable law or agreed to in writing, software distributed 
 	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
-	the specific language governing permissions and limitations under the License. -->
+	the specific language governing permissions and limitations under the License.
+   folk test M	-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 	<!--groupId>org.wso2.carbon.identity</groupId> <artifactId>carbon-identity</artifactId> 
 		<packaging>pom</packaging> <version>5.0.8-SNAPSHOT</version> <name>WSO2 Carbon 
 		- Platform Aggregator Pom</name> <url>http://wso2.org</url -->
-
+	<parent>
+       		<groupId>org.wso2</groupId>
+       		<artifactId>wso2</artifactId>
+       		<version>1</version>
+   	</parent>
 	<groupId>com.wso2telco.ids</groupId>
 	<artifactId>component-ids</artifactId>
 	<packaging>pom</packaging>
-	<version>2.0.2-SNAPSHOT</version>
+	<version>2.0.12-SNAPSHOT</version>
 	<name>WSO2Telco Core - Component</name>
 	<description>WSO2Telco Core Aggregate Pom</description>
 	<url>http://wso2telco.com</url>
@@ -68,7 +73,7 @@
 		<url>https://github.com/WSO2Telco/component-ids.git</url>
 		<developerConnection>scm:git:https://github.com/WSO2Telco/component-ids.git</developerConnection>
 		<connection>scm:git:https://github.com/WSO2Telco/component-ids.git</connection>
-		<tag>v2.0.1</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 
@@ -92,6 +97,13 @@
                     <preparationGoals>clean install</preparationGoals>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                 </configuration>
+		<dependencies>
+                <dependency>
+                    <groupId>org.apache.maven.scm</groupId>
+                    <artifactId>maven-scm-provider-gitexe</artifactId>
+                    <version>1.9</version>
+                </dependency>
+            </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.authentication.framework.config.mode
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import com.wso2telco.historylog.DbTracelog;
@@ -69,12 +70,13 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
 				context.setCurrentStep(curStep);
 				continue;
 			}
-
+			stepConfig.setAuthenticatedUser(context.getSubject());
 			// if the current step is completed
 			if (stepConfig.isCompleted()) {
 				stepConfig.setCompleted(false);
 				stepConfig.setRetrying(false);
 
+				
 				// if the request didn't fail during the step execution
 				if (context.isRequestAuthenticated()) {
 					if (log.isDebugEnabled()) {

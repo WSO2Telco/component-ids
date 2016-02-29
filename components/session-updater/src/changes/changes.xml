@@ -25,6 +25,12 @@
 			<action dev="Yasith Lokuge" type="add" issue="PRODEV-8">
                OSGI Feature released for Session Updater artifact.
             </action>
-		</release>		
+		</release>
+
+    <release version="1.0.0" date="2016-02-09" description="First release">
+      <action dev="Wishmika" type="add" issue="PRODEV-136">
+               Session updater not bundling problem fixed
+            </action>
+    </release>	
 	</body>	
 </document>

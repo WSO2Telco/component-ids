@@ -15,7 +15,8 @@
 	</dependencySets>
 	<fileSets>
 		<fileSet>
-			<directory>${project.basedir}</directory>
+			<directory>${project.basedir}/src/main/portal</directory>
+			<outputDirectory>/</outputDirectory>
 			<includes>
 				<include>**/*</include>
 			</includes>

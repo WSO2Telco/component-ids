@@ -76,16 +76,17 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
 
             }
         }
-        if (userAttributes == null || userAttributes.isEmpty()) {
-            if (log.isDebugEnabled()) {
-                log.debug("User attributes not found in cache. Trying to retrieve from user store.");
-            }
+        // Commenting out this since a null entry resides inside cache
+//        if (userAttributes == null || userAttributes.isEmpty()) {
+//            if (log.isDebugEnabled()) {
+//                log.debug("User attributes not found in cache. Trying to retrieve from user store.");
+//            }
             try {
                 claims = ClaimUtil.getClaimsFromUserStore(tokenResponse);
             } catch (Exception e) {
                 throw new UserInfoEndpointException("Error while retrieving claims from user store.");
             }
-        }
+//        }
 
         String contextPath = System.getProperty("request.context.path");
         String[] requestedScopes = tokenResponse.getScope();
@@ -133,10 +134,13 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         String[] attributes;
         if (scopeConfigs != null) {
             for (String scopeName : scopes) {
+            	log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + scopeName);
                 for (Scope scope : scopeConfigs.getScopes().getScopeList()) {
+                	log.info("<<<<<<< " + scope.getName());
                     if (scopeName.equals(scope.getName())) {
                         attributes = new String[scope.getClaims().getClaimValues().size()];
                         requestedClaims = addClaims(totalClaims, requestedClaims, scope.getClaims().getClaimValues().toArray(attributes));
+                        log.info("added claim ");
                         break;
                     }
                 }
