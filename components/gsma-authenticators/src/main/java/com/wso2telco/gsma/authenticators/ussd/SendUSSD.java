@@ -124,7 +124,7 @@ public class SendUSSD {
         try {
             readMobileConnectConfigResult = readMobileConnectConfig.query("USSD");
         }catch (Exception ex){
-            log.info("Exception :"+ex);
+            log.error("Exception :"+ex);
         }
         USSDRequest req = new USSDRequest();
 

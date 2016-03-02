@@ -19,6 +19,9 @@ import com.wso2telco.gsma.authendictorselector.AuthenticatorSelector;
 import com.wso2telco.gsma.utils.ReadMobileConnectConfig;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -40,6 +43,9 @@ import java.util.Map;
  * The Class SendSMS.
  */
 public class SendSMS implements AuthenticatorSelector{
+	
+    /** The log. */
+    private static Log log = LogFactory.getLog(SendSMS.class); 
 
 //    private static final Logger LOG = Logger.getLogger(SendSMS.class.getName());
 /** The read mobile connect config. */
@@ -152,12 +158,12 @@ public class SendSMS implements AuthenticatorSelector{
         HttpResponse response = client.execute(postRequest);
 
         if ( (response.getStatusLine().getStatusCode() != 201)){
-//            LOG.info("Error occured while calling end points");
-            System.out.println("Error occured");
+           log.error("Error occured while calling end points");
         }
         else{
-//            LOG.info("Success Request");
-            System.out.println("Success");
+			if (log.isDebugEnabled()) {
+				log.debug("Success");
+			}
         }
     }
 

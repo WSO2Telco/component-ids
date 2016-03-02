@@ -100,13 +100,18 @@ public JsonObject createTransaction(String mepinID, String sessionID, String ser
                 URLEncoder.encode(callback_url, charset),
                 URLEncoder.encode(confirmation_policy, charset)
         );
+        
+        if (log.isDebugEnabled()) {
         log.debug("MePin query: " + query);
-
+        }
         String response = postRequest(url, query, charset);
 
         JsonObject responseJson = new JsonParser().parse(response).getAsJsonObject();
+        
+        if (log.isDebugEnabled()) {
         log.debug("MePin JSON Response: " + responseJson);
-
+        }
+        
         return responseJson;
     }
 

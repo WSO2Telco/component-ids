@@ -16,6 +16,8 @@
 package com.wso2telco.gsma.authenticators.cryptosystem;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.xml.sax.SAXException;
 
 import com.wso2telco.gsma.authenticators.config.ReadMobileConnectConfig;
@@ -35,7 +37,9 @@ import java.util.Map;
  */
 public class AESencrp {
 
-
+    /** The log. */
+    private static Log log = LogFactory.getLog(AESencrp.class);
+	
     /** The Constant ALGO. */
     private static final String ALGO = "AES";
     
@@ -93,13 +97,13 @@ public class AESencrp {
         try {
             readMobileConnectConfigResult = readMobileConnectConfig.query("SMS");
         } catch (ParserConfigurationException e) {
-            e.printStackTrace();
+            log.error("Error occured during ParseCOnfiguration " + e);
         } catch (SAXException e) {
-            e.printStackTrace();
+        	log.error("Error occured during processing XML " + e);
         } catch (IOException e) {
-            e.printStackTrace();
+        	log.error("I/O exception occured " + e);
         } catch (XPathExpressionException e) {
-            e.printStackTrace();
+            log.error("Error occured in XPath expression " + e);
         }
 
         key = readMobileConnectConfigResult.get("AesKey");

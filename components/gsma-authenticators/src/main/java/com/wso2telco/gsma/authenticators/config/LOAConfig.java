@@ -20,12 +20,18 @@ import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class LOAConfig.
  */
 @XmlRootElement(name = "LOAConfiguration")
 public class LOAConfig {
+	
+    /** The log. */
+    private static Log log = LogFactory.getLog(LOAConfig.class); 
 
 	/** The loas. */
 	private List<LOA> loas;
@@ -79,11 +85,15 @@ public class LOAConfig {
 	public void print() {
 		for (LOA loa : loas) {
 			List<Authenticators> l = loa.getAuthentication().getAuthenticatorList();
-			System.out.println(l.size());
+			if(log.isDebugEnabled()){
+				log.debug(l.size());
+			}
 			for (Authenticators s : l) {
 				List<Authenticator> d = s.getAuthenticators();
 				for (Authenticator v : d) {
-					System.out.println(v.getAuthenticatorName());
+					if(log.isDebugEnabled()){
+						log.debug(v.getAuthenticatorName());
+					}
 				}
 			}
 		}
