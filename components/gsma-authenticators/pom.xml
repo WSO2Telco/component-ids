@@ -19,7 +19,7 @@
 	<parent>
 		<groupId>com.wso2telco.ids</groupId>
 		<artifactId>component-ids-parent</artifactId>
-                <version>2.0.13</version>
+                <version>2.0.14-SNAPSHOT</version>
                 <relativePath>../../parent/pom.xml</relativePath>
 	</parent>
 
@@ -125,8 +125,4 @@
 		
 	</profiles>
 
-
-  <scm>
-    <tag>v2_0_13</tag>
-  </scm>
 </project>
