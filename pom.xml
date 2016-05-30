@@ -53,20 +53,20 @@
 
 	
 	<modules>
-		<module>parent</module>
+		<!--module>parent</module>
 		<module>components/url-shorten</module>
 		<module>components/user-claim-retriever</module>
-	       <module>components/authenticate-selector</module>
+	       <module>components/authenticate-selector</module-->
 		<module>components/gsma-authenticators</module>
-		<module>components/openid-token-builder</module>
-		<module>components/operator-proxy-service</module>
+		<!--module>components/openid-token-builder</module>
+		<module>components/operator-proxy-service</module-->
 		<module>components/user-registration</module>
-		<module>components/sign</module>
+		<!--module>components/sign</module>
 		<module>components/session-updater</module>
 		<module>components/portal</module>
 		<module>components/dashboard</module>
 		<module>components/authentication-endpoint</module>
-		<module>features</module> 
+		<module>features</module>--> 
 	</modules>
 
 	<scm>
