@@ -273,7 +273,7 @@ public class DBUtils {
         sql.append("SELECT *");
         sql.append(" from ");
         sql.append(TableName.AUTHENTICATED_LOGIN);
-        sql.append("where tokenID=?");
+        sql.append(" where tokenID=?");
         
         if(log.isDebugEnabled()){
         	log.debug("Executing the query "+ sql + " for TokenId " + tokenID);
