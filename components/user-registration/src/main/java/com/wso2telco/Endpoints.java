@@ -43,6 +43,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.json.JSONException;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceException;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
 import com.google.gson.Gson;
@@ -974,5 +976,30 @@ public class Endpoints {
 	}
 
 	
+	@GET
+	@Path("/user/registration")
+	@Produces({ "application/json" })
+	public Response userRegistration(@QueryParam("username") String userName,
+			@QueryParam("msisdn") String msisdn,
+			@QueryParam("openId") String openId,
+			@QueryParam("password") String pwd,
+			@QueryParam("claim") String claim,
+			@QueryParam("domain") String domain,
+			@QueryParam("params") String params, String jsonBody,
+			@QueryParam("operator") String operator,
+			@QueryParam("telco_scope") String telco_scope,
+			@QueryParam("updateProfile") boolean updateProfile)
+			throws IOException, org.json.JSONException {
+		UserRegistrationData userRegistrationData = new UserRegistrationData(
+				userName, msisdn, openId, pwd, claim, domain, params,
+				updateProfile);
+		
+		try {
+			userProfileManager.manageProfile(userRegistrationData);
+		} catch (Exception ex) {
+			log.error("userRegistration HE", ex);
+		}
+		return Response.status(Response.Status.OK).entity(null).build();
+	}
 
 }
