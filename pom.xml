@@ -66,7 +66,7 @@
 		<module>components/portal</module>
 		<module>components/dashboard</module>
 		<module>components/authentication-endpoint</module>
-		<module>features</module>> 
+		<module>features</module> 
 	</modules>
 
 	<scm>
