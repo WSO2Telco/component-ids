@@ -65,10 +65,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.nimbusds.jwt.PlainJWT;
 import com.wso2telco.util.AuthenticationHealper;
 
-// TODO: Auto-generated Javadoc
-/**
- * The Class MIFEOpenIDTokenBuilder.
- */
+
 public class MIFEOpenIDTokenBuilder implements org.wso2.carbon.identity.openidconnect.IDTokenBuilder {
 
 	Log LOG = LogFactory.getLog(MIFEOpenIDTokenBuilder.class);
