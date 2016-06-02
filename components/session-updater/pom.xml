@@ -12,12 +12,13 @@
 	<parent>
 		<groupId>com.wso2telco.ids</groupId>
 		<artifactId>component-ids-parent</artifactId>
-                <version>2.0.15-SNAPSHOT</version>
+                <version>2.0.15</version>
                 <relativePath>../../parent/pom.xml</relativePath>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>session-updater</artifactId>
+  <version>2.0.16-SNAPSHOT</version>
 	<packaging>war</packaging>
 
 	<name>Session Updater - Webapps</name>
