@@ -275,11 +275,26 @@ public class Endpoints {
 
 		log.info("Ussd Push received inboundUSSDMessage:" + inboundUSSDMessage + " ,address:" + address);
 		String msisdn = null;
+		
+		/**
+		 * obtained the msisdn from address . the standard address format should
+		 * be "tel:+<number>" split the address by :+
+		 * index 1 need to be the msisdn
+		 */
 		try {
-			msisdn = address.split(":\\+")[2];
+			String[] splittedAddress = address.split(":\\+");
+			if (splittedAddress != null && splittedAddress.length ==2) {
+				msisdn = splittedAddress[1];
+
+			} else {
+
+				return Response.status(Response.Status.BAD_REQUEST).entity("INCORRECT MSISDN FORMAT").build();
+			}
+
 		} catch (Exception e) {
-			log.error("address split failed");
+			return Response.status(Response.Status.BAD_REQUEST).entity("INCORRECT MSISDN FORMAT").build();
 		}
+		
 		boolean ussdOk = false;
 		if (inboundUSSDMessage.equals("1")) {
 			ussdOk = true;
