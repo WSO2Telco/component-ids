@@ -126,7 +126,7 @@ public class MIFEOpenIDTokenBuilder implements org.wso2.carbon.identity.openidco
 			String amr = getValuesFromCache(request, "amr");
 
 			// Retrieve or create an ACR app
-			acrAppID = getACRAppID(applicationName);
+			//acrAppID = getACRAppID(applicationName);
 
 			// Set ACR (PCR) to sub
 			String subject = null;
@@ -549,6 +549,7 @@ public class MIFEOpenIDTokenBuilder implements org.wso2.carbon.identity.openidco
 		}
 
 		log.info("Encrypted Text:" + encryptedText);
+		log.info("createLocalACR success!");
 		return encryptedText;
 
 	}
