@@ -8,6 +8,7 @@ import com.google.gdata.util.common.util.Base64;
 import com.google.gdata.util.common.util.Base64DecoderException;
 import com.wso2telco.proxy.util.*;
 import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 import org.wso2.carbon.identity.user.registration.stub.dto.UserDTO;
 import org.wso2.carbon.identity.user.registration.stub.dto.UserFieldDTO;
@@ -47,7 +48,7 @@ import java.util.Map.Entry;
 public class Endpoints {
 
 
-    private static Log log = null;//LogFactory.getLog(Endpoints.class);
+    private static Log log = LogFactory.getLog(Endpoints.class);
 
     private static final String OPERATOR_CLAIM_NAME = "http://wso2.org/claims/operator";
     private static final String MOBILE_CLAIM_NAME = "http://wso2.org/claims/mobile";
