@@ -22,11 +22,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.oltu.openidconnect.as.messages.IDToken;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler;
-import org.wso2.carbon.identity.oauth.cache.CacheKey;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
@@ -36,6 +39,9 @@ import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
  * The Class MIFEClaimHandler.
  */
 public class MIFEClaimHandler extends DefaultClaimHandler {
+
+	private static Log log = LogFactory.getLog(MIFEClaimHandler.class);
+    private static boolean DEBUG = log.isDebugEnabled();
 
 	/* (non-Javadoc)
 	 * @see org.wso2.carbon.identity.application.authentication.framework.handler.claims.impl.DefaultClaimHandler#handleClaimMappings(org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext, java.util.Map, boolean)
@@ -89,6 +95,43 @@ public class MIFEClaimHandler extends DefaultClaimHandler {
 				localClaims.put("amr", StringUtils.join(amr, ','));
 		
 			}
+			
+			
+			// Adding nonce to claim map
+            String nonce = sdce.getoAuth2Parameters().getNonce();
+
+            if (DEBUG) {
+                log.debug(" nonce values from  getoAuth2Parameters " + nonce);
+            }
+
+            AuthenticationRequest authRequest = context.getAuthenticationRequest();
+
+            if (authRequest.getRequestQueryParams().containsKey(IDToken.NONCE)) {
+                if (authRequest.getRequestQueryParams().get(IDToken.NONCE).length != 0) {
+                    nonce = authRequest.getRequestQueryParams().get(IDToken.NONCE)[0];
+                }
+            }
+           
+            if (authRequest.getRequestQueryParams().get("state").length != 0){
+                String state = authRequest.getRequestQueryParams().get("state")[0];
+                
+                localClaims.put("state", state);
+                log.info("state=" + state);
+                
+            }else{
+                log.info("state is empty..........................");
+            }
+            
+            
+            
+            
+            if (DEBUG) {
+                log.debug(" nonce values from  getoAuth2Parameters " + nonce);
+            }
+            if (null != nonce) {
+                localClaims.put(IDToken.NONCE, nonce);
+            }
+
 		} catch (NullPointerException e) {
 			// Possible exception during dashboard login
 			// Should continue even if NPE is thrown

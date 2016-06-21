@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -41,10 +43,9 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.I
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
 import com.wso2telco.gsma.authenticators.LOACompositeAuthenticator;
@@ -145,6 +146,7 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 						context.setExternalIdP(ConfigurationFacade.getInstance().getIdPConfigByName(
 								idp, context.getTenantDomain()));
 					} catch (IdentityProviderManagementException e) {
+						e.printStackTrace();
 						log.error(e);
 						throw new FrameworkException(e.toString());
 					}
@@ -195,6 +197,7 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 									.getIdPConfigByName(authenticatorConfig.getIdpNames().get(0),
 											context.getTenantDomain()));
 						} catch (IdentityProviderManagementException e) {
+							e.printStackTrace();
 							log.error(e);
 							throw new FrameworkException(e.toString());
 						}
@@ -242,6 +245,14 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 		int currentStep = context.getCurrentStep();
 		StepConfig stepConfig = sequenceConfig.getStepMap().get(currentStep);
 
+		AuthenticationRequest authRequest = context.getAuthenticationRequest();
+	    Map< String, String[]> paramMap = authRequest.getRequestQueryParams();
+	        
+	       
+	    String scope = "";
+	    String redirectUri = null;
+	    String state = null;
+	    String responseType = null;    
 		// Set false for all steps
 		 
 
@@ -252,6 +263,89 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 					context.getExternalIdP(), authenticator.getName()));
 			AuthenticatorFlowStatus status = authenticator.process(request, response, context);
 			request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
+			
+			scope = paramMap.get("scope")[0];
+			log.info("Scope:" + scope);
+
+	        //state validation
+	        if (!paramMap.containsKey("state")  ) {
+	            redirectUri = paramMap.get("redirect_uri")[0];
+
+	            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=state_Required" ;
+	            log.info("invalid redirect URI = " + invalidRedirectUrl);
+
+	            try {
+	                response.sendRedirect(invalidRedirectUrl);
+	                return;
+	            } catch (IOException ex) {
+	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+	            }
+	        }
+	        else {
+
+	            state = paramMap.get("state")[0];
+	            redirectUri = paramMap.get("redirect_uri")[0];
+
+	        }
+	        
+	        
+	        //responseType validation
+	        if (!paramMap.containsKey("response_type")  ) {
+	        	
+	        	
+	            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=response_type_Required" ;
+	            log.info("invalid redirect URI = " + invalidRedirectUrl);
+
+	            try {
+	                response.sendRedirect(invalidRedirectUrl);
+	                return;
+	            } catch (IOException ex) {
+	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+	            }
+	        }
+	        else {
+
+	        	responseType = paramMap.get("response_type")[0];
+	        	log.debug("response_type : " + responseType);
+
+	        	if(!responseType.equals("code")){
+	        		String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=response_type_should_be_code" ;
+	 	            log.info("invalid redirect URI = " + invalidRedirectUrl);
+	 	            
+	 	            
+	 	           try {
+					response.sendRedirect(invalidRedirectUrl);
+					return;
+	 	           } catch (IOException ex) {
+		                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+	 	           }
+	 	           
+	        	}
+	        }
+
+
+	        
+		        
+			
+			//nonce validation
+			if (!paramMap.containsKey("nonce")  ) {
+
+
+
+	            String invalidRedirectUrl = redirectUri + "?error=invalid_request" + "&" + "error_description=nonce_Required" + "&" + "state=" + state;
+	            log.info("invalid redirect URI = " + invalidRedirectUrl);
+
+	            try {
+	                response.sendRedirect(invalidRedirectUrl);
+	                return;
+	            } catch (IOException ex) {
+	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+	            }
+	        }
+			
+			//
+			
+			
 			
 			if (log.isDebugEnabled()) {
 				log.debug(authenticator.getName() + " returned: " + status.toString());

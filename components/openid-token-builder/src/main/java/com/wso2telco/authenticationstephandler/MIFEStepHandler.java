@@ -140,6 +140,7 @@ public class MIFEStepHandler extends DefaultStepHandler {
 						context.setExternalIdP(ConfigurationFacade.getInstance().getIdPConfigByName(
 								idp, context.getTenantDomain()));
 					} catch (IdentityProviderManagementException e) {
+						e.printStackTrace();
 						log.error(e);
 						throw new FrameworkException(e.toString());
 					}
@@ -190,6 +191,7 @@ public class MIFEStepHandler extends DefaultStepHandler {
 									.getIdPConfigByName(authenticatorConfig.getIdpNames().get(0),
 											context.getTenantDomain()));
 						} catch (IdentityProviderManagementException e) {
+							e.printStackTrace();
 							log.error(e);
 							throw new FrameworkException(e.toString());
 						}

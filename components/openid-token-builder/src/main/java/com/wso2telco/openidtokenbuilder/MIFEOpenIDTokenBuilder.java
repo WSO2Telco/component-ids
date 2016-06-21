@@ -15,13 +15,21 @@
  ******************************************************************************/
 package com.wso2telco.openidtokenbuilder;
 
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Iterator;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -33,7 +41,9 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.oltu.openidconnect.as.messages.IDToken;
 import org.apache.oltu.openidconnect.as.messages.IDTokenBuilder;
+import org.apache.oltu.openidconnect.as.messages.IDTokenException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -65,197 +75,239 @@ import com.jayway.jsonpath.JsonPath;
 import com.nimbusds.jwt.PlainJWT;
 import com.wso2telco.util.AuthenticationHealper;
 
-
-public class MIFEOpenIDTokenBuilder implements org.wso2.carbon.identity.openidconnect.IDTokenBuilder {
-
-	Log LOG = LogFactory.getLog(MIFEOpenIDTokenBuilder.class);
+// TODO: Auto-generated Javadoc
+/**
+ * The Class MIFEOpenIDTokenBuilder.
+ */
+public class MIFEOpenIDTokenBuilder implements
+		org.wso2.carbon.identity.openidconnect.IDTokenBuilder {
 
 	/** The Constant ACR_HOST_URI. */
-	private static final String ACR_HOST_URI = Messages.getString("MIFEOpenIDTokenBuilder.acrHostUri"); //$NON-NLS-1$
-
+	private static final String ACR_HOST_URI = Messages
+			.getString("MIFEOpenIDTokenBuilder.acrHostUri"); //$NON-NLS-1$
+	
 	/** The Constant RETRIEVE_SERVICE. */
-	private static final String RETRIEVE_SERVICE = Messages.getString("MIFEOpenIDTokenBuilder.retrieveService"); //$NON-NLS-1$
-
+	private static final String RETRIEVE_SERVICE = Messages
+			.getString("MIFEOpenIDTokenBuilder.retrieveService"); //$NON-NLS-1$
+	
 	/** The Constant CREATE_SERVICE. */
-	private static final String CREATE_SERVICE = Messages.getString("MIFEOpenIDTokenBuilder.createService"); //$NON-NLS-1$
-
+	private static final String CREATE_SERVICE = Messages
+			.getString("MIFEOpenIDTokenBuilder.createService"); //$NON-NLS-1$
+	
 	/** The Constant APP_PROV_SERVICE. */
-	private static final String APP_PROV_SERVICE = Messages.getString("MIFEOpenIDTokenBuilder.appProvService"); //$NON-NLS-1$
-
+	private static final String APP_PROV_SERVICE = Messages
+			.getString("MIFEOpenIDTokenBuilder.appProvService"); //$NON-NLS-1$
+	
 	/** The Constant SERVICE_PROVIDER. */
-	private static final String SERVICE_PROVIDER = Messages.getString("MIFEOpenIDTokenBuilder.serviceProvider"); //$NON-NLS-1$
-
+	private static final String SERVICE_PROVIDER = Messages
+			.getString("MIFEOpenIDTokenBuilder.serviceProvider"); //$NON-NLS-1$
+	
 	/** The Constant SERVICE_KEY. */
-	private static final String SERVICE_KEY = Messages.getString("MIFEOpenIDTokenBuilder.serviceKey"); //$NON-NLS-1$
-
+	private static final String SERVICE_KEY = Messages
+			.getString("MIFEOpenIDTokenBuilder.serviceKey"); //$NON-NLS-1$
+	
 	/** The Constant ACR_ACCESS_TOKEN. */
-	private static final String ACR_ACCESS_TOKEN = Messages.getString("MIFEOpenIDTokenBuilder.acrAccessToken"); //$NON-NLS-1$
+	private static final String ACR_ACCESS_TOKEN = Messages
+			.getString("MIFEOpenIDTokenBuilder.acrAccessToken"); //$NON-NLS-1$
 
 	/** The log. */
 	private static Log log = LogFactory.getLog(MIFEOpenIDTokenBuilder.class);
-
+	
 	/** The debug. */
 	private static boolean DEBUG = log.isDebugEnabled();
-
+	
 	/** The http client. */
 	private HttpClient httpClient;
-
+	
 	/** The acr app id. */
 	private String acrAppID;
 
+	/* (non-Javadoc)
+	 * @see org.wso2.carbon.identity.openidconnect.IDTokenBuilder#buildIDToken(org.wso2.carbon.identity.oauth2.token.OAuthTokenReqMessageContext, org.wso2.carbon.identity.oauth2.dto.OAuth2AccessTokenRespDTO)
+	 */
+	public String buildIDToken(OAuthTokenReqMessageContext request,
+			OAuth2AccessTokenRespDTO tokenRespDTO) throws IdentityOAuth2Exception {
 
-	public String buildIDToken(OAuthTokenReqMessageContext request, OAuth2AccessTokenRespDTO tokenRespDTO) 	throws IdentityOAuth2Exception {
+		OAuthServerConfiguration config = OAuthServerConfiguration.getInstance();
+		String issuer = config.getOpenIDConnectIDTokenIssuerIdentifier();
+		int lifetime = Integer.parseInt(config.getOpenIDConnectIDTokenExpiration()) * 1000;
+		int curTime = (int) Calendar.getInstance().getTimeInMillis();
+
+		//String msisdn = request.getAuthorizedUser().replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
+		String msisdn = AuthenticationHealper.getUser(request).replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
+		
+		msisdn = "tel:+".concat(msisdn); //$NON-NLS-1$
+
+		// Loading respective application data
+		OAuthAppDO oAuthAppDO;
 		try {
-			OAuthServerConfiguration config = OAuthServerConfiguration.getInstance();
-			String issuer = config.getOpenIDConnectIDTokenIssuerIdentifier();
-			int lifetime = Integer.parseInt(config.getOpenIDConnectIDTokenExpiration()) * 1000;
-			int curTime = (int) Calendar.getInstance().getTimeInMillis();
-
-			// String msisdn = request.getAuthorizedUser().replaceAll("@.*",
-			// ""); //$NON-NLS-1$ //$NON-NLS-2$
-			String msisdn = AuthenticationHealper.getUser(request).replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
-
-			msisdn = "tel:+".concat(msisdn); //$NON-NLS-1$
-
-			// Loading respective application data
-			OAuthAppDO oAuthAppDO;
 			oAuthAppDO = getAppInformation(request.getOauth2AccessTokenReqDTO());
-			String applicationName = oAuthAppDO.getApplicationName();
+		} catch (InvalidOAuthClientException e) {
+			throw new IdentityOAuth2Exception(
+					"Error occured while retrieving application information", e); //$NON-NLS-1$
+		}
+		String applicationName = oAuthAppDO.getApplicationName();
 
-			// Get authenticators used
-			String amr = getValuesFromCache(request, "amr");
+		// Get authenticators used
+		String amr = getValuesFromCache(request, "amr");
 
-			// Retrieve or create an ACR app
-			//acrAppID = getACRAppID(applicationName);
+		// Retrieve or create an ACR app
+		acrAppID = getACRAppID(applicationName);
 
-			// Set ACR (PCR) to sub
-			String subject = null;
-			subject = createLocalACR(msisdn, applicationName);
-			subject = URLEncoder.encode(subject, "UTF-8");
+		// Set ACR (PCR) to sub
+		String subject = null;
+		
+		try {
+			subject = createLocalACR(msisdn,applicationName);
+		} catch (InvalidKeyException e) {
+			 log.error("Error : " + e.getMessage());
+			 e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			 log.error("Error : " + e.getMessage());
+			 e.printStackTrace();
+		}
 
-			// Get access token issued time
-			String accessTokenIssuedTime = getAccessTokenIssuedTime(tokenRespDTO.getAccessToken(), request);
+		// Get access token issued time
+		String accessTokenIssuedTime = getAccessTokenIssuedTime(tokenRespDTO.getAccessToken(),request);
 
-			// Set base64 encoded value of the access token to atHash
-			String atHash = new String(Base64.encodeBase64(tokenRespDTO.getAccessToken().getBytes()));
+		// Set base64 encoded value of the access token to atHash
+		String atHash = new String(Base64.encodeBase64(tokenRespDTO.getAccessToken().getBytes()));
 
-			// Get LOA used
-			String acr = getValuesFromCache(request, "acr");
+		// Get LOA used
+		String acr = getValuesFromCache(request, "acr");
+		
+		String nonce = null;
+        try {
+            nonce = getValuesFromCache(request, IDToken.NONCE);
+        } catch (IdentityOAuth2Exception e) {
 
-			if (DEBUG) {
-				log.debug("Using issuer " + issuer); //$NON-NLS-1$
-				log.debug("Subject " + subject); //$NON-NLS-1$
-				log.debug("ID Token expiration seconds" + lifetime); //$NON-NLS-1$
-				log.debug("Current time " + curTime); //$NON-NLS-1$
-			}
+            if (DEBUG) {
+                log.error("Error : " + e.getMessage());
+            }
 
+        }
+
+		if (DEBUG) {
+			log.debug("Using issuer " + issuer); //$NON-NLS-1$
+			log.debug("Subject " + subject); //$NON-NLS-1$
+			log.debug("ID Token expiration seconds" + lifetime); //$NON-NLS-1$
+			log.debug("Current time " + curTime); //$NON-NLS-1$
+			log.debug("nonce  " + nonce); //$NON-NLS-1$
+		}
+
+		try {
 			IDTokenBuilder builder = new IDTokenBuilder().setIssuer(issuer).setSubject(subject)
 					.setAudience(request.getOauth2AccessTokenReqDTO().getClientId())
 					.setAuthorizedParty(request.getOauth2AccessTokenReqDTO().getClientId())
-					.setExpiration(curTime + lifetime).setIssuedAt(curTime).setAuthTime(accessTokenIssuedTime)
-					.setAtHash(atHash).setClaim("acr", acr).setClaim("amr", amr); //$NON-NLS-1$ //$NON-NLS-2$
+					.setExpiration(curTime + lifetime).setIssuedAt(curTime)
+					.setAuthTime(accessTokenIssuedTime).setAtHash(atHash)
+					.setClaim("acr", acr).setClaim("amr", amr).setClaim(IDToken.NONCE, nonce); //$NON-NLS-1$ //$NON-NLS-2$
 			// setting up custom claims
-			CustomClaimsCallbackHandler claimsCallBackHandler = OAuthServerConfiguration.getInstance()
-					.getOpenIDConnectCustomClaimsCallbackHandler();
-			// TODO CODE COMMENTED#
-			// claimsCallBackHandler.handleCustomClaims(builder, request);
-
-			String plainIDToken = builder.buildIDToken();
-			return new PlainJWT((com.nimbusds.jwt.JWTClaimsSet) PlainJWT.parse(plainIDToken).getJWTClaimsSet())
-					.serialize();
-		} catch (Exception e) {
-			LOG.error("",e);
+			CustomClaimsCallbackHandler claimsCallBackHandler = OAuthServerConfiguration
+					.getInstance().getOpenIDConnectCustomClaimsCallbackHandler();
+			//TODO CODE COMMENTED#
+			//claimsCallBackHandler.handleCustomClaims(builder, request);
+			
+            String plainIDToken = builder.buildIDToken();
+            return new PlainJWT((com.nimbusds.jwt.JWTClaimsSet) PlainJWT.parse(plainIDToken).getJWTClaimsSet()).serialize();
+		} catch (IDTokenException e) {
 			throw new IdentityOAuth2Exception("Error occured while generating the IDToken", e); //$NON-NLS-1$
-		} 
+        } catch (ParseException e) {
+            log.error("Error while parsing the IDToken", e);
+            throw new IdentityOAuth2Exception("Error while parsing the IDToken", e);
+        }
 	}
 
 	/**
 	 * Gets the values from cache.
 	 *
-	 * @param request
-	 *            the request
-	 * @param key
-	 *            the key
+	 * @param request the request
+	 * @param key the key
 	 * @return the values from cache
-	 * @throws IdentityOAuth2Exception
-	 *             the identity o auth2 exception
+	 * @throws IdentityOAuth2Exception the identity o auth2 exception
 	 */
-	private String getValuesFromCache(OAuthTokenReqMessageContext request, String key) throws IdentityOAuth2Exception {
-		String keyValue = null;
+	private String getValuesFromCache(OAuthTokenReqMessageContext request, String key)
+			throws IdentityOAuth2Exception {
+        String keyValue = null;
 		AuthorizationGrantCacheKey authorizationGrantCacheKey = new AuthorizationGrantCacheKey(
 				request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
 		AuthorizationGrantCacheEntry authorizationGrantCacheEntry = (AuthorizationGrantCacheEntry) AuthorizationGrantCache
 				.getInstance().getValueFromCache(authorizationGrantCacheKey);
 
-		Iterator<ClaimMapping> userAttributes = authorizationGrantCacheEntry.getUserAttributes().keySet().iterator();
+		Iterator<ClaimMapping> userAttributes = authorizationGrantCacheEntry.getUserAttributes()
+				.keySet().iterator();
 
 		ClaimMapping acrKey = null;
 		while (userAttributes.hasNext()) {
 			ClaimMapping mapping = userAttributes.next();
-			if (mapping.getLocalClaim() != null) {
+			if(mapping.getLocalClaim() != null ){
 				if (mapping.getLocalClaim().getClaimUri().equals(key)) {
 					acrKey = mapping;
 				}
 			}
-
+			
+			
 		}
-		// TODO Code Diff
+//TODO Code Diff
 		if (null != acrKey) {
 			return authorizationGrantCacheEntry.getUserAttributes().get(acrKey);
 		} else {
-			throw new IdentityOAuth2Exception("Error occured while retrieving " + key + " from cache");
+			throw new IdentityOAuth2Exception("Error occured while retrieving " + key
+					+ " from cache");
 		}
 	}
 
+	 
+	
+	
 	private String getAccessTokenIssuedTime(String accessToken, OAuthTokenReqMessageContext request)
-			throws IdentityOAuth2Exception {
+            throws IdentityOAuth2Exception {
 
-		AccessTokenDO accessTokenDO = null;
-		TokenMgtDAO tokenMgtDAO = new TokenMgtDAO();
+        AccessTokenDO accessTokenDO = null;
+        TokenMgtDAO tokenMgtDAO = new TokenMgtDAO();
 
-		OAuthCache oauthCache = OAuthCache.getInstance();
-		String authorizedUser = request.getAuthorizedUser().toString();
-		boolean isUsernameCaseSensitive = IdentityUtil.isUserStoreInUsernameCaseSensitive(authorizedUser);
-		if (!isUsernameCaseSensitive) {
-			authorizedUser = authorizedUser.toLowerCase();
-		}
+        OAuthCache oauthCache = OAuthCache.getInstance();
+        String authorizedUser = request.getAuthorizedUser().toString();
+        boolean isUsernameCaseSensitive = IdentityUtil.isUserStoreInUsernameCaseSensitive(authorizedUser);
+        if (!isUsernameCaseSensitive){
+            authorizedUser = authorizedUser.toLowerCase();
+        }
 
-		OAuthCacheKey cacheKey = new OAuthCacheKey(request.getOauth2AccessTokenReqDTO().getClientId() + ":"
-				+ authorizedUser + ":" + OAuth2Util.buildScopeString(request.getScope()));
-		CacheEntry result = oauthCache.getValueFromCache(cacheKey);
+        OAuthCacheKey cacheKey = new OAuthCacheKey(
+                request.getOauth2AccessTokenReqDTO().getClientId() + ":" + authorizedUser +
+                        ":" + OAuth2Util.buildScopeString(request.getScope()));
+        CacheEntry result = oauthCache.getValueFromCache(cacheKey);
 
-		// cache hit, do the type check.
-		if (result instanceof AccessTokenDO) {
-			accessTokenDO = (AccessTokenDO) result;
-		}
+        // cache hit, do the type check.
+        if (result instanceof AccessTokenDO) {
+            accessTokenDO = (AccessTokenDO) result;
+        }
 
-		// Cache miss, load the access token info from the database.
-		if (accessTokenDO == null) {
-			accessTokenDO = tokenMgtDAO.retrieveAccessToken(accessToken, false);
-		}
+        // Cache miss, load the access token info from the database.
+        if (accessTokenDO == null) {
+            accessTokenDO = tokenMgtDAO.retrieveAccessToken(accessToken, false);
+        }
 
-		// if the access token or client id is not valid
-		if (accessTokenDO == null) {
-			throw new IdentityOAuth2Exception("Access token based information is not available in cache or database");
-		}
+        // if the access token or client id is not valid
+        if (accessTokenDO == null) {
+            throw new IdentityOAuth2Exception("Access token based information is not available in cache or database");
+        }
 
-		return Long.toString(accessTokenDO.getIssuedTime().getTime() / 1000);
-	}
-
+        return Long.toString(accessTokenDO.getIssuedTime().getTime() / 1000);
+    }
+	
 	/**
 	 * Gets the app information.
 	 *
-	 * @param tokenReqDTO
-	 *            the token req dto
+	 * @param tokenReqDTO the token req dto
 	 * @return the app information
-	 * @throws IdentityOAuth2Exception
-	 *             the identity o auth2 exception
-	 * @throws InvalidOAuthClientException
-	 *             the invalid o auth client exception
+	 * @throws IdentityOAuth2Exception the identity o auth2 exception
+	 * @throws InvalidOAuthClientException the invalid o auth client exception
 	 */
 	public OAuthAppDO getAppInformation(OAuth2AccessTokenReqDTO tokenReqDTO)
 			throws IdentityOAuth2Exception, InvalidOAuthClientException {
-		BaseCache<String, OAuthAppDO> appInfoCache = new BaseCache<String, OAuthAppDO>("AppInfoCache"); //$NON-NLS-1$
+		BaseCache<String, OAuthAppDO> appInfoCache = new BaseCache<String, OAuthAppDO>(
+				"AppInfoCache"); //$NON-NLS-1$
 		if (null != appInfoCache) {
 			if (log.isDebugEnabled()) {
 				log.debug("Successfully created AppInfoCache under " //$NON-NLS-1$
@@ -267,22 +319,20 @@ public class MIFEOpenIDTokenBuilder implements org.wso2.carbon.identity.openidco
 		if (oAuthAppDO != null) {
 			return oAuthAppDO;
 		} else {
-			// TODO CODE COMMENTED#
-			// oAuthAppDO = new
-			// OAuthAppDAO().getAppInformation(tokenReqDTO.getClientId());
+			//TODO CODE COMMENTED#
+			//oAuthAppDO = new OAuthAppDAO().getAppInformation(tokenReqDTO.getClientId());
 			appInfoCache.addToCache(tokenReqDTO.getClientId(), oAuthAppDO);
 			return oAuthAppDO;
 		}
 	}
 
+	 
 	/**
 	 * Gets the ACR app id.
 	 *
-	 * @param applicationName
-	 *            the application name
+	 * @param applicationName the application name
 	 * @return the ACR app id
-	 * @throws IdentityOAuth2Exception
-	 *             the identity o auth2 exception
+	 * @throws IdentityOAuth2Exception the identity o auth2 exception
 	 */
 	public String getACRAppID(String applicationName) throws IdentityOAuth2Exception {
 		StringBuilder requestURLBuilder = new StringBuilder();
@@ -301,8 +351,8 @@ public class MIFEOpenIDTokenBuilder implements org.wso2.carbon.identity.openidco
 			requestBody.put("serviceProviderAppId", applicationName); //$NON-NLS-1$
 			requestBody.put("description", applicationName + " description"); //$NON-NLS-1$ //$NON-NLS-2$
 			createRequest = new JSONObject().put("provisionAppRequest", requestBody); //$NON-NLS-1$
-			StringRequestEntity requestEntity = new StringRequestEntity(createRequest.toString(), "application/json", //$NON-NLS-1$
-					"UTF-8"); //$NON-NLS-1$
+			StringRequestEntity requestEntity = new StringRequestEntity(createRequest.toString(),
+					"application/json", "UTF-8"); //$NON-NLS-1$ //$NON-NLS-2$
 			PostMethod postMethod = new PostMethod(requestURL);
 			postMethod.addRequestHeader("Authorization-ACR", "ServiceKey " + SERVICE_KEY); //$NON-NLS-1$ //$NON-NLS-2$
 			postMethod.addRequestHeader("Authorization", "Bearer " + ACR_ACCESS_TOKEN); //$NON-NLS-1$ //$NON-NLS-2$
@@ -332,7 +382,7 @@ public class MIFEOpenIDTokenBuilder implements org.wso2.carbon.identity.openidco
 				}
 			}
 
-			return strACR; // $NON-NLS-1$;
+			return strACR; //$NON-NLS-1$;
 
 		} catch (UnsupportedEncodingException e) {
 			log.error("Error occured while creating request", e); //$NON-NLS-1$
@@ -349,6 +399,80 @@ public class MIFEOpenIDTokenBuilder implements org.wso2.carbon.identity.openidco
 		}
 	}
 
+	 
+	/**
+	 * Gets the access token issued time.
+	 *
+	 * @param accessToken the access token
+	 * @return the access token issued time
+	 * @throws IdentityOAuth2Exception the identity o auth2 exception
+	 */
+	/*public String getAccessTokenIssuedTime(String accessToken) throws IdentityOAuth2Exception {
+		AccessTokenDO accessTokenDO = null;
+		TokenMgtDAO tokenMgtDAO = new TokenMgtDAO();
+
+		OAuthCache oauthCache = OAuthCache.getInstance();
+		CacheKey cacheKey = new OAuthCacheKey(accessToken);
+		//TODO CODE COMMENTED#
+		//CacheEntry result = oauthCache.getValueFromCache(cacheKey);
+
+		// cache hit, do the type check.
+		//TODO CODE COMMENTED#
+		//if (result instanceof AccessTokenDO) {
+			//accessTokenDO = (AccessTokenDO) result;
+		//}
+
+		// Cache miss, load the access token info from the database.
+		if (null == accessTokenDO) {
+			//TODO CODE COMMENTED#
+			accessTokenDO = tokenMgtDAO.retrieveAccessToken(accessToken);
+		}
+
+		// if the access token or client id is not valid
+		if (null == accessTokenDO) {
+			log.error("Error occured while getting access token based information"); //$NON-NLS-1$
+			throw new IdentityOAuth2Exception(
+					"Error occured while getting access token based information"); //$NON-NLS-1$
+		}
+
+		long timeIndMilliSeconds = accessTokenDO.getIssuedTime().getTime();
+
+		return Long.toString(timeIndMilliSeconds / 1000);
+	}*/
+
+	 
+	/**
+	 * Gets the AMR from acr.
+	 *
+	 * @param acr the acr
+	 * @return the AMR from acr
+	 * @throws IdentityOAuth2Exception the identity o auth2 exception
+	 */
+	public String getAMRFromACR(String acr) throws IdentityOAuth2Exception {
+		//TODO CODE COMMENTED#
+		//List<Authenticator> authenticatorsList = null;
+
+		//TODO CODE COMMENTED#
+		//LOAConfig config = ConfigLoader.getInstance().getLoaConfig();
+		if (null != acr && !"".equals(acr) && !" ".equals(acr)) { //$NON-NLS-1$ //$NON-NLS-2$
+			//TODO CODE COMMENTED#
+			//authenticatorsList = config.getLOA(acr).getAuthentication().getAuthenticatorList()
+			//TODO CODE COMMENTED#
+			//.get(0).getAuthenticators();
+		}
+		//TODO CODE COMMENTED#
+		 
+			return null;
+	}
+
+	 
+	/**
+	 * Gets the acr.
+	 *
+	 * @param msisdn the msisdn
+	 * @return the acr
+	 * @throws IdentityOAuth2Exception the identity o auth2 exception
+	 */
 	public String getACR(String msisdn) throws IdentityOAuth2Exception {
 
 		String strACR = ""; //$NON-NLS-1$
@@ -379,7 +503,8 @@ public class MIFEOpenIDTokenBuilder implements org.wso2.carbon.identity.openidco
 					strACR = JsonPath.read(responseNewACR, "$.createAcrResponse.acrInfo[0].acr"); //$NON-NLS-1$
 				} catch (Exception e) {
 					log.error("Retrieving/creating processes of ACR failed", e); //$NON-NLS-1$
-					throw new IdentityOAuth2Exception("Retrieving/creating processes of ACR failed", e); //$NON-NLS-1$
+					throw new IdentityOAuth2Exception(
+							"Retrieving/creating processes of ACR failed", e); //$NON-NLS-1$
 				}
 			}
 		}
@@ -387,14 +512,55 @@ public class MIFEOpenIDTokenBuilder implements org.wso2.carbon.identity.openidco
 		return strACR;
 	}
 
+	private String createLocalACR(String msisdn, String serviceProvider) throws InvalidKeyException, NoSuchAlgorithmException{
+        String acr = null;
+        String keyText = "cY4L3dBf@mifenew";
+        
+        byte[] keyValue = keyText.getBytes();
+        
+        SecretKey key = new SecretKeySpec(keyValue, "AES");
+        String encryptedText = "";
+        Cipher cipher = null;
+        
+        try {
+            cipher = Cipher.getInstance("AES");
+        } catch (NoSuchPaddingException ex) {
+            Logger.getLogger(MIFEOpenIDTokenBuilder.class.getName()).log(Level.SEVERE, null, ex);
+        }
+               
+        if (serviceProvider != null) {
+            byte[] plainTextByte = (serviceProvider + msisdn).getBytes();
+            cipher.init(Cipher.ENCRYPT_MODE, key);
+            byte[] encryptedByte = null;
+            try {
+                encryptedByte = cipher.doFinal(plainTextByte);
+            } catch (IllegalBlockSizeException ex) {
+                Logger.getLogger(MIFEOpenIDTokenBuilder.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (BadPaddingException ex) {
+                Logger.getLogger(MIFEOpenIDTokenBuilder.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            encryptedText = Base64.encodeBase64String(encryptedByte);
+        }
+        else{
+            ///nop
+        }
+        
+        log.info("Encrypted Text:" + encryptedText);
+        
+        String encryptedPcr = encryptedText.replaceAll("\r", "").replaceAll("\n", "");
+
+        return encryptedPcr;
+        
+        
+        
+    }
+	 
 	/**
 	 * Retrieve acr.
 	 *
-	 * @param msisdn
-	 *            the msisdn
+	 * @param msisdn the msisdn
 	 * @return the string
-	 * @throws IdentityOAuth2Exception
-	 *             the identity o auth2 exception
+	 * @throws IdentityOAuth2Exception the identity o auth2 exception
 	 */
 	public String retrieveACR(String msisdn) throws IdentityOAuth2Exception {
 
@@ -414,10 +580,11 @@ public class MIFEOpenIDTokenBuilder implements org.wso2.carbon.identity.openidco
 		try {
 			requestBody.put("MSISDN", msisdn); //$NON-NLS-1$
 			retrieveRequest = new JSONObject().put("retriveAcrRequest", requestBody); //$NON-NLS-1$
-			StringRequestEntity requestEntity = new StringRequestEntity(retrieveRequest.toString(), "application/json", //$NON-NLS-1$
-					"UTF-8"); //$NON-NLS-1$
+			StringRequestEntity requestEntity = new StringRequestEntity(retrieveRequest.toString(),
+					"application/json", "UTF-8"); //$NON-NLS-1$ //$NON-NLS-2$
 			PostMethod postMethod = new PostMethod(requestURL);
-			postMethod.addRequestHeader(new Header("Authorization-ACR", "ServiceKey " + SERVICE_KEY)); //$NON-NLS-1$ //$NON-NLS-2$
+			postMethod
+					.addRequestHeader(new Header("Authorization-ACR", "ServiceKey " + SERVICE_KEY)); //$NON-NLS-1$ //$NON-NLS-2$
 			postMethod.addRequestHeader("Authorization", "Bearer " + ACR_ACCESS_TOKEN); //$NON-NLS-1$ //$NON-NLS-2$
 			postMethod.setRequestEntity(requestEntity);
 
@@ -449,14 +616,13 @@ public class MIFEOpenIDTokenBuilder implements org.wso2.carbon.identity.openidco
 		}
 	}
 
+	 
 	/**
 	 * Creates the acr.
 	 *
-	 * @param msisdn
-	 *            the msisdn
+	 * @param msisdn the msisdn
 	 * @return the string
-	 * @throws IdentityOAuth2Exception
-	 *             the identity o auth2 exception
+	 * @throws IdentityOAuth2Exception the identity o auth2 exception
 	 */
 	public String createACR(String msisdn) throws IdentityOAuth2Exception {
 
@@ -476,8 +642,8 @@ public class MIFEOpenIDTokenBuilder implements org.wso2.carbon.identity.openidco
 		try {
 			requestBody.put("MSISDN", (Object) new JSONArray().put(msisdn)); //$NON-NLS-1$
 			createRequest = new JSONObject().put("createAcrRequest", requestBody); //$NON-NLS-1$
-			StringRequestEntity requestEntity = new StringRequestEntity(createRequest.toString(), "application/json", //$NON-NLS-1$
-					"UTF-8"); //$NON-NLS-1$
+			StringRequestEntity requestEntity = new StringRequestEntity(createRequest.toString(),
+					"application/json", "UTF-8"); //$NON-NLS-1$ //$NON-NLS-2$
 			PostMethod postMethod = new PostMethod(requestURL);
 			postMethod.addRequestHeader("Authorization-ACR", "ServiceKey " + SERVICE_KEY); //$NON-NLS-1$ //$NON-NLS-2$
 			postMethod.addRequestHeader("Authorization", "Bearer " + ACR_ACCESS_TOKEN); //$NON-NLS-1$ //$NON-NLS-2$
@@ -511,46 +677,13 @@ public class MIFEOpenIDTokenBuilder implements org.wso2.carbon.identity.openidco
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.wso2.carbon.identity.openidconnect.IDTokenBuilder#buildIDToken(org.
-	 * wso2.carbon.identity.oauth2.authz.OAuthAuthzReqMessageContext,
-	 * org.wso2.carbon.identity.oauth2.dto.OAuth2AuthorizeRespDTO)
+	/* (non-Javadoc)
+	 * @see org.wso2.carbon.identity.openidconnect.IDTokenBuilder#buildIDToken(org.wso2.carbon.identity.oauth2.authz.OAuthAuthzReqMessageContext, org.wso2.carbon.identity.oauth2.dto.OAuth2AuthorizeRespDTO)
 	 */
-	public String buildIDToken(OAuthAuthzReqMessageContext tokReqMsgCtx, OAuth2AuthorizeRespDTO tokenRespDTO)
-			throws IdentityOAuth2Exception {
+	public String buildIDToken(OAuthAuthzReqMessageContext tokReqMsgCtx,
+			OAuth2AuthorizeRespDTO tokenRespDTO) throws IdentityOAuth2Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	private String createLocalACR(String msisdn, String serviceProvider) throws Exception {
-		String acr = null;
-		String keyText = "cY4L3dBf@mifenew";
-
-		byte[] keyValue = keyText.getBytes();
-
-		SecretKey key = new SecretKeySpec(keyValue, "AES");
-		String encryptedText = "";
-		Cipher cipher = null;
-
-		cipher = Cipher.getInstance("AES");
-
-		if (serviceProvider != null) {
-			byte[] plainTextByte = (serviceProvider + msisdn).getBytes();
-			cipher.init(Cipher.ENCRYPT_MODE, key);
-			byte[] encryptedByte = null;
-
-			encryptedByte = cipher.doFinal(plainTextByte);
-			encryptedText = Base64.encodeBase64String(encryptedByte);
-		} else {
-			/// nop
-		}
-
-		log.info("Encrypted Text:" + encryptedText);
-		log.info("createLocalACR success!");
-		return encryptedText;
-
-	}
 }
