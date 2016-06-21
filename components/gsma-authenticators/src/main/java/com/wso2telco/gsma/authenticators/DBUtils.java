@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import com.wso2telco.gsma.authenticators.ussd.Pinresponse;
+import com.wso2telco.gsma.authenticators.util.TableName;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -90,11 +91,21 @@ public class DBUtils {
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet results = null;
-        String sql = "SELECT SessionID, Status FROM clientstatus WHERE SessionID=?";
+        //String sql = "SELECT SessionID, Status FROM clientstatus WHERE SessionID=?";
+        StringBuilder sql = new StringBuilder();
+        
+        sql.append("SELECT SessionID, Status FROM ");
+        sql.append(TableName.CLIENT_STATUS);
+        sql.append(" WHERE SessionID=?");
+        
+        if(log.isDebugEnabled()){
+        	log.debug("Executing the query " + sql +" for sessionDataKey : " +sessionDataKey);
+        }
+        
         String userResponse = null;
         try {
             conn = getConnectDBConnection();
-            ps = conn.prepareStatement(sql);
+            ps = conn.prepareStatement(sql.toString());
             ps.setString(1, sessionDataKey);
             results = ps.executeQuery();
             while (results.next()) {
@@ -119,12 +130,22 @@ public class DBUtils {
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet results = null;
-        String sql = "SELECT SessionID, pin, Status FROM clientstatus WHERE SessionID=?";
+        //String sql = "SELECT SessionID, pin, Status FROM clientstatus WHERE SessionID=?";
+        
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT SessionID, pin, Status FROM ");
+        sql.append(TableName.CLIENT_STATUS);
+        sql.append(" WHERE SessionID=?");
+        
+        if(log.isDebugEnabled()){
+        	log.debug("Executing the query " + sql +" for sessionDataKey : " +sessionDataKey);
+        }
+        
         Pinresponse pinresponse = new Pinresponse();
                 
         try {
             conn = getConnectDBConnection();
-            ps = conn.prepareStatement(sql);
+            ps = conn.prepareStatement(sql.toString());
             ps.setString(1, sessionDataKey);
             results = ps.executeQuery();
             while (results.next()) {
@@ -151,11 +172,22 @@ public class DBUtils {
     public static String insertUserResponse(String sessionDataKey, String responseStatus) throws AuthenticatorException {
         Connection conn = null;
         PreparedStatement ps = null;
-        String sql = "INSERT INTO clientstatus (SessionID, Status) VALUES (?,?)";
+        //String sql = "INSERT INTO clientstatus (SessionID, Status) VALUES (?,?)";
+        
+        StringBuilder sql = new StringBuilder();
+        sql.append("INSERT INTO ");
+        sql.append(TableName.CLIENT_STATUS);
+        sql.append(" (SessionID, Status) VALUES (?,?)");
+        
+        if(log.isDebugEnabled()){
+        	log.debug("Executing the query " + sql +" to Insert sessionDataKey : " +sessionDataKey 
+        			+ "and responseStatus " + responseStatus);
+        }
+        
         String userResponse = null;
         try {
             conn = getConnectDBConnection();
-            ps = conn.prepareStatement(sql);
+            ps = conn.prepareStatement(sql.toString());
             ps.setString(1, sessionDataKey);
             ps.setString(2, responseStatus);
             ps.executeUpdate();
@@ -192,11 +224,22 @@ public class DBUtils {
     public static String updateUserResponse(String sessionDataKey, String responseStatus) throws AuthenticatorException {
         Connection conn = null;
         PreparedStatement ps = null;
-        String sql = "update  clientstatus set Status=? WHERE SessionID=?";
+        //String sql = "update  clientstatus set Status=? WHERE SessionID=?";
         String userResponse = null;
+        
+        StringBuilder sql = new StringBuilder();
+        sql.append("UPDATE  ");
+        sql.append(TableName.CLIENT_STATUS);
+        sql.append(" set Status=? WHERE SessionID=?");
+        
+        if(log.isDebugEnabled()){
+        	log.debug("Executing the query " + sql +" to Update sessionDataKey : " +sessionDataKey 
+        			+ "and responseStatus " + responseStatus);
+        }
+        
         try {
             conn = getConnectDBConnection();
-            ps = conn.prepareStatement(sql);
+            ps = conn.prepareStatement(sql.toString());
             ps.setString(1, responseStatus);
             ps.setString(2, sessionDataKey);
             ps.executeUpdate();
@@ -223,12 +266,22 @@ public class DBUtils {
         ResultSet rs = null;
         AuthenticationData authenticationData = new AuthenticationData();
 
-        String sql = "select *"
-                + " from `authenticated_login` where tokenID=?;";
+        //String sql = "select *"
+        //        + " from `authenticated_login` where tokenID=?;";
+        
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT *");
+        sql.append(" from ");
+        sql.append(TableName.AUTHENTICATED_LOGIN);
+        sql.append(" where tokenID=?");
+        
+        if(log.isDebugEnabled()){
+        	log.debug("Executing the query "+ sql + " for TokenId " + tokenID);
+        }
 
         try {
             connection = getConnectDBConnection();
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, tokenID);
             rs = ps.executeQuery();
             while (rs.next()) {
@@ -242,13 +295,13 @@ public class DBUtils {
 
             }
         } catch (SQLException ex) {
-            ex.printStackTrace();
+        	log.error("authenticationData Error " + ex);
         } finally {
             if (connection != null) {
                 try {
                     connection.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    log.error("Error " + e);
                 }
             }
 
@@ -266,23 +319,32 @@ public class DBUtils {
     public static void deleteAuthenticateData(String tokenId) throws SQLException{
         Connection connection = null;
         PreparedStatement ps = null;
-        String sql =
-                "DELETE FROM authenticated_login " +
-                        "WHERE tokenID=?; " ;
-
+        //String sql =
+        //        "DELETE FROM authenticated_login " +
+        //                "WHERE tokenID=?; " ;
+        
+        StringBuilder sql = new StringBuilder();
+        sql.append("DELETE FROM ");
+        sql.append(TableName.AUTHENTICATED_LOGIN);
+        sql.append(" WHERE tokenID=?");
+        
+        if(log.isDebugEnabled()){
+        	log.debug("Executing the query " + sql + "to Delete tokenId " + tokenId);
+        }
+        
         try {
             try {
                 connection = getConnectDBConnection();
             } catch (AuthenticatorException e) {
-                e.printStackTrace();
+                log.error("Delete authenticate data Error" + e);
             }
-            ps = connection.prepareStatement(sql);
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, tokenId);
             ps.execute();
 
         }
         catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error " + e);
         } finally {
             connection.close();
         }

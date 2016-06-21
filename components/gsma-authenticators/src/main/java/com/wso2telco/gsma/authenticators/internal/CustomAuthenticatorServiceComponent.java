@@ -101,7 +101,7 @@ public class CustomAuthenticatorServiceComponent {
         DataHolder.getInstance().setMobileConnectConfig(ConfigLoader.getInstance().getMobileConnectConfig());
 
         if (log.isDebugEnabled()) {
-            log.info("Custom Application Authenticator bundle is activated");
+            log.debug("Custom Application Authenticator bundle is activated");
         }
     }
 
@@ -113,7 +113,7 @@ public class CustomAuthenticatorServiceComponent {
     @Deactivate
     protected void deactivate(ComponentContext ctxt) {
         if (log.isDebugEnabled()) {
-            log.info("Custom Application Authenticator bundle is deactivated");
+            log.debug("Custom Application Authenticator bundle is deactivated");
         }
     }
 
@@ -123,7 +123,9 @@ public class CustomAuthenticatorServiceComponent {
      * @param realmService the new realm service
      */
     protected void setRealmService(RealmService realmService) {
+    	if (log.isDebugEnabled()) {
         log.debug("Setting the Realm Service");
+    	}
         CustomAuthenticatorServiceComponent.realmService = realmService;
     }
 
@@ -133,7 +135,9 @@ public class CustomAuthenticatorServiceComponent {
      * @param realmService the realm service
      */
     protected void unsetRealmService(RealmService realmService) {
+    	if (log.isDebugEnabled()) {
         log.debug("UnSetting the Realm Service");
+    	}
         CustomAuthenticatorServiceComponent.realmService = null;
     }
 

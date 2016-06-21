@@ -94,7 +94,7 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
 			        MultitenantUtils.getTenantDomain(request));
 		} catch (IdentityProviderManagementException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("Error Ocured " + e);
 		}
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
@@ -135,7 +135,7 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
 			        federatedIDP.getIdentityProviderName(), context.getTenantDomain());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("Error Ocured " + e);
 		}
         FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = idPConfigByName
                 .getIdentityProvider().getFederatedAuthenticatorConfigs();
@@ -330,6 +330,7 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
             }
             reader.close();
         } catch (Exception e) {
+        	log.error("Error Ocured " + e);
         } finally {
             if (reader != null) {
                 reader = null;

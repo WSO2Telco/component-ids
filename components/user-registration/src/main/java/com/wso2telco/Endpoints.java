@@ -43,6 +43,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.json.JSONException;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceException;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
 import com.google.gson.Gson;
@@ -273,11 +275,26 @@ public class Endpoints {
 
 		log.info("Ussd Push received inboundUSSDMessage:" + inboundUSSDMessage + " ,address:" + address);
 		String msisdn = null;
+		
+		/**
+		 * obtained the msisdn from address . the standard address format should
+		 * be "tel:+<number>" split the address by :+
+		 * index 1 need to be the msisdn
+		 */
 		try {
-			msisdn = address.split(":\\+")[2];
+			String[] splittedAddress = address.split(":\\+");
+			if (splittedAddress != null && splittedAddress.length ==2) {
+				msisdn = splittedAddress[1];
+
+			} else {
+
+				return Response.status(Response.Status.BAD_REQUEST).entity("INCORRECT MSISDN FORMAT").build();
+			}
+
 		} catch (Exception e) {
-			log.error("address split failed");
+			return Response.status(Response.Status.BAD_REQUEST).entity("INCORRECT MSISDN FORMAT").build();
 		}
+		
 		boolean ussdOk = false;
 		if (inboundUSSDMessage.equals("1")) {
 			ussdOk = true;
@@ -974,5 +991,30 @@ public class Endpoints {
 	}
 
 	
+	@GET
+	@Path("/user/registration")
+	@Produces({ "application/json" })
+	public Response userRegistration(@QueryParam("username") String userName,
+			@QueryParam("msisdn") String msisdn,
+			@QueryParam("openId") String openId,
+			@QueryParam("password") String pwd,
+			@QueryParam("claim") String claim,
+			@QueryParam("domain") String domain,
+			@QueryParam("params") String params, String jsonBody,
+			@QueryParam("operator") String operator,
+			@QueryParam("telco_scope") String telco_scope,
+			@QueryParam("updateProfile") boolean updateProfile)
+			throws IOException, org.json.JSONException {
+		UserRegistrationData userRegistrationData = new UserRegistrationData(
+				userName, msisdn, openId, pwd, claim, domain, params,
+				updateProfile);
+		
+		try {
+			userProfileManager.manageProfile(userRegistrationData);
+		} catch (Exception ex) {
+			log.error("userRegistration HE", ex);
+		}
+		return Response.status(Response.Status.OK).entity(null).build();
+	}
 
 }

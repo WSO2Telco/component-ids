@@ -54,7 +54,11 @@ public class Activator implements BundleActivator {
     private static final Log log = LogFactory.getLog(Activator.class);
 
     public void startDeploy(BundleContext bundleContext) throws Exception {
+    	
+    	if(log.isDebugEnabled()){
     	log.debug("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH__________0001");
+    	}
+    	
     	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
                  new PinAuthenticator(), null);
 
@@ -81,18 +85,23 @@ public class Activator implements BundleActivator {
          
     	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
                  new SelfAuthenticator(), null);
-
+    	
+    	if (log.isDebugEnabled()) {
     	 log.debug("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH__________0002");
+    	}
+    	
          LOAConfig config = ConfigLoader.getInstance().getLoaConfig();
 
          DataHolder.getInstance().setLOAConfig(config);
 
          DataHolder.getInstance().setMobileConnectConfig(ConfigLoader.getInstance().getMobileConnectConfig());
          
+         if (log.isDebugEnabled()) {
          log.debug("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH__________0003");
+         }
          
          if (log.isDebugEnabled()) {
-             log.info("Custom Application Authenticator bundle is activated");
+             log.debug("Custom Application Authenticator bundle is activated");
          }
     }
 

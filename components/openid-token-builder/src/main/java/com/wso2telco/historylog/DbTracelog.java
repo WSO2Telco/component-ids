@@ -28,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.wso2telco.util.DbUtil;
+import com.wso2telco.util.TableName;
 
 
 // TODO: Auto-generated Javadoc
@@ -94,14 +95,26 @@ public class DbTracelog {
     public static void LogHistory(String Reqtype,boolean isauthenticated, String application, String authUser, String authenticators, String ipaddress) throws LogHistoryException {
             Connection con = null;
             PreparedStatement pst = null;
+            
+            StringBuilder sql = new StringBuilder();
+            sql.append("INSERT INTO ");
+            sql.append(TableName.SP_LOGIN_HISTORY);
+            sql.append(" (reqtype, application_id, authenticated_user, isauthenticated, authenticators,ipaddress, created, created_date)");
+            sql.append(" VALUES ");
+            sql.append("(?, ?, ?, ?, ?, ?, ?, ?)");
+            
+            if(log.isDebugEnabled()){
+            	log.debug("Executing the query "+ sql + " to log SP Log History or Service Provider: " + authUser );
+            } 
+            
         try {
             con = DbTracelog.getMobileDBConnection();
-
-            String sql = "INSERT INTO sp_login_history (reqtype, application_id, authenticated_user, isauthenticated, authenticators,ipaddress, created, created_date)"
-                        + " VALUES "
-                    + "(?, ?, ?, ?, ?, ?, ?, ?)";
+           
+            //String sql = "INSERT INTO sp_login_history (reqtype, application_id, authenticated_user, isauthenticated, authenticators,ipaddress, created, created_date)"
+            //            + " VALUES "
+            //        + "(?, ?, ?, ?, ?, ?, ?, ?)";
                 
-                pst = con.prepareStatement(sql);
+                pst = con.prepareStatement(sql.toString());
                 
                 pst.setString(1, Reqtype);
                 pst.setString(2, application);

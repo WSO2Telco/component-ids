@@ -27,6 +27,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Properties;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+
  
 // TODO: Auto-generated Javadoc
  
@@ -35,6 +39,8 @@ import java.util.Properties;
  */
 public class FileUtil {
 
+    /** The log. */
+    private static Log log = LogFactory.getLog(FileUtil.class); 
 	 
 	/** The props. */
 	private static Properties props = new Properties();
@@ -72,10 +78,14 @@ public class FileUtil {
 			if (!success) {
 				// System.out.println("Deletion failed.");
 				// System.exit(0);
+				log.warn("File Deletion failed.");
 			} else {
-				// System.out.println("File deleted.");
+				if (log.isDebugEnabled()) {
+					log.debug("File deleted ");
+				}
 			}
 		} catch (Exception e) {
+			log.error("File Delete Error " + e);
 		}
 	}
 
@@ -120,15 +130,13 @@ public class FileUtil {
 		try {
 			props.load(FileUtil.class.getResourceAsStream("application.properties"));
 		} catch (FileNotFoundException e) {
-			// e.printStackTrace();
-			System.err.println("Check your Property file, it should be in application home dir, Error:" + e.getCause()
-					+ "Cant load APPLICATION.properties");
+			log.error("Check your Property file, it should be in application home dir, Error:" + e.getCause()
+			+ "Cant load APPLICATION.properties");
 
 			// System.exit(-1);
 		} catch (IOException e) {
-			System.err.println("Check your Property file, it should be in application home dir, Error:" + e.getCause()
+			log.error("Check your Property file, it should be in application home dir, Error:" + e.getCause()
 					+ "Cant load APPLICATION.properties");
-			// System.exit(-1);
 		}
 	}
 
@@ -163,7 +171,7 @@ public class FileUtil {
 			in.close();
 			result = new String(b, 0, b.length, "Cp850");
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Read fully into var Error" + e);
 		}
 		return result;
 	}

@@ -19,6 +19,8 @@ import com.google.gson.Gson;
 import com.wso2telco.gsma.authenticators.config.MSSServiceURL;
 import com.wso2telco.gsma.authenticators.model.MSSRequest;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -31,6 +33,9 @@ import org.apache.http.impl.client.DefaultHttpClient;
  */
 public class MSSRestClient extends Thread{
 
+    /** The log. */
+    private static Log log = LogFactory.getLog(MSSRestClient.class); 
+	
     /** The context identifier. */
     String contextIdentifier;
     
@@ -80,7 +85,7 @@ public class MSSRestClient extends Thread{
             }
 
         }catch(Exception ex){
-            ex.printStackTrace();
+        	log.error("Exception during Instantiating a new MSS rest client  " + ex);
 
         }
 

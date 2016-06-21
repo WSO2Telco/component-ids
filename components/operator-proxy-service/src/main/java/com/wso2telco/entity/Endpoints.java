@@ -15,11 +15,7 @@
  ******************************************************************************/
 package com.wso2telco.entity;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.rmi.RemoteException;
 import java.sql.SQLException;
@@ -35,6 +31,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.Header;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -57,12 +55,14 @@ public class Endpoints {
 
 	// private static final Logger LOG =
 	 
-	 
-	/** The Constant file. */
+	/** Removed the below log impl to facilitate PRODEV-173 - operator-proxy-service- standardize
+	/** The Constant file. 
 	// Logger.getLogger(Endpoints.class.getName());
 	private static final File file = new File(FileUtil.getApplicationProperty("log_file"));
-
-	 
+	*/
+	
+    /** The log. */
+    private static Log log = LogFactory.getLog(Endpoints.class); 
 	 
 	 
 	/**
@@ -108,7 +108,9 @@ public class Endpoints {
 
 		if (headers != null) {
 			for (String header : headers.getRequestHeaders().keySet()) {
-				log("Header:" + header + "Value:" + headers.getRequestHeader(header));
+				if (log.isDebugEnabled()) {
+					log.debug("Header:" + header + "Value:" + headers.getRequestHeader(header));
+				}
 			}
 		}
 
@@ -138,20 +140,21 @@ public class Endpoints {
 			authorizeURL = FileUtil.getApplicationProperty("authorizeURL") + queryString + "msisdn_header=" + msisdn
 					+ "&" + "operator=" + operator;
 		}
-
-		log("authorizeURL : " + authorizeURL);
+		if (log.isDebugEnabled()) {
+			log.debug("authorizeURL : " + authorizeURL);
+		}
 
 		response.sendRedirect(authorizeURL);
 
 	}
 
 	 
-	 
+	/** Removed the below log impl to facilitate PRODEV-173 - operator-proxy-service- standardize
 	/**
 	 * Log.
 	 *
 	 * @param text the text
-	 */
+	 
 	private static void log(String text) {
 		PrintWriter out = null;
 		try {
@@ -166,7 +169,7 @@ public class Endpoints {
 		}
 	}
 
-	 
+	 */
 	 
 	/**
 	 * Call oauth2.
@@ -191,14 +194,18 @@ public class Endpoints {
 			get.setHeader("ipaddress", ipAddress);
 
 			response = httpclient.execute(get);
-
-			log("Status = " + response.getStatusLine().toString());
+			
+			if (log.isDebugEnabled()) {
+			log.debug("Status = " + response.getStatusLine().toString());
+			}
 
 			Header[] headers = response.getAllHeaders();
 
 			for (Header header : headers) {
-				log("Key : " + header.getName() + " ,Value : " + header.getValue());
-
+				
+				if (log.isDebugEnabled()) {
+					log.debug("Key : " + header.getName() + " ,Value : " + header.getValue());
+				}
 				if (header.getName().equals("Location")) {
 					redirectURL = header.getValue();
 				}
@@ -206,6 +213,7 @@ public class Endpoints {
 
 		} catch (IOException ex) {
 			// // LOG.info("Error occurred " + ex);
+			log.error("Error occurred " + ex);
 		}
 		return redirectURL;
 	}

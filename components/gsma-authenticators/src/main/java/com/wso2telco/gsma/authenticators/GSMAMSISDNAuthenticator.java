@@ -205,7 +205,7 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 			descryptedData = cipher.doFinal(data);
 			return new String(descryptedData);
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Error" + e );
 		}
 
 		log.info("login_hint decryption completed");
@@ -259,6 +259,7 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 			reader.close();
 
 		} catch (Exception e) {
+			log.error("Error " + e);
 		} finally {
 			if (reader != null) {
 				reader = null;
@@ -301,6 +302,7 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 					.getValueFromCache(sessionDataCacheKey);
 			loginHintValues = sdce.getoAuth2Parameters().getLoginHint();
 		} catch (Exception e) {
+			log.error("Error " + e);
 		}
 
 		return loginHintValues;

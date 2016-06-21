@@ -92,13 +92,13 @@ public class SendSMS {
         try {
             readMobileConnectConfigResult = readMobileConnectConfig.query("SMS");
         } catch (ParserConfigurationException e) {
-            e.printStackTrace();
+        	LOG.error("Error occured during ParseCOnfiguration " + e);
         } catch (SAXException e) {
-            e.printStackTrace();
+        	LOG.error("Error occured during processing XML " + e);
         } catch (IOException e) {
-            e.printStackTrace();
+        	LOG.error("I/O exception occured " + e);
         } catch (XPathExpressionException e) {
-            e.printStackTrace();
+        	LOG.error("Error occured in XPath expression " + e);
         }
 
        

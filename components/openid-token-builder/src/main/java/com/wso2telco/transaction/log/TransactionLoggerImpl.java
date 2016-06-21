@@ -87,11 +87,11 @@ public class TransactionLoggerImpl implements TransactionLogger {
 //	        status = (statusCode == HttpStatus.SC_OK);
 			
 		} catch (ClientProtocolException e) {
-			e.printStackTrace();
+			log.warn("ClientProtocol Exception "+e);
 			return statusCode;
 			
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.warn("I/O Exception occured " +e);
 			return statusCode;
 		}
 		

@@ -17,6 +17,8 @@ package com.wso2telco.gsma.authenticators;
 
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.gsma.authenticators.util.DecryptionAES;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,6 +43,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import javax.crypto.Cipher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -149,12 +152,19 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
 
     	String msisdn = request.getParameter("msisdn");
-        //if((msisdn==null) & ((request.getParameter("msisdn_header") != null) && (request.getParameter("msisdn_header") != ""))){
-        	//msisdn=context.getSubject();
-        	//log.info("Reading header_msisdn from HeaderEnrichment and assigned to msisdn" +context.getSubject());
+    	//extract msisdn from headers for HE scenario 
+    	final String msisdnHE = request.getParameter("msisdn_header");
+        if((msisdn==null) & (msisdnHE!=null && msisdnHE.trim().length()>0)){
+        	log.debug("Set msisdn from header msisdn_header" + msisdnHE);
+        	msisdn=msisdnHE.trim();
+			try {
+				msisdn = DecryptionAES.decrypt(msisdn);
+			} catch (Exception e) {
+				log.error("processAuthenticationResponse", e);
+				throw new AuthenticationFailedException("Decryption error",e);
+			}
         	
-        //}//COMMENTED  
-     //   context.setProperty("redirectURI",request.getParameter("redirect_uri"));
+        }
         boolean isAuthenticated = false;
 
         // Check the authentication by checking if username exists
@@ -172,10 +182,14 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                         String decrypted = decryptData(loginHint);
                         log.debug("Decrypted login hint: " + decrypted);
                         msisdn = decrypted.substring(0, decrypted.indexOf(LOGIN_HINT_SEPARATOR));
+                        if (log.isDebugEnabled()) {
                         log.debug("MSISDN by encrypted login hint: " + msisdn);
+                        }
                     } else if (loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX)){
                         msisdn = loginHint.replace(LOGIN_HINT_NOENCRYPTED_PREFIX, "");
+                        if (log.isDebugEnabled()) {
                         log.debug("MSISDN by login hint: " + msisdn);
+                        }
                     } else {
                         log.warn("No supported login hint format");
                 }
@@ -270,7 +284,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             return new String(dectyptedText);
 
         } catch (Exception ex) {
-            ex.printStackTrace();
             log.error("Exception encrypting data " + ex.getClass().getName() + ": "+ ex.getMessage());
         return null;
         }
@@ -298,7 +311,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             return kf.generatePrivate(spec);
 
         } catch (Exception ex) {
-            ex.printStackTrace();
             log.error("Exception reading private key:" + ex.getMessage());
             return null;
     }
@@ -388,7 +400,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     (SessionDataCacheEntry) SessionDataCache.getInstance().getValueFromCache(sessionDataCacheKey);
             loginHintValues = sdce.getoAuth2Parameters().getLoginHint();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Exception Getting the login hint values " + e);
         }
 
         return loginHintValues;

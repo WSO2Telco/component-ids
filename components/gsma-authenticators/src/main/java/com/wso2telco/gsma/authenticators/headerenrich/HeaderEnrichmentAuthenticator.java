@@ -324,6 +324,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         try {
             ipAddress = request.getParameter("ipAddress");
         } catch (Exception e) {
+        	log.error("Error occured Retriving ip address " + e);
         }
 
         if (ipAddress == null) {

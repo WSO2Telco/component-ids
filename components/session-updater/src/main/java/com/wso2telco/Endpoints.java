@@ -431,8 +431,8 @@ public class Endpoints {
      */
     private String extractMsisdn(JSONObject jsonObj) throws JSONException {
         String address = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("address");
-        if(address != null) {//tel:+tel:+94773333428
-            return address.split(":\\+")[2];
+        if(address != null) { 
+            return address.split(":\\+")[1];
         }
         return null;
     }
