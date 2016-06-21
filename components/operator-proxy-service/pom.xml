@@ -438,12 +438,12 @@
             <artifactId>oauth-signature</artifactId>
             <version>1.8</version>
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>UrlShorten</groupId>
             <artifactId>UrlShorten</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>provided</scope>
-        </dependency>
+        </dependency-->
         <!--dependency>
             <groupId>UrlShorten</groupId>
             <artifactId>UrlShorten</artifactId>
