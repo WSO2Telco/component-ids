@@ -204,7 +204,7 @@
 							
 							//String baseURL = requestURL.substring(0, requestURL.indexOf(requestURI));
 
-							URL url = new URL(baseURL + "/user-registration/webresources/endpoint/user/authenticate/add?scope=" + scope + "&redirecturi=" + redirectUri + "&clientid=" + clientId + "&acrvalue=" + arc + "&responsetype=" + responseType + "&operator=" + operator + "&msisdn=" + msisdn+"&nonce="+nonce+"&state="+state);
+							URL url = new URL(baseURL + "/user-registration/webresources/endpoint/user/authenticate/add?scope=" + URLEncoder.encode(scope, "UTF-8") + "&redirecturi=" + redirectUri + "&clientid=" + clientId + "&acrvalue=" + arc + "&responsetype=" + responseType + "&operator=" + operator + "&msisdn=" + msisdn+"&nonce="+nonce+"&state="+state);
 							logger.debug("Url " + url + "clientId" + clientId + "redirectUri: " + redirectUri + "scope" + scope + " arc : " + arc);
 							HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 							conn.setRequestMethod("GET");
