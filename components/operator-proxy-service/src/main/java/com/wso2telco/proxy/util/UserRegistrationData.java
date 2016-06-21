@@ -1,4 +1,4 @@
-package com.axiata.dialog.proxy.util;
+package com.wso2telco.proxy.util;
 
 public class UserRegistrationData {
 

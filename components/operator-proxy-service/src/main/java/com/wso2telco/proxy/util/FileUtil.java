@@ -6,7 +6,7 @@
  * Copyright (C) Dialog Axiata PLC. All Rights Reserved.
  */
 
-package com.axiata.dialog.proxy.util;
+package com.wso2telco.proxy.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.axiata.dialog.proxy.util;
+package com.wso2telco.proxy.util;
 
 //import com.google.gdata.util.common.util.Base64;
 import java.security.NoSuchAlgorithmException;

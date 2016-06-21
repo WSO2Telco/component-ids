@@ -2,11 +2,11 @@
  *   To change this template, choose Tools | Templates
  *   and open the template in the editor.
  */
-package com.axiata.dialog.proxy.entity;
+package com.wso2telco.proxy.entity;
 
-import com.axiata.dialog.proxy.util.*;
 import com.google.gdata.util.common.util.Base64;
 import com.google.gdata.util.common.util.Base64DecoderException;
+import com.wso2telco.proxy.util.*;
 import org.apache.commons.logging.Log;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 import org.wso2.carbon.identity.user.registration.stub.dto.UserDTO;
@@ -103,7 +103,7 @@ public class Endpoints {
                     
                     
 
-                    DecryptAES  aes = new DecryptAES();
+                    DecryptAES aes = new DecryptAES();
 
                     String decrptedLoginHint = aes.decrypt(wifiLoginHint);
 
