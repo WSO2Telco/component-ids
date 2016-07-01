@@ -31,6 +31,11 @@
       <action dev="Wishmika" type="add" issue="PRODEV-136">
                Session updater not bundling problem fixed
             </action>
-    </release>	
-	</body>	
+    </release>
+    <release version="2.0.13_0002" date="2016-07-01" description="bug fix">
+            <action dev="Nilan" type="bug" issue="IDSDEV-36">
+                Failure in USSD Abort scenario
+            </action>
+     </release>
+    </body>
 </document>
