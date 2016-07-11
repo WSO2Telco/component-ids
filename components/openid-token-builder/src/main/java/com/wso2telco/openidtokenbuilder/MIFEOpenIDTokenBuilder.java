@@ -151,9 +151,6 @@ public class MIFEOpenIDTokenBuilder implements
 		// Get authenticators used
 		String amr = getValuesFromCache(request, "amr");
 
-		// Retrieve or create an ACR app
-		acrAppID = getACRAppID(applicationName);
-
 		// Set ACR (PCR) to sub
 		String subject = null;
 		

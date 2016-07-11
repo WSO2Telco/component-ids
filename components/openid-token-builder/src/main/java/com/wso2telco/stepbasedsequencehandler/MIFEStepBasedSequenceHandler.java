@@ -15,8 +15,10 @@
  ******************************************************************************/
 package com.wso2telco.stepbasedsequencehandler;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
@@ -24,13 +26,16 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
+import com.wso2telco.authenticationstephandler.MIFEAuthenticationStepHandler;
 import com.wso2telco.historylog.DbTracelog;
 import com.wso2telco.historylog.LogHistoryException;
 
@@ -53,7 +58,7 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
 		if (log.isDebugEnabled()) {
 			log.debug("Executing the Step Based Authentication...");
 		}
-
+			    
 		while (!context.getSequenceConfig().isCompleted() && context.getCurrentStep() < 30) {
 			int currentStep = context.getCurrentStep();
 

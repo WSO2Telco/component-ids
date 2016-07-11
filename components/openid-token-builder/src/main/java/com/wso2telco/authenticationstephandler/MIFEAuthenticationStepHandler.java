@@ -79,6 +79,26 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 		Map<String, AuthenticatorConfig> authenticatedStepIdps = FrameworkUtils
 				.getAuthenticatedStepIdPs(stepConfig, authenticatedIdPs);
 
+		
+		//acr_values validation
+		
+		AuthenticationRequest authRequest = context.getAuthenticationRequest();
+	    Map< String, String[]> paramMap = authRequest.getRequestQueryParams();
+	    
+		if (!paramMap.containsKey("acr_values")  ) {
+			
+			String redirectUri = paramMap.get("redirect_uri")[0];
+            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=acr_values_required";
+            log.info("acr_values not found");
+
+            try {
+                response.sendRedirect(invalidRedirectUrl); 
+            } catch (IOException ex) {
+                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+		
 		// check passive authentication
 		if (context.isPassiveAuthenticate()) {
 
@@ -271,12 +291,11 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	        if (!paramMap.containsKey("state")  ) {
 	            redirectUri = paramMap.get("redirect_uri")[0];
 
-	            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=state_Required" ;
-	            log.info("invalid redirect URI = " + invalidRedirectUrl);
+	            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=state_required" ;
+	            log.info("state not found");
 
 	            try {
-	                response.sendRedirect(invalidRedirectUrl);
-	                return;
+	                response.sendRedirect(invalidRedirectUrl);	   
 	            } catch (IOException ex) {
 	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
 	            }
@@ -293,12 +312,11 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	        if (!paramMap.containsKey("response_type")  ) {
 	        	
 	        	
-	            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=response_type_Required" ;
-	            log.info("invalid redirect URI = " + invalidRedirectUrl);
+	            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=response_type_required" ;
+	            log.info("response_type not found");
 
 	            try {
 	                response.sendRedirect(invalidRedirectUrl);
-	                return;
 	            } catch (IOException ex) {
 	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
 	            }
@@ -314,38 +332,26 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	 	            
 	 	            
 	 	           try {
-					response.sendRedirect(invalidRedirectUrl);
-					return;
+					response.sendRedirect(invalidRedirectUrl);					
 	 	           } catch (IOException ex) {
 		                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
 	 	           }
 	 	           
 	        	}
 	        }
-
-
-	        
-		        
-			
+		
 			//nonce validation
 			if (!paramMap.containsKey("nonce")  ) {
 
-
-
-	            String invalidRedirectUrl = redirectUri + "?error=invalid_request" + "&" + "error_description=nonce_Required" + "&" + "state=" + state;
-	            log.info("invalid redirect URI = " + invalidRedirectUrl);
+	            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=nonce_required";
+	            log.info("nonce not found");
 
 	            try {
-	                response.sendRedirect(invalidRedirectUrl);
-	                return;
+	                response.sendRedirect(invalidRedirectUrl);	
 	            } catch (IOException ex) {
 	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
 	            }
 	        }
-			
-			//
-			
-			
 			
 			if (log.isDebugEnabled()) {
 				log.debug(authenticator.getName() + " returned: " + status.toString());

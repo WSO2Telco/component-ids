@@ -69,8 +69,13 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 	 */
 	public boolean canHandle(HttpServletRequest request) {
 		LinkedHashSet<?> acrs = this.getACRValues(request);
-		selectedLOA = (String) acrs.iterator().next();
-		return acrs != null && acrs.size() > 0 && selectedLOA != null;
+		
+		if(acrs == null || acrs.size() == 0){
+			return false;
+		}else{
+			selectedLOA = (String) acrs.iterator().next();
+			return selectedLOA != null;
+		}			
 	}
 
 	/* (non-Javadoc)
