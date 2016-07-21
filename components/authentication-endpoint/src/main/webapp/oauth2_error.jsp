@@ -24,6 +24,9 @@
 	String errorMsg = CharacterEncoder.getSafeText(request.getParameter("oauthErrorMsg"));
 %>
 <!DOCTYPE html>
+
+<%@page import="javax.servlet.http.HttpServletResponse"%>
+
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -76,7 +79,12 @@
 						<div id="workArea">
 							<table>
 								<%
+								
+									response.sendError(400, "Bad Request" );					
+								
 									if (errorCode != null && errorMsg != null) {
+										
+										
 								%>
 								<tr>
 									<td><b><%=errorCode%> </b></td>

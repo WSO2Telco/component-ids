@@ -92,7 +92,6 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
             log.info("acr_values not found");
 
             try {
-            	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 response.sendRedirect(invalidRedirectUrl); 
             } catch (IOException ex) {
                 Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
@@ -287,12 +286,11 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			
 			//scope validation			
 			 if (!paramMap.containsKey("scope")) {
-				 
+				redirectUri = paramMap.get("redirect_uri")[0];
 				String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=scope_required" ;
 	            log.info("scope not found");
 
 	            try {
-	                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 	                response.sendRedirect(invalidRedirectUrl);	   
 	            } catch (IOException ex) {
 	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
@@ -311,7 +309,6 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	            log.info("state not found");
 
 	            try {
-	            	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 	                response.sendRedirect(invalidRedirectUrl);	   
 	            } catch (IOException ex) {
 	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
@@ -333,7 +330,6 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	            log.info("response_type not found");
 
 	            try {
-	            	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 	                response.sendRedirect(invalidRedirectUrl);
 	            } catch (IOException ex) {
 	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
@@ -350,7 +346,6 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	 	            
 	 	            
 	 	           try {
-	 	        	  response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 	 	        	  response.sendRedirect(invalidRedirectUrl);					
 	 	           } catch (IOException ex) {
 		                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
@@ -366,7 +361,6 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	            log.info("nonce not found");
 
 	            try {
-	            	response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 	                response.sendRedirect(invalidRedirectUrl);	
 	            } catch (IOException ex) {
 	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
