@@ -18,11 +18,15 @@ package com.wso2telco.openidtokenbuilder;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,10 +45,11 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.oltu.oauth2.jwt.JWTBuilder;
 import org.apache.oltu.openidconnect.as.messages.IDToken;
 import org.apache.oltu.openidconnect.as.messages.IDTokenBuilder;
 import org.apache.oltu.openidconnect.as.messages.IDTokenException;
-import org.json.JSONArray;
+import org.codehaus.jettison.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
@@ -71,6 +76,7 @@ import org.wso2.carbon.identity.oauth2.token.OAuthTokenReqMessageContext;
 import org.wso2.carbon.identity.oauth2.util.OAuth2Util;
 import org.wso2.carbon.identity.openidconnect.CustomClaimsCallbackHandler;
 
+import com.google.gson.Gson;
 import com.jayway.jsonpath.JsonPath;
 import com.nimbusds.jwt.PlainJWT;
 import com.wso2telco.util.AuthenticationHealper;
@@ -149,7 +155,9 @@ public class MIFEOpenIDTokenBuilder implements
 		String applicationName = oAuthAppDO.getApplicationName();
 
 		// Get authenticators used
-		String amr = getValuesFromCache(request, "amr");
+		String amr []= getValuesFromCache(request, "amr").split(",");
+		
+		JSONArray amrArray = new JSONArray(Arrays.asList(amr));
 
 		// Set ACR (PCR) to sub
 		String subject = null;
@@ -193,12 +201,13 @@ public class MIFEOpenIDTokenBuilder implements
 		}
 
 		try {
-			IDTokenBuilder builder = new IDTokenBuilder().setIssuer(issuer).setSubject(subject)
+			
+			CustomIDTokenBuilder builder = new CustomIDTokenBuilder().setIssuer(issuer).setSubject(subject)
 					.setAudience(request.getOauth2AccessTokenReqDTO().getClientId())
 					.setAuthorizedParty(request.getOauth2AccessTokenReqDTO().getClientId())
 					.setExpiration(curTime + lifetime).setIssuedAt(curTime)
 					.setAuthTime(accessTokenIssuedTime).setAtHash(atHash)
-					.setClaim("acr", acr).setClaim("amr", amr).setClaim(IDToken.NONCE, nonce); //$NON-NLS-1$ //$NON-NLS-2$
+					.setClaim("acr", acr).setAmr(amrArray).setClaim(IDToken.NONCE, nonce); //$NON-NLS-1$ //$NON-NLS-2$
 			// setting up custom claims
 			CustomClaimsCallbackHandler claimsCallBackHandler = OAuthServerConfiguration
 					.getInstance().getOpenIDConnectCustomClaimsCallbackHandler();
@@ -212,7 +221,10 @@ public class MIFEOpenIDTokenBuilder implements
         } catch (ParseException e) {
             log.error("Error while parsing the IDToken", e);
             throw new IdentityOAuth2Exception("Error while parsing the IDToken", e);
-        }
+        }catch (Exception e) {
+        	  log.error("Error while parsing the IDToken", e);
+              throw new IdentityOAuth2Exception("Error while parsing the IDToken", e);
+		}
 	}
 
 	/**
@@ -683,4 +695,5 @@ public class MIFEOpenIDTokenBuilder implements
 		return null;
 	}
 
+	
 }
