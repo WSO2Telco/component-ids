@@ -284,24 +284,7 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			AuthenticatorFlowStatus status = authenticator.process(request, response, context);
 			request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
 			
-			//scope validation			
-			 if (!paramMap.containsKey("scope")) {
-				redirectUri = paramMap.get("redirect_uri")[0];
-				String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=scope_required" ;
-	            log.info("scope not found");
-
-	            try {
-	                response.sendRedirect(invalidRedirectUrl);	   
-	            } catch (IOException ex) {
-	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
-	            }
-			 }else{
-				 
-				 scope = paramMap.get("scope")[0];
-				 log.info("Scope:" + scope);
-			 }
-			
-	        //state validation
+			//state validation
 	        if (!paramMap.containsKey("state")  ) {
 	            redirectUri = paramMap.get("redirect_uri")[0];
 
@@ -320,8 +303,25 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	            redirectUri = paramMap.get("redirect_uri")[0];
 
 	        }
-	        
-	        
+			
+			//scope validation			
+			 if (!paramMap.containsKey("scope")) {
+				
+				redirectUri = paramMap.get("redirect_uri")[0];
+				String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=no+scope&state=" + state ;
+	            log.info("scope not found");
+
+	            try {
+	            	response.sendRedirect(invalidRedirectUrl);
+	            } catch (IOException ex) {
+	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+	            }
+			 }else{
+				 
+				 scope = paramMap.get("scope")[0];
+				 log.info("Scope:" + scope);
+			 }
+			
 	        //responseType validation
 	        if (!paramMap.containsKey("response_type")  ) {
 	        	
