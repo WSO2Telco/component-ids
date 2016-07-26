@@ -80,7 +80,7 @@
 							<table>
 								<%
 								
-									response.sendError(400, "Bad Request" );					
+									response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad Request" );					
 								
 									if (errorCode != null && errorMsg != null) {
 										
