@@ -513,7 +513,7 @@
                 
                 var sessionDataKey=qs("token");
                 console.log("Session data key: "+sessionDataKey);
-                window.location = "https://india.mconnect.wso2telco.com/commonauth?sessionDataKey="+sessionDataKey;
+				window.location = "../../commonauth?sessionDataKey="+sessionDataKey;
             }
             
             function cancelProcessToLogin() {
