@@ -97,7 +97,7 @@ function registerUser() {
       var domain = request.getParameter("domain");
       var userNameVal = request.getParameter("userName");
       var openId = session.get("openIdURL");
-      var password = request.getParameter("pwd");
+      var password = encodeURIComponent(request.getParameter("pwd"));
       var claim = constants.DEFAULT_CLAIM_URL;
       var isHERegistration = request.getParameter("isHERegistration");
 
@@ -115,7 +115,9 @@ function registerUser() {
         )
       {
         var paramName = f.*::['claimUri'].text().toString();
+        log.info("****** params : " + paramName);
         var value = request.getParameter(paramName);
+        log.info("****** values : " + value);
         paramValues = paramValues + value + ",";
       }
       paramValues = paramValues.substr(0, paramValues.length - 1);
