@@ -4,5 +4,7 @@
 		"webapps_url" : "localhost:9763/",
 		"sample_msisdn" : "94773333428",
 		"am_url" : "dialog.mifetest.apim.com:9443/",
+		"admin_username" : "admin",
+		"admin_password" : "admin"
 	}
 }

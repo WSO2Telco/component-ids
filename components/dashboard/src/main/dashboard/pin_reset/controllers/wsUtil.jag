@@ -1,19 +1,9 @@
 <%
+include("/site/jagg/site.jag");
 
 var payloadFac = require("payloadFactory.jag");
 
 var log = new Log();
-var amConfig = getAdminData();
-
-function getAdminData() {
-	var configPath = "file://" + Packages.java.lang.System.getProperty("carbon.config.dir.path");
-	var amConfigPath = configPath + "/api-manager.xml";
-	var file = new File(amConfigPath);
-	file.open("r");
-	var amConfig = new XML(file.readAll());
-	file.close();
-	return amConfig;
-}
 
 function call(webService, serverUrl, options, payload){
     var cookie;// = session.get("auth-cookie");
@@ -21,8 +11,8 @@ function call(webService, serverUrl, options, payload){
 //     var pwd = session.get("pwd");
     
     /*below username and password are not logged in users data. these are only to call admin services.*/
-    var userName = String(amConfig.AuthManager.Username.text());
-    var pwd = String(amConfig.AuthManager.Password.text());
+    var userName = getAdminUsername();
+    var pwd = getAdminPassword();
     	
     log.debug(cookie);
     if(cookie != null){

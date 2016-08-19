@@ -21,6 +21,13 @@ function getMSISDN() {
        var msisdn = "Start with country code e.g. " + server.sample_msisdn;
 	return msisdn;
 }
+function getAdminUsername() {
+	return server.admin_username;
+}
+
+function getAdminPassword() {
+	return server.admin_password;
+}
 
 /*(function () {
 	var action = request.getParameter('action');
