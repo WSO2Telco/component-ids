@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.wso2telco.ids</groupId>
+        <artifactId>component-ids-parent</artifactId>
+        <version>2.0.13</version>
+        <relativePath>../../parent/pom.xml</relativePath>
+    </parent>
+
+    <artifactId>ids-data-publisher</artifactId>
+    <packaging>bundle</packaging>
+
+    <repositories>
+        <repository>
+            <id>wso2-nexus</id>
+            <name>WSO2 internal Repository</name>
+            <url>http://maven.wso2.org/nexus/content/groups/wso2-public/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+                <checksumPolicy>ignore</checksumPolicy>
+            </releases>
+        </repository>
+
+        <repository>
+            <id>wso2.releases</id>
+            <name>WSO2 internal Repository</name>
+            <url>http://maven.wso2.org/nexus/content/repositories/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+                <checksumPolicy>ignore</checksumPolicy>
+            </releases>
+        </repository>
+
+        <repository>
+            <id>wso2.snapshots</id>
+            <name>Apache Snapshot Repository</name>
+            <url>http://maven.wso2.org/nexus/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>daily</updatePolicy>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>org.wso2.carbon.analytics-common</groupId>
+            <artifactId>org.wso2.carbon.databridge.commons</artifactId>
+            <version>${carbon.analytics.common.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.analytics-common</groupId>
+            <artifactId>org.wso2.carbon.databridge.commons.thrift</artifactId>
+            <version>${carbon.analytics.common.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.analytics-common</groupId>
+            <artifactId>org.wso2.carbon.databridge.agent</artifactId>
+            <version>${carbon.analytics.common.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <version>${maven.bundle.plugin.version}</version>
+                <configuration>
+                    <instructions>
+                        <Bundle-Vendor>WSO2Telco</Bundle-Vendor>
+                        <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
+                        <Export-Package>
+                            com.wso2telco.ids.datapublisher.*,
+                            !com.wso2telco.ids.datapublisher.internal
+                        </Export-Package>
+                        <Bundle-Name>${project.artifactId}</Bundle-Name>
+                        <Import-Package>
+                            org.apache.commons.logging.*,
+                            org.osgi.service.component.*,
+                            org.wso2.carbon.utils.*
+                        </Import-Package>
+                        <Private-Package>com.wso2telco.ids.datapublisher.internal</Private-Package>
+                        <DynamicImport-Package>*</DynamicImport-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+                <version>1.9.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-scr-scrdescriptor</id>
+                        <goals>
+                            <goal>scr</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+
+    <properties>
+        <carbon.analytics.common.version>5.0.6</carbon.analytics.common.version>
+    </properties>
+
+</project>
