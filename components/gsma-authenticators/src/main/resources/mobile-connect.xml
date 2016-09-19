@@ -37,6 +37,7 @@
         <ShortUrlService>https://api-ssl.bitly.com/v3/shorten</ShortUrlService>
         <AccessToken>fae2517b1a95b740f33058e28a1796faa80643a4</AccessToken>
         <SenderAddres>26451</SenderAddres>
+        <FallbackPrefix>../</FallbackPrefix>
    </SMS>
     <USSD>
         <Endpoint>http://ussdhost/request</Endpoint>
