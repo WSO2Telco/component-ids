@@ -25,6 +25,11 @@
 			<action dev="isuru" type="add" issue="PRODEV-75">
                 OSGI Feature released for Operator Proxy Service artifact.
 			</action>
-		</release>		
+		</release>
+		<release description="Open source release">
+			<action dev="lakshani" type="add" issue="IDSDEV-215">
+				Generalize OperatorProxyService webapp and Renamed it to a more meaningful name.
+			</action>
+		</release>
 	</body>	
 </document>

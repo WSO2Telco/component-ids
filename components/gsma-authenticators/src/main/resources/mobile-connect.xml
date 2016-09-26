@@ -54,6 +54,16 @@
     Identity Server. By default the port would be 9763+[offset] -->
     <!--<ListenerWebappHost>http://{is.host.name}:9764</ListenerWebappHost>-->
 
+    <MSISDN>
+        <EncryptionKey>cY4L3dBf@mifenew</EncryptionKey>
+    </MSISDN>
+
+    <AuthProxy>
+        <DataSourceName>jdbc/AXIATA_MIFE_DB</DataSourceName>
+        <AuthorizeURL>https://localhost:9443/oauth2/authorize?</AuthorizeURL>
+        <IPHeader>IP-Address</IPHeader>
+    </AuthProxy>
+
     <HEADERENRICH>
         <Endpoint>http://ussdhost/request</Endpoint>
         <Enrichflg>true</Enrichflg>

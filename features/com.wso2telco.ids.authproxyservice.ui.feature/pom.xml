@@ -9,9 +9,9 @@
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>com.wso2telco.ids.operatorproxyservice.ui.feature</artifactId>
+	<artifactId>com.wso2telco.ids.authproxyservice.ui.feature</artifactId>
 	<packaging>pom</packaging>
-	<name>Operator Proxy Service - UI Feature</name>
+	<name>Auth Proxy Service - UI Feature</name>
 	<description>
     </description>
 
@@ -101,10 +101,10 @@
 							<artifactItems>
 								<artifactItem>
 									<groupId>com.wso2telco.ids</groupId>
-									<artifactId>operator-proxy-service</artifactId>
+									<artifactId>auth-proxy-service</artifactId>
 									<version>${com.wso2telco.ids.version}</version>
 									<type>war</type>
-									<destFileName>operatorproxyservice.war</destFileName>
+									<destFileName>authproxy.war</destFileName>
 								</artifactItem>
 							</artifactItems>
 							<outputDirectory>${project.basedir}/src/main/resources/generated</outputDirectory>
@@ -124,7 +124,7 @@
 							<goal>p2-feature-gen</goal>
 						</goals>
 						<configuration>
-							<id>com.wso2telco.ids.operatorproxyservice.ui</id>
+							<id>com.wso2telco.ids.authproxyservice.ui</id>
 							<propertiesFile>../etc/feature.properties</propertiesFile>
 							<adviceFile>
 								<properties>

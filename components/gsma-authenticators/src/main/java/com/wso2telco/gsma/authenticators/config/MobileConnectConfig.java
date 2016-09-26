@@ -58,6 +58,8 @@ public class MobileConnectConfig {
     @XmlElement(name = "HEADERENRICH")
     protected HEADERENRICH headerenrich;
 
+    protected MSISDN msisdn;
+
     /**
      * Gets the data source name.
      *
@@ -230,6 +232,14 @@ public class MobileConnectConfig {
         this.mss = mss;
     }
 
+    @XmlElement(name = "MSISDN")
+    public MSISDN getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(MSISDN msisdn) {
+        this.msisdn = msisdn;
+    }
 
     /**
      * The Class GSMAExchangeConfig.
@@ -618,9 +628,6 @@ public class MobileConnectConfig {
         
         /** The enrichflg. */
         private String enrichflg;
-        
-        /** The key. */
-        private String key;
 
         /**
          * Gets the endpoint.
@@ -658,25 +665,6 @@ public class MobileConnectConfig {
          */
         public void setEnrichflg(String enrichflg) {
             this.enrichflg = enrichflg;
-        }
-
-        /**
-         * Gets the key.
-         *
-         * @return the key
-         */
-        @XmlElement(name = "key")
-        public String getKey() {
-            return key;
-        }
-        
-        /**
-         * Sets the key.
-         *
-         * @param key the new key
-         */
-        public void setKey(String key) {
-            this.key = key;
         }
 
         /**
@@ -868,6 +856,20 @@ public class MobileConnectConfig {
          */
         public void setSuccessStatus(int successStatus) {
             this.successStatus = successStatus;
+        }
+
+    }
+
+    public static class MSISDN {
+        private String encryptionKey;
+
+        @XmlElement(name = "EncryptionKey")
+        public String getEncryptionKey() {
+            return encryptionKey;
+        }
+
+        public void setEncryptionKey(String encryptionKey) {
+            this.encryptionKey = encryptionKey;
         }
 
     }
