@@ -38,7 +38,7 @@ public class DecryptionAES {
     private static byte[] keyValue;
     
     static{
-          keyValue = DataHolder.getInstance().getMobileConnectConfig().getHEADERENRICH().getKey().getBytes();
+          keyValue = DataHolder.getInstance().getMobileConnectConfig().getMsisdn().getEncryptionKey().getBytes();
     }
     
     /**
@@ -61,9 +61,6 @@ public class DecryptionAES {
                     cipher.init(Cipher.DECRYPT_MODE,key);
                     byte[] decryptedByte = cipher.doFinal(encryptedTextByte);
                     decryptedText = new String(decryptedByte);
-               }
-               else{
-                  //nop 
                }
 		return decryptedText;
 	}

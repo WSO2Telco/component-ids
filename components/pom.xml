@@ -16,9 +16,9 @@
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>operator-proxy-service</artifactId>
+	<artifactId>auth-proxy-service</artifactId>
 	<packaging>war</packaging>
-	<name>Operator Proxy Service</name>
+	<name>Auth Proxy Service</name>
 
 	<dependencies>
 		<dependency>
@@ -61,7 +61,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>operatorproxyservice</finalName>
+		<finalName>authproxy</finalName>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -80,7 +80,7 @@
 							<directory>src/main/webapp</directory>
 						</resource>
 					</webResources>
-					<warName>operatorproxyservice</warName>
+					<warName>authproxy</warName>
 				</configuration>
 			</plugin>
 		</plugins>

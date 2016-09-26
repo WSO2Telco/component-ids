@@ -1,0 +1,2 @@
+instructions.configure = \
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/com.wso2telco.ids.authproxyservice.ui_${feature.version}/generated/authproxy.war,target:${installFolder}/../../deployment/server/webapps/authproxy.war,overwrite:true);
