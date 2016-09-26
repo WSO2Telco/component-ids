@@ -10,7 +10,7 @@ import javax.xml.bind.Unmarshaller;
 import java.io.File;
 
 /**
- * ConfigLoader class has implemented with SIngleton patten. This file is used to load mobile-connect.xml file.
+ * ConfigLoader class has implemented with Singleton patten. This file is used to load mobile-connect.xml file.
  */
 public class ConfigLoader {
     private Log log = LogFactory.getLog(ConfigLoader.class);
@@ -28,17 +28,19 @@ public class ConfigLoader {
 
     /**
      * Get instance of the ConfigLoader class.
+     *
      * @return
      */
     public static ConfigLoader getInstance() {
-        if(loader == null) {
-           loader = new ConfigLoader();
+        if (loader == null) {
+            loader = new ConfigLoader();
         }
         return loader;
     }
 
     /**
      * Initiate mobile-connect.xml file.
+     *
      * @return the configuration of mobile-connect.xml file.
      * @throws JAXBException
      */
@@ -50,7 +52,7 @@ public class ConfigLoader {
         return (MobileConnectConfig) unmarshaller.unmarshal(file);
     }
 
-    public MobileConnectConfig getMobileConnectConfig(){
+    public MobileConnectConfig getMobileConnectConfig() {
         return mobileConnectConfig;
     }
 }
