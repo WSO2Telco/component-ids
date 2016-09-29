@@ -95,7 +95,18 @@
 
 			console.log("MSISDN is verfied.");
 
-			url = 'wss://india.mconnect.wso2telco.com/dashboard/session_manager.jag';
+
+			var CARBON_URL;
+			$.ajax({
+			    url: '../site/conf/site.json',
+			    async: false,
+			    dataType: 'json',
+			    success: function(response) {
+				CARBON_URL = response.server.carbon_url;
+			    }
+			});
+
+			url = 'wss://'+CARBON_URL+'dashboard/session_manager.jag';
 			ws = new WebSocket(url);
 
 			ws.onopen = function () {

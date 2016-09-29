@@ -149,7 +149,8 @@ function sendSMS(prefix){
 	var state = getUrlVars()["state"];
 	var scope = getUrlVars()["scope"];
 	var msisdn = document.getElementById('msisdn').value;
-	var smsFallbackURL = prefix + "oauth2/authorize?scope=" + encodeURIComponent(scope) +"&response_type=code&redirect_uri=" + redirect_uri +"&client_id="+ client_id +"&msisdn="+msisdn +"&acr_values="+ "5" + "&state=" + state;
+	var nonce = getUrlVars()["nonce"];
+	var smsFallbackURL = prefix + "oauth2/authorize?scope=" + scope +"&response_type=code&redirect_uri=" + redirect_uri +"&client_id="+ client_id +"&msisdn="+msisdn +"&acr_values="+ "5" + "&state=" + state+ "&nonce=" + nonce;;
 	
 	window.location = smsFallbackURL;
 }

@@ -77,8 +77,9 @@ public class SendSMS {
         
         ReceiptRequest receipt = new ReceiptRequest();
         
-        receipt.setCallbackData("some-data-useful");
-        receipt.setNotifyURL("https://india.mconnect.com");
+	//FIXME: Set from configs
+        receipt.setCallbackData("");
+        receipt.setNotifyURL("");
         outbound.setReceiptRequest(receipt);
         
       
