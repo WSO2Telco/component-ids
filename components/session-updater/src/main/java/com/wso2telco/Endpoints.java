@@ -16,6 +16,23 @@
 package com.wso2telco;
 
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.wso2telco.cryptosystem.AESencrp;
+import com.wso2telco.entity.LoginHistory;
+import org.apache.axis2.AxisFault;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
+import org.wso2.carbon.identity.mgt.stub.UserIdentityManagementAdminServiceIdentityMgtServiceExceptionException;
+import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.rmi.RemoteException;
@@ -33,31 +50,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
-import org.apache.axis2.AxisFault;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
-import org.wso2.carbon.identity.mgt.stub.UserIdentityManagementAdminServiceIdentityMgtServiceExceptionException;
-import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.wso2telco.cryptosystem.AESencrp;
-import com.wso2telco.entity.LoginHistory;
 
 
 
@@ -141,26 +133,15 @@ public class Endpoints {
         //USSD 2 = NO
         if (message.equals("1")) {
             status = "Approved";
-            responseCode = 201;
-            DatabaseUtils.updateStatus(sessionID, status);
-        } else if (message.equals("2")) {
-            status = "Rejected";
-            responseCode = 201;
+            responseCode = Response.Status.CREATED.getStatusCode();
             DatabaseUtils.updateStatus(sessionID, status);
         } else {
-            responseString = validateUSSDResponse(message, msisdn, sessionID, ussdSessionID);
-            if (responseString == null) {
-                responseCode = 400;
-                status = "Status not updated";
-                ussdNoOfAttempts.remove(msisdn);
-                responseString = SendUSSD.getUSSDJsonPayload(msisdn, sessionID, 3, "mtfin", ussdSessionID);  //send 3 to show session expire message
-                return Response.status(responseCode).entity(responseString).build();
-            } else {
-                return Response.status(201).entity(responseString).build();
-            }
+            status = "Rejected";
+            responseCode = Response.Status.BAD_REQUEST.getStatusCode();
+            DatabaseUtils.updateStatus(sessionID, status);
         }
 
-        if (responseCode == 400) {
+        if (responseCode == Response.Status.BAD_REQUEST.getStatusCode()) {
             responseString = "{" + "\"requestError\":" + "{"
                     + "\"serviceException\":" + "{" + "\"messageId\":\"" + "SVC0275" + "\"" + "," + "\"text\":\"" + "Internal server Error" + "\"" + "}"
                     + "}}";

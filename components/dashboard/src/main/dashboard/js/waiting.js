@@ -155,6 +155,7 @@ console.log("waiting");
  	var url = "../user-registration/webresources/endpoint/ussd/status?username=" + sessionId;
 
  	var STATUS_APPROVED = "Approved";
+ 	var STATUS_REJECTED = "Rejected";
 
  	$.ajax({
  		type: "GET",
@@ -164,12 +165,17 @@ console.log("waiting");
  		success:function(result){
  			if(result != null) {
  				var responseStatus = result.status; 
-
+ 
  				if(responseStatus != null && responseStatus == STATUS_APPROVED) {
  					status = result.status;
  					console.log("status : "+status);
  					hasResponse = true;
  				}
+ 				if(responseStatus != null && responseStatus == STATUS_REJECTED) {
+ 					status = result.status;
+ 					cancelProcessToRegister(tokenVal);
+ 				}				
+
  			}
  		}});
 

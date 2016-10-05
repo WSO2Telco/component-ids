@@ -97,7 +97,7 @@ function registerUser() {
       var domain = request.getParameter("domain");
       var userNameVal = request.getParameter("userName");
       var openId = session.get("openIdURL");
-      var password = request.getParameter("pwd");
+      var password = encodeURIComponent(request.getParameter("pwd"));
       var claim = constants.DEFAULT_CLAIM_URL;
       var isHERegistration = request.getParameter("isHERegistration");
 

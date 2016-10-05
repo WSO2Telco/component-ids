@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -41,14 +43,14 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.I
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
-import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticationRequest;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
 import com.wso2telco.gsma.authenticators.LOACompositeAuthenticator;
 import com.wso2telco.util.AuthenticationHealper;
+import com.wso2telco.util.Params;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -78,6 +80,26 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 		Map<String, AuthenticatorConfig> authenticatedStepIdps = FrameworkUtils
 				.getAuthenticatedStepIdPs(stepConfig, authenticatedIdPs);
 
+		
+		//acr_values validation
+		
+		AuthenticationRequest authRequest = context.getAuthenticationRequest();
+	    Map< String, String[]> paramMap = authRequest.getRequestQueryParams();
+	    
+		if (!paramMap.containsKey(Params.ACR_VALUES.toString())  ) {
+			
+			String redirectUri = paramMap.get(Params.REDIRECT_URI.toString())[0];
+            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=acr_values_required";
+            log.info("acr_values not found");
+
+            try {
+                response.sendRedirect(invalidRedirectUrl); 
+            } catch (IOException ex) {
+                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+		
 		// check passive authentication
 		if (context.isPassiveAuthenticate()) {
 
@@ -145,6 +167,7 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 						context.setExternalIdP(ConfigurationFacade.getInstance().getIdPConfigByName(
 								idp, context.getTenantDomain()));
 					} catch (IdentityProviderManagementException e) {
+						e.printStackTrace();
 						log.error(e);
 						throw new FrameworkException(e.toString());
 					}
@@ -195,6 +218,7 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 									.getIdPConfigByName(authenticatorConfig.getIdpNames().get(0),
 											context.getTenantDomain()));
 						} catch (IdentityProviderManagementException e) {
+							e.printStackTrace();
 							log.error(e);
 							throw new FrameworkException(e.toString());
 						}
@@ -242,9 +266,16 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 		int currentStep = context.getCurrentStep();
 		StepConfig stepConfig = sequenceConfig.getStepMap().get(currentStep);
 
-		// Set false for all steps
-		 
-
+		AuthenticationRequest authRequest = context.getAuthenticationRequest();
+	    Map< String, String[]> paramMap = authRequest.getRequestQueryParams();
+	        
+	       
+	    String scope = "";
+	    String redirectUri = null;
+	    String state = null;
+	    String responseType = null;   
+	    String client_id = paramMap.get(Params.CLIENT_ID.toString())[0];
+	
 		ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
 
 		try {
@@ -252,6 +283,89 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 					context.getExternalIdP(), authenticator.getName()));
 			AuthenticatorFlowStatus status = authenticator.process(request, response, context);
 			request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
+			
+			//state validation
+	        if (!paramMap.containsKey(Params.STATE.toString())  ) {
+	            redirectUri = paramMap.get(Params.REDIRECT_URI.toString())[0];
+
+	            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=state_required" ;
+	            log.debug("state not found. client_id : "+client_id);
+
+	            try {
+	                response.sendRedirect(invalidRedirectUrl);	   
+	            } catch (IOException ex) {
+	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+	            }
+	        }
+	        else {
+
+	            state = paramMap.get(Params.STATE.toString())[0];
+	            redirectUri = paramMap.get(Params.REDIRECT_URI.toString())[0];
+
+	        }
+			
+			//scope validation			
+			 if (!paramMap.containsKey(Params.SCOPE.toString())) {
+				
+				redirectUri = paramMap.get(Params.REDIRECT_URI.toString())[0];
+				String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=no+scope&state=" + state ;
+	            log.debug("scope not found. client_id : "+client_id);
+
+	            try {
+	            	response.sendRedirect(invalidRedirectUrl);
+	            } catch (IOException ex) {
+	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+	            }
+			 }else{
+				 
+				 scope = paramMap.get(Params.SCOPE.toString())[0];
+				 log.debug("Scope:" + scope);
+			 }
+			
+	        //responseType validation
+	        if (!paramMap.containsKey(Params.RESPONSE_TYPE.toString())  ) {
+	        	
+	        	
+	            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=no+response_type" ;
+	            log.debug("response_type not found. client_id : "+client_id);
+
+	            try {
+	                response.sendRedirect(invalidRedirectUrl);
+	            } catch (IOException ex) {
+	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+	            }
+	        }
+	        else {
+
+	        	responseType = paramMap.get(Params.RESPONSE_TYPE.toString())[0];
+	        	log.debug("response_type : " + responseType);
+
+	        	if(!responseType.equals(Params.CODE.toString())){
+	        		String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=response_type_should_be_code" ;
+	 	            log.debug("invalid redirect URI = " + invalidRedirectUrl);
+	 	            
+	 	            
+	 	           try {
+	 	        	  response.sendRedirect(invalidRedirectUrl);					
+	 	           } catch (IOException ex) {
+		                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+	 	           }
+	 	           
+	        	}
+	        }
+		
+			//nonce validation
+			if (!paramMap.containsKey(Params.NONCE.toString())  ) {
+
+	            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=nonce_required";
+	            log.debug("nonce not found. client_id : "+client_id);
+
+	            try {
+	                response.sendRedirect(invalidRedirectUrl);	
+	            } catch (IOException ex) {
+	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+	            }
+	        }
 			
 			if (log.isDebugEnabled()) {
 				log.debug(authenticator.getName() + " returned: " + status.toString());
@@ -276,16 +390,16 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 
 					// set authenticator name in the context
 					// This gets used in ID token later
-					Object amrValue = context.getProperty("amr");
+					Object amrValue = context.getProperty(Params.AMR.toString());
 					List<String> amr;
 					if (null != amrValue && amrValue instanceof ArrayList<?>) {
 						amr = (ArrayList<String>) amrValue;
 						amr.add(authenticator.getName());
-						context.setProperty("amr", amr);
+						context.setProperty(Params.AMR.toString(), amr);
 					} else {
 						amr = new ArrayList<String>();
 						amr.add(authenticator.getName());
-						context.setProperty("amr", amr);
+						context.setProperty(Params.AMR.toString(), amr);
 					}
 				} catch (NullPointerException e) {
 					// Possible exception during dashboard login

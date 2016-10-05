@@ -294,15 +294,31 @@ public class Endpoints {
 		} catch (Exception e) {
 			return Response.status(Response.Status.BAD_REQUEST).entity("INCORRECT MSISDN FORMAT").build();
 		}
-		
+		String responseString = null;
 		boolean ussdOk = false;
 		if (inboundUSSDMessage.equals("1")) {
 			ussdOk = true;
-		}
+		} else if (inboundUSSDMessage.equals("2")) {
+            responseString = SendUSSD.getJsonPayload(msisdn, sessionID, 5, "mtfin", notifyUrl, ussdSessionID, true);
+            //update databse after cancellation of registration of user
+            DatabaseUtils.updateRegStatus(msisdn, "Rejected");
+            if (log.isDebugEnabled()) {
+            log.debug("User Rejected the USSD Push");
+            }
+            return Response.status(200).entity(responseString).build();
+        } else {
+            //update databse after cancellation of registration of user
+            DatabaseUtils.updateRegStatus(msisdn, "Rejected");
+            responseString = SendUSSD.getJsonPayload(msisdn, sessionID, 6, "mtfin", notifyUrl, ussdSessionID, true);
+            if (log.isDebugEnabled()) {
+            log.debug("User Rejected the USSD Push");
+            }
+            return Response.status(200).entity(responseString).build();
+        }
 
 		log.info("USSD Push received msisdn :" + msisdn);
 		UserRegistrationData userRegistrationData = userMap.get(msisdn);
-		String responseString = null;
+		
 		responseString = "Your registration confirm time has expired. Please register again";
 		long waitingTime = Integer.parseInt(FileUtil.getApplicationProperty("waitinTimeInMinutes")) * 1000 * 60;
 
@@ -552,8 +568,9 @@ public class Endpoints {
 
 		ReceiptRequest receipt = new ReceiptRequest();
 
-		receipt.setCallbackData("some-data-useful");
-		receipt.setNotifyURL("https://india.mconnect.com");
+		//FIXME: Set from configs		
+		receipt.setCallbackData("");
+		receipt.setNotifyURL("");
 		outbound.setReceiptRequest(receipt);
 		outbound.setOutboundTextMessage(messageObj);
 		outbound.setAddress(address);

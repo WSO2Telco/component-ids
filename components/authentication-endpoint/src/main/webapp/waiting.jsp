@@ -1,10 +1,14 @@
+<%@ page import="com.wso2telco.identity.application.authentication.endpoint.util.ReadMobileConnectConfig" %>
+<%@ page import="javax.xml.parsers.ParserConfigurationException" %>
+<%@ page import="org.xml.sax.SAXException" %>
+<%@ page import="javax.xml.xpath.XPathExpressionException" %>
 
 <input type="hidden" name="sessionDataKey" id="sessionDataKey" value='<%=request.getParameter("sessionDataKey")%>'/>
 <div class="site__root" id="content-placeholder">
 
-    
+
 </div>
-  
+
   <!-- The handlebar template -->
 <script id="results-template" type="text/x-handlebars-template">
 	<main class="site__main site__wrap section v-distribute">
@@ -14,18 +18,18 @@
 		</h1>
         <p>
 
-	    	<% 
+	    	<%
 	    	String authenticators = request.getParameter("authenticators");
 	    	Boolean showSMSLink = false;
 	    	if(authenticators != null && authenticators.contains("SMSAuthenticator")) {
 	    	%>
 	    		{{continue-on-device-intro-sms}}
-	    	<%} else if (authenticators != null && authenticators.contains("USSDAuthenticator")) { 
+	    	<%} else if (authenticators != null && authenticators.contains("USSDAuthenticator")) {
 	    		showSMSLink = true; %>
 	    		{{continue-on-device-intro-ussd}}
 	    	<%} else if (authenticators != null && authenticators.contains("USSDPinAuthenticator")){
 	    		showSMSLink = true; %>
-	    		{{continue-on-device-intro-ussd-pin}}		
+	    		{{continue-on-device-intro-ussd-pin}}
 	    	<%} else {%>
 	    		{{continue-on-device-intro-default}}
 	    	<%}%>
@@ -49,10 +53,22 @@
       <div class="error-copy space--bottom hide" id="timeout-warning">
         {{continue-on-device-timeout}}
       </div>
-      <% if (showSMSLink) { %> 
+      <% if (showSMSLink) { %>
+		<%  ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
+			String fallbackPrefix = "";
+			try {
+				fallbackPrefix = readMobileConnectConfig.query("SMS").get("FallbackPrefix");
+			} catch (ParserConfigurationException e) {
+				e.printStackTrace();
+			} catch (SAXException e) {
+				e.printStackTrace();
+			} catch (XPathExpressionException e) {
+				e.printStackTrace();
+			}
+		%>
 			<p class="page__copy flush">{{ussd-sent-resend-sms-prompt}}
 			  <br>
-			  <a onclick="sendSMS();" style="cursor:pointer"><u>
+			  <a onclick="sendSMS('<%=fallbackPrefix%>');" style="cursor:pointer"><u>
 				{{ussd-sent-resend-sms-button}}
 			  </u></a>
 			</p>

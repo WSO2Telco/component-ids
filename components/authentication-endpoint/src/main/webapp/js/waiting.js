@@ -140,14 +140,17 @@ function getCookieAndResend() {
 	});
 }
 
-function sendSMS(){
+function sendSMS(prefix){
+
 	var operator = getUrlVars()["operator"];
 	var client_id = getUrlVars()["relyingParty"];
 	var redirect_uri = getUrlVars()["redirect_uri"];
 	var acr_values = getUrlVars()["acr_values"];
 	var state = getUrlVars()["state"];
+	var scope = getUrlVars()["scope"];
 	var msisdn = document.getElementById('msisdn').value;
-	var smsFallbackURL = "http://india.gateway.wso2telco.com/authorize/v1/"+ operator +"/oauth2/authorize?scope=openid&response_type=code&redirect_uri=" + redirect_uri +"&client_id="+ client_id +"&msisdn="+msisdn +"&acr_values="+ "5" + "&state=" + state;
+	var nonce = getUrlVars()["nonce"];
+	var smsFallbackURL = prefix + "oauth2/authorize?scope=" + scope +"&response_type=code&redirect_uri=" + redirect_uri +"&client_id="+ client_id +"&msisdn="+msisdn +"&acr_values="+ "5" + "&state=" + state+ "&nonce=" + nonce;;
 	
 	window.location = smsFallbackURL;
 }

@@ -49,7 +49,7 @@ public class BitlyUrlShorten implements UrlShorten {
      */
     @Override
     public String getShortenURL(String longUrl,String accessToken,String shortServiceUrl) {
-        longUrl="https://india.mconnect.wso2telco.com?id=1235666";
+
         String webserviceUrl=shortServiceUrl+"?access_token="+accessToken+"&longUrl="+longUrl;
         String shortUrl=null;
 
