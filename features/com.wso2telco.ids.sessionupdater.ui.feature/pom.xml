@@ -28,12 +28,12 @@
         <dependency>
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.identity.mgt.stub</artifactId>
-            <version>${carbon.identity.version}</version>
+            <version>${identity.framework.version}</version>
         </dependency>
         <dependency>
             <groupId>org.wso2.carbon.identity</groupId>
             <artifactId>org.wso2.carbon.um.ws.api.stub</artifactId>
-            <version>${carbon.identity.version}</version>
+            <version>${identity.user.ws.version}</version>
         </dependency>       
         <dependency>
             <groupId>commons-codec.wso2</groupId>
@@ -147,10 +147,10 @@
                                     org.wso2.carbon:org.wso2.carbon.authenticator.stub:${carbon.kernel.version}                                   
                                 </bundleDef>
                                 <bundleDef>
-                                    org.wso2.carbon.identity:org.wso2.carbon.identity.mgt.stub:${carbon.identity.version}                                
+                                    org.wso2.carbon.identity:org.wso2.carbon.identity.mgt.stub:${identity.framework.version}
                                 </bundleDef>
                                 <bundleDef>
-                                    org.wso2.carbon.identity:org.wso2.carbon.um.ws.api.stub:${carbon.identity.version}                                 
+                                    org.wso2.carbon.identity:org.wso2.carbon.um.ws.api.stub:${identity.user.ws.version}
                                 </bundleDef>                                
                                 <bundleDef>
                                     commons-codec.wso2:commons-codec:${commons-codec.version}                                  
