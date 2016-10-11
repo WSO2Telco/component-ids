@@ -19,8 +19,8 @@
 	<parent>
 		<groupId>com.wso2telco.ids</groupId>
 		<artifactId>component-ids-parent</artifactId>
-                <version>2.0.13</version>
-                <relativePath>../../parent/pom.xml</relativePath>
+		<version>2.0.13</version>
+		<relativePath>../../parent/pom.xml</relativePath>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
@@ -45,33 +45,81 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 		</dependency>
- 		<dependency>
- 			<groupId>javax.servlet</groupId>
-			<artifactId>jstl</artifactId> 
- 		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>commons-codec.wso2</groupId>
 			<artifactId>commons-codec</artifactId>
 		</dependency>
 		<dependency>
-		<groupId>org.wso2.carbon.identity</groupId>
-		<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
-		<version>5.0.7</version>
-		<scope>provided</scope>
+			<groupId>commons-lang.wso2</groupId>
+			<artifactId>commons-lang</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jsp-api</artifactId>
+			<version>2.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.ws.commons.axiom</groupId>
+			<artifactId>axiom-api</artifactId>
+			<version>1.2.11-wso2v10</version>
+		</dependency>
+		<dependency>
+			<groupId>org.wso2.carbon.identity</groupId>
+			<artifactId>org.wso2.carbon.identity.application.authentication.endpoint.util</artifactId>
+			<version>5.2.2</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.wso2.carbon.identity</groupId>
+			<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+			<version>5.2.2</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.wso2.securevault</groupId>
+			<artifactId>org.wso2.securevault</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-lang</groupId>
+					<artifactId>commons-lang</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.wso2.orbit.org.owasp.encoder</groupId>
+			<artifactId>encoder</artifactId>
+		</dependency>
+		<!--<dependency>
+			<groupId>org.wso2.carbon.identity</groupId>
+			<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+			<version>5.0.7</version>
+			<scope>provided</scope>
+		</dependency>-->
+		<!--<dependency>
+			<groupId>org.wso2.carbon.identity</groupId>
+			<artifactId>org.wso2.carbon.identity.application.authentication.endpoint.util</artifactId>
+			<version>5.0.7</version>
+			<scope>provided</scope>
+		</dependency>-->
 	</dependencies>
 	<build>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>${maven-compiler-plugin.version}</source>
-					<target>${maven-compiler-plugin.version}</target>
+					<source>1.7</source>
+					<target>1.7</target>
 				</configuration>
+				<version>2.3.2</version>
 			</plugin>
 			<plugin>
 				<artifactId>maven-war-plugin</artifactId>
-				<version>${maven-war-plugin.version}</version>
+				<version>2.2</version>
 				<configuration>
 					<webResources>
 						<resource>
@@ -80,8 +128,10 @@
 						</resource>
 					</webResources>
 					<warName>authenticationendpoint</warName>
+					<packagingExcludes>WEB-INF/lib/commons-logging*.jar</packagingExcludes>
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
+
 </project>
