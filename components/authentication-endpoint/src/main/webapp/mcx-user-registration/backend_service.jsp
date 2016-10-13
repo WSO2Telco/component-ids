@@ -44,7 +44,7 @@
     }
 %>
 <%
-    InputStream propertyFileInputStream = getServletContext().getResourceAsStream("/WEB-INF/classes/constants.properties");
+    InputStream propertyFileInputStream = getServletContext().getResourceAsStream("/WEB-INF/classes/Constants.properties");
     Properties properties = new Properties();
     properties.load(propertyFileInputStream);
 
