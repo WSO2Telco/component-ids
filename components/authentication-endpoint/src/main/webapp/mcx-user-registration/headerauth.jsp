@@ -1,4 +1,4 @@
-<script src="js/headerauth.js"></script>
+<script src="mcx-user-registration/js/headerauth.js"></script>
 <div id="loginTable1" class="identity-box">
     <%
         loginFailed = request.getParameter("loginFailed");
