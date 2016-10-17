@@ -28,6 +28,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.DatatypeConverter;
 import java.io.UnsupportedEncodingException;
+import java.lang.String;
 import java.net.URLEncoder;
 import java.rmi.RemoteException;
 import java.security.InvalidKeyException;
@@ -67,6 +68,7 @@ public class Endpoints {
     private static final String STATE = "state";
     private static final String LOGIN_HINT_ENCRYPTED_PREFIX = "ENCR_MSISDN:";
     private static final String LOGIN_HINT_NOENCRYPTED_PREFIX = "MSISDN:";
+    private static final String OIDC_PROMPT_LOGIN = "&prompt=login";
     
 
 
@@ -331,7 +333,7 @@ public class Endpoints {
         }
 
 
-        response.sendRedirect(redirectURL);
+        response.sendRedirect(redirectURL + OIDC_PROMPT_LOGIN);
 
     }
     
