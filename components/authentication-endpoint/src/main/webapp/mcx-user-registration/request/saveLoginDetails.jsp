@@ -11,7 +11,7 @@
 public String getWebAppsUrl(){
 String serverWebappsUrl = null;
 try{
-	InputStream input = getServletContext().getResourceAsStream("/WEB-INF/classes/serverDetails.json");
+	InputStream input = getServletContext().getResourceAsStream("/WEB-INF/classes/ServerDetails.json");
 	String myString = IOUtils.toString(input, "UTF-8");
 
 	JSONObject obj = new JSONObject(myString);
