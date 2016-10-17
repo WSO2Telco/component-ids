@@ -71,13 +71,11 @@
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.application.authentication.endpoint.util</artifactId>
-			<version>5.2.2</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
-			<version>5.2.2</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -112,14 +110,13 @@
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>${maven-compiler-plugin.version}</source>
+					<target>${maven-compiler-plugin.version}</target>
 				</configuration>
-				<version>2.3.2</version>
 			</plugin>
 			<plugin>
 				<artifactId>maven-war-plugin</artifactId>
-				<version>2.2</version>
+				<version>${maven-war-plugin.version}</version>
 				<configuration>
 					<webResources>
 						<resource>
