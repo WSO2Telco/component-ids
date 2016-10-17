@@ -69,7 +69,7 @@ public class Endpoints {
     private static final String LOGIN_HINT_ENCRYPTED_PREFIX = "ENCR_MSISDN:";
     private static final String LOGIN_HINT_NOENCRYPTED_PREFIX = "MSISDN:";
     private static final String OIDC_PROMPT_LOGIN = "&prompt=login";
-    
+
 
 
     @GET

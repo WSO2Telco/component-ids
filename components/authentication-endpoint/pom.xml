@@ -71,13 +71,11 @@
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.application.authentication.endpoint.util</artifactId>
-			<version>5.2.2</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
-			<version>5.2.2</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
