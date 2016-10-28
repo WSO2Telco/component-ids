@@ -1,7 +1,7 @@
-package com.wso2telco.internal;
+package com.wso2telco.genz.internal;
 
-import com.wso2telco.MSISDNDecription;
-import com.wso2telco.util.AuthProxyConstants;
+import com.wso2telco.genz.MSISDNDecryption;
+import com.wso2telco.genz.util.AuthProxyConstants;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -12,7 +12,7 @@ import javax.xml.bind.DatatypeConverter;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
-public class TwoEncript implements MSISDNDecription {
+public class TwoEncript implements MSISDNDecryption {
     public String decryptMsisdn(String encryptedText, String decryptionKey)
             throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException,
                    IllegalBlockSizeException {

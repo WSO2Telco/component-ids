@@ -1,4 +1,4 @@
-package com.wso2telco.util;
+package com.wso2telco.genz.util;
 
 import org.apache.commons.codec.binary.Base64;
 

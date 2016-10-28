@@ -1,21 +1,22 @@
-package com.wso2telco.util;
+package com.wso2telco.genz.util;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.utils.CarbonUtils;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.File;
-import org.wso2.carbon.utils.CarbonUtils;
 
 /**
- * ConfigLoader class has implemented with SIngleton patten. This file is used to load mobile-connect.xml file.
+ * This file is used to load mobile-connect.xml file.
  */
 public class ConfigLoader {
-    private Log log = LogFactory.getLog(ConfigLoader.class);
+    private Log log = LogFactory.getLog(com.wso2telco.genz.util.ConfigLoader.class);
 
     private MobileConnectConfig mobileConnectConfig;
-    private static ConfigLoader loader;
+    private static com.wso2telco.genz.util.ConfigLoader loader;
 
     private ConfigLoader() {
         try {
@@ -29,9 +30,9 @@ public class ConfigLoader {
      * Get instance of the ConfigLoader class.
      * @return
      */
-    public static ConfigLoader getInstance() {
+    public static com.wso2telco.genz.util.ConfigLoader getInstance() {
         if(loader == null) {
-            loader = new ConfigLoader();
+            loader = new com.wso2telco.genz.util.ConfigLoader();
         }
         return loader;
     }
@@ -49,6 +50,10 @@ public class ConfigLoader {
         return (MobileConnectConfig) unmarshaller.unmarshal(file);
     }
 
+    /**
+     * Get configurations from mobile-connect.xml.
+     * @return the configuration of mobile-connect.xml file.
+     */
     public MobileConnectConfig getMobileConnectConfig(){
         return mobileConnectConfig;
     }

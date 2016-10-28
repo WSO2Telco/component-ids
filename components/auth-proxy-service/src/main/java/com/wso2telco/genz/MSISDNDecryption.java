@@ -1,4 +1,4 @@
-package com.wso2telco;
+package com.wso2telco.genz;
 
 import com.google.gdata.util.common.util.Base64DecoderException;
 
@@ -9,7 +9,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
-public interface MSISDNDecription {
+public interface MSISDNDecryption {
     String decryptMsisdn(String encryptedText, String decryptionKey)
             throws Base64DecoderException, UnsupportedEncodingException, NoSuchAlgorithmException,
                    NoSuchPaddingException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException;

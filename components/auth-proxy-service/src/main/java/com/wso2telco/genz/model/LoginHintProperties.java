@@ -1,5 +1,8 @@
-package com.wso2telco.model;
+package com.wso2telco.genz.model;
 
+/**
+ * This class is using to keep login hint properties.
+ */
 public class LoginHintProperties {
     private String loginHintFormatRegex;
     private boolean isEncrypted;

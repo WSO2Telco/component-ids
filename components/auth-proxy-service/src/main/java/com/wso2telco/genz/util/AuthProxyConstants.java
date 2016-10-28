@@ -1,4 +1,4 @@
-package com.wso2telco.util;
+package com.wso2telco.genz.util;
 
 /**
  * This file contains the constants, used in auth-proxy-service webapp.
@@ -7,8 +7,8 @@ public class AuthProxyConstants {
     public static final String ACR = "acr_values";
     public static final String ASE_KEY = "AES";
     public static final String CLAIM = "http://wso2.org/claims";
-    public static final String ENCRYPTION_KEY = "encryptionKey";
-    public static final String ENCRYPTION_METHOD = "encryptionMethod";
+    public static final String MSISDN_ENCRYPTION_KEY = "msisdnEncryptionKey";
+    public static final String ENCRYPTION_IMPLEMENTATION = "encryptionImplementation";
     public static final String IP_ADDRESS = "ipAddress";
     public static final String IS_HEADER_ENCRYPTED = "isHeaderEncrypted";
     public static final String LOA_CLAIM_NAME = "http://wso2.org/claims/loa";
