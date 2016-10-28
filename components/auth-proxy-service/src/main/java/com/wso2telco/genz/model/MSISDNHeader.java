@@ -1,5 +1,8 @@
-package com.wso2telco.model;
+package com.wso2telco.genz.model;
 
+/**
+ * This class is using to keep decryption properties of msisdn header.
+ */
 public class MSISDNHeader {
     private String msisdnHeaderName;
     private boolean isHeaderEncrypted;

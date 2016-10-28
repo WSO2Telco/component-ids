@@ -1,10 +1,9 @@
-package com.wso2telco.internal;
+package com.wso2telco.genz.internal;
 
 import com.google.gdata.util.common.util.Base64;
 import com.google.gdata.util.common.util.Base64DecoderException;
-import com.wso2telco.MSISDNDecription;
-import com.wso2telco.util.AuthProxyConstants;
-import com.wso2telco.util.FileUtil;
+import com.wso2telco.genz.MSISDNDecryption;
+import com.wso2telco.genz.util.AuthProxyConstants;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -16,7 +15,7 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class OneEncript implements MSISDNDecription{
+public class OneEncript implements MSISDNDecryption {
     public String decryptMsisdn(String encryptedText, String decryptionKey)
             throws Base64DecoderException, UnsupportedEncodingException, NoSuchAlgorithmException,
                    NoSuchPaddingException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {

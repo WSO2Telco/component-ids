@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.util;
+package com.wso2telco.genz.util;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -58,7 +58,6 @@ public class MobileConnectConfig {
 
     public static class AuthProxy {
         private String authorizeURL;
-        private String ipHeader;
         private String dataSourceName;
 
         @XmlElement(name = "AuthorizeURL")
@@ -77,15 +76,6 @@ public class MobileConnectConfig {
 
         public void setDataSourceName(String dataSourceName) {
             this.dataSourceName = dataSourceName;
-        }
-
-        @XmlElement(name = "ISAdminURL")
-        public String getIpHeader() {
-            return ipHeader;
-        }
-
-        public void setIpHeader(String ipHeader) {
-            this.ipHeader = ipHeader;
         }
     }
 }
