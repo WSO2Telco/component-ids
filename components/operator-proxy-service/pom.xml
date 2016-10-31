@@ -26,6 +26,7 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
@@ -34,32 +35,46 @@
 			<groupId>javax.servlet</groupId>
 			<artifactId>servlet-api</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>com.google.gdata.wso2</groupId>
 			<artifactId>gdata-core</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>commons-fileupload.wso2</groupId>
 			<artifactId>commons-fileupload</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-server</artifactId>
 			<version>1.17.1</version>
 		</dependency>
+
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-core</artifactId>
 			<version>1.17.1</version>
 		</dependency>
+
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-servlet</artifactId>
 			<version>1.17.1</version>
 		</dependency>
+
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.user.registration.stub</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.wso2telco.ids</groupId>
+			<artifactId>opeid-extension</artifactId>
+			<version>2.0.13</version>
+			<scope>provided</scope>
 		</dependency>
 
 	</dependencies>

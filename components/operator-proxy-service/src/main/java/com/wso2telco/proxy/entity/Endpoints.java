@@ -6,6 +6,11 @@ package com.wso2telco.proxy.entity;
 
 import com.google.gdata.util.common.util.Base64;
 import com.google.gdata.util.common.util.Base64DecoderException;
+import com.wso2telco.openid.extension.dto.ScopeDTO;
+import com.wso2telco.openid.extension.scope.MNVScope;
+import com.wso2telco.openid.extension.scope.Scope;
+import com.wso2telco.openid.extension.scope.ScopeConstant;
+import com.wso2telco.openid.extension.scope.ScopeValidationResult;
 import com.wso2telco.proxy.util.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,7 +40,9 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 
@@ -189,142 +196,212 @@ public class Endpoints {
                 ipAddress = headers.getRequestHeader(FileUtil.getApplicationProperty("ip_header")).get(0);
             }
         }
-        
 
-        if (queryParams.containsKey(SCOPE) && queryParams.get(SCOPE).get(0).equals(SCOPE_CPI)) {
+        //Check whether scope is mnv
+        if (ScopeConstant.CustomScopeType.MNV.equals(hsr.getParameter(ScopeConstant.OAUTH20_PARAM_SCOPE))) {
+
+            //if yes, create scope data transfer object and set scope's properties
+            ScopeDTO scopeDTO = new ScopeDTO();
+
+            scopeDTO.setLoginHint(hsr.getParameter("login_hint"));
+            scopeDTO.setMsisdn(msisdn);
+
+            Scope scope = new MNVScope(scopeDTO);
+            ScopeValidationResult scopeValidationResult = scope.validate(redirectURL, hsr.getParameter("state"));
+
+            //if validation fail, redirect to the service provider, else redirect to the IS
+            if (scopeValidationResult.isValidationFail()) {
+                redirectURL = scopeValidationResult.getRedirectionURL();
+            } else {
+
+                /*
+                * query parameters, pass from sp
+                * 'transactionId':
+                * 'response_type':
+                * 'redirect_uri':
+                * 'nonce':
+                * 'login_hint':
+                * 'state':
+                * 'max_age':
+                * 'client_id':
+                * 'acr_values':
+                *
+                * include from proxy
+                * 'msisdn_header':
+                * 'ipAddress':
+                * 'operator':
+                * 'telco_scope':
+                * */
 
 
-            boolean isNewUser = createUserProfile(msisdn, operator,SCOPE_CPI);
 
-            for (Entry<String, List<String>> entry : queryParams.entrySet()) {
-                if (SCOPE.equalsIgnoreCase(entry.getKey().toString())) {
-                    queryString = queryString + entry.getKey().toString() + "=" + SCOPE_OPENID + "&";
-                } else if (ACR.equalsIgnoreCase(entry.getKey().toString())) {
-                    queryString = queryString + entry.getKey().toString() + "=" + ACR_CPI_VALUE + "&";
-                } else {
-                    queryString = queryString + entry.getKey().toString() + "=" + entry.getValue().get(0) + "&";
-                }
-            }
+                Map<String, String> modifiedQueryParams = new HashMap<String, String>();
 
-            if(isNewUser ){
-                queryString = queryString + "isNew=true&";
-            }
-
-        } 
-        
-        
-        else if (queryParams.containsKey(SCOPE) && queryParams.get(SCOPE).get(0).toLowerCase().equals(SCOPE_MNV)){
-            
-            log.debug("inside MNV");
-            
-            String loginHint = "";
-           
-            if (queryParams.get("login_hint") != null){
-                loginHint = queryParams.get("login_hint").get(0);
-            }
-            
-            
-            String state = queryParams.get(STATE).get(0);
-            String acr = queryParams.get(ACR).get(0);
-            
-            for (Entry<String, List<String>> entry : queryParams.entrySet()) {
-                    
-                    if (SCOPE.equalsIgnoreCase(entry.getKey().toString())) {
-                        queryString = queryString + entry.getKey().toString() + "=" + SCOPE_OPENID + "&";
-                    }
-                    else {
-                        queryString = queryString + entry.getKey().toString() + "=" + entry.getValue().get(0) + "&";
-                    }
-            }
-            
-            if(msisdn != null && !msisdn.isEmpty()){
-                
-                
-                if (msisdn.equals(loginHint)){
-                    
-                   if(acr.equals("2")){
-                        boolean isNewUser =  createUserProfile(msisdn, operator,SCOPE_MNV);
-                   }
-                    
-                    msisdn = encrytMSISDN(msisdn);
-                    
-                    redirectURL = FileUtil.getApplicationProperty("authorizeURL") +
-                    queryString +
-                    "msisdn_header=" + msisdn + "&" +
-                    "ipAddress=" + ipAddress + "&" + "operator=" + operator + "&telco_scope=mnv";
-
-                }
-                
-                
-                else{
-                    if (acr.equals("2")){
-                    //redirectURL = redirectURL + "?" + "error=" + "access_denied" ;
-                    log.debug("mnv failed");
-                    redirectURL = FileUtil.getApplicationProperty("authorizeURL") +
-                            queryString +
-                            "msisdn_header=" + msisdn + "&" +"ipAddress=" + ipAddress +
-                            "&" + "operator=" + operator + "&telco_scope=invalid";
-                    
-                    }else if (acr.equals("3")){
-                        log.debug("mnv PIN");
-                        //boolean isNewUser =  createUserProfile(loginHint, operator,SCOPE_MNV);
-                        
-                       
-                        redirectURL = FileUtil.getApplicationProperty("authorizeURL") +
-                                      queryString +
-                                      "msisdn_header=" + "&" +
-                                      "ipAddress=" + ipAddress + "&" + "operator=" + operator + "&telco_scope=mnv";
-                        
-                        log.debug("Redirect URI MNV LOA3= " + redirectURL);
-                    }
-                    else{
-                        //nop
+                for(Object object : hsr.getParameterMap().keySet()){
+                    if(object instanceof String){
+                        String key = (String) object;
+                        modifiedQueryParams.put(key, hsr.getParameter(key));
                     }
                 }
-            }
-            else{
-                log.debug("offnet scenario");
-                msisdn = encrytMSISDN(msisdn);
-                redirectURL = FileUtil.getApplicationProperty("authorizeURL") +
-                    queryString +
-                    "msisdn_header=" + msisdn + "&" +
-                    "ipAddress=" + ipAddress + "&" + "operator=" + operator + "&telco_scope=mnv";
-            }
-            
-            
-        }
-        else {
 
-            for (Entry<String, List<String>> entry : queryParams.entrySet()) {
-                
-                if (LOGIN_HINT.equalsIgnoreCase(entry.getKey().toString()) && decryptedLoginHint != null) {
-                    queryString = queryString + entry.getKey().toString() + "=" + decryptedLoginHint + "&";
+                //replace scope value with openid
+                if(modifiedQueryParams.get(ScopeConstant.OAUTH20_PARAM_SCOPE) != null){
+                    modifiedQueryParams.put(ScopeConstant.OAUTH20_PARAM_SCOPE, ScopeConstant.OAUTH20_VALUE_SCOPE);
                 }
-                else{
-                    queryString = queryString + entry.getKey().toString() + "=" + entry.getValue().get(0) + "&";
-                 }
+
+                if(msisdn == null){
+                    msisdn = "";
+                }
+                modifiedQueryParams.put("msisdn_header", msisdn);
+                modifiedQueryParams.put("ipAddress", ipAddress);
+                modifiedQueryParams.put("operator", operator);
+                modifiedQueryParams.put(ScopeConstant.CUSTOM_PARAM_TELCO_SCOPE, ScopeConstant.CustomScopeType.MNV);
+
+                //if new user, append a query parameter call isNew
+                if(createUserProfile(msisdn, operator, SCOPE_MNV)){
+                    modifiedQueryParams.put("isNew", "true");
+                }
+
+                String authorizeEndPoint = FileUtil.getApplicationProperty("authorizeURL");
+                redirectURL = scope.createRedirectURL(authorizeEndPoint, modifiedQueryParams);
             }
+
         }
 
-
-        
-
-        //Reconstruct AuthURL
-        if (ipAddress != null && (!queryParams.get(SCOPE).get(0).equals(SCOPE_MNV)) ) {
-            msisdn = encrytMSISDN(msisdn);
-            redirectURL = FileUtil.getApplicationProperty("authorizeURL") +
-                    queryString +
-                    "msisdn_header=" + msisdn + "&" +
-                    "ipAddress=" + ipAddress + "&" + "operator=" + operator + "&telco_scope=openid";
-        } else if (ipAddress == null && (!queryParams.get(SCOPE).get(0).equals(SCOPE_MNV)) ) {
-            msisdn = encrytMSISDN(msisdn);
-            redirectURL = FileUtil.getApplicationProperty("authorizeURL") +
-                    queryString +
-                    "msisdn_header=" + msisdn + "&" +
-                    "operator=" + operator + "&telco_scope=openid";
-        }else{
-            //nop
-        }
+//        if (queryParams.containsKey(SCOPE) && queryParams.get(SCOPE).get(0).equals(SCOPE_CPI)) {
+//
+//
+//            boolean isNewUser = createUserProfile(msisdn, operator,SCOPE_CPI);
+//
+//            for (Entry<String, List<String>> entry : queryParams.entrySet()) {
+//                if (SCOPE.equalsIgnoreCase(entry.getKey().toString())) {
+//                    queryString = queryString + entry.getKey().toString() + "=" + SCOPE_OPENID + "&";
+//                } else if (ACR.equalsIgnoreCase(entry.getKey().toString())) {
+//                    queryString = queryString + entry.getKey().toString() + "=" + ACR_CPI_VALUE + "&";
+//                } else {
+//                    queryString = queryString + entry.getKey().toString() + "=" + entry.getValue().get(0) + "&";
+//                }
+//            }
+//
+//            if(isNewUser ){
+//                queryString = queryString + "isNew=true&";
+//            }
+//
+//        }
+//
+//
+//        else if (queryParams.containsKey(SCOPE) && queryParams.get(SCOPE).get(0).toLowerCase().equals(SCOPE_MNV)){
+//
+//            log.debug("inside MNV");
+//
+//            String loginHint = "";
+//
+//            if (queryParams.get("login_hint") != null){
+//                loginHint = queryParams.get("login_hint").get(0);
+//            }
+//
+//
+//            String state = queryParams.get(STATE).get(0);
+//            String acr = queryParams.get(ACR).get(0);
+//
+//            for (Entry<String, List<String>> entry : queryParams.entrySet()) {
+//
+//                    if (SCOPE.equalsIgnoreCase(entry.getKey().toString())) {
+//                        queryString = queryString + entry.getKey().toString() + "=" + SCOPE_OPENID + "&";
+//                    }
+//                    else {
+//                        queryString = queryString + entry.getKey().toString() + "=" + entry.getValue().get(0) + "&";
+//                    }
+//            }
+//
+//            if(msisdn != null && !msisdn.isEmpty()){
+//
+//
+//                if (msisdn.equals(loginHint)){
+//
+//                   if(acr.equals("2")){
+//                        boolean isNewUser =  createUserProfile(msisdn, operator,SCOPE_MNV);
+//                   }
+//
+//                    msisdn = encrytMSISDN(msisdn);
+//
+//                    redirectURL = FileUtil.getApplicationProperty("authorizeURL") +
+//                    queryString +
+//                    "msisdn_header=" + msisdn + "&" +
+//                    "ipAddress=" + ipAddress + "&" + "operator=" + operator + "&telco_scope=mnv";
+//
+//                }
+//
+//
+//                else{
+//                    if (acr.equals("2")){
+//                    //redirectURL = redirectURL + "?" + "error=" + "access_denied" ;
+//                    log.debug("mnv failed");
+//                    redirectURL = FileUtil.getApplicationProperty("authorizeURL") +
+//                            queryString +
+//                            "msisdn_header=" + msisdn + "&" +"ipAddress=" + ipAddress +
+//                            "&" + "operator=" + operator + "&telco_scope=invalid";
+//
+//                    }else if (acr.equals("3")){
+//                        log.debug("mnv PIN");
+//                        //boolean isNewUser =  createUserProfile(loginHint, operator,SCOPE_MNV);
+//
+//
+//                        redirectURL = FileUtil.getApplicationProperty("authorizeURL") +
+//                                      queryString +
+//                                      "msisdn_header=" + "&" +
+//                                      "ipAddress=" + ipAddress + "&" + "operator=" + operator + "&telco_scope=mnv";
+//
+//                        log.debug("Redirect URI MNV LOA3= " + redirectURL);
+//                    }
+//                    else{
+//                        //nop
+//                    }
+//                }
+//            }
+//            else{
+//                log.debug("offnet scenario");
+//                msisdn = encrytMSISDN(msisdn);
+//                redirectURL = FileUtil.getApplicationProperty("authorizeURL") +
+//                    queryString +
+//                    "msisdn_header=" + msisdn + "&" +
+//                    "ipAddress=" + ipAddress + "&" + "operator=" + operator + "&telco_scope=mnv";
+//            }
+//
+//
+//        }
+//        else {
+//
+//            for (Entry<String, List<String>> entry : queryParams.entrySet()) {
+//
+//                if (LOGIN_HINT.equalsIgnoreCase(entry.getKey().toString()) && decryptedLoginHint != null) {
+//                    queryString = queryString + entry.getKey().toString() + "=" + decryptedLoginHint + "&";
+//                }
+//                else{
+//                    queryString = queryString + entry.getKey().toString() + "=" + entry.getValue().get(0) + "&";
+//                 }
+//            }
+//        }
+//
+//
+//
+//
+//        //Reconstruct AuthURL
+//        if (ipAddress != null && (!queryParams.get(SCOPE).get(0).equals(SCOPE_MNV)) ) {
+//            msisdn = encrytMSISDN(msisdn);
+//            redirectURL = FileUtil.getApplicationProperty("authorizeURL") +
+//                    queryString +
+//                    "msisdn_header=" + msisdn + "&" +
+//                    "ipAddress=" + ipAddress + "&" + "operator=" + operator + "&telco_scope=openid";
+//        } else if (ipAddress == null && (!queryParams.get(SCOPE).get(0).equals(SCOPE_MNV)) ) {
+//            msisdn = encrytMSISDN(msisdn);
+//            redirectURL = FileUtil.getApplicationProperty("authorizeURL") +
+//                    queryString +
+//                    "msisdn_header=" + msisdn + "&" +
+//                    "operator=" + operator + "&telco_scope=openid";
+//        }else{
+//            //nop
+//        }
 
 
 
