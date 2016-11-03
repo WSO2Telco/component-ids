@@ -38,7 +38,7 @@ public class DecryptionAES {
     private static byte[] keyValue;
     
     static{
-          keyValue = DataHolder.getInstance().getMobileConnectConfig().getHEADERENRICH().getKey().getBytes();
+          keyValue = DataHolder.getInstance().getMobileConnectConfig().getMsisdn().getEncryptionKey().getBytes();
     }
     
     /**

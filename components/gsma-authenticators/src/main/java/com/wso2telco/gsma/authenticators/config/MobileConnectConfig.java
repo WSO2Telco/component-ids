@@ -49,6 +49,9 @@ public class MobileConnectConfig {
     /** The listener webapp host. */
     private String listenerWebappHost;
 
+    protected MSISDN msisdn;
+    protected AuthProxy authProxy;
+
 
     /** The mss. */
     @XmlElement(name = "MSS")
@@ -116,6 +119,24 @@ public class MobileConnectConfig {
     @XmlElement(name = "USSD")
     public USSDConfig getUssdConfig() {
         return ussdConfig;
+    }
+
+    @XmlElement(name = "MSISDN")
+    public MSISDN getMsisdn() {
+        return msisdn;
+    }
+
+    public void setMsisdn(MSISDN msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    @XmlElement(name = "AuthProxy")
+    public AuthProxy getAuthProxy() {
+        return authProxy;
+    }
+
+    public void setAuthProxy(AuthProxy authProxy) {
+        this.authProxy = authProxy;
     }
 
     /**
@@ -618,9 +639,6 @@ public class MobileConnectConfig {
         
         /** The enrichflg. */
         private String enrichflg;
-        
-        /** The key. */
-        private String key;
 
         /**
          * Gets the endpoint.
@@ -658,25 +676,6 @@ public class MobileConnectConfig {
          */
         public void setEnrichflg(String enrichflg) {
             this.enrichflg = enrichflg;
-        }
-
-        /**
-         * Gets the key.
-         *
-         * @return the key
-         */
-        @XmlElement(name = "key")
-        public String getKey() {
-            return key;
-        }
-        
-        /**
-         * Sets the key.
-         *
-         * @param key the new key
-         */
-        public void setKey(String key) {
-            this.key = key;
         }
 
         /**
@@ -773,6 +772,43 @@ public class MobileConnectConfig {
         public void setIpValidation(String ipValidation){ this.ipValidation = ipValidation; }
 
 
+    }
+
+    public static class MSISDN {
+        private String encryptionKey;
+
+        @XmlElement(name = "EncryptionKey")
+        public String getEncryptionKey() {
+            return encryptionKey;
+        }
+
+        public void setEncryptionKey(String encryptionKey) {
+            this.encryptionKey = encryptionKey;
+        }
+
+    }
+
+    public static class AuthProxy {
+        private String authorizeURL;
+        private String dataSourceName;
+
+        @XmlElement(name = "AuthorizeURL")
+        public String getAuthorizeURL() {
+            return authorizeURL;
+        }
+
+        public void setAuthorizeURL(String authorizeURL) {
+            this.authorizeURL = authorizeURL;
+        }
+
+        @XmlElement(name = "DataSourceName")
+        public String getDataSourceName() {
+            return dataSourceName;
+        }
+
+        public void setDataSourceName(String dataSourceName) {
+            this.dataSourceName = dataSourceName;
+        }
     }
 
     /**

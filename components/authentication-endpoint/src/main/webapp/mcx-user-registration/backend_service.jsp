@@ -30,7 +30,7 @@
     public String getWebAppsUrl() {
         String serverWebappsUrl = null;
         try {
-            InputStream input = getServletContext().getResourceAsStream("/WEB-INF/classes/serverDetails.json");
+            InputStream input = getServletContext().getResourceAsStream("/WEB-INF/classes/ServerDetails.json");
             String myString = IOUtils.toString(input, "UTF-8");
 
             JSONObject obj = new JSONObject(myString);
@@ -44,7 +44,7 @@
     }
 %>
 <%
-    InputStream propertyFileInputStream = getServletContext().getResourceAsStream("/WEB-INF/classes/constants.properties");
+    InputStream propertyFileInputStream = getServletContext().getResourceAsStream("/WEB-INF/classes/Constants.properties");
     Properties properties = new Properties();
     properties.load(propertyFileInputStream);
 
