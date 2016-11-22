@@ -66,8 +66,9 @@
 		<module>components/portal</module>
 		<module>components/dashboard</module>
 		<module>components/authentication-endpoint</module>
-		<module>features</module> 
-	</modules>
+		<module>features</module>
+        <module>components/openid-extension</module>
+    </modules>
 
 	<scm>
 		<url>https://github.com/WSO2Telco/component-ids.git</url>

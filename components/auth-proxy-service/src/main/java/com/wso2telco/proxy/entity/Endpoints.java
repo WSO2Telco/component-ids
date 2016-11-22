@@ -16,6 +16,7 @@
 package com.wso2telco.proxy.entity;
 
 import com.google.gdata.util.common.util.Base64DecoderException;
+import com.wso2telco.openid.extension.scope.ScopeConstant;
 import com.wso2telco.proxy.MSISDNDecryption;
 import com.wso2telco.proxy.model.Operator;
 import com.wso2telco.proxy.model.RedirectUrlInfo;
@@ -144,89 +145,108 @@ public class Endpoints {
         if (isScopeExists) {
             operatorScope = queryParams.get(AuthProxyConstants.SCOPE).get(0);
 
-            if (operatorScope.equals(AuthProxyConstants.SCOPE_CPI)) {
-                boolean isUserExists = isUserExists(msisdn);
-                if (!isUserExists) {
-                    createUserProfile(msisdn, operatorName, AuthProxyConstants.SCOPE_CPI);
-                    queryParams.putSingle(AuthProxyConstants.IS_NEW, String.valueOf(true));
+            if (ScopeConstant.OAUTH20_VALUE_SCOPE.equals(operatorScope)) {
+
+                queryString = processQueryString(queryParams, queryString);
+
+                // Encrypt MSISDN
+                msisdn = EncryptAES.encrypt(msisdn);
+                // URL encode
+                if (msisdn != null) {
+                    msisdn = URLEncoder.encode(msisdn, AuthProxyConstants.UTF_ENCODER);
+                } else {
+                    msisdn = "";
                 }
-
-                // Replace query parameters based on the scope.
-                queryParams.putSingle(AuthProxyConstants.SCOPE, AuthProxyConstants.SCOPE_OPENID);
-                queryParams.putSingle(AuthProxyConstants.ACR, "6");
-                queryString = processQueryString(queryParams, queryString);
-
-            } else if (operatorScope.equals(AuthProxyConstants.SCOPE_MNV)) {
-                String acr = queryParams.get(AuthProxyConstants.ACR).get(0);
-
-                // Replace query parameters based on the scope.
-                queryParams.putSingle(AuthProxyConstants.SCOPE, AuthProxyConstants.SCOPE_OPENID);
-                queryString = processQueryString(queryParams, queryString);
+                redirectUrlInfo.setMsisdnHeader(msisdn);
                 redirectUrlInfo.setQueryString(queryString);
                 redirectUrlInfo.setIpAddress(ipAddress);
-
-                if (authorizeUrlProperty != null) {
-                    if (!StringUtils.isEmpty(msisdn)) {
-                        if (msisdn.equals(loginHint)) {
-                            if (acr.equals("2")) {
-                                if (!isUserExists(msisdn)) {
-                                    createUserProfile(msisdn, operatorName, AuthProxyConstants.SCOPE_MNV);
-                                }
-                            }
-                            // Encrypt MSISDN
-                            //have the opportunity to choose encrypt method.
-                            msisdn = EncryptAES.encrypt(msisdn);
-                            // URL encode
-                            msisdn = URLEncoder.encode(msisdn, AuthProxyConstants.UTF_ENCODER);
-                            redirectUrlInfo.setMsisdnHeader(msisdn);
-                            redirectUrlInfo.setTelcoScope("mvn");
-                            redirectURL = constructRedirectUrl(redirectUrlInfo);
-                        } else {
-                            if (acr.equals("2")) {
-                                redirectUrlInfo.setMsisdnHeader(msisdn);
-                                redirectUrlInfo.setTelcoScope("invalid");
-                                redirectURL = constructRedirectUrl(redirectUrlInfo);
-                            } else if (acr.equals("3")) {
-                                redirectUrlInfo.setMsisdnHeader(null);
-                                redirectUrlInfo.setTelcoScope("mvn");
-                                redirectURL = constructRedirectUrl(redirectUrlInfo);
-                            } else {
-                               // do nothing.
-                            }
-                        }
-                    } else {
-                        redirectUrlInfo.setMsisdnHeader(msisdn);
-                        redirectUrlInfo.setTelcoScope("mvn");
-                        redirectUrlInfo.setIpAddress(ipAddress);
-                        redirectURL = constructRedirectUrl(redirectUrlInfo);
-                    }
-                } else {
-                    throw new ConfigurationException("AuthorizeURL could not be found in mobile-connect.xml");
-                }
-            } else {
-                if (!StringUtils.isEmpty(decryptedLoginHint)) {
-                    queryParams.putSingle(AuthProxyConstants.LOGIN_HINT, decryptedLoginHint);
-                }
-                queryString = processQueryString(queryParams, queryString);
+                redirectUrlInfo.setTelcoScope(AuthProxyConstants.SCOPE_OPENID);
+                redirectURL = constructRedirectUrl(redirectUrlInfo);
             }
+
+//            if (operatorScope.equals(AuthProxyConstants.SCOPE_CPI)) {
+//                boolean isUserExists = isUserExists(msisdn);
+//                if (!isUserExists) {
+//                    createUserProfile(msisdn, operatorName, AuthProxyConstants.SCOPE_CPI);
+//                    queryParams.putSingle(AuthProxyConstants.IS_NEW, String.valueOf(true));
+//                }
+//
+//                // Replace query parameters based on the scope.
+//                queryParams.putSingle(AuthProxyConstants.SCOPE, AuthProxyConstants.SCOPE_OPENID);
+//                queryParams.putSingle(AuthProxyConstants.ACR, "6");
+//                queryString = processQueryString(queryParams, queryString);
+//
+//            } else if (operatorScope.equals(AuthProxyConstants.SCOPE_MNV)) {
+//                String acr = queryParams.get(AuthProxyConstants.ACR).get(0);
+//
+//                // Replace query parameters based on the scope.
+//                queryParams.putSingle(AuthProxyConstants.SCOPE, AuthProxyConstants.SCOPE_OPENID);
+//                queryString = processQueryString(queryParams, queryString);
+//                redirectUrlInfo.setQueryString(queryString);
+//                redirectUrlInfo.setIpAddress(ipAddress);
+//
+//                if (authorizeUrlProperty != null) {
+//                    if (!StringUtils.isEmpty(msisdn)) {
+//                        if (msisdn.equals(loginHint)) {
+//                            if (acr.equals("2")) {
+//                                if (!isUserExists(msisdn)) {
+//                                    createUserProfile(msisdn, operatorName, AuthProxyConstants.SCOPE_MNV);
+//                                }
+//                            }
+//                            // Encrypt MSISDN
+//                            //have the opportunity to choose encrypt method.
+//                            msisdn = EncryptAES.encrypt(msisdn);
+//                            // URL encode
+//                            msisdn = URLEncoder.encode(msisdn, AuthProxyConstants.UTF_ENCODER);
+//                            redirectUrlInfo.setMsisdnHeader(msisdn);
+//                            redirectUrlInfo.setTelcoScope("mvn");
+//                            redirectURL = constructRedirectUrl(redirectUrlInfo);
+//                        } else {
+//                            if (acr.equals("2")) {
+//                                redirectUrlInfo.setMsisdnHeader(msisdn);
+//                                redirectUrlInfo.setTelcoScope("invalid");
+//                                redirectURL = constructRedirectUrl(redirectUrlInfo);
+//                            } else if (acr.equals("3")) {
+//                                redirectUrlInfo.setMsisdnHeader(null);
+//                                redirectUrlInfo.setTelcoScope("mvn");
+//                                redirectURL = constructRedirectUrl(redirectUrlInfo);
+//                            } else {
+//                               // do nothing.
+//                            }
+//                        }
+//                    } else {
+//                        redirectUrlInfo.setMsisdnHeader(msisdn);
+//                        redirectUrlInfo.setTelcoScope("mvn");
+//                        redirectUrlInfo.setIpAddress(ipAddress);
+//                        redirectURL = constructRedirectUrl(redirectUrlInfo);
+//                    }
+//                } else {
+//                    throw new ConfigurationException("AuthorizeURL could not be found in mobile-connect.xml");
+//                }
+//            } else {
+//                if (!StringUtils.isEmpty(decryptedLoginHint)) {
+//                    queryParams.putSingle(AuthProxyConstants.LOGIN_HINT, decryptedLoginHint);
+//                }
+//                queryString = processQueryString(queryParams, queryString);
+//            }
         }
 
         //Reconstruct AuthURL
-        if (!operatorScope.equals(AuthProxyConstants.SCOPE_MNV)) {
-            // Encrypt MSISDN
-            msisdn = EncryptAES.encrypt(msisdn);
-            // URL encode
-            if (msisdn != null) {
-                msisdn = URLEncoder.encode(msisdn, AuthProxyConstants.UTF_ENCODER);
-            } else {
-                msisdn = "";
-            }
-            redirectUrlInfo.setMsisdnHeader(msisdn);
-            redirectUrlInfo.setQueryString(queryString);
-            redirectUrlInfo.setIpAddress(ipAddress);
-            redirectUrlInfo.setTelcoScope(AuthProxyConstants.SCOPE_OPENID);
-            redirectURL = constructRedirectUrl(redirectUrlInfo);
-        }
+//        if (!operatorScope.equals(AuthProxyConstants.SCOPE_MNV)) {
+//            // Encrypt MSISDN
+//            msisdn = EncryptAES.encrypt(msisdn);
+//            // URL encode
+//            if (msisdn != null) {
+//                msisdn = URLEncoder.encode(msisdn, AuthProxyConstants.UTF_ENCODER);
+//            } else {
+//                msisdn = "";
+//            }
+//            redirectUrlInfo.setMsisdnHeader(msisdn);
+//            redirectUrlInfo.setQueryString(queryString);
+//            redirectUrlInfo.setIpAddress(ipAddress);
+//            redirectUrlInfo.setTelcoScope(AuthProxyConstants.SCOPE_OPENID);
+//            redirectURL = constructRedirectUrl(redirectUrlInfo);
+//        }
 
         if (log.isDebugEnabled()) {
             log.debug("redirectURL : " + redirectURL);
