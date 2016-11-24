@@ -31,8 +31,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO: Auto-generated Javadoc
-
 /**
  * The Class MIFEStepBasedSequenceHandler.
  */
@@ -156,7 +154,7 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
             context.setReturning(false);
         }
 
-
+/*
         String ipAddress = retrieveIPAddress(request);
         String authenticatedUser = "";
         String authenticators = "";
@@ -191,6 +189,8 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
         } catch (LogHistoryException ex) {
             log.error("Error occured while Login SP LogHistory", ex);
         }
+        */
+        writeLogHistory(request, context);
 
         // Need to call this deliberately as sequenceConfig gets completed
         // within step handler
@@ -210,5 +210,34 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
         String header = request.getHeader(HEADER_X_FORWARDED_FOR);
         String ipAddress = header != null ? header : request.getRemoteAddr();
         return ipAddress;
+    }
+
+    private void writeLogHistory(HttpServletRequest request, AuthenticationContext context) {
+        String authenticatedUser;
+        String authenticators = "";
+        Object amrValue;
+        if (context.isRequestAuthenticated()) {
+            amrValue = context.getProperty("amr");
+            authenticatedUser = context.getSequenceConfig().getAuthenticatedUser().getUserName();
+        } else {
+            amrValue = context.getProperty("failedamr");
+            authenticatedUser = (String) context.getProperty("faileduser");
+        }
+
+        // authenticators
+        if (null != amrValue && amrValue instanceof ArrayList<?>) {
+            @SuppressWarnings("unchecked")
+            List<String> amr = (ArrayList<String>) amrValue;
+            authenticators = amr.toString();
+        }
+
+        try {
+            String ipAddress = retrieveIPAddress(request);
+            DbTracelog.LogHistory(context.getRequestType(), context.isRequestAuthenticated(),
+                                  context.getSequenceConfig().getApplicationId(), authenticatedUser,
+                                  authenticators, ipAddress);
+        } catch (LogHistoryException ex) {
+            log.error("Error occured while Login SP LogHistory", ex);
+        }
     }
 }
