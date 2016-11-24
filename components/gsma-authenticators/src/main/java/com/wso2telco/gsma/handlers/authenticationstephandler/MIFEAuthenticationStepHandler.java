@@ -50,8 +50,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
-// TODO: Auto-generated Javadoc
 /**
  * The Class MIFEAuthenticationStepHandler.
  */
@@ -90,7 +88,7 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			
 			String redirectUri = paramMap.get(Params.REDIRECT_URI.toString())[0];
             String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=acr_values_required";
-            log.info("acr_values not found");
+            log.info(Params.ACR_VALUES.toString() + "  not found");
 
             try {
                 response.sendRedirect(invalidRedirectUrl); 
@@ -168,9 +166,10 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 						context.setExternalIdP(ConfigurationFacade.getInstance().getIdPConfigByName(
 								idp, context.getTenantDomain()));
 					} catch (IdentityProviderManagementException e) {
-					 	log.error(e);
-						throw new FrameworkException(e.toString());
-					}
+					 	//log.error(e);
+						//throw new FrameworkException(e.toString());
+                        throw new FrameworkException(e.getMessage(), e);
+                    }
 					doAuthentication(request, response, context, authenticatorConfig);
 					return;
 				} else {
@@ -218,9 +217,10 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 									.getIdPConfigByName(authenticatorConfig.getIdpNames().get(0),
 											context.getTenantDomain()));
 						} catch (IdentityProviderManagementException e) {
-							log.error(e);
-							throw new FrameworkException(e.toString());
-						}
+							//log.error(e);
+							//throw new FrameworkException(e.toString());
+                            throw new FrameworkException(e.getMessage(), e);
+                        }
 					}
 
 					doAuthentication(request, response, context, authenticatorConfig);
@@ -269,10 +269,10 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	    Map< String, String[]> paramMap = authRequest.getRequestQueryParams();
 	        
 	       
-	    String scope = "";
-	    String redirectUri = null;
+	    String scope;
+	    String redirectUri;
 	    String state = null;
-	    String responseType = null;   
+	    String responseType;
 	    String client_id = paramMap.get(Params.CLIENT_ID.toString())[0];
 	
 		ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
@@ -288,12 +288,15 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	            redirectUri = paramMap.get(Params.REDIRECT_URI.toString())[0];
 
 	            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=state_required" ;
-	            log.debug("state not found. client_id : "+client_id);
+                if(log.isDebugEnabled()) {
+                    log.debug("state not found. client_id : " + client_id);
+                }
 
 	            try {
 	                response.sendRedirect(invalidRedirectUrl);	   
 	            } catch (IOException ex) {
-	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+	               // Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+                    log.error("Failed to access Redirect URL: " + invalidRedirectUrl, ex);
 	            }
 	        }
 	        else {
@@ -391,16 +394,14 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 					// This gets used in ID token later
 					Object amrValue = context.getProperty(Params.AMR.toString());
 					List<String> amr;
-					if (null != amrValue && amrValue instanceof ArrayList<?>) {
-						amr = (ArrayList<String>) amrValue;
-						amr.add(authenticator.getName());
-						context.setProperty(Params.AMR.toString(), amr);
-					} else {
-						amr = new ArrayList<String>();
-						amr.add(authenticator.getName());
-						context.setProperty(Params.AMR.toString(), amr);
-					}
-				} catch (NullPointerException e) {
+                    if (null != amrValue && amrValue instanceof ArrayList<?>) {
+                        amr = (ArrayList<String>) amrValue;
+                    } else {
+                        amr = new ArrayList();
+                    }
+                    amr.add(authenticator.getName());
+                    context.setProperty(Params.AMR.toString(), amr);
+                } catch (NullPointerException e) {
 					// Possible exception during dashboard login
 					// Should continue even if NPE is thrown
 				}
@@ -419,15 +420,13 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			// add failed authenticators
 			Object amrValue = context.getProperty("failedamr");
 			List<String> amr;
-			if (null != amrValue && amrValue instanceof ArrayList<?>) {
-				amr = (ArrayList<String>) amrValue;
-				amr.add(authenticator.getName());
-				context.setProperty("failedamr", amr);
-			} else {
-				amr = new ArrayList<String>();
-				amr.add(authenticator.getName());
-				context.setProperty("failedamr", amr);
-			}
+            if (null != amrValue && amrValue instanceof ArrayList<?>) {
+                amr = (ArrayList<String>) amrValue;
+            } else {
+                amr = new ArrayList<String>();
+            }
+            amr.add(authenticator.getName());
+            context.setProperty("failedamr", amr);
 
 			// Remove failed step from step map
 			removeFailedStep(context, currentStep);
