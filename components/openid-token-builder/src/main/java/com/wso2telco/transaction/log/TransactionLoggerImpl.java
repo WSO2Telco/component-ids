@@ -17,6 +17,8 @@ package com.wso2telco.transaction.log;
 
 import java.io.IOException;
 
+import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.MobileConnectConfig;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -29,8 +31,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.wso2telco.dao.TransactionDAO;
-import com.wso2telco.gsma.authenticators.DataHolder;
-import com.wso2telco.gsma.authenticators.config.MobileConnectConfig;
 import com.wso2telco.model.API;
 import com.wso2telco.model.LogRequest;
 import com.wso2telco.model.ServingOperator;

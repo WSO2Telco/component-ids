@@ -15,10 +15,10 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.headerenrich;
 
+import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.MobileConnectConfig;
 import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.authenticators.DataHolder;
 import com.wso2telco.gsma.authenticators.IPRangeChecker;
-import com.wso2telco.gsma.authenticators.config.MobileConnectConfig;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.DecryptionAES;

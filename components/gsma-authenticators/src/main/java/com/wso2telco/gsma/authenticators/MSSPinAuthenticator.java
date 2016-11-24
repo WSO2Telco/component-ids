@@ -15,11 +15,12 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
+import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.gsma.authenticators.model.MSSRequest;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;

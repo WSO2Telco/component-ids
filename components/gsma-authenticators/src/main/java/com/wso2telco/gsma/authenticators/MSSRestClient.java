@@ -16,7 +16,8 @@
 package com.wso2telco.gsma.authenticators;
 
 import com.google.gson.Gson;
-import com.wso2telco.gsma.authenticators.config.MSSServiceURL;
+import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.MSSServiceURL;
 import com.wso2telco.gsma.authenticators.model.MSSRequest;
 
 import org.apache.commons.logging.Log;
@@ -66,7 +67,8 @@ public class MSSRestClient extends Thread{
             Gson gson = new Gson();
             org.apache.http.client.HttpClient client = new DefaultHttpClient();
 
-            String serviceURL = String.format(MSSServiceURL.MSS_SIGNATURE_SERVICE,DataHolder.getInstance().getMobileConnectConfig().getMSS().getEndpoint());
+            String serviceURL = String.format(MSSServiceURL.MSS_SIGNATURE_SERVICE,
+                                              DataHolder.getInstance().getMobileConnectConfig().getMSS().getEndpoint());
             String json = gson.toJson(mssRequest);
 
             HttpPost httprequest = new HttpPost(serviceURL);

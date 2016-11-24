@@ -18,9 +18,9 @@ package com.wso2telco.gsma.authenticators.ussd;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.wso2telco.gsma.authenticators.DataHolder;
-import com.wso2telco.gsma.authenticators.config.MobileConnectConfig;
-import com.wso2telco.gsma.authenticators.config.ReadMobileConnectConfig;
+import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.MobileConnectConfig;
+import com.wso2telco.core.config.ReadMobileConnectConfig;
 import com.wso2telco.gsma.authenticators.model.OutboundUSSDMessageRequest;
 import com.wso2telco.gsma.authenticators.model.ResponseRequest;
 import com.wso2telco.gsma.authenticators.util.Application;

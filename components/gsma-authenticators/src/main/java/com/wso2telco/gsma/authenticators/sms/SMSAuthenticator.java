@@ -15,12 +15,12 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.sms;
 
+import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.MobileConnectConfig;
+import com.wso2telco.core.config.ReadMobileConnectConfig;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
-import com.wso2telco.gsma.authenticators.DataHolder;
-import com.wso2telco.gsma.authenticators.config.MobileConnectConfig;
-import com.wso2telco.gsma.authenticators.config.ReadMobileConnectConfig;
 import com.wso2telco.gsma.authenticators.cryptosystem.AESencrp;
 import com.wso2telco.gsma.authenticators.util.Application;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;

@@ -15,10 +15,10 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.ussd;
 
+import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
-import com.wso2telco.gsma.authenticators.DataHolder;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import org.apache.commons.logging.Log;

@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
+import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.DecryptionAES;
