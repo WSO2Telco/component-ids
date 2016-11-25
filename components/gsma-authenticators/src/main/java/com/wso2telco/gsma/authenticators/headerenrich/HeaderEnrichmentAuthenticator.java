@@ -145,9 +145,9 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 }
             }
 
-            if (!validateOperator(operator,ipAddress)) {
-                throw new AuthenticationFailedException("Authentication Failed");
-            }
+//            if (!validateOperator(operator,ipAddress)) {
+//                throw new AuthenticationFailedException("Authentication Failed");
+//            }
 
             msisdn = request.getParameter("msisdn_header");
             
@@ -161,7 +161,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             log.info("msisdn after decryption=" + msisdn);
 			
 	    log.info("MSISDN@initiate= " + msisdn);
-            if ((msisdn == null) && (DataHolder.getInstance().getMobileConnectConfig().getHEADERENRICH().getEnrichflg().equalsIgnoreCase("true"))) {
+//            if ((msisdn == null) && (DataHolder.getInstance().getMobileConnectConfig().getHEADERENRICH().getEnrichflg().equalsIgnoreCase("true"))) {
 //            if ((msisdn == null)) {
                 if (context.isRetrying()) {
                     retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
@@ -169,11 +169,12 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     // Insert entry to DB only if this is not a retry
                     //DBUtils.insertUserResponse(context.getContextIdentifier(), String.valueOf(HeaderEnrichmentAuthenticator.UserResponse.PENDING));
                 }
-                 
 
-                response.sendRedirect(response.encodeRedirectURL(loginprefix + loginPage + ("?" + queryParams)) + "&authenticators="
-                        + getName() + ":" + "LOCAL" + retryParam);
-            }
+            response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams))
+                    + "&redirect_uri=" + request.getParameter("redirect_uri")
+                    + "&authenticators=" + getName() + ":" + "LOCAL" + retryParam);
+
+//            }
 
         } catch (IOException e) {
             throw new AuthenticationFailedException(e.getMessage(), e);
@@ -184,6 +185,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             // } catch (AuthenticatorException e) {
             // throw new AuthenticationFailedException(e.getMessage(), e);
         }
+
+        return;
 
     }
 
@@ -288,6 +291,9 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             }
 
         }
+
+        context.setProperty("msisdn", msisdn);
+
         if (!isAuthenticated) {
             log.info("HeaderEnrichment Authenticator authentication failed ");
             context.setProperty("faileduser", msisdn);
@@ -298,8 +304,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
             throw new AuthenticationFailedException("Authentication Failed");
         }
-        
-        context.setProperty("msisdn", msisdn);
+
        
         AuthenticationContextHelper.setSubject(context,msisdn);
        
@@ -339,7 +344,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
      */
     @Override
     protected boolean retryAuthenticationEnabled() {
-        return false;
+        return true;
     }
 
     /* (non-Javadoc)
