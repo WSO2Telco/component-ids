@@ -140,7 +140,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             
             log.info("operator:" + operator);
 
-            ussdResponse = new SendUSSD().sendUSSD(msisdn, context.getContextIdentifier(), serviceProviderName,operator);
+            new SendUSSD().sendUSSD(msisdn, context.getContextIdentifier(), serviceProviderName,operator);
 
             log.info("query params: " + queryParams);
             

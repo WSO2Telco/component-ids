@@ -134,14 +134,14 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
             // String pinEnabled =
             // DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinauth();
-            String ussdResponse = null;
+            // String ussdResponse = null;
 
             String operator = (String) context.getProperty("operator");
             
             log.info("operator:" + operator);
-            ussdResponse = new SendUSSD().sendUSSDPIN(msisdn, context.getContextIdentifier(),
-                    serviceProviderName,operator);
-			log.info("Context_RedirectURI:" + (String) context.getProperty("redirectURI"));
+            //ussdResponse = new SendUSSD().sendUSSDPIN(msisdn, context.getContextIdentifier(),serviceProviderName,operator);
+            new SendUSSD().sendUSSDPIN(msisdn, context.getContextIdentifier(), serviceProviderName, operator);
+            log.info("Context_RedirectURI:" + (String) context.getProperty("redirectURI"));
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams))
             		+ "&redirect_uri=" + (String) context.getProperty("redirectURI")
                     + "&authenticators=" + getName() + ":" + "LOCAL" + retryParam);

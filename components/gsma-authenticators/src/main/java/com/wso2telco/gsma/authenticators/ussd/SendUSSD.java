@@ -31,12 +31,16 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -66,7 +70,7 @@ public class SendUSSD {
      * @return the string
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    protected String sendUSSD(String msisdn, String sessionID, String serviceProvider,String operator) throws IOException {
+    protected void sendUSSD(String msisdn, String sessionID, String serviceProvider,String operator) throws IOException {
         ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
 
         USSDRequest req = new USSDRequest();
@@ -104,7 +108,7 @@ public class SendUSSD {
             log.debug("reqstr :"+reqString);
         }
         log.info("[sendUSSD][reqString] : " + reqString);
-        return postRequest(endpoint, reqString,operator);
+        postRequest(endpoint, reqString,operator);
     }
     
     /**
@@ -117,7 +121,7 @@ public class SendUSSD {
      * @return the string
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    protected String sendUSSDPIN(String msisdn, String sessionID, String serviceProvider,String operator) throws IOException {
+    protected void sendUSSDPIN(String msisdn, String sessionID, String serviceProvider,String operator) throws IOException {
         ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
         Map<String, String> readMobileConnectConfigResult=null;
         ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
@@ -162,7 +166,7 @@ public class SendUSSD {
         }
         
         log.info("[sendUSSDPIN][reqString] : " + reqString);
-        return postRequest(endpoint, reqString,operator);
+        postRequest(endpoint, reqString,operator);
     }
     
 
@@ -175,6 +179,7 @@ public class SendUSSD {
      * @return the string
      * @throws IOException Signals that an I/O exception has occurred.
      */
+    /*
     private String postRequest(String url, String requestStr,String operator) throws IOException {
 
 //        HttpClient client = HttpClientBuilder.create().build();
@@ -208,4 +213,77 @@ public class SendUSSD {
         }
         return responseStr;
     }
+    */
+
+
+    /**
+     * Post request.
+     *
+     * @param url        the url
+     * @param requestStr the request str
+     * @param operator   the operator
+     * @return the string
+     * @throws IOException Signals that an I/O exception has occurred.
+     */
+    private void postRequest(String url, String requestStr, String operator) throws IOException {
+        CloseableHttpAsyncClient client;
+        client = HttpAsyncClients.createDefault();
+        client.start();
+        final HttpPost postRequest = new HttpPost(url);
+        postRequest.addHeader("accept", "application/json");
+        postRequest.addHeader("Authorization", "Bearer " + ussdConfig.getAuthToken());
+
+        if (operator != null) {
+            postRequest.addHeader("operator", operator);
+        }
+
+        StringEntity input = new StringEntity(requestStr);
+        input.setContentType("application/json");
+
+        postRequest.setEntity(input);
+        final CountDownLatch latch = new CountDownLatch(1);
+        client.execute(postRequest, new FutureCallback<HttpResponse>() {
+            @Override
+            public void completed(final HttpResponse response) {
+                latch.countDown();
+                if ((response.getStatusLine().getStatusCode() != 201)) {
+                    log.error("Error occurred while calling end point - " + response.getStatusLine().getStatusCode() +
+                                      "; Error - " +
+                                      response.getStatusLine().getReasonPhrase());
+                } else {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Success Request - " + postRequest.getURI().getSchemeSpecificPart());
+                    }
+                }
+            }
+
+            @Override
+            public void failed(final Exception ex) {
+                latch.countDown();
+                log.error("Error occurred while calling end point - " + postRequest.getURI().getSchemeSpecificPart() +
+                                  "; Error - " + ex);
+            }
+
+            @Override
+            public void cancelled() {
+                latch.countDown();
+                log.warn("Operation cancelled while calling end point - " +
+                                 postRequest.getURI().getSchemeSpecificPart());
+            }
+
+        });
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            log.error("Error occurred while calling end points - " + postRequest.getURI().getSchemeSpecificPart() +
+                              "; Error - " + e);
+        } finally {
+            if (client != null) {
+                client.close();
+            }
+        }
+
+    }
+
 }

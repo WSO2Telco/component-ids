@@ -1390,7 +1390,19 @@
                 <version>${com.wso2telco.ids.version}</version>
             </dependency>
 
-		</dependencies>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpasyncclient</artifactId>
+                <version>4.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore-nio</artifactId>
+                <version>4.3</version>
+            </dependency>
+
+
+        </dependencies>
 	</dependencyManagement>
 	<properties>
 
