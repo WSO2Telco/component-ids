@@ -1393,14 +1393,13 @@
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpasyncclient</artifactId>
-                <version>4.0</version>
+                <version>${httpasyncclient.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpcore-nio</artifactId>
-                <version>4.3</version>
+                <version>${httpcore-nio.version}</version>
             </dependency>
-
 
         </dependencies>
 	</dependencyManagement>
@@ -1661,7 +1660,11 @@
 		
 		<org.apache.felix.scr.annotations.version>1.9.6</org.apache.felix.scr.annotations.version>		
 		<com.wso2telco.core.version>2.0.02</com.wso2telco.core.version>
-	</properties>
+
+        <httpasyncclient.version>4.0</httpasyncclient.version>
+        <httpcore-nio.version>4.3</httpcore-nio.version>
+
+    </properties>
 
 	<build>
 		<pluginManagement>
