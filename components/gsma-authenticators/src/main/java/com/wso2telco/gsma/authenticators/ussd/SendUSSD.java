@@ -27,20 +27,15 @@ import com.wso2telco.gsma.authenticators.util.Application;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
-import org.apache.http.impl.nio.client.HttpAsyncClients;
-import org.apache.http.util.EntityUtils;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+
+import com.wso2telco.Util;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -226,9 +221,6 @@ public class SendUSSD {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     private void postRequest(String url, String requestStr, String operator) throws IOException {
-        CloseableHttpAsyncClient client;
-        client = HttpAsyncClients.createDefault();
-        client.start();
         final HttpPost postRequest = new HttpPost(url);
         postRequest.addHeader("accept", "application/json");
         postRequest.addHeader("Authorization", "Bearer " + ussdConfig.getAuthToken());
@@ -242,7 +234,7 @@ public class SendUSSD {
 
         postRequest.setEntity(input);
         final CountDownLatch latch = new CountDownLatch(1);
-        client.execute(postRequest, new FutureCallback<HttpResponse>() {
+        FutureCallback<HttpResponse> futureCallback = new FutureCallback<HttpResponse>() {
             @Override
             public void completed(final HttpResponse response) {
                 latch.countDown();
@@ -270,20 +262,8 @@ public class SendUSSD {
                 log.warn("Operation cancelled while calling end point - " +
                                  postRequest.getURI().getSchemeSpecificPart());
             }
-
-        });
-
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            log.error("Error occurred while calling end points - " + postRequest.getURI().getSchemeSpecificPart() +
-                              "; Error - " + e);
-        } finally {
-            if (client != null) {
-                client.close();
-            }
-        }
-
+        };
+        Util.sendAsyncRequest(postRequest, futureCallback, latch);
     }
 
 }
