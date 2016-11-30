@@ -15,6 +15,9 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.internal;
 
+import com.wso2telco.core.config.ConfigLoader;
+import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.LOAConfig;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.felix.scr.annotations.Activate;
@@ -28,8 +31,6 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.user.core.service.RealmService;
 
 import com.wso2telco.gsma.authenticators.*;
-import com.wso2telco.gsma.authenticators.config.ConfigLoader;
-import com.wso2telco.gsma.authenticators.config.LOAConfig;
 import com.wso2telco.gsma.authenticators.headerenrich.HeaderEnrichmentAuthenticator;
 import com.wso2telco.gsma.authenticators.sms.SMSAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDAuthenticator;

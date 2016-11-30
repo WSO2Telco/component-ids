@@ -18,7 +18,7 @@ package com.wso2telco.gsma.authenticators.ussd;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
-import com.wso2telco.gsma.authenticators.DataHolder;
+import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -140,7 +140,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             
             log.info("operator:" + operator);
 
-            ussdResponse = new SendUSSD().sendUSSD(msisdn, context.getContextIdentifier(), serviceProviderName,operator);
+            new SendUSSD().sendUSSD(msisdn, context.getContextIdentifier(), serviceProviderName,operator);
 
             log.info("query params: " + queryParams);
             

@@ -15,19 +15,17 @@
  ******************************************************************************/
 package com.wso2telco.historylog;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import com.wso2telco.util.DbUtil;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.wso2telco.util.DbUtil;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 
 // TODO: Auto-generated Javadoc
@@ -117,7 +115,7 @@ public class DbTracelog {
             handleException("Error occured while Login SP LogHistory: " + application + " Service Provider: " +
                     authUser , e);
         } finally {
-           DbUtil.closeAllConnections(pst, con, null); 
+           DbUtil.closeAllConnections(pst, con, null);
         }        
     }
 

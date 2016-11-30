@@ -13,15 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.authenticationstephandler;
+package com.wso2telco.gsma.handlers.authenticationstephandler;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -40,10 +34,13 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
-import com.wso2telco.util.AuthenticationHealper;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -90,10 +87,11 @@ public class MIFEStepHandler extends DefaultStepHandler {
 		}
 
 		// if Request has fidp param and if this is the first step
-		if (fidp != null && !fidp.isEmpty() && stepConfig.getOrder() == 1) {
-			handleHomeRealmDiscovery(request, response, context);
-			return;
-		} else if (context.isReturning()) {
+        //if (fidp != null && !fidp.isEmpty() && stepConfig.getOrder() == 1) {
+        if (StringUtils.isEmpty(fidp) && stepConfig.getOrder() == 1) {
+            handleHomeRealmDiscovery(request, response, context);
+            return;
+        } else if (context.isReturning()) {
 			// if this is a request from the multi-option page
 			if (request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR) != null
 					&& !request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR)
@@ -140,10 +138,11 @@ public class MIFEStepHandler extends DefaultStepHandler {
 						context.setExternalIdP(ConfigurationFacade.getInstance().getIdPConfigByName(
 								idp, context.getTenantDomain()));
 					} catch (IdentityProviderManagementException e) {
-						e.printStackTrace();
-						log.error(e);
-						throw new FrameworkException(e.toString());
-					}
+						//e.printStackTrace();
+						//log.error(e);
+						//throw new FrameworkException(e.toString());
+                        throw new FrameworkException(e.getMessage(), e);
+                    }
 					doAuthentication(request, response, context, authenticatorConfig);
 					return;
 				} else {
@@ -191,10 +190,11 @@ public class MIFEStepHandler extends DefaultStepHandler {
 									.getIdPConfigByName(authenticatorConfig.getIdpNames().get(0),
 											context.getTenantDomain()));
 						} catch (IdentityProviderManagementException e) {
-							e.printStackTrace();
-							log.error(e);
-							throw new FrameworkException(e.toString());
-						}
+							//e.printStackTrace();
+							//log.error(e);
+							//throw new FrameworkException(e.toString());
+                            throw new FrameworkException(e.getMessage(), e);
+                        }
 					}
 
 					doAuthentication(request, response, context, authenticatorConfig);

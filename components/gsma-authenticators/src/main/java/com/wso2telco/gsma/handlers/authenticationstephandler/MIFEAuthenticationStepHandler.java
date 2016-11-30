@@ -13,20 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.authenticationstephandler;
+package com.wso2telco.gsma.handlers.authenticationstephandler;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.wso2telco.gsma.authenticators.LOACompositeAuthenticator;
+import com.wso2telco.util.AuthenticationHealper;
+import com.wso2telco.util.Params;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -48,11 +39,17 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 
-import com.wso2telco.gsma.authenticators.LOACompositeAuthenticator;
-import com.wso2telco.util.AuthenticationHealper;
-import com.wso2telco.util.Params;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class MIFEAuthenticationStepHandler.
  */
@@ -60,6 +57,7 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 
 	/** The log. */
 	private static Log log = LogFactory.getLog(MIFEAuthenticationStepHandler.class);
+    private static final int MAX_NO_OF_STEPS = 30;
 
 	/* (non-Javadoc)
 	 * @see org.wso2.carbon.identity.application.authentication.framework.handler.step.impl.DefaultStepHandler#handle(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
@@ -90,12 +88,13 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			
 			String redirectUri = paramMap.get(Params.REDIRECT_URI.toString())[0];
             String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=acr_values_required";
-            log.info("acr_values not found");
+            log.info(Params.ACR_VALUES.toString() + "  not found");
 
             try {
                 response.sendRedirect(invalidRedirectUrl); 
             } catch (IOException ex) {
-                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+                //Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+                log.error("Failed to access Redirect URL: " + invalidRedirectUrl, ex);
             }
         }
 
@@ -117,18 +116,18 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 		}
 
 		// if Request has fidp param and if this is the first step
-		if (fidp != null && !fidp.isEmpty() && stepConfig.getOrder() == 1) {
-			handleHomeRealmDiscovery(request, response, context);
-			return;
-		} else if (context.isReturning()) {
+		//if (fidp != null && !fidp.isEmpty() && stepConfig.getOrder() == 1) {
+        if (StringUtils.isNotEmpty(fidp) && stepConfig.getOrder() == 1) {
+            handleHomeRealmDiscovery(request, response, context);
+            return;
+        } else if (context.isReturning()) {
 			// if this is a request from the multi-option page
-			if (request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR) != null
-					&& !request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR)
-							.isEmpty()) {
-				handleRequestFromLoginPage(request, response, context);
-				return;
-			} else {
-				// if this is a response from external parties (e.g. federated
+			//if (request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR) != null && !request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR).isEmpty()) {
+            if (StringUtils.isNotEmpty(request.getParameter(FrameworkConstants.RequestParams.AUTHENTICATOR))) {
+                handleRequestFromLoginPage(request, response, context);
+                return;
+            } else {
+                // if this is a response from external parties (e.g. federated
 				// IdPs)
 				handleResponse(request, response, context);
 				return;
@@ -167,10 +166,10 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 						context.setExternalIdP(ConfigurationFacade.getInstance().getIdPConfigByName(
 								idp, context.getTenantDomain()));
 					} catch (IdentityProviderManagementException e) {
-						e.printStackTrace();
-						log.error(e);
-						throw new FrameworkException(e.toString());
-					}
+					 	//log.error(e);
+						//throw new FrameworkException(e.toString());
+                        throw new FrameworkException(e.getMessage(), e);
+                    }
 					doAuthentication(request, response, context, authenticatorConfig);
 					return;
 				} else {
@@ -218,10 +217,10 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 									.getIdPConfigByName(authenticatorConfig.getIdpNames().get(0),
 											context.getTenantDomain()));
 						} catch (IdentityProviderManagementException e) {
-							e.printStackTrace();
-							log.error(e);
-							throw new FrameworkException(e.toString());
-						}
+							//log.error(e);
+							//throw new FrameworkException(e.toString());
+                            throw new FrameworkException(e.getMessage(), e);
+                        }
 					}
 
 					doAuthentication(request, response, context, authenticatorConfig);
@@ -270,10 +269,10 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	    Map< String, String[]> paramMap = authRequest.getRequestQueryParams();
 	        
 	       
-	    String scope = "";
-	    String redirectUri = null;
+	    String scope;
+	    String redirectUri;
 	    String state = null;
-	    String responseType = null;   
+	    String responseType;
 	    String client_id = paramMap.get(Params.CLIENT_ID.toString())[0];
 	
 		ApplicationAuthenticator authenticator = authenticatorConfig.getApplicationAuthenticator();
@@ -289,12 +288,15 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	            redirectUri = paramMap.get(Params.REDIRECT_URI.toString())[0];
 
 	            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=state_required" ;
-	            log.debug("state not found. client_id : "+client_id);
+                if(log.isDebugEnabled()) {
+                    log.debug("state not found. client_id : " + client_id);
+                }
 
 	            try {
 	                response.sendRedirect(invalidRedirectUrl);	   
 	            } catch (IOException ex) {
-	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+	               // Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+                    log.error("Failed to access Redirect URL: " + invalidRedirectUrl, ex);
 	            }
 	        }
 	        else {
@@ -392,16 +394,14 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 					// This gets used in ID token later
 					Object amrValue = context.getProperty(Params.AMR.toString());
 					List<String> amr;
-					if (null != amrValue && amrValue instanceof ArrayList<?>) {
-						amr = (ArrayList<String>) amrValue;
-						amr.add(authenticator.getName());
-						context.setProperty(Params.AMR.toString(), amr);
-					} else {
-						amr = new ArrayList<String>();
-						amr.add(authenticator.getName());
-						context.setProperty(Params.AMR.toString(), amr);
-					}
-				} catch (NullPointerException e) {
+                    if (null != amrValue && amrValue instanceof ArrayList<?>) {
+                        amr = (ArrayList<String>) amrValue;
+                    } else {
+                        amr = new ArrayList();
+                    }
+                    amr.add(authenticator.getName());
+                    context.setProperty(Params.AMR.toString(), amr);
+                } catch (NullPointerException e) {
 					// Possible exception during dashboard login
 					// Should continue even if NPE is thrown
 				}
@@ -420,15 +420,13 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			// add failed authenticators
 			Object amrValue = context.getProperty("failedamr");
 			List<String> amr;
-			if (null != amrValue && amrValue instanceof ArrayList<?>) {
-				amr = (ArrayList<String>) amrValue;
-				amr.add(authenticator.getName());
-				context.setProperty("failedamr", amr);
-			} else {
-				amr = new ArrayList<String>();
-				amr.add(authenticator.getName());
-				context.setProperty("failedamr", amr);
-			}
+            if (null != amrValue && amrValue instanceof ArrayList<?>) {
+                amr = (ArrayList<String>) amrValue;
+            } else {
+                amr = new ArrayList<String>();
+            }
+            amr.add(authenticator.getName());
+            context.setProperty("failedamr", amr);
 
 			// Remove failed step from step map
 			removeFailedStep(context, currentStep);
@@ -468,12 +466,9 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	 */
 	private void setAuthenticationAttributes(AuthenticationContext context, StepConfig stepConfig,
 			AuthenticatorConfig authenticatorConfig) {
-		AuthenticatedIdPData authenticatedIdPData = AuthenticationHealper.createAuthenticatedIdPData(context);
+        AuthenticatedIdPData authenticatedIdPData = AuthenticationHealper.createAuthenticatedIdPData(context);
 
-		
-
-
-		authenticatorConfig.setAuthenticatorStateInfo(context.getStateInfo());
+        authenticatorConfig.setAuthenticatorStateInfo(context.getStateInfo());
 		stepConfig.setAuthenticatedAutenticator(authenticatorConfig);
 
 		String idpName = FrameworkConstants.LOCAL_IDP_NAME;
@@ -523,22 +518,17 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 				.getSequenceConfig().getStepMap());
 
 		Iterator<Integer> it = stepMap.keySet().iterator();
-		while (it.hasNext()) {
-			Integer key = it.next();
-			StepConfig config = stepMap.get(key);
-
-			try {
-				if (currentLOA.equals(config.getAuthenticatorList().get(0).getParameterMap()
-						.get("currentLOA"))) {
-					context.getSequenceConfig().getStepMap().remove(key);
-				}
-			} catch (NullPointerException e) {
-				continue;
-			}
-		}
+        while (it.hasNext()) {
+            Integer key = it.next();
+            StepConfig config = stepMap.get(key);
+            if (currentLOA.equals(config.getAuthenticatorList().get(0).getParameterMap()
+                                          .get("currentLOA"))) {
+                context.getSequenceConfig().getStepMap().remove(key);
+            }
+        }
 
 		// Increment the current step
-		for (int i = currentStep; i < 30; i++) {
+		for (int i = currentStep; i < MAX_NO_OF_STEPS; i++) {
 			if (context.getSequenceConfig().getStepMap().keySet().contains(i)) {
 				context.setCurrentStep(i);
 				break;
@@ -555,18 +545,12 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	private void removeAllFollowingSteps(AuthenticationContext context, int currentStep) {
 		Map<Integer, StepConfig> stepMap = new HashMap<Integer, StepConfig>(context
 				.getSequenceConfig().getStepMap());
-
 		Iterator<Integer> it = stepMap.keySet().iterator();
-		while (it.hasNext()) {
-			Integer key = it.next();
-
-			try {
-				if (key > currentStep) {
-					context.getSequenceConfig().getStepMap().remove(key);
-				}
-			} catch (NullPointerException e) {
-				continue;
-			}
-		}
-	}
+        while (it.hasNext()) {
+            int key = it.next();
+            if (key > currentStep) {
+                context.getSequenceConfig().getStepMap().remove(key);
+            }
+        }
+    }
 }

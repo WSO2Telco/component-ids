@@ -17,13 +17,14 @@
  */
 package com.wso2telco.gsma.authenticators.internal ;
 
+import com.wso2telco.core.config.ConfigLoader;
+import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.LOAConfig;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
-import org.wso2.carbon.user.core.internal.BundleCheckActivator;
 
-import com.wso2telco.gsma.authenticators.DataHolder;
 import com.wso2telco.gsma.authenticators.GSMAMSISDNAuthenticator;
 import com.wso2telco.gsma.authenticators.LOACompositeAuthenticator;
 import com.wso2telco.gsma.authenticators.MSISDNAuthenticator;
@@ -32,17 +33,12 @@ import com.wso2telco.gsma.authenticators.MSSPinAuthenticator;
 import com.wso2telco.gsma.authenticators.OpCoCompositeAuthenticator;
 import com.wso2telco.gsma.authenticators.PinAuthenticator;
 import com.wso2telco.gsma.authenticators.SelfAuthenticator;
-import com.wso2telco.gsma.authenticators.config.ConfigLoader;
-import com.wso2telco.gsma.authenticators.config.LOAConfig;
 import com.wso2telco.gsma.authenticators.headerenrich.HeaderEnrichmentAuthenticator;
 import com.wso2telco.gsma.authenticators.sms.SMSAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDPinAuthenticator;
 
 import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceListener;
-import org.osgi.framework.ServiceEvent;
 
 /**
  * This is one of the first bundles that start in Carbon.

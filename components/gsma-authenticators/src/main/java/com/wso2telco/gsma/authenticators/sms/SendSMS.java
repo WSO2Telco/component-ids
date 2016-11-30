@@ -17,9 +17,9 @@ package com.wso2telco.gsma.authenticators.sms;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.wso2telco.gsma.authenticators.DataHolder;
-import com.wso2telco.gsma.authenticators.config.MobileConnectConfig;
-import com.wso2telco.gsma.authenticators.config.ReadMobileConnectConfig;
+import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.MobileConnectConfig;
+import com.wso2telco.core.config.ReadMobileConnectConfig;
 import com.wso2telco.gsma.authenticators.model.ReceiptRequest;
 
 import org.apache.http.HttpResponse;
@@ -31,13 +31,10 @@ import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.crypto.spec.SecretKeySpec;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 

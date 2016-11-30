@@ -15,14 +15,9 @@
  ******************************************************************************/
 package com.wso2telco.reqpathsequencehandler;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.wso2telco.core.config.LOA;
+import com.wso2telco.core.config.LOAConfig;
+import com.wso2telco.core.config.DataHolder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -38,18 +33,16 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.oauth.cache.CacheKey;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 
-import com.wso2telco.gsma.authenticators.DataHolder;
-import com.wso2telco.gsma.authenticators.config.LOA;
-import com.wso2telco.gsma.authenticators.config.LOAConfig;
-import com.wso2telco.gsma.authenticators.config.LOA.MIFEAbstractAuthenticator;
-import com.wso2telco.util.AuthenticationHealper;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -174,19 +167,19 @@ public class MIFERequestPathBasedSequenceHandler extends DefaultRequestPathBased
 		LinkedHashSet<?> acrs = this.getACRValues(request);
 		String selectedLOA = (String) acrs.iterator().next();
 
-		LOAConfig config = DataHolder.getInstance().getLOAConfig();
+		LOAConfig config =  DataHolder.getInstance().getLOAConfig();
 		LOA loa = config.getLOA(selectedLOA);
 		if (loa.getAuthenticators() == null) {
 			config.init();
 		}
 
-		List<MIFEAbstractAuthenticator> mifeAuthenticators = loa.getAuthenticators();
+		List<LOA.MIFEAbstractAuthenticator> mifeAuthenticators = loa.getAuthenticators();
 		SequenceConfig sequenceConfig = context.getSequenceConfig();
 
 		// Clear existing ReqPathAuthenticators list
 		sequenceConfig.setReqPathAuthenticators(new ArrayList<AuthenticatorConfig>());
 
-		for (MIFEAbstractAuthenticator mifeAuthenticator : mifeAuthenticators) {
+		for (LOA.MIFEAbstractAuthenticator mifeAuthenticator : mifeAuthenticators) {
 			AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
 			authenticatorConfig.setName(mifeAuthenticator.getAuthenticator().getName());
 			authenticatorConfig.setApplicationAuthenticator(mifeAuthenticator.getAuthenticator());

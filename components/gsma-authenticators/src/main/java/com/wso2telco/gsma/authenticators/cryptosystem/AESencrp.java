@@ -19,8 +19,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.xml.sax.SAXException;
-
-import com.wso2telco.gsma.authenticators.config.ReadMobileConnectConfig;
+import com.wso2telco.core.config.ReadMobileConnectConfig;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;

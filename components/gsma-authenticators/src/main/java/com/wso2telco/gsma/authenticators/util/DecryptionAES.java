@@ -16,7 +16,7 @@
 package com.wso2telco.gsma.authenticators.util;
 
 import com.google.gdata.util.common.util.Base64;
-import com.wso2telco.gsma.authenticators.DataHolder;
+import com.wso2telco.core.config.DataHolder;
 
 import java.security.NoSuchAlgorithmException;
 import javax.crypto.Cipher;

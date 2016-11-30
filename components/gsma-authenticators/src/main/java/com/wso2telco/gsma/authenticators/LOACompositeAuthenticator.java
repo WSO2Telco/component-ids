@@ -15,9 +15,9 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
-import com.wso2telco.gsma.authenticators.config.LOA;
-import com.wso2telco.gsma.authenticators.config.LOA.MIFEAbstractAuthenticator;
-import com.wso2telco.gsma.authenticators.config.LOAConfig;
+import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.LOA;
+import com.wso2telco.core.config.LOAConfig;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import org.apache.commons.logging.Log;
@@ -194,10 +194,10 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		int stepOrder = 2;
 
 		while (true) {
-			List<MIFEAbstractAuthenticator> authenticators = loa.getAuthenticators();
+			List<LOA.MIFEAbstractAuthenticator> authenticators = loa.getAuthenticators();
 			String fallBack = loa.getAuthentication().getFallbackLevel();
 
-			for (MIFEAbstractAuthenticator authenticator : authenticators) {
+			for (LOA.MIFEAbstractAuthenticator authenticator : authenticators) {
 				StepConfig stepConfig = new StepConfig();
 				stepConfig.setOrder(stepOrder);
 				if (stepOrder == 2) {

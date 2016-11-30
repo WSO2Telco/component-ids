@@ -22,6 +22,7 @@ import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import com.wso2telco.gsma.authenticators.ussd.Pinresponse;
 import com.wso2telco.gsma.authenticators.util.TableName;
+import com.wso2telco.core.config.DataHolder;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
