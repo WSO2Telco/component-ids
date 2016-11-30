@@ -68,7 +68,7 @@
     </dependency>
     <dependency>
         <groupId>com.wso2telco.ids</groupId>
-        <artifactId>opeid-extension</artifactId>
+        <artifactId>openid-extension</artifactId>
         <version>2.0.13</version>
         <scope>provided</scope>
     </dependency>
