@@ -15,9 +15,9 @@
  ******************************************************************************/
 package com.wso2telco.reqpathsequencehandler;
 
-import com.wso2telco.core.config.LOA;
-import com.wso2telco.core.config.LOAConfig;
+import com.wso2telco.core.config.AuthenticationLevels;
 import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.MIFEAuthentication;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
@@ -43,8 +44,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class MIFERequestPathBasedSequenceHandler.
  */
@@ -167,24 +168,22 @@ public class MIFERequestPathBasedSequenceHandler extends DefaultRequestPathBased
 		LinkedHashSet<?> acrs = this.getACRValues(request);
 		String selectedLOA = (String) acrs.iterator().next();
 
-		LOAConfig config =  DataHolder.getInstance().getLOAConfig();
-		LOA loa = config.getLOA(selectedLOA);
-		if (loa.getAuthenticators() == null) {
-			config.init();
-		}
+		AuthenticationLevels config = DataHolder.getInstance().getAuthenticationLevels();
+		Map<String, MIFEAuthentication> authenticationMap = DataHolder.getInstance().getAuthenticationLevelMap();
+		MIFEAuthentication mifeAuthentication = authenticationMap.get(selectedLOA);
 
-		List<LOA.MIFEAbstractAuthenticator> mifeAuthenticators = loa.getAuthenticators();
+		List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList = mifeAuthentication.getAuthenticatorList();
 		SequenceConfig sequenceConfig = context.getSequenceConfig();
 
 		// Clear existing ReqPathAuthenticators list
 		sequenceConfig.setReqPathAuthenticators(new ArrayList<AuthenticatorConfig>());
 
-		for (LOA.MIFEAbstractAuthenticator mifeAuthenticator : mifeAuthenticators) {
+		for (MIFEAuthentication.MIFEAbstractAuthenticator mifeAuthenticator : authenticatorList) {
 			AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
-			authenticatorConfig.setName(mifeAuthenticator.getAuthenticator().getName());
-			authenticatorConfig.setApplicationAuthenticator(mifeAuthenticator.getAuthenticator());
-
-			sequenceConfig.getReqPathAuthenticators().add(authenticatorConfig);
+			ApplicationAuthenticator applicationAuthenticator = FrameworkUtils
+					.getAppAuthenticatorByName(mifeAuthenticator.getAuthenticator());
+			authenticatorConfig.setName(mifeAuthenticator.getAuthenticator());
+			authenticatorConfig.setApplicationAuthenticator(applicationAuthenticator);
 		}
 
 		context.setSequenceConfig(sequenceConfig);

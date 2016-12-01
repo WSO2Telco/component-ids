@@ -32,6 +32,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import com.wso2telco.utils.AuthenticationLevel;
+import com.wso2telco.utils.AuthenticationLevels;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -43,8 +45,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.json.JSONException;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceException;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
 import com.google.gson.Gson;
@@ -55,9 +55,6 @@ import com.wso2telco.sms.OutboundSMSMessageRequest;
 import com.wso2telco.sms.OutboundSMSTextMessage;
 import com.wso2telco.sms.SendSMSRequest;
 import com.wso2telco.utils.ConfigLoader;
-import com.wso2telco.utils.LOA;
-import com.wso2telco.utils.LOA.MIFEAbstractAuthenticator;
-import com.wso2telco.utils.LOAConfig;
 import com.wso2telco.utils.ReadMobileConnectConfig;
 
 //import org.json.JSONException;
@@ -949,8 +946,8 @@ public class Endpoints {
 		int statusCode = 500;
 		try {
 			log.info("Searching default Authenticator for acr: " + acr);
-			LOAConfig config = ConfigLoader.getInstance().getLoaConfig();
-			LOA loa = config.getLOA(acr);
+			AuthenticationLevels config = ConfigLoader.getInstance().getAuthenticationLevels();
+			AuthenticationLevel loa = config.getLOA(acr);
 
 			if (loa.getAuthenticators() == null) {
 				log.info("Authenticators null and calling config init");
@@ -986,11 +983,10 @@ public class Endpoints {
 	 *            name of the authenticator.
 	 * @return true if valid authenticator found.
 	 */
-	private String selectDefaultAuthenticator(List<MIFEAbstractAuthenticator> authenticators) {
+	private String selectDefaultAuthenticator(List<AuthenticationLevel.MIFEAbstractAuthenticator> authenticators) {
 		try {
-			for (MIFEAbstractAuthenticator a : authenticators) {
-
-				String authenticatorName = a.getAuthenticator().getName();
+			for (AuthenticationLevel.MIFEAbstractAuthenticator mifeAbstractAuthenticator : authenticators) {
+				String authenticatorName = mifeAbstractAuthenticator.getAuthenticator().getName();
 				if ("SMSAuthenticator".equalsIgnoreCase(authenticatorName)
 						|| "USSDAuthenticator".equalsIgnoreCase(authenticatorName)
 						|| "USSDPinAuthenticator".equalsIgnoreCase(authenticatorName)) {
