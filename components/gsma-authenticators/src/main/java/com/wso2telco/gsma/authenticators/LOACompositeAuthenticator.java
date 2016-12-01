@@ -20,7 +20,6 @@ import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.MIFEAuthentication;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -193,22 +192,19 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
 			int stepOrder = 2;
 
-			while (true) {
-				List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList =
-						mifeAuthentication.getAuthenticatorList();
-				String fallBack = mifeAuthentication.getLevelToFail();
+		int stepOrder = 2;
 
-				for (MIFEAuthentication.MIFEAbstractAuthenticator authenticator : authenticatorList) {
-					String onFailAction = authenticator.getOnFailAction();
-					String supportiveFlow = authenticator.getSupportFlow();
-					if (supportiveFlow.equals("any") || supportiveFlow.equals(flowType)) {
+		while (true) {
+			List<MIFEAbstractAuthenticator> authenticators = loa.getAuthenticators();
+			String fallBack = loa.getAuthentication().getFallbackLevel();
 
-						StepConfig stepConfig = new StepConfig();
-						stepConfig.setOrder(stepOrder);
-						if (stepOrder == 2) {
-							stepConfig.setSubjectAttributeStep(true);
-							stepConfig.setSubjectIdentifierStep(true);
-						}
+			for (MIFEAbstractAuthenticator authenticator : authenticators) {
+				StepConfig stepConfig = new StepConfig();
+				stepConfig.setOrder(stepOrder);
+				if (stepOrder == 2) {
+					stepConfig.setSubjectAttributeStep(true);
+					stepConfig.setSubjectIdentifierStep(true);
+				}
 
 						List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
 						if (authenticatorConfigs == null) {
@@ -309,13 +305,6 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 				.getValueFromCache(sessionDataCacheKey);
 		LinkedHashSet<?> acrValues = sdce.getoAuth2Parameters().getACRValues();
 		return acrValues;
-	}
-
-	private String getFlowType(String msisdn) {
-		if (!StringUtils.isEmpty(msisdn)) {
-			return "onnet";
-		}
-		return "offnet";
 	}
 
 }

@@ -173,24 +173,30 @@ function randomPassword(length) {
 		console.log("HE Registration selfautherizing.....");
 		selfAuthorize(sessionDataKey,msisdn_header_enc_str,operator);
           }else{
-            var f = document.createElement('form');
-            f.action='/authenticationendpoint/mcx-user-registration/waiting.jsp';
-            f.method='POST';
-            var i;
+            //Delete previous code after refactoring
+            //var f = document.createElement('form');
+            //f.action='/authenticationendpoint/mcx-user-registration/waiting.jsp';
+            //f.method='POST';
+            //var i;
+            //
+            //for (var key in values) {
+            //    console.log(key +" : "+values[key]);
+            //    /*alert(key +" : "+values[key]);*/
+            //    i=document.createElement('input');
+            //    i.type='hidden';
+            //    i.name=key;
+            //    i.value=values[key];
+            //    f.appendChild(i);
+            //}
+            //
+            //document.body.appendChild(f);
+            //f.submit();
+              var commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
+                  + "&msisdn=" + msisdn_header_str
+                  + "&operator=" + operator
+                  + "&isRegistration=true";
 
-            for (var key in values) {
-                console.log(key +" : "+values[key]);
-                /*alert(key +" : "+values[key]);*/
-                i=document.createElement('input');
-                i.type='hidden';
-                i.name=key;
-                i.value=values[key];
-                f.appendChild(i);
-            }
-
-            document.body.appendChild(f);
-            f.submit();
-
+              window.location = commonAuthURL;
 
         }
     }
