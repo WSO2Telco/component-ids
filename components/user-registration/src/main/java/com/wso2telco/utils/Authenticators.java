@@ -26,7 +26,7 @@ public class Authenticators {
 	 *
 	 * @return the authenticators
 	 */
-	@XmlElement(name = "Authenticator")
+	@XmlElement(name = "Authenicator")
 	public List<Authenticator> getAuthenticators() {
 		return authenticators;
 	}
