@@ -15,9 +15,14 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.internal;
 
+import com.wso2telco.core.config.Authentication;
+import com.wso2telco.core.config.AuthenticationLevel;
+import com.wso2telco.core.config.AuthenticationLevels;
+import com.wso2telco.core.config.Authenticators;
+import com.wso2telco.core.config.Authenticator;
 import com.wso2telco.core.config.ConfigLoader;
 import com.wso2telco.core.config.DataHolder;
-import com.wso2telco.core.config.LOAConfig;
+import com.wso2telco.core.config.MIFEAuthentication;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.felix.scr.annotations.Activate;
@@ -35,6 +40,11 @@ import com.wso2telco.gsma.authenticators.headerenrich.HeaderEnrichmentAuthentica
 import com.wso2telco.gsma.authenticators.sms.SMSAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDPinAuthenticator;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -95,12 +105,13 @@ public class CustomAuthenticatorServiceComponent {
                 new SelfAuthenticator(), null);
 
 
-        LOAConfig config = ConfigLoader.getInstance().getLoaConfig();
-
-        DataHolder.getInstance().setLOAConfig(config);
+        AuthenticationLevels authenticationLevels = ConfigLoader.getInstance().getAuthenticationLevels();
+        DataHolder.getInstance().setAuthenticationLevels(authenticationLevels);
 
         DataHolder.getInstance().setMobileConnectConfig(ConfigLoader.getInstance().getMobileConnectConfig());
 
+        Map<String, MIFEAuthentication> authenticationMap = loadMIFEAuthenticatorMap(authenticationLevels);
+        DataHolder.getInstance().setAuthenticationLevelMap(authenticationMap);
         if (log.isDebugEnabled()) {
             log.debug("Custom Application Authenticator bundle is activated");
         }
@@ -151,4 +162,29 @@ public class CustomAuthenticatorServiceComponent {
         return realmService;
     }
 
+    private Map<String, MIFEAuthentication> loadMIFEAuthenticatorMap(AuthenticationLevels authenticationLevels) {
+        Map<String, MIFEAuthentication> authenticatorMap = new HashMap<>();
+        List<AuthenticationLevel> authenticationLevelList = authenticationLevels.getAuthenticationLevelList();
+        for (AuthenticationLevel authenticationLevel : authenticationLevelList) {
+            MIFEAuthentication mifeAuthentication = new MIFEAuthentication();
+            String authenticationLevelValue = authenticationLevel.getLevel();
+            Authentication authentication = authenticationLevel.getAuthentication();
+            Authenticators authenticators = authentication.getAuthenticators();
+            String levelToFallBack = authentication.getLevelToFallback();
+            List<Authenticator> authenticatorList = authenticators.getAuthenticators();
+            List<MIFEAuthentication.MIFEAbstractAuthenticator> mifeAuthenticationList = new ArrayList<>();
+            for (Authenticator authenticator : authenticatorList) {
+                MIFEAuthentication.MIFEAbstractAuthenticator mifeAuthenticator = new MIFEAuthentication
+                        .MIFEAbstractAuthenticator();
+                mifeAuthenticator.setAuthenticator(authenticator.getAuthenticatorName());
+                mifeAuthenticator.setOnFailAction(authenticator.getOnfail());
+                mifeAuthenticator.setSupportFlow(authenticator.getSupportiveFlow());
+                mifeAuthenticationList.add(mifeAuthenticator);
+            }
+            mifeAuthentication.setLevelToFail(levelToFallBack);
+            mifeAuthentication.setAuthenticatorList(mifeAuthenticationList);
+            authenticatorMap.put(authenticationLevelValue, mifeAuthentication);
+        }
+        return  authenticatorMap;
+    }
 }

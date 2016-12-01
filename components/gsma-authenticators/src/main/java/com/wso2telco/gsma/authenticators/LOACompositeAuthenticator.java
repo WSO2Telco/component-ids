@@ -15,11 +15,12 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
+import com.wso2telco.core.config.AuthenticationLevels;
 import com.wso2telco.core.config.DataHolder;
-import com.wso2telco.core.config.LOA;
-import com.wso2telco.core.config.LOAConfig;
+import com.wso2telco.core.config.MIFEAuthentication;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -87,24 +88,27 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		if (!canHandle(request)) {
 			return AuthenticatorFlowStatus.INCOMPLETE;
 		}
-       boolean isLogin=false;
-       boolean isAuthenticated;
-        //Unregister Customer Token
+		boolean isLogin = false;
+		boolean isAuthenticated;
+		//Unregister Customer Token
+		String msisdn = request.getParameter("msisdn");
+		String msisdnHeader = request.getParameter("msisdn_header");
+		String flowType = getFlowType(msisdnHeader);
+		String tokenId = tokenId = request.getParameter("tokenid");
+		//Change authentication flow just after registration
+		if (tokenId != null && msisdn != null) {
+			try {
+				AuthenticationData authenticationData = DBUtils.getAuthenticateData(tokenId);
+				int status = authenticationData.getStatus();
+				int tenantId = -1234;
+				UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService().getTenantUserRealm(
+						tenantId);
 
-       String msisdn=request.getParameter("msisdn");
-       String tokenId=tokenId=request.getParameter("tokenid");
-        //Change authentication flow just after registration
-        if (tokenId != null && msisdn != null) {
-            try {
-                AuthenticationData authenticationData = DBUtils.getAuthenticateData(tokenId);
-                int status = authenticationData.getStatus();
-                int tenantId = -1234;
-                UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService().getTenantUserRealm(tenantId);
+				if (userRealm != null) {
+					UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
 
-                if (userRealm != null) {
-                    UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
-
-                   /* String userLocked = userStoreManager.getUserClaimValue(msisdn, "http://wso2.org/claims/identity/accountLocked", "default");
+                   /* String userLocked = userStoreManager.getUserClaimValue(msisdn, "http://wso2
+                   .org/claims/identity/accountLocked", "default");
                     if (userLocked != null && userLocked.equalsIgnoreCase("true")) {
                         log.info("Self Authenticator authentication failed ");
                         if (log.isDebugEnabled()) {
@@ -113,142 +117,151 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
                         throw new AuthenticationFailedException("Self Authentication Failed");
                     }*/
 
-                    isAuthenticated = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(msisdn));
-                } else {
-                    throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: " + tenantId);
-                }
-                if ((status == 1) & isAuthenticated) {
-                    isLogin = true;
-                }else{
-                    isLogin = false;
-                }
-                DBUtils.deleteAuthenticateData(tokenId);
-            } catch (Exception ex) {
-                log.error("Self Authentication failed while trying to authenticate", ex);
-            }
-
-        } else {
-            isLogin = false;
-        }
-
-        if(isLogin) {
-            SequenceConfig sequenceConfig = context.getSequenceConfig();
-            Map<Integer, StepConfig> stepMap = sequenceConfig.getStepMap();
-
-            StepConfig sc = stepMap.get(1);
-            sc.setSubjectAttributeStep(false);
-            sc.setSubjectIdentifierStep(false);
-            
-            AuthenticatedUser user=new AuthenticatedUser();
-            //context.setSubject(user);
-            sc.setAuthenticatedUser(user);
-
-
-            int stepOrder = 2;
-
-            StepConfig stepConfig = new StepConfig();
-            stepConfig.setOrder(stepOrder);
-            stepConfig.setSubjectAttributeStep(true);
-            stepConfig.setSubjectIdentifierStep(true);
-
-            List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
-            if (authenticatorConfigs == null) {
-                authenticatorConfigs = new ArrayList<AuthenticatorConfig>();
-                stepConfig.setAuthenticatorList(authenticatorConfigs);
-            }
-
-            AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
-            authenticatorConfig.setName("SelfAuthenticator");
-            authenticatorConfig.setApplicationAuthenticator(FrameworkUtils.getAppAuthenticatorByName("SelfAuthenticator"));
-
-            Map<String, String> parameterMap = new HashMap<String, String>();
-
-            parameterMap.put("isLastAuthenticat", "true");
-            authenticatorConfig.setParameterMap(parameterMap);
-
-            stepConfig.getAuthenticatorList().add(authenticatorConfig);
-            stepMap.put(stepOrder, stepConfig);
-
-            sequenceConfig.setStepMap(stepMap);
-            context.setSequenceConfig(sequenceConfig);
-            context.setProperty("msisdn", msisdn);
-           /* AuthenticatedUser aUser=new AuthenticatedUser();
-            context.setSubject(aUser)*/;
-            AuthenticationContextHelper.setSubject(context,msisdn);
-
-
-        }else{
-		LOAConfig config = DataHolder.getInstance().getLOAConfig();
-		LOA loa = config.getLOA(selectedLOA);
-		if (loa.getAuthenticators() == null) {
-			config.init();
-		}
-
-		SequenceConfig sequenceConfig = context.getSequenceConfig();
-		Map<Integer, StepConfig> stepMap = sequenceConfig.getStepMap();
-
-		StepConfig sc = stepMap.get(1);
-		sc.setSubjectAttributeStep(false);
-		sc.setSubjectIdentifierStep(false);
-
-		int stepOrder = 2;
-
-		while (true) {
-			List<LOA.MIFEAbstractAuthenticator> authenticators = loa.getAuthenticators();
-			String fallBack = loa.getAuthentication().getFallbackLevel();
-
-			for (LOA.MIFEAbstractAuthenticator authenticator : authenticators) {
-				StepConfig stepConfig = new StepConfig();
-				stepConfig.setOrder(stepOrder);
-				if (stepOrder == 2) {
-					stepConfig.setSubjectAttributeStep(true);
-					stepConfig.setSubjectIdentifierStep(true);
+					isAuthenticated = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(msisdn));
+				} else {
+					throw new AuthenticationFailedException(
+							"Cannot find the user realm for the given tenant: " + tenantId);
 				}
-
-				List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
-				if (authenticatorConfigs == null) {
-					authenticatorConfigs = new ArrayList<AuthenticatorConfig>();
-					stepConfig.setAuthenticatorList(authenticatorConfigs);
+				if ((status == 1) & isAuthenticated) {
+					isLogin = true;
+				} else {
+					isLogin = false;
 				}
-
-				AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
-				authenticatorConfig.setName(authenticator.getAuthenticator().getName());
-				authenticatorConfig.setApplicationAuthenticator(authenticator.getAuthenticator());
-
-				String onFail = authenticator.getOnFailAction();
-
-				Map<String, String> parameterMap = new HashMap<String, String>();
-				parameterMap.put("currentLOA", loa.getLevel());
-				parameterMap.put("fallBack", (null != fallBack) ? fallBack : "");
-				parameterMap.put("onFail", (null != onFail) ? onFail : "");
-				parameterMap
-						.put("isLastAuthenticator",
-								(authenticators.indexOf(authenticator) == authenticators.size() - 1) ? "true"
-										: "false");
-				authenticatorConfig.setParameterMap(parameterMap);
-
-				stepConfig.getAuthenticatorList().add(authenticatorConfig);
-				stepMap.put(stepOrder, stepConfig);
-
-				stepOrder++;
+				DBUtils.deleteAuthenticateData(tokenId);
+			} catch (Exception ex) {
+				log.error("Self Authentication failed while trying to authenticate", ex);
 			}
 
-			// increment LOA to fallBack level
-			if (null == fallBack) {
-				break;
-			}
-			loa = config.getLOA(fallBack);
+		} else {
+			isLogin = false;
 		}
 
-		sequenceConfig.setStepMap(stepMap);
-		context.setSequenceConfig(sequenceConfig);
+		if (isLogin) {
+			SequenceConfig sequenceConfig = context.getSequenceConfig();
+			Map<Integer, StepConfig> stepMap = sequenceConfig.getStepMap();
 
-        }
+			StepConfig sc = stepMap.get(1);
+			sc.setSubjectAttributeStep(false);
+			sc.setSubjectIdentifierStep(false);
+
+			AuthenticatedUser user = new AuthenticatedUser();
+			//context.setSubject(user);
+			sc.setAuthenticatedUser(user);
+
+
+			int stepOrder = 2;
+
+			StepConfig stepConfig = new StepConfig();
+			stepConfig.setOrder(stepOrder);
+			stepConfig.setSubjectAttributeStep(true);
+			stepConfig.setSubjectIdentifierStep(true);
+
+			List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
+			if (authenticatorConfigs == null) {
+				authenticatorConfigs = new ArrayList<AuthenticatorConfig>();
+				stepConfig.setAuthenticatorList(authenticatorConfigs);
+			}
+
+			AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
+			authenticatorConfig.setName("SelfAuthenticator");
+			authenticatorConfig.setApplicationAuthenticator(
+					FrameworkUtils.getAppAuthenticatorByName("SelfAuthenticator"));
+
+			Map<String, String> parameterMap = new HashMap<String, String>();
+
+			parameterMap.put("isLastAuthenticat", "true");
+			authenticatorConfig.setParameterMap(parameterMap);
+
+			stepConfig.getAuthenticatorList().add(authenticatorConfig);
+			stepMap.put(stepOrder, stepConfig);
+
+			sequenceConfig.setStepMap(stepMap);
+			context.setSequenceConfig(sequenceConfig);
+			context.setProperty("msisdn", msisdn);
+			AuthenticationContextHelper.setSubject(context, msisdn);
+		} else {
+			AuthenticationLevels config = DataHolder.getInstance().getAuthenticationLevels();
+			Map<String, MIFEAuthentication> authenticationMap = DataHolder.getInstance().getAuthenticationLevelMap();
+			MIFEAuthentication mifeAuthentication = authenticationMap.get(selectedLOA);
+
+			SequenceConfig sequenceConfig = context.getSequenceConfig();
+			Map<Integer, StepConfig> stepMap = sequenceConfig.getStepMap();
+
+			StepConfig sc = stepMap.get(1);
+			sc.setSubjectAttributeStep(false);
+			sc.setSubjectIdentifierStep(false);
+
+			int stepOrder = 2;
+
+			while (true) {
+				List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList =
+						mifeAuthentication.getAuthenticatorList();
+				String fallBack = mifeAuthentication.getLevelToFail();
+
+				for (MIFEAuthentication.MIFEAbstractAuthenticator authenticator : authenticatorList) {
+					String onFailAction = authenticator.getOnFailAction();
+					String supportiveFlow = authenticator.getSupportFlow();
+					if (supportiveFlow.equals("any") || supportiveFlow.equals(flowType)) {
+
+						StepConfig stepConfig = new StepConfig();
+						stepConfig.setOrder(stepOrder);
+						if (stepOrder == 2) {
+							stepConfig.setSubjectAttributeStep(true);
+							stepConfig.setSubjectIdentifierStep(true);
+						}
+
+						List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
+						if (authenticatorConfigs == null) {
+							authenticatorConfigs = new ArrayList<AuthenticatorConfig>();
+							stepConfig.setAuthenticatorList(authenticatorConfigs);
+						}
+
+						String authenticatorName = authenticator.getAuthenticator();
+						ApplicationAuthenticator applicationAuthenticator = FrameworkUtils.getAppAuthenticatorByName(
+								authenticatorName);
+						AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
+						authenticatorConfig.setName(authenticatorName);
+						authenticatorConfig.setApplicationAuthenticator(applicationAuthenticator);
+
+						Map<String, String> parameterMap = new HashMap<String, String>();
+						parameterMap.put("currentLOA", selectedLOA);
+						parameterMap.put("fallBack", (null != fallBack) ? fallBack : "");
+						parameterMap.put("onFail", (null != onFailAction) ? onFailAction : "");
+						parameterMap
+								.put("isLastAuthenticator",
+								     (authenticatorList.indexOf(authenticator) == authenticatorList.size() - 1) ?
+										     "true"
+										     : "false");
+						authenticatorConfig.setParameterMap(parameterMap);
+
+						stepConfig.getAuthenticatorList().add(authenticatorConfig);
+						stepMap.put(stepOrder, stepConfig);
+
+						stepOrder++;
+					} else {
+						if (StringUtils.isEmpty(fallBack)) {
+							selectedLOA = fallBack;
+							mifeAuthentication = authenticationMap.get(selectedLOA);
+						}
+						break;
+					}
+				}
+				// increment LOA to fallBack level
+				if (null == fallBack) {
+					break;
+				}
+				selectedLOA = fallBack;
+				mifeAuthentication = authenticationMap.get(selectedLOA);
+			}
+			sequenceConfig.setStepMap(stepMap);
+			context.setSequenceConfig(sequenceConfig);
+		}
 		return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
 	}
 
 	/* (non-Javadoc)
-	 * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
+	 * @see org.wso2.carbon.identity.application.authentication.framework
+	 * .ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
 	 */
 	public String getContextIdentifier(HttpServletRequest request) {
 		return null;
@@ -296,6 +309,13 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 				.getValueFromCache(sessionDataCacheKey);
 		LinkedHashSet<?> acrValues = sdce.getoAuth2Parameters().getACRValues();
 		return acrValues;
+	}
+
+	private String getFlowType(String msisdn) {
+		if (!StringUtils.isEmpty(msisdn)) {
+			return "onnet";
+		}
+		return "offnet";
 	}
 
 }

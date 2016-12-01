@@ -17,9 +17,14 @@
  */
 package com.wso2telco.gsma.authenticators.internal ;
 
+import com.wso2telco.core.config.Authentication;
+import com.wso2telco.core.config.AuthenticationLevel;
+import com.wso2telco.core.config.AuthenticationLevels;
+import com.wso2telco.core.config.Authenticator;
+import com.wso2telco.core.config.Authenticators;
 import com.wso2telco.core.config.ConfigLoader;
 import com.wso2telco.core.config.DataHolder;
-import com.wso2telco.core.config.LOAConfig;
+import com.wso2telco.core.config.MIFEAuthentication;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
@@ -39,6 +44,11 @@ import com.wso2telco.gsma.authenticators.ussd.USSDAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDPinAuthenticator;
 
 import org.osgi.framework.BundleActivator;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This is one of the first bundles that start in Carbon.
@@ -86,12 +96,12 @@ public class Activator implements BundleActivator {
     	 log.debug("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH__________0002");
     	}
     	
-         LOAConfig config = ConfigLoader.getInstance().getLoaConfig();
+        AuthenticationLevels authenticationLevels = ConfigLoader.getInstance().getAuthenticationLevels();
+        DataHolder.getInstance().setAuthenticationLevels(authenticationLevels);
 
-         DataHolder.getInstance().setLOAConfig(config);
-
-         DataHolder.getInstance().setMobileConnectConfig(ConfigLoader.getInstance().getMobileConnectConfig());
-         
+        DataHolder.getInstance().setMobileConnectConfig(ConfigLoader.getInstance().getMobileConnectConfig());
+        Map<String, MIFEAuthentication> authenticationMap = loadMIFEAuthenticatorMap(authenticationLevels);
+        DataHolder.getInstance().setAuthenticationLevelMap(authenticationMap);
          if (log.isDebugEnabled()) {
          log.debug("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH__________0003");
          }
@@ -111,7 +121,32 @@ public class Activator implements BundleActivator {
 
 	public void start(BundleContext context) throws Exception {
 		startDeploy(context);
-		
+	}
+
+	private Map<String, MIFEAuthentication> loadMIFEAuthenticatorMap(AuthenticationLevels authenticationLevels) {
+		Map<String, MIFEAuthentication> authenticatorMap = new HashMap<>();
+		List<AuthenticationLevel> authenticationLevelList = authenticationLevels.getAuthenticationLevelList();
+		for (AuthenticationLevel authenticationLevel : authenticationLevelList) {
+			MIFEAuthentication mifeAuthentication = new MIFEAuthentication();
+			String authenticationLevelValue = authenticationLevel.getLevel();
+			Authentication authentication = authenticationLevel.getAuthentication();
+			Authenticators authenticators = authentication.getAuthenticators();
+			String levelToFallBack = authentication.getLevelToFallback();
+			List<Authenticator> authenticatorList = authenticators.getAuthenticators();
+			List<MIFEAuthentication.MIFEAbstractAuthenticator> mifeAuthenticationList = new ArrayList<>();
+			for (Authenticator authenticator : authenticatorList) {
+				MIFEAuthentication.MIFEAbstractAuthenticator mifeAuthenticator = new MIFEAuthentication
+						.MIFEAbstractAuthenticator();
+				mifeAuthenticator.setAuthenticator(authenticator.getAuthenticatorName());
+				mifeAuthenticator.setOnFailAction(authenticator.getOnfail());
+				mifeAuthenticator.setSupportFlow(authenticator.getSupportiveFlow());
+				mifeAuthenticationList.add(mifeAuthenticator);
+			}
+			mifeAuthentication.setLevelToFail(levelToFallBack);
+			mifeAuthentication.setAuthenticatorList(mifeAuthenticationList);
+			authenticatorMap.put(authenticationLevelValue, mifeAuthentication);
+		}
+		return  authenticatorMap;
 	}
 
 }

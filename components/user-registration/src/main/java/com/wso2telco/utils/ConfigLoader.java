@@ -13,13 +13,13 @@ public class ConfigLoader {
 
     private Log log = LogFactory.getLog(ConfigLoader.class);
 
-    private LOAConfig loaConfig;
+    private AuthenticationLevels authenticationLevels;
     private MobileConnectConfig mobileConnectConfig;
     private static ConfigLoader loader = new ConfigLoader();
 
     private ConfigLoader() {
         try {
-            this.loaConfig = initLoaConfig();
+            this.authenticationLevels = initLoaConfig();
             this.mobileConnectConfig = initMConnectConfig();
         } catch (JAXBException e) {
             log.error("Error while initiating custom config files", e);
@@ -30,16 +30,16 @@ public class ConfigLoader {
         return loader;
     }
 
-    private LOAConfig initLoaConfig() throws JAXBException {
+    private AuthenticationLevels initLoaConfig() throws JAXBException {
         String configPath = CarbonUtils.getCarbonConfigDirPath() + File.separator + "LOA.xml";
         File file = new File(configPath);
-        JAXBContext ctx = JAXBContext.newInstance(LOAConfig.class);
+        JAXBContext ctx = JAXBContext.newInstance(AuthenticationLevels.class);
         Unmarshaller um = ctx.createUnmarshaller();
-        return  (LOAConfig) um.unmarshal(file);
+        return  (AuthenticationLevels) um.unmarshal(file);
     }
 
-    public LOAConfig getLoaConfig() {
-        return loaConfig;
+    public AuthenticationLevels getAuthenticationLevels() {
+        return authenticationLevels;
     }
 
     private MobileConnectConfig initMConnectConfig() throws JAXBException {
