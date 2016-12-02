@@ -49,7 +49,7 @@
         <%
 System.out.println("waiting.jsp-----------------------------------------");
         String acr = request.getParameter("http://wso2.org/claims/loa")!= null ?  request.getParameter("http://wso2.org/claims/loa") : "";
-        String token = request.getParameter("token")!= null ?  request.getParameter("token") : "";
+        String sessionDataKey = request.getParameter("sessionDataKey")!= null ?  request.getParameter("sessionDataKey") : "";
         String operator = request.getParameter("operator")!= null ?  request.getParameter("operator") : "";
         String msisdn = request.getParameter("msisdn")!= null ?  request.getParameter("msisdn") : "";
         String acr_code = request.getParameter("acr_code")!= null ?  request.getParameter("acr_code") : "";
@@ -64,7 +64,7 @@ System.out.println("waiting.jsp-----------------------------------------");
         <script type="text/javascript">
         var values = {};
         values["msisdn"] = "<%=msisdn%>";
-        values["token"] = "<%=token%>";
+        values["sessionDataKey"] = "<%=sessionDataKey%>";
         values["acr"] = "<%=acr%>";
         values["smsClick"] = "<%=smsClick%>";
         values["operator"] = "<%=operator%>";

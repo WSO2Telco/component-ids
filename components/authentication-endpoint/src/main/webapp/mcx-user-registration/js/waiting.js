@@ -1,5 +1,5 @@
 var msisdn=values["msisdn"];
-var tokenVal=values["token"];
+var tokenVal=values["sessionDataKey"];
 console.log(msisdn+" : "+tokenVal);
 
 var timeout = 60000;
@@ -104,30 +104,34 @@ console.log("waiting");
  	var username=msisdn;
  	var url = "/user-registration/webresources/endpoint/user/authenticate/get?tokenid="+ id;
 
- 	$.ajax({
- 		type: "GET",
- 		url:url,
- 		async: false,
- 		dataType: 'json',
- 		success:function(result){
- 			if(result != null) {
- 				scope = result.scope; 
- 				callbackURL = result.redirectUri; 
- 				state= result.state;
- 				nonce=result.nonce;
- 				clientkey = result.clientId; 
- 				acr = result.acrValues; 
- 				authendpoint = "/oauth2/authorize"; 
- 				token = result.tokenID; 
- 			}
- 		}});
+	 //delete old code after refactor complete
+ 	//$.ajax({
+ 	//	type: "GET",
+ 	//	url:url,
+ 	//	async: false,
+ 	//	dataType: 'json',
+ 	//	success:function(result){
+ 	//		if(result != null) {
+ 	//			scope = result.scope;
+ 	//			callbackURL = result.redirectUri;
+ 	//			state= result.state;
+ 	//			nonce=result.nonce;
+ 	//			clientkey = result.clientId;
+ 	//			acr = result.acrValues;
+ 	//			authendpoint = "/oauth2/authorize";
+ 	//			token = result.tokenID;
+ 	//		}
+ 	//	}});
 console.log("Inside selfAuthorize------------------------------------------------");
 
- 	var url = authendpoint + "?scope="+encodeURIComponent(scope)+"&response_type=code&redirect_uri="
- 	+ encodeURIComponent(callbackURL) + "&client_id=" + clientkey + "&acr_values=" 
- 	+ acr+"&tokenid="+token+"&msisdn="+username+"&state="+state+"&nonce="+nonce + "&operator="+values["operator"];
- 	console.log("url   " + url);
- 	window.location = url;
+ 	//var url = authendpoint + "?scope="+encodeURIComponent(scope)+"&response_type=code&redirect_uri="
+ 	//+ encodeURIComponent(callbackURL) + "&client_id=" + clientkey + "&acr_values="
+ 	//+ acr+"&tokenid="+token+"&msisdn="+username+"&state="+state+"&nonce="+nonce + "&operator="+values["operator"];
+	 var commonAuthURL = "/commonauth/?sessionDataKey=" + tokenVal
+		 + "&msisdn=" + msisdn
+		 + "&operator=" + values["operator"];
+
+ 	window.location = commonAuthURL;
  }
 
  function deleteUser(sessionId){
