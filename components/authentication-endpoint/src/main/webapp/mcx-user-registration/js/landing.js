@@ -50,11 +50,18 @@
 /*
  * decode window locations params
  */
- function getParameterByName(name) {
+function getParameterByName(name) {
+    var value = getParameterWithPlusByName(name).replace(/\+/g, " ");
+
+    return decodeURIComponent(value);
+}
+
+function getParameterWithPlusByName(name) {
     name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
     var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-    results = regex.exec(location.search);
-    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        results = regex.exec(location.search);
+
+    return results === null ? "" : results[1];
 }
 
 /*
@@ -105,7 +112,7 @@ function randomPassword(length) {
     var pwd=randomPassword(10);
     //alert(pwd);
     var msisdn_header = getParameterByName('msisdn_header');
-    var msisdn_header_enc_str = getParameterByName('msisdn_header_enc_str');
+    var msisdn_header_enc_str = getParameterWithPlusByName('msisdn_header_enc_str');
      var msisdn_header_str = getParameterByName('msisdn_header_str');
     var acr_code;
 
@@ -193,6 +200,7 @@ function randomPassword(length) {
             //f.submit();
               var commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
                   + "&msisdn=" + msisdn_header_str
+                  + "&msisdn_header=" + msisdn_header_enc_str
                   + "&operator=" + operator
                   + "&isRegistration=true";
 
