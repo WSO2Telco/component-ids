@@ -15,7 +15,6 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
-import com.wso2telco.core.config.AuthenticationLevels;
 import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.MIFEAuthentication;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
@@ -180,7 +179,6 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 			context.setProperty("msisdn", msisdn);
 			AuthenticationContextHelper.setSubject(context, msisdn);
 		} else {
-			AuthenticationLevels config = DataHolder.getInstance().getAuthenticationLevels();
 			Map<String, MIFEAuthentication> authenticationMap = DataHolder.getInstance().getAuthenticationLevelMap();
 			MIFEAuthentication mifeAuthentication = authenticationMap.get(selectedLOA);
 

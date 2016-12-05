@@ -32,8 +32,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import com.wso2telco.utils.AuthenticationLevel;
-import com.wso2telco.utils.AuthenticationLevels;
+import com.wso2telco.core.config.MIFEAuthentication;
+import com.wso2telco.utils.UserRegistrationConstants;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -45,6 +45,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.json.JSONException;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
+import com.wso2telco.core.config.DataHolder;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
 import com.google.gson.Gson;
@@ -54,17 +55,8 @@ import com.wso2telco.manager.UserProfileManager;
 import com.wso2telco.sms.OutboundSMSMessageRequest;
 import com.wso2telco.sms.OutboundSMSTextMessage;
 import com.wso2telco.sms.SendSMSRequest;
-import com.wso2telco.utils.ConfigLoader;
 import com.wso2telco.utils.ReadMobileConnectConfig;
 
-//import org.json.JSONException;
-//import Aloo.AdminServicesInvoker.LoginAdminServiceClient;
-
-/**
- * REST Web Service Dialog Axiata
- * 
- * @version $Id: Queries.java,v 1.00.000
- */
 @Path("/endpoint")
 public class Endpoints {
 
@@ -946,14 +938,12 @@ public class Endpoints {
 		int statusCode = 500;
 		try {
 			log.info("Searching default Authenticator for acr: " + acr);
-			AuthenticationLevels config = ConfigLoader.getInstance().getAuthenticationLevels();
-			AuthenticationLevel loa = config.getLOA(acr);
+			Map<String, MIFEAuthentication> authenticationMap = DataHolder.getInstance().getAuthenticationLevelMap();
+			MIFEAuthentication mifeAuthentication = authenticationMap.get(acr);
+			List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList = mifeAuthentication
+					.getAuthenticatorList();
 
-			if (loa.getAuthenticators() == null) {
-				log.info("Authenticators null and calling config init");
-				config.init();
-			}
-			String selected = selectDefaultAuthenticator(loa.getAuthenticators());
+			String selected = selectDefaultAuthenticator(authenticatorList);
 
 			if (selected == null) {
 				returnJson = "{\"status\":\"error\", \"message\":\"Invalid configuration in LOA.xml, couldn't find valid Authenticator\"}";
@@ -979,17 +969,17 @@ public class Endpoints {
 	 * Select the first authenticator from, SMSAuthenticator, USSDAuthenticator
 	 * or USSDPinAuthenticator
 	 * 
-	 * @param name
-	 *            name of the authenticator.
-	 * @return true if valid authenticator found.
+	 * @param authenticatorList
+	 *           authenticator list.
+	 * @return authenticatorName if valid authenticator found.
 	 */
-	private String selectDefaultAuthenticator(List<AuthenticationLevel.MIFEAbstractAuthenticator> authenticators) {
+	private String selectDefaultAuthenticator(List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList) {
 		try {
-			for (AuthenticationLevel.MIFEAbstractAuthenticator mifeAbstractAuthenticator : authenticators) {
-				String authenticatorName = mifeAbstractAuthenticator.getAuthenticator().getName();
-				if ("SMSAuthenticator".equalsIgnoreCase(authenticatorName)
-						|| "USSDAuthenticator".equalsIgnoreCase(authenticatorName)
-						|| "USSDPinAuthenticator".equalsIgnoreCase(authenticatorName)) {
+			for (MIFEAuthentication.MIFEAbstractAuthenticator mifeAbstractAuthenticator : authenticatorList) {
+				String authenticatorName = mifeAbstractAuthenticator.getAuthenticator();
+				if (UserRegistrationConstants.smsAuthenticator.equalsIgnoreCase(authenticatorName)
+						|| UserRegistrationConstants.ussdAuthenticator.equalsIgnoreCase(authenticatorName)
+						|| UserRegistrationConstants.ussdPinAuthenticator.equalsIgnoreCase(authenticatorName)) {
 					String msg = "Found valid authenticator: " + authenticatorName;
 					log.debug(msg);
 					log.info(msg);

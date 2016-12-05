@@ -169,10 +169,14 @@
             <artifactId>jersey-servlet</artifactId>
             <version>1.17.1</version>
         </dependency>
-		
 		<dependency>
 			<groupId>com.wso2telco.ids</groupId>
 			<artifactId>url-shorten</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.wso2telco.core</groupId>
+			<artifactId>config-util</artifactId>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
