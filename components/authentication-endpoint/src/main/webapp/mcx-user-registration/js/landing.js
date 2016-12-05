@@ -1,12 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
- * 
+ * Copyright (c) 2016, WSO2.Telco Inc. (http://www.wso2telco.com)
+ *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to youunder the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,7 +20,7 @@
 
     var url="/dashboard/landing.jag";
     var tokenVal = token;
-    
+
     if(tokenVal!=null){
         var callbackURL;
         var id=tokenVal;
@@ -34,7 +34,7 @@
             dataType: 'json',
             success:function(result){
                 if(result != null) {
-                    callbackURL = result.redirectUri; 
+                    callbackURL = result.redirectUri;
 
                 }
             }});
@@ -63,12 +63,12 @@
  */
  var msisdnval='';
  var smsClick=false;
- var token='';
+ var sessionDataKey='';
  var acr='';
  var operator='';
  if(!smsClick){
     acr=getParameterByName('acr');
-    token=getParameterByName('token');
+     sessionDataKey=getParameterByName('sessionDataKey');
     operator=getParameterByName('operator');
 }
 
@@ -87,14 +87,14 @@ function randomPassword(length) {
 		generate = regex.test(pass);
 		//print(regex.test(pass));
 	}
-	 
+
 	return pass;
 }
 
 /*
- *  registering process starts and initiates the backend service process and 
+ *  registering process starts and initiates the backend service process and
  *  forward to waiting jsp if the process is success
- * 
+ *
  */
  function registration() {
 
@@ -105,17 +105,19 @@ function randomPassword(length) {
     var pwd=randomPassword(10);
     //alert(pwd);
     var msisdn_header = getParameterByName('msisdn_header');
-
+    var msisdn_header_enc_str = getParameterByName('msisdn_header_enc_str');
+     var msisdn_header_str = getParameterByName('msisdn_header_str');
     var acr_code;
 
     /*for the inline registration get acr code from acr value and msisdn (username) from token*/
-    if(token){
+    if(sessionDataKey){
+        //we can remove this code.
         acr_code=getAcrValue();
-        msisdnval=getMSISDN(token);
+        msisdnval=getMSISDN(sessionDataKey);
     }else{
         acr_code="USSDAuthenticator";
     }
-    
+
     if(acr_code=="USSDPinAuthenticator"){
         var selectQ1 = document.getElementsByName('challengeQuestion1')[0];
         var challengeQ1 = selectQ1.options[selectQ1.selectedIndex].value;
@@ -133,13 +135,13 @@ function randomPassword(length) {
     var strBack = "/authenticationendpoint/mcx-user-registration/backend_service.jsp";
 
     var values = {};
-    values["msisdn"] = msisdnval;
-    values["token"] = token;
+    values["msisdn"] = msisdn_header_str;
+    values["sessionDataKey"] = sessionDataKey;
     values["acr_code"] = acr_code;
     values["authenticator"] = authenticator;
     values["domain"] = domain;
     values["pwd"] = pwd;
-    values["http://wso2.org/claims/mobile"] = msisdnval;
+    values["http://wso2.org/claims/mobile"] = msisdn_header_str;
     values["http://wso2.org/claims/challengeQuestion1"] = challengeQ1 + "!" + challengeA1;
     values["http://wso2.org/claims/challengeQuestion2"] = challengeQ2 + "!" + challengeA2;
     values["smsClick"] = smsClick;
@@ -147,7 +149,7 @@ function randomPassword(length) {
     values["operator"] = operator;
     values["http://wso2.org/claims/loa"] = acr;
     values["isHERegistration"] = msisdn_header;
-    
+
 
 
     $.ajax({
@@ -169,26 +171,32 @@ function randomPassword(length) {
               window.location = callbackUrl+"&operator="+operator;
 	  } else if(msisdn_header && msisdn_header ==  "true" && acr_code == "USSDAuthenticator") {
 		console.log("HE Registration selfautherizing.....");
-		selfAuthorize(token,msisdnval,operator);
+		selfAuthorize(sessionDataKey,msisdn_header_enc_str,operator);
           }else{
-            var f = document.createElement('form');
-            f.action='/authenticationendpoint/mcx-user-registration/waiting.jsp';
-            f.method='POST';
-            var i;
+            //Delete previous code after refactoring
+            //var f = document.createElement('form');
+            //f.action='/authenticationendpoint/mcx-user-registration/waiting.jsp';
+            //f.method='POST';
+            //var i;
+            //
+            //for (var key in values) {
+            //    console.log(key +" : "+values[key]);
+            //    /*alert(key +" : "+values[key]);*/
+            //    i=document.createElement('input');
+            //    i.type='hidden';
+            //    i.name=key;
+            //    i.value=values[key];
+            //    f.appendChild(i);
+            //}
+            //
+            //document.body.appendChild(f);
+            //f.submit();
+              var commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
+                  + "&msisdn=" + msisdn_header_str
+                  + "&operator=" + operator
+                  + "&isRegistration=true";
 
-            for (var key in values) {
-                console.log(key +" : "+values[key]);
-                /*alert(key +" : "+values[key]);*/
-                i=document.createElement('input');
-                i.type='hidden';
-                i.name=key;
-                i.value=values[key];
-                f.appendChild(i);
-            }
-
-            document.body.appendChild(f);
-            f.submit();
-
+              window.location = commonAuthURL;
 
         }
     }
@@ -201,7 +209,7 @@ function randomPassword(length) {
 /*
  *  validate the msisdn for the self care registration (dashboard signup)
  *  check if user exists return false
- * 
+ *
  */
  function validateUser() {
 
@@ -237,8 +245,8 @@ function randomPassword(length) {
 }
 
 /*
- *  send acr value and get the authenticator according to LOA 
- * 
+ *  send acr value and get the authenticator according to LOA
+ *
  */
  function getAcrValue(){
 
@@ -253,7 +261,7 @@ function randomPassword(length) {
         success:function(result){
             if(result != null) {
 
-             var responseStatus = result.status; 
+             var responseStatus = result.status;
              if( result.authenticator.name!= null) {
 
                 acrReturn=result.authenticator.name;
@@ -271,14 +279,14 @@ function randomPassword(length) {
 }
 
 /*
- *  return msisdn from the token using authenticate request values 
- * 
+ *  return msisdn from the token using authenticate request values
+ *
  */
  function getMSISDN(token){
 
     var msisdn='';
     var url = "/user-registration/webresources/endpoint/user/authenticate/get?tokenid="+token;
-    
+
     $.ajax({
         type: "GET",
         url:url,
@@ -288,7 +296,7 @@ function randomPassword(length) {
 
                if( result.msisdn!= null) {
                 msisdn=result.msisdn;
-                
+
             }
         }
     }});
@@ -297,40 +305,44 @@ function randomPassword(length) {
 
 }
 
-function selfAuthorize(tokenVal,msisdn,operator){
+function selfAuthorize(sessionDataKey,msisdn,operator){
+    //getting userinfo from backend is useless here
  	var callbackURL;
  	var acr;
  	var authendpoint;
  	var token;
  	var scope;
- 	var id=tokenVal;
+ 	var id=sessionDataKey;
  	var state;
  	var nonce;
  	var username=msisdn;
  	var url = "/user-registration/webresources/endpoint/user/authenticate/get?tokenid="+ id;
 
- 	$.ajax({
- 		type: "GET",
- 		url:url,
- 		async: false,
- 		dataType: 'json',
- 		success:function(result){
- 			if(result != null) {
- 				scope = result.scope; 
- 				callbackURL = result.redirectUri; 
- 				state= result.state;
- 				nonce=result.nonce;
- 				clientkey = result.clientId; 
- 				acr = result.acrValues; 
- 				authendpoint = "/oauth2/authorize"; 
- 				token = result.tokenID; 
- 			}
- 		}});
+ 	//$.ajax({
+ 	//	type: "GET",
+ 	//	url:url,
+ 	//	async: false,
+ 	//	dataType: 'json',
+ 	//	success:function(result){
+ 	//		if(result != null) {
+ 	//			scope = result.scope;
+ 	//			callbackURL = result.redirectUri;
+ 	//			state= result.state;
+ 	//			nonce=result.nonce;
+ 	//			clientkey = result.clientId;
+ 	//			acr = result.acrValues;
+ 	//			authendpoint = "/oauth2/authorize";
+ 	//			token = result.tokenID;
+ 	//		}
+ 	//	}});
 
- 	var url = authendpoint + "?scope="+encodeURIComponent(scope)+"&response_type=code&redirect_uri="
- 	+ encodeURIComponent(callbackURL) + "&client_id=" + clientkey + "&acr_values=" 
- 	+ acr+"&tokenid="+token+"&msisdn="+username+"&state="+state+"&nonce="+nonce + "&operator="+operator;
- 	console.log("url   " + url);
- 	window.location = url;
+ 	//var url = authendpoint + "?scope="+encodeURIComponent(scope)+"&response_type=code&redirect_uri="
+ 	//+ encodeURIComponent(callbackURL) + "&client_id=" + clientkey + "&acr_values="
+ 	//+ acr+"&tokenid="+token+"&msisdn="+username+"&state="+state+"&nonce="+nonce + "&operator="+operator;
+    var commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
+        + "&msisdn_header=" + msisdn
+        + "&operator=" + operator;
+ 	console.log("commonAuthURL   " + commonAuthURL);
+ 	window.location = commonAuthURL;
  }
 

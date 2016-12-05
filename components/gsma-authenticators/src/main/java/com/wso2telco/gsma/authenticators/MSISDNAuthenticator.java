@@ -152,11 +152,18 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
+        //If this is a user registration flow, set isRegistration to true
+        //for use in future authenticators.
+        if (request.getParameter("isRegistration") != null) {
+            context.setProperty("isRegistration", request.getParameter("isRegistration"));
+        }
+
     	String msisdn = request.getParameter("msisdn");
     	//extract msisdn from headers for HE scenario 
     	final String msisdnHE = request.getParameter("msisdn_header");
         if((msisdn==null) & (msisdnHE!=null && msisdnHE.trim().length()>0)){
         	log.debug("Set msisdn from header msisdn_header" + msisdnHE);
+            context.setRetrying(false);
         	msisdn=msisdnHE.trim();
 			try {
 				msisdn = DecryptionAES.decrypt(msisdn);

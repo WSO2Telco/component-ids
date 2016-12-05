@@ -213,7 +213,7 @@
 								BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
 								token = br.readLine();
 								conn.disconnect();
-								String site = new String("mcx-user-registration/register.jsp?token=" + token + "&operator=" + operator + "&acr=" + arc + "&msisdn_header=" + msisdn_header);
+								String site = new String("mcx-user-registration/register.jsp?sessionDataKey=" + Encode.forUriComponent(request.getParameter("sessionDataKey")) + "&operator=" + operator + "&acr=" + arc + "&msisdn_header=" + msisdn_header + "&msisdn_header_enc_str=" + Encode.forUriComponent(msisdn_header_str)) + "&msisdn_header_str=" + msisdn;
 								response.setStatus(response.SC_MOVED_TEMPORARILY);
 								response.setHeader("Location", site);
 							}
