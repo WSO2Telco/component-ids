@@ -32,9 +32,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import com.wso2telco.core.config.AuthenticationLevel;
-import com.wso2telco.core.config.AuthenticationLevels;
 import com.wso2telco.core.config.MIFEAuthentication;
+import com.wso2telco.utils.UserRegistrationConstants;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -56,17 +55,8 @@ import com.wso2telco.manager.UserProfileManager;
 import com.wso2telco.sms.OutboundSMSMessageRequest;
 import com.wso2telco.sms.OutboundSMSTextMessage;
 import com.wso2telco.sms.SendSMSRequest;
-import com.wso2telco.core.config.ConfigLoader;
 import com.wso2telco.utils.ReadMobileConnectConfig;
 
-//import org.json.JSONException;
-//import Aloo.AdminServicesInvoker.LoginAdminServiceClient;
-
-/**
- * REST Web Service Dialog Axiata
- * 
- * @version $Id: Queries.java,v 1.00.000
- */
 @Path("/endpoint")
 public class Endpoints {
 
@@ -979,17 +969,17 @@ public class Endpoints {
 	 * Select the first authenticator from, SMSAuthenticator, USSDAuthenticator
 	 * or USSDPinAuthenticator
 	 * 
-	 * @param name
-	 *            name of the authenticator.
-	 * @return true if valid authenticator found.
+	 * @param authenticatorList
+	 *           authenticator list.
+	 * @return authenticatorName if valid authenticator found.
 	 */
 	private String selectDefaultAuthenticator(List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList) {
 		try {
 			for (MIFEAuthentication.MIFEAbstractAuthenticator mifeAbstractAuthenticator : authenticatorList) {
 				String authenticatorName = mifeAbstractAuthenticator.getAuthenticator();
-				if ("SMSAuthenticator".equalsIgnoreCase(authenticatorName)
-						|| "USSDAuthenticator".equalsIgnoreCase(authenticatorName)
-						|| "USSDPinAuthenticator".equalsIgnoreCase(authenticatorName)) {
+				if (UserRegistrationConstants.smsAuthenticator.equalsIgnoreCase(authenticatorName)
+						|| UserRegistrationConstants.ussdAuthenticator.equalsIgnoreCase(authenticatorName)
+						|| UserRegistrationConstants.ussdPinAuthenticator.equalsIgnoreCase(authenticatorName)) {
 					String msg = "Found valid authenticator: " + authenticatorName;
 					log.debug(msg);
 					log.info(msg);
