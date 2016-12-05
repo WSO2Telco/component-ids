@@ -169,7 +169,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
 			Map<String, String> parameterMap = new HashMap<String, String>();
 
-			parameterMap.put("isLastAuthenticat", "true");
+			//parameterMap.put("isLastAuthenticat", "true");
 			authenticatorConfig.setParameterMap(parameterMap);
 
 			stepConfig.getAuthenticatorList().add(authenticatorConfig);
@@ -227,11 +227,11 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 						parameterMap.put("currentLOA", selectedLOA);
 						parameterMap.put("fallBack", (null != fallBack) ? fallBack : "");
 						parameterMap.put("onFail", (null != onFailAction) ? onFailAction : "");
-						parameterMap
-								.put("isLastAuthenticator",
-								     (authenticatorList.indexOf(authenticator) == authenticatorList.size() - 1) ?
-										     "true"
-										     : "false");
+//						parameterMap
+//								.put("isLastAuthenticator",
+//								     (authenticatorList.indexOf(authenticator) == authenticatorList.size() - 1) ?
+//										     "true"
+//										     : "false");
 						authenticatorConfig.setParameterMap(parameterMap);
 
 						stepConfig.getAuthenticatorList().add(authenticatorConfig);
