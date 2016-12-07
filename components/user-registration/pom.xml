@@ -40,6 +40,7 @@
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 			<type>jar</type>
+            <scope>provided</scope>
 		</dependency>
 		<!--dependency> <groupId>com.google.gson</groupId> <artifactId>gson</artifactId> 
 			<version>1.0.0</version> </dependency -->
@@ -58,12 +59,14 @@
 			<groupId>com.atlassian.httpclient</groupId>
 			<artifactId>atlassian-httpclient-plugin</artifactId>
 			<type>jar</type>
+            <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<!--version>4.4-alpha1-SNAPSHOT</version-->
 			<type>jar</type>
+            <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon</groupId>
@@ -150,6 +153,7 @@
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-json</artifactId>
+            <scope>provided</scope>
 		</dependency>
 		
 		<dependency>
