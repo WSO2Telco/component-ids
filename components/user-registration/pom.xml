@@ -40,6 +40,7 @@
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 			<type>jar</type>
+            <scope>provided</scope>
 		</dependency>
 		<!--dependency> <groupId>com.google.gson</groupId> <artifactId>gson</artifactId> 
 			<version>1.0.0</version> </dependency -->
@@ -52,17 +53,20 @@
 		<dependency>
 				<groupId>org.json.wso2</groupId>
 				<artifactId>json</artifactId>
+                <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.atlassian.httpclient</groupId>
 			<artifactId>atlassian-httpclient-plugin</artifactId>
 			<type>jar</type>
+            <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<!--version>4.4-alpha1-SNAPSHOT</version-->
 			<type>jar</type>
+            <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon</groupId>
@@ -94,6 +98,7 @@
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.user.registration.stub</artifactId>
+            <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.axis2.wso2</groupId>
@@ -141,33 +146,39 @@
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
+            <scope>provided</scope>
 		</dependency>
 
 		
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-json</artifactId>
+            <scope>provided</scope>
 		</dependency>
 		
 		<dependency>
 			<groupId>com.sun.jersey</groupId>
 			<artifactId>jersey-client</artifactId>
+            <scope>provided</scope>
 		</dependency>
 
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-server</artifactId>
             <version>1.17.1</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-core</artifactId>
             <version>1.17.1</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-servlet</artifactId>
             <version>1.17.1</version>
+            <scope>provided</scope>
         </dependency>
 		<dependency>
 			<groupId>com.wso2telco.ids</groupId>

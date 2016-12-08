@@ -40,22 +40,27 @@
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
+            <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
+            <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>jstl</artifactId>
+            <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec.wso2</groupId>
 			<artifactId>commons-codec</artifactId>
+            <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>commons-lang.wso2</groupId>
 			<artifactId>commons-lang</artifactId>
+            <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -67,6 +72,7 @@
 			<groupId>org.apache.ws.commons.axiom</groupId>
 			<artifactId>axiom-api</artifactId>
 			<version>1.2.11-wso2v10</version>
+            <scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
@@ -81,6 +87,7 @@
 		<dependency>
 			<groupId>org.wso2.securevault</groupId>
 			<artifactId>org.wso2.securevault</artifactId>
+            <scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-lang</groupId>
@@ -91,6 +98,7 @@
 		<dependency>
 			<groupId>org.wso2.orbit.org.owasp.encoder</groupId>
 			<artifactId>encoder</artifactId>
+            <scope>provided</scope>
 		</dependency>
 		<!--<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
