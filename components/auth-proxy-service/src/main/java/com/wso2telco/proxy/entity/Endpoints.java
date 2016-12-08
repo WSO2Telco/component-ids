@@ -145,6 +145,7 @@ public class Endpoints {
 
         if (isScopeExists) {
             operatorScopeWithClaims = queryParams.get(AuthProxyConstants.SCOPE).get(0);
+            //split form space or + sign  
             String [] scopeValues = operatorScopeWithClaims.split("\\s+|\\+");
 
             if (Arrays.asList(scopeValues).contains(ScopeConstant.OAUTH20_VALUE_SCOPE)) {
