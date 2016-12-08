@@ -54,6 +54,7 @@ import java.rmi.RemoteException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -140,12 +141,14 @@ public class Endpoints {
         queryParams.putSingle(AuthProxyConstants.PROMPT, AuthProxyConstants.LOGIN);
 
         Boolean isScopeExists = queryParams.containsKey(AuthProxyConstants.SCOPE);
-        String operatorScope = null;
+        String operatorScopeWithClaims;
 
         if (isScopeExists) {
-            operatorScope = queryParams.get(AuthProxyConstants.SCOPE).get(0);
+            operatorScopeWithClaims = queryParams.get(AuthProxyConstants.SCOPE).get(0);
+            //split form space or + sign  
+            String [] scopeValues = operatorScopeWithClaims.split("\\s+|\\+");
 
-            if (ScopeConstant.OAUTH20_VALUE_SCOPE.equals(operatorScope)) {
+            if (Arrays.asList(scopeValues).contains(ScopeConstant.OAUTH20_VALUE_SCOPE)) {
 
                 queryString = processQueryString(queryParams, queryString);
 
@@ -160,7 +163,7 @@ public class Endpoints {
                 redirectUrlInfo.setMsisdnHeader(msisdn);
                 redirectUrlInfo.setQueryString(queryString);
                 redirectUrlInfo.setIpAddress(ipAddress);
-                redirectUrlInfo.setTelcoScope(AuthProxyConstants.SCOPE_OPENID);
+                redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
                 redirectURL = constructRedirectUrl(redirectUrlInfo);
             }
 
