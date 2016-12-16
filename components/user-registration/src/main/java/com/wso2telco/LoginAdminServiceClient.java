@@ -5,6 +5,8 @@ import java.rmi.RemoteException;
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.context.ServiceContext;
 import org.apache.axis2.transport.http.HTTPConstants;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.authenticator.stub.AuthenticationAdminStub;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.authenticator.stub.LogoutAuthenticationExceptionException;
@@ -21,6 +23,7 @@ public class LoginAdminServiceClient {
 	private final String serviceName = "AuthenticationAdmin";
     private AuthenticationAdminStub authenticationAdminStub;
     private String endPoint;
+    private static Log log = LogFactory.getLog(LoginAdminServiceClient.class);
 
     public LoginAdminServiceClient(String backEndUrl) throws AxisFault {
         //String path = "D:/currLife/is/wso2is-5.0.0/repository/resources/security/"
@@ -65,18 +68,22 @@ public class LoginAdminServiceClient {
         //        + "wso2carbon.jks";
         
         try {
-				String adminURL = FileUtil.getApplicationProperty("isadminurl");
-                LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
-                String sessionCookie = lAdmin.authenticate(FileUtil.getApplicationProperty("adminusername"), FileUtil.getApplicationProperty("adminpassword"));
-                ClaimManagementClient claimManager = new ClaimManagementClient(adminURL,sessionCookie);
-                claimManager.setClaim();
+            String adminURL = FileUtil.getApplicationProperty("isadminurl");
+            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
+            String sessionCookie = lAdmin.authenticate(FileUtil.getApplicationProperty("adminusername"), FileUtil.getApplicationProperty("adminpassword"));
+            ClaimManagementClient claimManager = new ClaimManagementClient(adminURL,sessionCookie);
+            claimManager.setClaim();
         } catch (AxisFault e) {
-                e.printStackTrace();
+            log.error(e.getMessage());
+            e.printStackTrace();
         } catch (RemoteException e) {
-                e.printStackTrace();
+            log.error(e.getMessage());
+            e.printStackTrace();
         } catch (LoginAuthenticationExceptionException e) {
-                e.printStackTrace();
-        } 
+            log.error(e.getMessage());
+            e.printStackTrace();
+        }
+
         return sessionKey;
         
     }
@@ -84,12 +91,12 @@ public class LoginAdminServiceClient {
     public void setPIN(String pin){
         ServiceClient serviceClient;
         Options option;
-        
-        
+
         SetUserClaimValues claimAdmin = new SetUserClaimValues();
         
         //String username = claimAdmin.getUserName();
-        
+
+        log.debug("Username is = " + claimAdmin.getUserName());
         System.out.println("Username is = " + claimAdmin.getUserName());
        // Options option
         //claimAdmin.setClaims(param);
