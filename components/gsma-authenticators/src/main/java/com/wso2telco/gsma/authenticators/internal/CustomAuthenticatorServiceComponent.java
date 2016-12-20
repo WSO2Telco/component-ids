@@ -23,6 +23,7 @@ import com.wso2telco.core.config.Authenticator;
 import com.wso2telco.core.config.ConfigLoader;
 import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.MIFEAuthentication;
+import com.wso2telco.gsma.authenticators.consent.ConsentAuthenticator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.felix.scr.annotations.Activate;
@@ -100,9 +101,10 @@ public class CustomAuthenticatorServiceComponent {
                 new MSSAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new MSSPinAuthenticator(), null);
-        
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new SelfAuthenticator(), null);
+        ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
+                        new ConsentAuthenticator(), null);
 
 
         AuthenticationLevels authenticationLevels = ConfigLoader.getInstance().getAuthenticationLevels();
