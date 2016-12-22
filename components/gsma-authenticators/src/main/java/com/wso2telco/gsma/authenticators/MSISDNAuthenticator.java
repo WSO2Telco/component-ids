@@ -16,10 +16,9 @@
 package com.wso2telco.gsma.authenticators;
 
 import com.wso2telco.core.config.DataHolder;
-import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
+import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import com.wso2telco.gsma.authenticators.util.DecryptionAES;
-
+import com.wso2telco.gsma.authenticators.util.ConfigLoader;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,20 +30,16 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.oauth.cache.CacheKey;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
-import org.wso2.carbon.user.api.UserRealm;
-import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import javax.crypto.Cipher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -99,8 +94,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             log.debug("MSISDN Authenticator canHandle invoked");
         }
 
-
-        if ((request.getParameter("msisdn") != null) || (getLoginHintValues(request) != null) || ((request.getParameter("msisdn_header") != null) && (request.getParameter("msisdn_header") != ""))) {
+        if ((request.getParameter("msisdn") != null) || (getLoginHintValues(request) != null)
+                || ((request.getParameter("msisdn_header") != null) && (request.getParameter("msisdn_header") != ""))) {
             log.info("msisdn forwarding ");
             return true;
         }
@@ -130,15 +125,20 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
-
-        String queryParams = FrameworkUtils
-                .getQueryStringWithFrameworkContextId(context.getQueryParams(),
-                        context.getCallerSessionKey(),
-                        context.getContextIdentifier());
-
+        String msisdn = (String) context.getProperty(Constants.MSISDN);
+        String loginPage;
         try {
+            if (msisdn != null && !AdminServiceUtil.isUserExists(msisdn)) {
+                context.setProperty(Constants.IS_REGISTERING, true);
+                loginPage = ConfigLoader.mobileConnectConfig.getAuthEndpointUrl() + Constants.VIEW_CONSENT;
+            } else {
+                loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
+            }
 
+            String queryParams = FrameworkUtils
+                    .getQueryStringWithFrameworkContextId(context.getQueryParams(),
+                            context.getCallerSessionKey(),
+                            context.getContextIdentifier());
             String retryParam = "";
 
             if (context.isRetrying()) {
@@ -149,7 +149,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" + request.getParameter("redirect_uri") + "&authenticators="
                     + getName() + ":" + "LOCAL" + retryParam);
-
+        } catch (UserStoreException e) {
+            e.printStackTrace();
         } catch (IOException e) {
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
@@ -163,88 +164,36 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        boolean isUserExists = false;
-        int tenantId = -1234;
-
         String msisdn = request.getParameter(Constants.MSISDN);
 
-        //If this is a user registration flow, set isRegistration to true
-        //for use in future authenticators.
-        if (request.getParameter("isRegistration") != null) {
-            context.setProperty("isRegistration", request.getParameter("isRegistration"));
-        }
-
         try {
+            boolean isUserExists = AdminServiceUtil.isUserExists(msisdn);
+            context.setProperty(Constants.IS_USER_EXISTS, isUserExists);
+            context.setProperty(Constants.MSISDN, msisdn);
 
-            // TODO: 12/20/16 following is the logic for login hint. Refactor it accordingly
-//            if (msisdn == null) {
-//                String loginHint = getLoginHintValues(request); //request.getParameter("login_hint");
-//
-//                if (loginHint != null) {
-//                    log.info("MSISDN by login hint: " + loginHint);
-//                    // String encryptappend = DataHolder.getInstance().getMobileConnectConfig().getEncryptAppend();
-//                    // encryptappend not used as per latest comment hence subsstring for 11 digits
-//                    if (loginHint.startsWith(LOGIN_HINT_ENCRYPTED_PREFIX)){
-//                        loginHint = loginHint.replace(LOGIN_HINT_ENCRYPTED_PREFIX, "");
-//                        String decrypted = decryptData(loginHint);
-//                        log.debug("Decrypted login hint: " + decrypted);
-//                        msisdn = decrypted.substring(0, decrypted.indexOf(LOGIN_HINT_SEPARATOR));
-//                        if (log.isDebugEnabled()) {
-//                        log.debug("MSISDN by encrypted login hint: " + msisdn);
-//                        }
-//                    } else if (loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX)){
-//                        msisdn = loginHint.replace(LOGIN_HINT_NOENCRYPTED_PREFIX, "");
-//                        if (log.isDebugEnabled()) {
-//                        log.debug("MSISDN by login hint: " + msisdn);
-//                        }
-//                    } else {
-//                        log.warn("No supported login hint format");
-//                }
-//                }
-//            } else {
-//            	log.info("MSISDN by request parameter or context parameter: " + msisdn);
-//            }
-            UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService()
-                    .getTenantUserRealm(tenantId);
-
-            if (userRealm != null) {
-                UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
-                isUserExists = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(msisdn));
+            if (!isUserExists) {
+                log.info("MSISDN Authenticator authentication failed ");
+                context.setProperty("faileduser", msisdn);
+                if (log.isDebugEnabled()) {
+                    log.debug("User authentication failed due to not existing user MSISDN.");
+                }
+                throw new AuthenticationFailedException("User does not exist. Moving to ");
             } else {
-                throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: " + tenantId);
+                //If this is a user registration flow, set isRegistration to true
+                //for use in future authenticators.
+                if (request.getParameter("isRegistration") != null) {
+                    context.setProperty("isRegistration", request.getParameter("isRegistration"));
+                }
+                AuthenticationContextHelper.setSubject(context, msisdn);
+                String rememberMe = request.getParameter("chkRemember");
+
+                if (rememberMe != null && "on".equals(rememberMe)) {
+                    context.setRememberMe(true);
+                }
             }
-        } catch (IdentityException e) {
-            log.error("MSISDN Authentication failed while trying to get the tenant ID of the user", e);
-            throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             log.error("MSISDN Authentication failed while trying to authenticate", e);
             throw new AuthenticationFailedException(e.getMessage(), e);
-        } catch (Exception e) {
-            log.error("MSISDN Authentication failed while trying to obtain login hint value", e);
-        }
-        // TODO: 12/20/16 check the purpose of the faileduser flag
-//        if (!isUserExists) {
-//            log.info("MSISDN Authenticator authentication failed ");
-//            context.setProperty("faileduser", msisdn);
-//            if (log.isDebugEnabled()) {
-//                log.debug("User authentication failed due to not existing user MSISDN.");
-//            }
-//
-//            throw new AuthenticationFailedException("Authentication Failed");
-//        }
-        log.info("MSISDN Authenticator authentication success for MSISDN - " + msisdn);
-        log.info("Setting properties");
-
-        context.setProperty(Constants.MSISDN, msisdn);
-        request.setAttribute(Constants.IS_USER_EXISTS, isUserExists);
-        /*context.setSubject(msisdn);
-        AuthenticatedUser user=new AuthenticatedUser();*/
-//		context.setSubject(AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(msisdn));
-        AuthenticationContextHelper.setSubject(context, msisdn);
-        String rememberMe = request.getParameter("chkRemember");
-
-        if (rememberMe != null && "on".equals(rememberMe)) {
-            context.setRememberMe(true);
         }
     }
 

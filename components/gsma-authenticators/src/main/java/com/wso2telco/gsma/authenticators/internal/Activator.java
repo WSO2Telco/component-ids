@@ -25,7 +25,6 @@ import com.wso2telco.core.config.Authenticators;
 import com.wso2telco.core.config.ConfigLoader;
 import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.MIFEAuthentication;
-import com.wso2telco.gsma.authenticators.consent.ConsentAuthenticator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
@@ -91,8 +90,6 @@ public class Activator implements BundleActivator {
                  new MSSPinAuthenticator(), null);
     	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
                  new SelfAuthenticator(), null);
-    	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
-                 new ConsentAuthenticator(), null);
 
     	if (log.isDebugEnabled()) {
     	 log.debug("Authenticators registered");

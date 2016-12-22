@@ -200,16 +200,6 @@ public final class Constants {
     public static final String SELF_AUTHENTICATOR_FRIENDLY_NAME = "self";
 
     /**
-     * The Constant CONSENT_AUTHENTICATOR_FRIENDLY_NAME.
-     */
-    public static final String CONSENT_AUTHENTICATOR_FRIENDLY_NAME = "ConsentAuthenticator";
-
-    /**
-     * The Constant CONSENT_AUTHENTICATOR_NAME.
-     */
-    public static final String CONSENT_AUTHENTICATOR_NAME = "ConsentAuthenticator";
-
-    /**
      * The Constant to hold the user existence flag in authentication context
      */
     public static final String IS_USER_EXISTS = "isUserExists";
@@ -225,4 +215,8 @@ public final class Constants {
     public static final String VIEW_CONSENT = "/mcx-user-registration/auth_consent";
 
     public static final String REDIRECT_URI = "redirectURI";
+
+    public static final String COMMON_AUTH_HANDLED = "commonAuthHandled";
+
+    public static final String IS_REGISTERING = "isRegistering";
 }
