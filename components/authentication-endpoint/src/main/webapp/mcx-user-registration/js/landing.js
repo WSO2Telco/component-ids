@@ -74,7 +74,7 @@ function getParameterWithPlusByName(name) {
  var acr='';
  var operator='';
  if(!smsClick){
-    acr=getParameterByName('acr');
+    acr=getParameterByName('acr_values');
      sessionDataKey=getParameterByName('sessionDataKey');
     operator=getParameterByName('operator');
 }
@@ -114,6 +114,7 @@ function randomPassword(length) {
     var msisdn_header = getParameterByName('msisdn_header');
     var msisdn_header_enc_str = getParameterWithPlusByName('msisdn_header_enc_str');
      var msisdn_header_str = getParameterByName('msisdn_header_str');
+    var isUserExists = getParameterByName('isUserExists');
     var acr_code;
 
     /*for the inline registration get acr code from acr value and msisdn (username) from token*/
@@ -156,6 +157,7 @@ function randomPassword(length) {
     values["operator"] = operator;
     values["http://wso2.org/claims/loa"] = acr;
     values["isHERegistration"] = msisdn_header;
+    values["isUserExists"] = isUserExists;
 
 
 
