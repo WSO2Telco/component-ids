@@ -19,6 +19,9 @@ import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.gsma.authenticators.ussd.command.SendLoginUssdCommand;
+import com.wso2telco.gsma.authenticators.ussd.command.SendRegistrationUssdCommand;
+import com.wso2telco.gsma.authenticators.ussd.command.SendUssdCommand;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -115,14 +118,10 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             }
 
             //MSISDN will be saved in the context in the MSISDNAuthenticator
-            String msisdn = (String) context.getProperty("msisdn");
+            String msisdn = (String) context.getProperty(Constants.MSISDN);
 
             //String pinEnabled = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinauth();
             String ussdResponse = null;
-
-
-             
-
 
             //Changing SP dashboard Name
             String serviceProviderName = null;
@@ -142,6 +141,11 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
             new SendUSSD().sendUSSD(msisdn, context.getContextIdentifier(), serviceProviderName,operator);
 
+            // TODO: 12/23/16 getting an exception, have to fix
+//            boolean isUserExists = (boolean) context.getProperty(Constants.IS_USER_EXISTS);
+//
+//            sendUssd(context, msisdn, serviceProviderName, operator, isUserExists);
+
             log.info("query params: " + queryParams);
             
             log.info("Context_RedirectURI:" + (String) context.getProperty("redirectURI"));
@@ -153,6 +157,17 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         } catch (AuthenticatorException e) {
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
+    }
+
+    private void sendUssd(AuthenticationContext context, String msisdn, String serviceProviderName, String operator, boolean isUserExists) throws IOException {
+        SendUssdCommand sendUssdCommand;
+
+        if(isUserExists){
+            sendUssdCommand = new SendLoginUssdCommand();
+        }else {
+            sendUssdCommand = new SendRegistrationUssdCommand();
+        }
+        sendUssdCommand.execute(msisdn, context.getSessionIdentifier(), serviceProviderName, operator);
     }
 
     /* (non-Javadoc)
