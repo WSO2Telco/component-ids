@@ -19,9 +19,13 @@ import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.ConfigLoader;
+import com.wso2telco.gsma.authenticators.util.MobileConnectConfig;
+import org.apache.axis2.AxisFault;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.endpoint.util.TenantDataManager;
+import org.wso2.carbon.identity.application.authentication.endpoint.util.UserRegistrationAdminServiceClient;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -35,17 +39,23 @@ import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
+import org.wso2.carbon.identity.user.registration.stub.dto.UserFieldDTO;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import javax.crypto.Cipher;
+import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.rmi.RemoteException;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.sql.SQLException;
 
 // TODO: Auto-generated Javadoc
 
@@ -128,12 +138,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         String loginPage;
         try {
-            if (msisdn != null && !AdminServiceUtil.isUserExists(msisdn)) {
-                context.setProperty(Constants.IS_REGISTERING, true);
-                loginPage = ConfigLoader.mobileConnectConfig.getAuthEndpointUrl() + Constants.VIEW_CONSENT;
-            } else {
-                loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
-            }
+            loginPage = getAuthEndpointUrl(context, msisdn);
 
             String queryParams = FrameworkUtils
                     .getQueryStringWithFrameworkContextId(context.getQueryParams(),
@@ -144,7 +149,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             if (context.isRetrying()) {
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
-
             log.info("Query params: " + queryParams);
 
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" + request.getParameter("redirect_uri") + "&authenticators="
@@ -156,6 +160,17 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         }
     }
 
+    private String getAuthEndpointUrl(AuthenticationContext context, String msisdn) throws UserStoreException, AuthenticationFailedException {
+        String loginPage;
+        if (msisdn != null && !AdminServiceUtil.isUserExists(msisdn)) {
+            context.setProperty(Constants.IS_REGISTERING, true);
+            loginPage = ConfigLoader.mobileConnectConfig.getAuthEndpointUrl() + Constants.VIEW_CONSENT;
+        } else {
+            loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
+        }
+        return loginPage;
+    }
+
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#processAuthenticationResponse(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
      */
@@ -164,20 +179,56 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        String msisdn = request.getParameter(Constants.MSISDN);
+        String msisdn = getMsisdn(request, context);
 
         try {
             boolean isUserExists = AdminServiceUtil.isUserExists(msisdn);
             context.setProperty(Constants.IS_USER_EXISTS, isUserExists);
             context.setProperty(Constants.MSISDN, msisdn);
 
-            if (!isUserExists) {
+            if (!isUserExists && !context.isRetrying()) {
+
                 log.info("MSISDN Authenticator authentication failed ");
                 context.setProperty("faileduser", msisdn);
+                context.setProperty(Constants.IS_REGISTERING, true);
                 if (log.isDebugEnabled()) {
                     log.debug("User authentication failed due to not existing user MSISDN.");
                 }
-                throw new AuthenticationFailedException("User does not exist. Moving to ");
+                throw new AuthenticationFailedException("User does not exist. Moving for registration");
+            } else if (!isUserExists && context.isRetrying()) {
+
+                DBUtils.saveRequestType(msisdn, 1);
+                // TODO: 12/23/16 remove following if not used
+
+//                String token = request.getParameter(Constants.TOKEN);
+//                String operator = request.getParameter(Constants.OPERATOR);
+//                String acrCode = request.getParameter(Constants.ACR);
+//                String updateProfile = request.getParameter(Constants.UPDATE_PROFILE);
+//                String domain = request.getParameter(Constants.DOMAIN);
+//                String username = request.getParameter(Constants.USERNAME);
+//                String openIdUrl = (String) request.getSession().getAttribute(Constants.OPENID_URL);
+//                String password = request.getParameter(Constants.PASSWORD);
+//                String claimUrl = ConfigLoader.mobileConnectConfig.getDefaultClaimUrl();
+//
+//                if (request.getSession().getAttribute(Constants.OPENID) != null) {
+//                    claimUrl = ConfigLoader.mobileConnectConfig.getOpenIdRegClaimUrl();
+//                }
+//                TenantDataManager.init();
+//                UserRegistrationAdminServiceClient registrationClient = new UserRegistrationAdminServiceClient();
+//                UserFieldDTO[] userFields = new UserFieldDTO[0];
+//                userFields = registrationClient
+//                        .readUserFieldsForUserRegistration(org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.UserRegistrationConstants.WSO2_DIALECT);
+
+//                for (UserFieldDTO userFieldDTO : userFields) {
+//                    String paramName = userFieldDTO.getClaimUri();
+//                    String value = request.getParameter(paramName);
+//                    paramValues = paramValues + value + ",";
+//                }
+//
+//                paramValues = paramValues.substring(0, paramValues.length() - 1);
+//                paramValues = "params=" + URLEncoder.encode(paramValues, "UTF-8").replaceAll("\\%21", "!");
+//                String tmp = paramValues + "&claim=" + claim;
+
             } else {
                 //If this is a user registration flow, set isRegistration to true
                 //for use in future authenticators.
@@ -187,14 +238,37 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 AuthenticationContextHelper.setSubject(context, msisdn);
                 String rememberMe = request.getParameter("chkRemember");
 
-                if (rememberMe != null && "on".equals(rememberMe)) {
+                if (rememberMe != null && "eon".equals(rememberMe)) {
                     context.setRememberMe(true);
                 }
             }
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             log.error("MSISDN Authentication failed while trying to authenticate", e);
             throw new AuthenticationFailedException(e.getMessage(), e);
+        } catch (AuthenticatorException e) {
+            log.error("Error occurred while saving request type");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (NamingException e) {
+            e.printStackTrace();
         }
+//        catch (UserRegistrationAdminServiceIdentityException e) {
+//            e.printStackTrace();
+//        } catch (AxisFault axisFault) {
+//            axisFault.printStackTrace();
+//        } catch (RemoteException e) {
+//            e.printStackTrace();
+//        }
+    }
+
+    private String getMsisdn(HttpServletRequest request, AuthenticationContext context) {
+        String msisdn;
+        if (context.isRetrying()) {
+            msisdn = (String) context.getProperty(Constants.MSISDN);
+        } else {
+            msisdn = request.getParameter(Constants.MSISDN);
+        }
+        return msisdn;
     }
 
     /**

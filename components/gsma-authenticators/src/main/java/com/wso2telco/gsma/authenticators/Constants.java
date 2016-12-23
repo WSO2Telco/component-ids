@@ -220,4 +220,24 @@ public final class Constants {
     public static final String COMMON_AUTH_HANDLED = "commonAuthHandled";
 
     public static final String IS_REGISTERING = "isRegistering";
+
+    public static final String TOKEN = "token";
+
+    public static final String OPERATOR = "operator";
+
+    public static final String ACR = "acr_code";
+
+    public static final String UPDATE_PROFILE = "updateProfile";
+
+    public static final String DOMAIN = "domain";
+
+    public static final String USERNAME = "userName";
+
+    public static final String OPENID_URL = "openIdURL";
+
+    public static final String PASSWORD = "pwd";
+
+    public static final String OPENID = "openid";
+
+    public static final String MTINIT = "mtinit";
 }
