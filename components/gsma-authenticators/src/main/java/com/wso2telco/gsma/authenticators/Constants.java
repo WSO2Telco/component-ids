@@ -130,5 +130,6 @@ public static final String PRIVATE_KEYFILE = "dialogprivate.key";
     
     /** The Constant SELF_AUTHENTICATOR_FRIENDLY_NAME. */
     public static final String SELF_AUTHENTICATOR_FRIENDLY_NAME = "self";
+    public static final String USER_PROFILE_UPDATE_REQUIRED = "userProfileUpdateRequired";
 
 }

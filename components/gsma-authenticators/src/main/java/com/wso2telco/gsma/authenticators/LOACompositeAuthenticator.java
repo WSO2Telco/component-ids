@@ -17,11 +17,15 @@ package com.wso2telco.gsma.authenticators;
 
 import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.MIFEAuthentication;
+import com.wso2telco.gsma.ClaimManagementClient;
+import com.wso2telco.gsma.LoginAdminServiceClient;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import org.apache.axis2.AxisFault;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -39,12 +43,14 @@ import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
+import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.rmi.RemoteException;
 import java.util.*;
 
  
@@ -63,6 +69,15 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
     
     /** The log. */
     private static Log log = LogFactory.getLog(LOACompositeAuthenticator.class);
+	private String isAdminUserName = null;
+	private String isAdminPassword = null;
+
+	public LOACompositeAuthenticator() {
+		//Use this credentials to login to IS.
+		//TODO : get this username and password from a suitable configuration file.
+		isAdminUserName = "admin";
+		isAdminPassword = "admin";
+	}
 
 	/* (non-Javadoc)
 	 * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
@@ -93,7 +108,9 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		String msisdn = request.getParameter("msisdn");
 		String msisdnHeader = request.getParameter("msisdn_header");
 		String flowType = getFlowType(msisdnHeader);
-		String tokenId = tokenId = request.getParameter("tokenid");
+		String tokenId = request.getParameter("tokenid");
+		boolean userProfileUpdateRequired = isUserProfileUpdateRequired(request, msisdnHeader, selectedLOA);
+		context.setProperty(Constants.USER_PROFILE_UPDATE_REQUIRED, userProfileUpdateRequired);
 		//Change authentication flow just after registration
 		if (tokenId != null && msisdn != null) {
 			try {
@@ -315,5 +332,33 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		}
 		return "offnet";
 	}
+
+    private boolean isUserProfileUpdateRequired(HttpServletRequest request, String msisdnHeader, String selectedLOA) {
+        boolean userProfileUpdateRequired = false;
+        String requestURL = request.getRequestURL().toString();
+        String requestURI = request.getRequestURI();
+        String baseURL = requestURL.substring(0, requestURL.indexOf(requestURI));
+        LoginAdminServiceClient lAdmin = null;
+        try {
+            lAdmin = new LoginAdminServiceClient(baseURL);
+            String sessionCookie = lAdmin.authenticate(isAdminUserName, isAdminPassword);
+            ClaimManagementClient claimManager = new ClaimManagementClient(baseURL, sessionCookie);
+            if (msisdnHeader != null) {
+                String registeredLOA = claimManager.getRegisteredLOA(msisdnHeader);
+                if (Integer.parseInt(registeredLOA) < Integer.parseInt(selectedLOA)) {
+                    userProfileUpdateRequired = true;
+                }
+            }
+        } catch (AxisFault axisFault) {
+            axisFault.printStackTrace();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+            e.printStackTrace();
+        } catch (LoginAuthenticationExceptionException e) {
+            e.printStackTrace();
+        }
+        return userProfileUpdateRequired;
+    }
 
 }
