@@ -76,6 +76,9 @@ var acr = '';
 var operator = '';
 if (!smsClick) {
     acr = getParameterByName('acr_values');
+    if(acr == null || acr == ""){
+        acr = getParameterByName('acr')
+    }
     sessionDataKey = getParameterByName('sessionDataKey');
     operator = getParameterByName('operator');
 }
@@ -160,9 +163,32 @@ function registration() {
     values["isHERegistration"] = msisdn_header;
     values["isUserExists"] = isUserExists;
 
-
     window.location = "/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
-        + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true";
+        + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true&domain=" + domain
+        + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str + "&pwd=" + pwd;
+
+    // var f = document.createElement('form');
+    // f.action = '/authenticationendpoint/mcx-user-registration/waiting.jsp';
+    // f.method = 'POST';
+    // var i;
+    //
+    // for (var key in values) {
+    //     console.log(key + " : " + values[key]);
+    //     /*alert(key +" : "+values[key]);*/
+    //     i = document.createElement('input');
+    //     i.type = 'hidden';
+    //     i.name = key;
+    //     i.value = values[key];
+    //     f.appendChild(i);
+    // }
+    //
+    // document.body.appendChild(f);
+    // f.submit();
+
+/*    window.location = "/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
+        + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true&domain=" + domain
+        + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str + "&pwd=" + pwd
+        + "&token=" + tokenVal;*/
 
     // var commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
     //     + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true"

@@ -6,6 +6,7 @@ import com.wso2telco.Util;
 import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.MobileConnectConfig;
 import com.wso2telco.gsma.authenticators.ussd.USSDRequest;
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -63,11 +64,15 @@ public abstract class SendUssdCommand {
 
         postRequest.setEntity(input);
         final CountDownLatch latch = new CountDownLatch(1);
+
+        log.info("Posting data  [ " + requestStr + " ] to url [ " + url + " ]");
+
         FutureCallback<HttpResponse> futureCallback = new FutureCallback<HttpResponse>() {
             @Override
             public void completed(final HttpResponse response) {
                 latch.countDown();
-                if ((response.getStatusLine().getStatusCode() != 201)) {
+                if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED
+                        || response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
                     log.error("Error occurred while calling end point - " + response.getStatusLine().getStatusCode() +
                             "; Error - " +
                             response.getStatusLine().getReasonPhrase());

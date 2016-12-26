@@ -215,6 +215,9 @@ public final class Constants {
      */
     public static final String VIEW_CONSENT = "/mcx-user-registration/auth_consent";
 
+
+    public static final String VIEW_REGISTRATION_WAITING = "/mcx-user-registration/auth_registration";
+
     public static final String REDIRECT_URI = "redirectURI";
 
     public static final String COMMON_AUTH_HANDLED = "commonAuthHandled";
@@ -240,4 +243,12 @@ public final class Constants {
     public static final String OPENID = "openid";
 
     public static final String MTINIT = "mtinit";
+
+    public static final String STATUS_PENDING = "pending";
+
+    public static final String CLAIM = "claim";
+
+    public static final String PARAMS = "params";
+
+    public static final String SESSION_DATA_KEY = "sessionDataKey";
 }

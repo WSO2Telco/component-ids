@@ -156,9 +156,9 @@ console.log("Inside selfAuthorize-----------------------------------------------
  */
  function checkUSSDResponseStatus() {
  	
- 	sessionId=msisdn;
+ 	sessionId=tokenVal;
 console.log("Inside checkUSSDResponseStatus-------------------------------");
- 	var url = "/user-registration/webresources/endpoint/ussd/status?username=" + sessionId;
+ 	var url = "/sessionupdater/tnspoints/endpoint/registration/ussd/status?sessionId=" + sessionId;
 
  	var STATUS_APPROVED = "Approved";
 

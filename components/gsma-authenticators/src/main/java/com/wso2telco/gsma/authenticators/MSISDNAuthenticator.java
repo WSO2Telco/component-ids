@@ -19,7 +19,6 @@ import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.ConfigLoader;
-import com.wso2telco.gsma.authenticators.util.MobileConnectConfig;
 import org.apache.axis2.AxisFault;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
@@ -50,6 +49,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.rmi.RemoteException;
 import java.security.KeyFactory;
@@ -180,11 +180,13 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
 
         String msisdn = getMsisdn(request, context);
+        String operator = request.getParameter(Constants.OPERATOR);
 
         try {
             boolean isUserExists = AdminServiceUtil.isUserExists(msisdn);
             context.setProperty(Constants.IS_USER_EXISTS, isUserExists);
             context.setProperty(Constants.MSISDN, msisdn);
+            context.setProperty(Constants.OPERATOR, operator);
 
             if (!isUserExists && !context.isRetrying()) {
 
@@ -197,68 +199,37 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 throw new AuthenticationFailedException("User does not exist. Moving for registration");
             } else if (!isUserExists && context.isRetrying()) {
 
-                DBUtils.saveRequestType(msisdn, 1);
-                // TODO: 12/23/16 remove following if not used
-
-//                String token = request.getParameter(Constants.TOKEN);
-//                String operator = request.getParameter(Constants.OPERATOR);
-//                String acrCode = request.getParameter(Constants.ACR);
-//                String updateProfile = request.getParameter(Constants.UPDATE_PROFILE);
-//                String domain = request.getParameter(Constants.DOMAIN);
-//                String username = request.getParameter(Constants.USERNAME);
-//                String openIdUrl = (String) request.getSession().getAttribute(Constants.OPENID_URL);
-//                String password = request.getParameter(Constants.PASSWORD);
-//                String claimUrl = ConfigLoader.mobileConnectConfig.getDefaultClaimUrl();
-//
-//                if (request.getSession().getAttribute(Constants.OPENID) != null) {
-//                    claimUrl = ConfigLoader.mobileConnectConfig.getOpenIdRegClaimUrl();
-//                }
-//                TenantDataManager.init();
-//                UserRegistrationAdminServiceClient registrationClient = new UserRegistrationAdminServiceClient();
-//                UserFieldDTO[] userFields = new UserFieldDTO[0];
-//                userFields = registrationClient
-//                        .readUserFieldsForUserRegistration(org.wso2.carbon.identity.application.authentication.endpoint.util.Constants.UserRegistrationConstants.WSO2_DIALECT);
-
-//                for (UserFieldDTO userFieldDTO : userFields) {
-//                    String paramName = userFieldDTO.getClaimUri();
-//                    String value = request.getParameter(paramName);
-//                    paramValues = paramValues + value + ",";
-//                }
-//
-//                paramValues = paramValues.substring(0, paramValues.length() - 1);
-//                paramValues = "params=" + URLEncoder.encode(paramValues, "UTF-8").replaceAll("\\%21", "!");
-//                String tmp = paramValues + "&claim=" + claim;
+                updateDatabase(request, context, msisdn);
 
             } else {
-                //If this is a user registration flow, set isRegistration to true
-                //for use in future authenticators.
-                if (request.getParameter("isRegistration") != null) {
-                    context.setProperty("isRegistration", request.getParameter("isRegistration"));
-                }
-                AuthenticationContextHelper.setSubject(context, msisdn);
-                String rememberMe = request.getParameter("chkRemember");
+                context.setProperty(Constants.IS_REGISTERING, false);
+                DBUtils.insertLoginStatus(context.getContextIdentifier(), String.valueOf(Constants.STATUS_PENDING));
+            }
+            //If this is a user registration flow, set isRegistration to true
+            //for use in future authenticators.
 
-                if (rememberMe != null && "eon".equals(rememberMe)) {
-                    context.setRememberMe(true);
-                }
+            AuthenticationContextHelper.setSubject(context, msisdn);
+            String rememberMe = request.getParameter("chkRemember");
+
+            if (rememberMe != null && "eon".equals(rememberMe)) {
+                context.setRememberMe(true);
             }
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             log.error("MSISDN Authentication failed while trying to authenticate", e);
             throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (AuthenticatorException e) {
             log.error("Error occurred while saving request type");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (NamingException e) {
-            e.printStackTrace();
+        } catch (SQLException | NamingException e) {
+            log.error("Error occurred while saving data", e);
         }
-//        catch (UserRegistrationAdminServiceIdentityException e) {
-//            e.printStackTrace();
-//        } catch (AxisFault axisFault) {
-//            axisFault.printStackTrace();
-//        } catch (RemoteException e) {
-//            e.printStackTrace();
-//        }
+    }
+
+    private void updateDatabase(HttpServletRequest request, AuthenticationContext context, String msisdn) throws SQLException, NamingException, AuthenticatorException {
+        DBUtils.saveRequestType(msisdn, 1);
+        DBUtils.insertRegistrationStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
+        if (request.getParameter("isRegistration") != null) {
+            context.setProperty("isRegistration", request.getParameter("isRegistration"));
+        }
     }
 
     private String getMsisdn(HttpServletRequest request, AuthenticationContext context) {
