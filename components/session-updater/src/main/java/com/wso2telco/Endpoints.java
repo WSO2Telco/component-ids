@@ -152,6 +152,69 @@ public class Endpoints {
         return Response.status(responseCode).entity(responseString).build();
     }
 
+
+    @POST
+    @Path("/registration/ussd")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Response registrationUssd(String jsonBody) throws SQLException, JSONException, IOException {
+
+        log.info("Json Body" +jsonBody);
+        Gson gson = new GsonBuilder().serializeNulls().create();
+        org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
+        String message = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("inboundUSSDMessage");
+        String sessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("clientCorrelator");
+        String msisdn = extractMsisdn(jsonObj);
+
+        int responseCode = 400;
+        String responseString = null;
+
+        String status;
+
+        //USSD 1 = YES
+        //USSD 2 = NO
+        if (message.equals("1")) {
+            log.info("Updating registration status as success");
+
+            status = "Approved";
+            responseCode = Response.Status.CREATED.getStatusCode();
+            DatabaseUtils.updateRegistrationStatus(sessionID, status);
+        } else {
+            log.info("Updating registration status as rejected");
+            status = "Rejected";
+            responseCode = Response.Status.BAD_REQUEST.getStatusCode();
+            DatabaseUtils.updateRegistrationStatus(sessionID, status);
+        }
+
+        if (responseCode == Response.Status.BAD_REQUEST.getStatusCode()) {
+            responseString = "{" + "\"requestError\":" + "{"
+                    + "\"serviceException\":" + "{" + "\"messageId\":\"" + "SVC0275" + "\"" + "," + "\"text\":\"" + "Internal server Error" + "\"" + "}"
+                    + "}}";
+        }/* else {
+            responseString = SendUSSD.getUSSDJsonPayload(msisdn, sessionID, 5, "mtfin",ussdSessionID);
+        }*/
+
+        return Response.status(responseCode).entity(responseString).build();
+    }
+
+    @GET
+    @Path("/registration/ussd/status")
+    // @Consumes("application/json")
+    @Produces("application/json")
+    public Response registrationUserStatus(@QueryParam("sessionId") String sessionId, String jsonBody) throws SQLException {
+
+        log.info("Checking user status for session id [ " + sessionId + " ] ");
+
+        String userStatus;
+        String responseString;
+
+        userStatus = DatabaseUtils.getUSerStatus(sessionId);
+
+        responseString = "{" + "\"sessionId\":\"" + sessionId + "\"," + "\"status\":\"" + userStatus + "\"" + "}";
+
+        return Response.status(200).entity(responseString).build();
+    }
+
     /**
      * Validate ussd response.
      *

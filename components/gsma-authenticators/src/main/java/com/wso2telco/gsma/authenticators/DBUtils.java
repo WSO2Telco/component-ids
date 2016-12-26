@@ -129,6 +129,84 @@ public class DBUtils {
     }
 
     /**
+     * Gets the user response for login.
+     *
+     * @param sessionDataKey the session data key
+     * @return the user response
+     * @throws AuthenticatorException the authenticator exception
+     */
+    public static String getUserLoginResponse(String sessionDataKey) throws AuthenticatorException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet results = null;
+        //String sql = "SELECT SessionID, Status FROM clientstatus WHERE SessionID=?";
+        StringBuilder sql = new StringBuilder();
+
+        sql.append("SELECT SessionID, Status FROM ");
+        sql.append(TableName.CLIENT_STATUS);
+        sql.append(" WHERE SessionID=?");
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query " + sql + " for sessionDataKey : " + sessionDataKey);
+        }
+
+        String userResponse = null;
+        try {
+            conn = getConnectDBConnection();
+            ps = conn.prepareStatement(sql.toString());
+            ps.setString(1, sessionDataKey);
+            results = ps.executeQuery();
+            while (results.next()) {
+                userResponse = results.getString("Status");
+            }
+        } catch (SQLException e) {
+            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " from the database", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
+        }
+        return userResponse;
+    }
+
+
+    /**
+     * Gets the user response for registration.
+     *
+     * @param sessionDataKey the session data key
+     * @return the user response
+     * @throws AuthenticatorException the authenticator exception
+     */
+    public static String getUserRegistrationResponse(String sessionDataKey) throws AuthenticatorException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet results = null;
+        //String sql = "SELECT SessionID, Status FROM regstatus WHERE uuid=?";
+        StringBuilder sql = new StringBuilder();
+
+        sql.append("SELECT uuid, status FROM ");
+        sql.append(TableName.REG_STATUS);
+        sql.append(" WHERE uuid=?");
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query " + sql + " for sessionDataKey : " + sessionDataKey);
+        }
+
+        String userResponse = null;
+        try {
+            conn = getConnectDBConnection();
+            ps = conn.prepareStatement(sql.toString());
+            ps.setString(1, sessionDataKey);
+            results = ps.executeQuery();
+            while (results.next()) {
+                userResponse = results.getString("status");
+            }
+        } catch (SQLException e) {
+            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " from the database", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
+        }
+        return userResponse;
+    }
+    /**
      * Gets the user pin response.
      *
      * @param sessionDataKey the session data key
@@ -179,6 +257,47 @@ public class DBUtils {
      * @throws AuthenticatorException the authenticator exception
      */
     public static String insertUserResponse(String sessionDataKey, String responseStatus) throws AuthenticatorException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        //String sql = "INSERT INTO clientstatus (SessionID, Status) VALUES (?,?)";
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("INSERT INTO ");
+        sql.append(TableName.CLIENT_STATUS);
+        sql.append(" (SessionID, Status) VALUES (?,?)");
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query " + sql + " to Insert sessionDataKey : " + sessionDataKey
+                    + "and responseStatus " + responseStatus);
+        }
+
+        String userResponse = null;
+        try {
+            conn = getConnectDBConnection();
+            ps = conn.prepareStatement(sql.toString());
+            ps.setString(1, sessionDataKey);
+            ps.setString(2, responseStatus);
+            ps.executeUpdate();
+            SessionExpire sessionExpire = new SessionExpire(sessionDataKey);
+            sessionExpire.start();
+        } catch (SQLException e) {
+            handleException("Error occured while inserting User Response for SessionDataKey: " + sessionDataKey + " to the database", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(conn, null, ps);
+        }
+        return userResponse;
+    }
+
+
+    /**
+     * Insert user response.
+     *
+     * @param sessionDataKey the session data key
+     * @param responseStatus the response status
+     * @return the string
+     * @throws AuthenticatorException the authenticator exception
+     */
+    public static String insertLoginStatus(String sessionDataKey, String responseStatus) throws AuthenticatorException {
         Connection conn = null;
         PreparedStatement ps = null;
         //String sql = "INSERT INTO clientstatus (SessionID, Status) VALUES (?,?)";
@@ -379,15 +498,10 @@ public class DBUtils {
         return -1;
     }
 
-    public static String insertUserStatus(String username, String status) throws SQLException, AuthenticatorException {
+    public static String insertRegistrationStatus(String username, String status, String uuid) throws SQLException, AuthenticatorException {
 
         Connection connection = null;
         PreparedStatement ps = null;
-        ResultSet results = null;
-        String uuid = "";
-        UUID idOne = UUID.randomUUID();
-        uuid = idOne.toString();
-
         String sql = "INSERT INTO `regstatus` (`uuid`,`username`, `status`) VALUES (?,?,?);";
         connection = getConnectDBConnection();
         ps = connection.prepareStatement(sql);
@@ -401,5 +515,48 @@ public class DBUtils {
             connection.close();
         }
         return uuid;
+    }
+
+    public static void updateIdsRegStatus(String username, String status) throws SQLException, AuthenticatorException {
+        Connection connection;
+        PreparedStatement ps;
+
+        String sql =
+                "update `regstatus` set "
+                        + "status=? where "
+                        + "username=?;";
+
+        connection = getConnectDBConnection();
+
+        ps = connection.prepareStatement(sql);
+
+        ps.setString(1, status);
+        ps.setString(2, username);
+        log.info(ps.toString());
+        ps.execute();
+
+        if(connection != null){
+            connection.close();
+        }
+    }
+
+    public static void updateAuthenticateData(String msisdn, String status) throws SQLException, AuthenticatorException {
+        Connection connection = null;
+        PreparedStatement ps = null;
+        String sql =
+                "update `authenticated_login` set "
+                        + "status=? where "
+                        + "msisdn=?;";
+
+        connection = getConnectDBConnection();
+        ps = connection.prepareStatement(sql);
+        ps.setString(1, status);
+        ps.setString(2, msisdn);
+        log.info(ps.toString());
+        ps.execute();
+
+        if (connection != null) {
+            connection.close();
+        }
     }
 }

@@ -29,7 +29,7 @@ public class SendLoginUssdCommand extends SendUssdCommand {
 
         MobileConnectConfig.USSDConfig ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
 
-        String url = ussdConfig.getLoginNotifyUrl();
+        String url = ussdConfig.getEndpoint();
         if (url.endsWith("/")) {
             url = url.substring(0, url.length() - 1) + "/" + "tel:+" + msisdn;
 
@@ -56,7 +56,7 @@ public class SendLoginUssdCommand extends SendUssdCommand {
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
         ResponseRequest responseRequest = new ResponseRequest();
-        responseRequest.setNotifyURL(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getUssdContextEndpoint());
+        responseRequest.setNotifyURL(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getLoginNotifyUrl());
         responseRequest.setCallbackData("");
 
         outboundUSSDMessageRequest.setResponseRequest(responseRequest);

@@ -154,7 +154,48 @@ public class DatabaseUtils {
             }
             
     }
-    
+
+
+    /**
+     * Update status.
+     *
+     * @param sessionID the session id
+     * @param status the status
+     * @throws SQLException the SQL exception
+     */
+    public static void updateRegistrationStatus(String sessionID, String status) throws SQLException{
+        Connection connection = null;
+        PreparedStatement ps = null;
+
+        String sql =
+                "update `regstatus` set "
+                        + "status=? where "
+                        + "uuid=?;" ;
+
+        try {
+            connection = getUssdDBConnection();
+
+            ps = connection.prepareStatement(sql);
+
+            ps.setString(1, status);
+            ps.setString(2, sessionID);
+
+            ps.execute();
+
+
+        } catch (NamingException ex) {
+            log.error("Naming Error occurred: "+ex);
+            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        catch (SQLException e) {
+            log.error("SQL Error occurred: "+e);
+            System.out.print(e.getMessage());
+        } finally {
+            connection.close();
+        }
+
+    }
+
     /**
      * Update pin status.
      *
@@ -281,7 +322,7 @@ public class DatabaseUtils {
         
         String sql =
 		             "select Status "
-		                     + "from `clientstatus` where " + "SessionID=?;";
+		                     + "from `regstatus` where " + "uuid=?;";
        
             try {
                 connection = getUssdDBConnection();
@@ -293,7 +334,7 @@ public class DatabaseUtils {
                 rs = ps.executeQuery();
             
                 while (rs.next()) {
-                    userStatus = rs.getString("Status");
+                    userStatus = rs.getString("status");
                 }
                         
 		} catch (NamingException ex) {
@@ -606,5 +647,36 @@ public class DatabaseUtils {
             }
         }
         return sessionID;
+    }
+
+    public static void deleteRegistrationUserStatus(String uuid) throws SQLException{
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+        int noOfAttempts = 0;
+        ResultSet rs = null;
+
+        String sql =
+                "delete "
+                        + "from `regstatus` where " + "uuid=?;";
+
+        try {
+            connection = getUssdDBConnection();
+
+            ps = connection.prepareStatement(sql);
+
+            ps.setString(1, uuid);
+            log.info(ps.toString());
+            ps.execute();
+
+        } catch (NamingException ex) {
+            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        catch (SQLException e) {
+
+        } finally {
+            connection.close();
+
+        }
     }
 }

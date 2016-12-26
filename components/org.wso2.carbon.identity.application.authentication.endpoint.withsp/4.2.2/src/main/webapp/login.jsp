@@ -112,6 +112,8 @@
     <body>
 
 	<%
+
+		System.out.println("xxxxxxxxxxxxxxxxxxxx login.jsp");
 		String sessionDataKey = request.getParameter("sessionDataKey");
 		AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(sessionDataKey);
 		Object cacheEntryObj = AuthenticationContextCache.getInstance(0).getValueFromCache(cacheKey);
@@ -228,6 +230,9 @@
 
 		boolean hasLocalLoginOptions = false;
 		List<String> localAuthenticatorNames = new ArrayList<String>();
+		for (String name : localAuthenticatorNames){
+			System.out.println("xxxxxxxxxxxxxxxx name : " + name);
+		}
 
 		if (idpAuthenticatorMapping.get(IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME) != null){
 			String authList = idpAuthenticatorMapping.get(IdentityApplicationConstants.RESIDENT_IDP_RESERVED_NAME);

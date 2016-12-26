@@ -24,7 +24,15 @@ public class SendRegistrationUssdCommand extends SendUssdCommand {
     protected String getUrl(String msisdn) {
         MobileConnectConfig.USSDConfig ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
 
-        return ussdConfig.getRegistrationNotifyUrl();
+        String url = ussdConfig.getEndpoint();
+        if (url.endsWith("/")) {
+            url = url.substring(0, url.length() - 1) + "/" + "tel:+" + msisdn;
+
+        } else {
+            url = url + "/tel:+" + msisdn;
+        }
+
+        return url;
     }
 
     @Override
