@@ -151,7 +151,7 @@ System.out.println("waiting.jsp-----------------------------------------");
     <div align="center" id ="sms_fallback" style="display:block">
       <p>No message arrived? <br><u><a onclick="sendSms()" style="cursor: pointer;">Click to get a text message instead.</a><u></p>
     </div>
-    <a onclick="cancelProcessToRegister('<%=token%>')" class="btn btn--outline btn--full btn--large">
+    <a onclick="cancelProcessToRegister('<%=sessionDataKey%>')" class="btn btn--outline btn--full btn--large">
       Cancel
     </a>
   </main>

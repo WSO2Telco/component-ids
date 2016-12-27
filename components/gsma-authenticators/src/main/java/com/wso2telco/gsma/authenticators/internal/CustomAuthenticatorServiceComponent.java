@@ -100,10 +100,8 @@ public class CustomAuthenticatorServiceComponent {
                 new MSSAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new MSSPinAuthenticator(), null);
-        
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new SelfAuthenticator(), null);
-
 
         AuthenticationLevels authenticationLevels = ConfigLoader.getInstance().getAuthenticationLevels();
         DataHolder.getInstance().setAuthenticationLevels(authenticationLevels);
