@@ -92,6 +92,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
     private static final String SCOPE_CPI = "cpi";
 
     private static final String MOBILE_CLAIM_NAME = "http://wso2.org/claims/mobile";
+
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
      */
@@ -235,7 +236,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
                 isAuthenticated = true;
 
                 if (isRegistering) {
-                    createUserProfile(msisdn, openator, Constants.OPENID);
+                    createUserProfile(msisdn, openator, Constants.SCOPE_MNV);
                 }
             }
 
@@ -269,7 +270,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         }
     }
 
-    public boolean createUserProfile(String username, String operator,String scope) throws UserRegistrationAdminServiceIdentityException, RemoteException {
+    public boolean createUserProfile(String username, String operator, String scope) throws UserRegistrationAdminServiceIdentityException, RemoteException {
         boolean isNewUser = false;
 
                     /* reading admin url from application properties */
@@ -321,7 +322,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         // setting properties of user DTO
         UserDTO userDTO = new UserDTO();
         userDTO.setOpenID(SCOPE_OPENID);
-        userDTO.setPassword("cY4L3dbf");
+        userDTO.setPassword(DataHolder.getInstance().getMobileConnectConfig().getAdminPassword());
         userDTO.setUserFields(userFieldDTOs);
         userDTO.setUserName(username);
 

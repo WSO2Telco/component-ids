@@ -251,4 +251,6 @@ public final class Constants {
     public static final String PARAMS = "params";
 
     public static final String SESSION_DATA_KEY = "sessionDataKey";
+
+    public static final String SCOPE_MNV = "mnv";
 }
