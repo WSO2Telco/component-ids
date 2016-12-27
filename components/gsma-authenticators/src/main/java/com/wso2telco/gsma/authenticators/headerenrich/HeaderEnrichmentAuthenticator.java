@@ -198,10 +198,11 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        boolean isAuthenticated = false;
+        boolean isUserExists = false;
         String msisdn = null;
         String operator = null;
         Boolean ipValidation = false;
+        String trimmedMsisdn = null;
 
         operator = request.getParameter("operator");
 
@@ -276,7 +277,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
                     if (userRealm != null) {
                         UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
-                        isAuthenticated = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(msisdn.replace("+", "").trim()));
+                        trimmedMsisdn = msisdn.replace("+", "").trim();
+                        isUserExists = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(trimmedMsisdn));
                     } else {
                         throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: " + tenantId);
                     }
@@ -294,7 +296,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         context.setProperty("msisdn", msisdn);
 
-        if (!isAuthenticated) {
+        if (!isUserExists) {
             log.info("HeaderEnrichment Authenticator authentication failed ");
             context.setProperty("faileduser", msisdn);
             
@@ -305,7 +307,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             throw new AuthenticationFailedException("Authentication Failed");
         }
 
-       
         AuthenticationContextHelper.setSubject(context,msisdn);
        
         
