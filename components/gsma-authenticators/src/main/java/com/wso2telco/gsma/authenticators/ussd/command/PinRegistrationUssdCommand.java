@@ -7,21 +7,21 @@ import com.wso2telco.gsma.authenticators.model.OutboundUSSDMessageRequest;
 import com.wso2telco.gsma.authenticators.model.ResponseRequest;
 import com.wso2telco.gsma.authenticators.ussd.USSDRequest;
 import com.wso2telco.gsma.authenticators.util.Application;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * Created by isuru on 12/23/16.
  */
-public class SendRegistrationUssdCommand extends SendUssdCommand {
+public class PinRegistrationUssdCommand extends UssdCommand {
 
     private Application application = new Application();
 
-    @Override
-    protected String getAccessToken() {
-        return null;
-    }
+    private static Log log = LogFactory.getLog(PinRegistrationUssdCommand.class);
 
     @Override
     protected String getUrl(String msisdn) {
+
         MobileConnectConfig.USSDConfig ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
 
         String url = ussdConfig.getEndpoint();
@@ -39,19 +39,28 @@ public class SendRegistrationUssdCommand extends SendUssdCommand {
     protected USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String operator) {
         MobileConnectConfig.USSDConfig ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
 
-        USSDRequest ussdRequest = new USSDRequest();
+        USSDRequest req = new USSDRequest();
 
         OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
         outboundUSSDMessageRequest.setAddress("tel:+" + msisdn);
         outboundUSSDMessageRequest.setShortCode(ussdConfig.getShortCode());
         outboundUSSDMessageRequest.setKeyword(ussdConfig.getKeyword());
-        outboundUSSDMessageRequest.setClientCorrelator(sessionID);
-        outboundUSSDMessageRequest.setOutboundUSSDMessage(ussdConfig.getUssdRegistrationMessage() + "\n1. OK\n2. Cancel");
 
+        // TODO: 12/28/16 check the usage and enable this
+
+//        if (noOfAttempts == 1) {
+//            outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("message"));
+//        } else if (noOfAttempts == 2) {
+//            outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("retry_message"));
+//        } else {
+//            outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("error_message"));
+//        }
+
+        outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
         ResponseRequest responseRequest = new ResponseRequest();
 
-        responseRequest.setNotifyURL(ussdConfig.getRegistrationNotifyUrl());
+        responseRequest.setNotifyURL(ussdConfig.getPinRegistrationNotifyUrl());
         responseRequest.setCallbackData("");
 
         outboundUSSDMessageRequest.setResponseRequest(responseRequest);
@@ -59,8 +68,7 @@ public class SendRegistrationUssdCommand extends SendUssdCommand {
 
         outboundUSSDMessageRequest.setUssdAction(Constants.MTINIT);
 
-        ussdRequest.setOutboundUSSDMessageRequest(outboundUSSDMessageRequest);
-
-        return ussdRequest;
+        req.setOutboundUSSDMessageRequest(outboundUSSDMessageRequest);
+        return req;
     }
 }

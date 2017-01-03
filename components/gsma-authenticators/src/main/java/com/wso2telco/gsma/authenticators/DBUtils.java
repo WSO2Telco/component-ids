@@ -206,6 +206,7 @@ public class DBUtils {
         }
         return userResponse;
     }
+
     /**
      * Gets the user pin response.
      *
@@ -535,7 +536,7 @@ public class DBUtils {
         log.info(ps.toString());
         ps.execute();
 
-        if(connection != null){
+        if (connection != null) {
             connection.close();
         }
     }
@@ -552,6 +553,117 @@ public class DBUtils {
         ps = connection.prepareStatement(sql);
         ps.setString(1, status);
         ps.setString(2, msisdn);
+        log.info(ps.toString());
+        ps.execute();
+
+        if (connection != null) {
+            connection.close();
+        }
+    }
+
+    public static int readPinAttempts(String sessionId) throws SQLException, AuthenticatorException {
+
+        Connection connection;
+        PreparedStatement ps;
+        int noOfAttempts = 0;
+        ResultSet rs;
+
+        String sql = "select attempts from `multiplepasswords` where " + "ussdsessionid=?;";
+
+        connection = getConnectDBConnection();
+
+        ps = connection.prepareStatement(sql);
+
+        ps.setString(1, sessionId);
+
+        rs = ps.executeQuery();
+
+        while (rs.next()) {
+            noOfAttempts = rs.getInt("attempts");
+        }
+        if (connection != null) {
+            connection.close();
+        }
+
+        return noOfAttempts;
+    }
+
+    public static void updateMultiplePasswordNoOfAttempts(String username, int attempts) throws SQLException, AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+
+        String sql = "update `multiplepasswords` set  attempts=? where  username=?;";
+
+        connection = getConnectDBConnection();
+
+        ps = connection.prepareStatement(sql);
+
+        ps.setInt(1, attempts);
+        ps.setString(2, username);
+        log.info(ps.toString());
+        ps.execute();
+
+        if (connection != null) {
+            connection.close();
+        }
+    }
+
+    public static void incrementPinAttempts(String sessionId) throws SQLException, AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+
+        String sql = "update multiplepasswords set attempts=attempts +1 where ussdsessionid = ?;";
+
+        connection = getConnectDBConnection();
+
+        ps = connection.prepareStatement(sql);
+
+        ps.setString(1, sessionId);
+        log.info(ps.toString());
+        ps.execute();
+
+        if (connection != null) {
+            connection.close();
+        }
+    }
+
+    public static void updatePin(int pin, String sessionId) throws SQLException, AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+
+        String sql = "update multiplepasswords set pin=? where ussdsessionid = ?;";
+
+        connection = getConnectDBConnection();
+
+        ps = connection.prepareStatement(sql);
+
+        ps.setInt(1, pin);
+        ps.setString(2, sessionId);
+        log.info(ps.toString());
+        ps.execute();
+
+        if (connection != null) {
+            connection.close();
+        }
+    }
+
+    public static void insertPinAttempt(String msisdn, int attempts, String sessionId) throws SQLException, AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+
+        String sql = "insert into multiplepasswords(username, attempts, ussdsessionid) values  (?,?,?);";
+
+        connection = getConnectDBConnection();
+
+        ps = connection.prepareStatement(sql);
+
+        ps.setString(1, msisdn);
+        ps.setInt(2, attempts);
+        ps.setString(3, sessionId);
         log.info(ps.toString());
         ps.execute();
 
