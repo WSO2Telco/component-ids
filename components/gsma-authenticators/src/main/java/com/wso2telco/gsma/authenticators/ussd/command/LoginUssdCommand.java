@@ -13,16 +13,11 @@ import org.apache.commons.logging.LogFactory;
 /**
  * Created by isuru on 12/23/16.
  */
-public class SendLoginUssdCommand extends SendUssdCommand {
+public class LoginUssdCommand extends UssdCommand {
 
     private Application application = new Application();
 
-    private static Log log = LogFactory.getLog(SendLoginUssdCommand.class);
-
-    @Override
-    protected String getAccessToken() {
-        return null;
-    }
+    private static Log log = LogFactory.getLog(LoginUssdCommand.class);
 
     @Override
     protected String getUrl(String msisdn) {

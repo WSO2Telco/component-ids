@@ -218,6 +218,8 @@ public final class Constants {
 
     public static final String VIEW_REGISTRATION_WAITING = "/mcx-user-registration/auth_registration";
 
+    public static final String VIEW_PIN_REGISTRATION_WAITING = "/mcx-user-registration/auth_registration_pin";
+
     public static final String REDIRECT_URI = "redirectURI";
 
     public static final String COMMON_AUTH_HANDLED = "commonAuthHandled";
@@ -244,6 +246,8 @@ public final class Constants {
 
     public static final String MTINIT = "mtinit";
 
+    public static final String MTCONT = "mtcont";
+
     public static final String STATUS_PENDING = "pending";
 
     public static final String CLAIM = "claim";
@@ -253,4 +257,16 @@ public final class Constants {
     public static final String SESSION_DATA_KEY = "sessionDataKey";
 
     public static final String SCOPE_MNV = "mnv";
+
+    public static final String CHALLENGE_QUESTION_1 = "challengeQuestion1";
+
+    public static final String CHALLENGE_QUESTION_2 = "challengeQuestion2";
+
+    public static final String CHALLENGE_ANSWER_1 = "challengeAnswer1";
+
+    public static final String CHALLENGE_ANSWER_2 = "challengeAnswer2";
+
+    public static final String PIN_ATTEMPT = "pinAttempt";
+
+    public static final String NO_OF_ATTEMPTS = "noOfAttempts";
 }

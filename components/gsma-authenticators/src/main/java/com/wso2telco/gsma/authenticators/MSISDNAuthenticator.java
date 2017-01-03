@@ -19,12 +19,9 @@ import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.ConfigLoader;
-import org.apache.axis2.AxisFault;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.endpoint.util.TenantDataManager;
-import org.wso2.carbon.identity.application.authentication.endpoint.util.UserRegistrationAdminServiceClient;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -38,8 +35,6 @@ import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
-import org.wso2.carbon.identity.user.registration.stub.dto.UserFieldDTO;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import javax.crypto.Cipher;
@@ -49,9 +44,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.rmi.RemoteException;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -69,6 +61,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
      * The Constant serialVersionUID.
      */
     private static final long serialVersionUID = 6817280268460894001L;
+    private static final int LOA_3 = 3;
 
     /**
      * The log.
@@ -187,6 +180,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             context.setProperty(Constants.IS_USER_EXISTS, isUserExists);
             context.setProperty(Constants.MSISDN, msisdn);
             context.setProperty(Constants.OPERATOR, operator);
+            context.setProperty(Constants.ACR, request.getParameter(Constants.ACR));
 
             if (!isUserExists && !context.isRetrying()) {
 
