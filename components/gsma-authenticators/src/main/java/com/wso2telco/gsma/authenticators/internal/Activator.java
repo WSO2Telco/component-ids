@@ -88,12 +88,11 @@ public class Activator implements BundleActivator {
                  new MSSAuthenticator(), null);
     	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
                  new MSSPinAuthenticator(), null);
-         
     	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
                  new SelfAuthenticator(), null);
-    	
+
     	if (log.isDebugEnabled()) {
-    	 log.debug("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH__________0002");
+    	 log.debug("Authenticators registered");
     	}
     	
         AuthenticationLevels authenticationLevels = ConfigLoader.getInstance().getAuthenticationLevels();

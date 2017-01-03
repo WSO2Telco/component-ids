@@ -106,6 +106,16 @@
     </servlet>
 
     <servlet>
+        <servlet-name>auth_consent</servlet-name>
+        <jsp-file>/mcx-user-registration/register.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>auth_registration</servlet-name>
+        <jsp-file>/mcx-user-registration/waiting.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>oauth2_logout_consent.do</servlet-name>
         <jsp-file>/oauth2_logout_consent.jsp</jsp-file>
     </servlet>
@@ -168,6 +178,16 @@
     <servlet-mapping>
         <servlet-name>retry.do</servlet-name>
         <url-pattern>/retry.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>auth_consent</servlet-name>
+        <url-pattern>/mcx-user-registration/auth_consent</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>auth_registration</servlet-name>
+        <url-pattern>/mcx-user-registration/auth_registration</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

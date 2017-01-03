@@ -111,7 +111,9 @@
 	<body>
 
 	<%
+		System.out.println("waiting on login cccccccccccccccccccccccccccccccccc");
 		String sessionDataKey = request.getParameter("sessionDataKey");
+
 		AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(sessionDataKey);
 		Object cacheEntryObj = AuthenticationContextCache.getInstance().getValueFromCache(cacheKey);
 		AuthenticationContext authnContext = null;
@@ -236,6 +238,10 @@
 			if (authList != null) {
 				localAuthenticatorNames = Arrays.asList(authList.split(","));
 			}
+		}
+
+		for(String names : localAuthenticatorNames){
+			System.out.println("string name xxxxxxx : " + names);
 		}
 	%>
 	<input type="hidden" id="msisdn" value='<%=msisdn%>'>
