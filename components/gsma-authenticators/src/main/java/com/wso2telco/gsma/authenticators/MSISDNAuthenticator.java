@@ -15,11 +15,11 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
-import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.DecryptionAES;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,7 +44,6 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import javax.crypto.Cipher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -76,6 +75,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     
     /** The Constant ENCRYPTION_ALGORITHM. */
     private static final String ENCRYPTION_ALGORITHM = "RSA";
+
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
@@ -268,7 +270,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
      */
     public String decryptData(String data) throws Exception{
         byte[] bytes = hexStringToByteArray(data);
-            String filename = DataHolder.getInstance().getMobileConnectConfig().getKeyfile();
+        String filename = configurationService.getDataHolder().getMobileConnectConfig().getKeyfile();
         PrivateKey key = getPrivateKey(filename);
         return decrypt(bytes, key);
         }

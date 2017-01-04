@@ -16,13 +16,13 @@
 package com.wso2telco.gsma.authenticators;
 
 
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.authenticators.ussd.Pinresponse;
+import com.wso2telco.gsma.authenticators.util.TableName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-
-import com.wso2telco.gsma.authenticators.ussd.Pinresponse;
-import com.wso2telco.gsma.authenticators.util.TableName;
-import com.wso2telco.core.config.DataHolder;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -58,7 +58,8 @@ public class DBUtils {
         String dataSourceName = null;
         try {
             Context ctx = new InitialContext();
-            dataSourceName = DataHolder.getInstance().getMobileConnectConfig().getDataSourceName();
+            ConfigurationService configurationService = new ConfigurationServiceImpl();
+            dataSourceName = configurationService.getDataHolder().getMobileConnectConfig().getDataSourceName();
             mConnectDatasource = (DataSource) ctx.lookup(dataSourceName);
         } catch (NamingException e) {
             handleException("Error while looking up the data source: " + dataSourceName, e);

@@ -15,10 +15,14 @@
  ******************************************************************************/
 package com.wso2telco.transaction.log;
 
-import java.io.IOException;
-
-import com.wso2telco.core.config.DataHolder;
-import com.wso2telco.core.config.MobileConnectConfig;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.dao.TransactionDAO;
+import com.wso2telco.model.*;
+import com.wso2telco.util.GSMAAuthenticatorConstants;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -28,16 +32,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.wso2telco.dao.TransactionDAO;
-import com.wso2telco.model.API;
-import com.wso2telco.model.LogRequest;
-import com.wso2telco.model.ServingOperator;
-import com.wso2telco.model.Transaction;
-import com.wso2telco.model.TransactionTimeStamp;
-import com.wso2telco.model.Transactions;
-import com.wso2telco.util.GSMAAuthenticatorConstants;
+import java.io.IOException;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -48,6 +43,9 @@ public class TransactionLoggerImpl implements TransactionLogger {
 	/** The log. */
 	private static Log log = LogFactory.getLog(TransactionLoggerImpl.class);
 
+	/** The Configuration service */
+	private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
 	/* (non-Javadoc)
 	 * @see com.wso2telco.transaction.log.TransactionLogger#logTransaction(com.wso2telco.model.Transactions, java.lang.String)
 	 */
@@ -55,7 +53,7 @@ public class TransactionLoggerImpl implements TransactionLogger {
 		
 //		boolean status = false;
 		
-		MobileConnectConfig.GSMAExchangeConfig gsmaExchangeConfig = DataHolder.getInstance().getMobileConnectConfig()
+		MobileConnectConfig.GSMAExchangeConfig gsmaExchangeConfig = configurationService.getDataHolder().getMobileConnectConfig()
                 .getGsmaExchangeConfig();
 		
 		String batchId = contextId;
@@ -121,7 +119,7 @@ public class TransactionLoggerImpl implements TransactionLogger {
 	 */
 	public Transactions prepareTransactionData(String clientKey, boolean transactionSuccessState, long transactionStartTime, long transactionEndTime, String mCXClientAppState, String contextId) {
 		
-		MobileConnectConfig.GSMAExchangeConfig gsmaExchangeConfig = DataHolder.getInstance().getMobileConnectConfig()
+		MobileConnectConfig.GSMAExchangeConfig gsmaExchangeConfig = configurationService.getDataHolder().getMobileConnectConfig()
                 .getGsmaExchangeConfig();
 		
 		Transaction transaction = new Transaction();

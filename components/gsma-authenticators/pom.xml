@@ -56,7 +56,7 @@
         <dependency>
             <groupId>com.wso2telco.core</groupId>
             <artifactId>config-util</artifactId>
-        </dependency>
+		</dependency>
 		<dependency>
 			<groupId>com.wso2telco.ids</groupId>
 			<artifactId>url-shorten</artifactId>

@@ -15,9 +15,10 @@
  ******************************************************************************/
 package com.wso2telco.reqpathsequencehandler;
 
-import com.wso2telco.core.config.AuthenticationLevels;
-import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.model.AuthenticationLevels;
 import com.wso2telco.core.config.MIFEAuthentication;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -53,7 +54,10 @@ public class MIFERequestPathBasedSequenceHandler extends DefaultRequestPathBased
 
 	/** The log. */
 	private static Log log = LogFactory.getLog(MIFERequestPathBasedSequenceHandler.class);
-	
+
+	/** The Configuration service */
+	private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
 	/** The instance. */
 	private static volatile MIFERequestPathBasedSequenceHandler instance;
 
@@ -168,8 +172,8 @@ public class MIFERequestPathBasedSequenceHandler extends DefaultRequestPathBased
 		LinkedHashSet<?> acrs = this.getACRValues(request);
 		String selectedLOA = (String) acrs.iterator().next();
 
-		AuthenticationLevels config = DataHolder.getInstance().getAuthenticationLevels();
-		Map<String, MIFEAuthentication> authenticationMap = DataHolder.getInstance().getAuthenticationLevelMap();
+		AuthenticationLevels config = configurationService.getDataHolder().getAuthenticationLevels();
+		Map<String, MIFEAuthentication> authenticationMap = configurationService.getDataHolder().getAuthenticationLevelMap();
 		MIFEAuthentication mifeAuthentication = authenticationMap.get(selectedLOA);
 
 		List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList = mifeAuthentication.getAuthenticatorList();

@@ -15,9 +15,10 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.sms;
 
-import com.wso2telco.core.config.DataHolder;
-import com.wso2telco.core.config.MobileConnectConfig;
+import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.ReadMobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
@@ -54,6 +55,9 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
     
     /** The log. */
     private static Log log = LogFactory.getLog(SMSAuthenticator.class);
+
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
@@ -116,7 +120,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             Map<String, String> readMobileConnectConfigResult;
             readMobileConnectConfigResult = readMobileConnectConfig.query("SMS");
 
-            MobileConnectConfig connectConfig = DataHolder.getInstance().getMobileConnectConfig();
+            MobileConnectConfig connectConfig = configurationService.getDataHolder().getMobileConnectConfig();
             String messageText = readMobileConnectConfigResult.get("MessageContentFirst") + application.changeApplicationName(context.getSequenceConfig()
                     .getApplicationConfig().getApplicationName())+connectConfig.getSmsConfig().getMessage();
             String messageURL = connectConfig.getListenerWebappHost() + Constants.LISTNER_WEBAPP_SMS_CONTEXT +

@@ -15,14 +15,15 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.internal;
 
-import com.wso2telco.core.config.Authentication;
-import com.wso2telco.core.config.AuthenticationLevel;
-import com.wso2telco.core.config.AuthenticationLevels;
-import com.wso2telco.core.config.Authenticators;
-import com.wso2telco.core.config.Authenticator;
+import com.wso2telco.core.config.model.Authentication;
+import com.wso2telco.core.config.model.AuthenticationLevel;
+import com.wso2telco.core.config.model.AuthenticationLevels;
+import com.wso2telco.core.config.model.Authenticators;
+import com.wso2telco.core.config.model.Authenticator;
 import com.wso2telco.core.config.ConfigLoader;
-import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.MIFEAuthentication;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.felix.scr.annotations.Activate;
@@ -65,6 +66,9 @@ public class CustomAuthenticatorServiceComponent {
     /** The log. */
     private static Log log = LogFactory.getLog(CustomAuthenticatorServiceComponent.class);
 
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
     /** The realm service. */
     private static RealmService realmService;
 
@@ -106,12 +110,12 @@ public class CustomAuthenticatorServiceComponent {
 
 
         AuthenticationLevels authenticationLevels = ConfigLoader.getInstance().getAuthenticationLevels();
-        DataHolder.getInstance().setAuthenticationLevels(authenticationLevels);
+        configurationService.getDataHolder().setAuthenticationLevels(authenticationLevels);
 
-        DataHolder.getInstance().setMobileConnectConfig(ConfigLoader.getInstance().getMobileConnectConfig());
+        configurationService.getDataHolder().setMobileConnectConfig(ConfigLoader.getInstance().getMobileConnectConfig());
 
         Map<String, MIFEAuthentication> authenticationMap = loadMIFEAuthenticatorMap(authenticationLevels);
-        DataHolder.getInstance().setAuthenticationLevelMap(authenticationMap);
+        configurationService.getDataHolder().setAuthenticationLevelMap(authenticationMap);
         if (log.isDebugEnabled()) {
             log.debug("Custom Application Authenticator bundle is activated");
         }

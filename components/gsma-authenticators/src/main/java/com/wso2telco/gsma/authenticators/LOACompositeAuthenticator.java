@@ -15,8 +15,9 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
-import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.MIFEAuthentication;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import org.apache.commons.lang.StringUtils;
@@ -63,6 +64,9 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
     
     /** The log. */
     private static Log log = LogFactory.getLog(LOACompositeAuthenticator.class);
+
+	/** The Configuration service */
+	private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
 	/* (non-Javadoc)
 	 * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
@@ -179,7 +183,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 			context.setProperty("msisdn", msisdn);
 			AuthenticationContextHelper.setSubject(context, msisdn);
 		} else {
-			Map<String, MIFEAuthentication> authenticationMap = DataHolder.getInstance().getAuthenticationLevelMap();
+			Map<String, MIFEAuthentication> authenticationMap = configurationService.getDataHolder().getAuthenticationLevelMap();
 			MIFEAuthentication mifeAuthentication = authenticationMap.get(selectedLOA);
 
 			SequenceConfig sequenceConfig = context.getSequenceConfig();

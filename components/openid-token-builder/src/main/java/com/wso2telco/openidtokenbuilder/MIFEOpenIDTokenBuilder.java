@@ -18,8 +18,9 @@ package com.wso2telco.openidtokenbuilder;
 
 import com.jayway.jsonpath.JsonPath;
 import com.nimbusds.jwt.PlainJWT;
-import com.wso2telco.core.config.ConfigLoader;
-import com.wso2telco.core.config.MobileConnectConfig;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.util.AuthenticationHealper;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.Header;
@@ -73,43 +74,45 @@ import java.util.logging.Logger;
 public class MIFEOpenIDTokenBuilder implements
 		org.wso2.carbon.identity.openidconnect.IDTokenBuilder {
 
-	private static MobileConnectConfig mobileConnectConfigs = null;
+	private static MobileConnectConfig mobileConnectConfig = null;
+
+	/** The Configuration service */
+	private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
 	static {
-		//Load mobile-connect.xml file.
-		mobileConnectConfigs = ConfigLoader.getInstance().getMobileConnectConfig();
+		mobileConnectConfig = configurationService.getDataHolder().getMobileConnectConfig();
 	}
 
 	/** The Constant ACR_HOST_URI. */
-	private static final String ACR_HOST_URI =  mobileConnectConfigs.getMifeOpenIDTokenBuilderConfig().getAcrHostUri();
-	
+	private static final String ACR_HOST_URI = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig().getAcrHostUri();
+
 	/** The Constant RETRIEVE_SERVICE. */
-	private static final String RETRIEVE_SERVICE = mobileConnectConfigs.getMifeOpenIDTokenBuilderConfig().getRetrieveService();
-	
+	private static final String RETRIEVE_SERVICE = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig().getRetrieveService();
+
 	/** The Constant CREATE_SERVICE. */
-	private static final String CREATE_SERVICE = mobileConnectConfigs.getMifeOpenIDTokenBuilderConfig().getCreateService();
-	
+	private static final String CREATE_SERVICE = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig().getCreateService();
+
 	/** The Constant APP_PROV_SERVICE. */
-	private static final String APP_PROV_SERVICE = mobileConnectConfigs.getMifeOpenIDTokenBuilderConfig().getAppProvService();
-	
+	private static final String APP_PROV_SERVICE = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig().getAppProvService();
+
 	/** The Constant SERVICE_PROVIDER. */
-	private static final String SERVICE_PROVIDER = mobileConnectConfigs.getMifeOpenIDTokenBuilderConfig().getServiceProvider();
-	
+	private static final String SERVICE_PROVIDER = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig().getServiceProvider();
+
 	/** The Constant SERVICE_KEY. */
-	private static final String SERVICE_KEY = mobileConnectConfigs.getMifeOpenIDTokenBuilderConfig().getServiceKey();
-	
+	private static final String SERVICE_KEY = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig().getServiceKey();
+
 	/** The Constant ACR_ACCESS_TOKEN. */
-	private static final String ACR_ACCESS_TOKEN = mobileConnectConfigs.getMifeOpenIDTokenBuilderConfig().getAcrAccessToken();
+	private static final String ACR_ACCESS_TOKEN = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig().getAcrAccessToken();
 
 	/** The log. */
 	private static Log log = LogFactory.getLog(MIFEOpenIDTokenBuilder.class);
-	
+
 	/** The debug. */
 	private static boolean DEBUG = log.isDebugEnabled();
-	
+
 	/** The http client. */
 	private HttpClient httpClient;
-	
+
 	/** The acr app id. */
 	private String acrAppID;
 
@@ -126,7 +129,7 @@ public class MIFEOpenIDTokenBuilder implements
 
 		//String msisdn = request.getAuthorizedUser().replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
 		String msisdn = AuthenticationHealper.getUser(request).replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
-		
+
 		msisdn = "tel:+".concat(msisdn); //$NON-NLS-1$
 
 		// Loading respective application data
@@ -141,12 +144,12 @@ public class MIFEOpenIDTokenBuilder implements
 
 		// Get authenticators used
 		String amr []= getValuesFromCache(request, "amr").split(",");
-		
+
 		JSONArray amrArray = new JSONArray(Arrays.asList(amr));
 
 		// Set ACR (PCR) to sub
 		String subject = null;
-		
+
 		try {
 			subject = createLocalACR(msisdn,applicationName);
 		} catch (InvalidKeyException e) {
@@ -165,7 +168,7 @@ public class MIFEOpenIDTokenBuilder implements
 
 		// Get LOA used
 		String acr = getValuesFromCache(request, "acr");
-		
+
 		String nonce = null;
         try {
             nonce = getValuesFromCache(request, IDToken.NONCE);
@@ -186,7 +189,7 @@ public class MIFEOpenIDTokenBuilder implements
 		}
 
 		try {
-			
+
 			CustomIDTokenBuilder builder = new CustomIDTokenBuilder().setIssuer(issuer).setSubject(subject)
 					.setAudience(request.getOauth2AccessTokenReqDTO().getClientId())
 					.setAuthorizedParty(request.getOauth2AccessTokenReqDTO().getClientId())
@@ -198,7 +201,7 @@ public class MIFEOpenIDTokenBuilder implements
 					.getInstance().getOpenIDConnectCustomClaimsCallbackHandler();
 			//TODO CODE COMMENTED#
 			//claimsCallBackHandler.handleCustomClaims(builder, request);
-			
+
             String plainIDToken = builder.buildIDToken();
             return new PlainJWT((com.nimbusds.jwt.JWTClaimsSet) PlainJWT.parse(plainIDToken).getJWTClaimsSet()).serialize();
 		} catch (IDTokenException e) {
@@ -239,8 +242,8 @@ public class MIFEOpenIDTokenBuilder implements
 					acrKey = mapping;
 				}
 			}
-			
-			
+
+
 		}
 //TODO Code Diff
 		if (null != acrKey) {
@@ -251,9 +254,9 @@ public class MIFEOpenIDTokenBuilder implements
 		}
 	}
 
-	 
-	
-	
+
+
+
 	private String getAccessTokenIssuedTime(String accessToken, OAuthTokenReqMessageContext request)
             throws IdentityOAuth2Exception {
 
@@ -289,7 +292,7 @@ public class MIFEOpenIDTokenBuilder implements
 
         return Long.toString(accessTokenDO.getIssuedTime().getTime() / 1000);
     }
-	
+
 	/**
 	 * Gets the app information.
 	 *
@@ -320,7 +323,7 @@ public class MIFEOpenIDTokenBuilder implements
 		}
 	}
 
-	 
+
 	/**
 	 * Gets the ACR app id.
 	 *
@@ -393,7 +396,7 @@ public class MIFEOpenIDTokenBuilder implements
 		}
 	}
 
-	 
+
 	/**
 	 * Gets the access token issued time.
 	 *
@@ -434,7 +437,7 @@ public class MIFEOpenIDTokenBuilder implements
 		return Long.toString(timeIndMilliSeconds / 1000);
 	}*/
 
-	 
+
 	/**
 	 * Gets the AMR from acr.
 	 *
@@ -455,11 +458,11 @@ public class MIFEOpenIDTokenBuilder implements
 			//.get(0).getAuthenticators();
 		}
 		//TODO CODE COMMENTED#
-		 
+
 			return null;
 	}
 
-	 
+
 	/**
 	 * Gets the acr.
 	 *
@@ -509,19 +512,19 @@ public class MIFEOpenIDTokenBuilder implements
 	private String createLocalACR(String msisdn, String serviceProvider) throws InvalidKeyException, NoSuchAlgorithmException{
         String acr = null;
         String keyText = "cY4L3dBf@mifenew";
-        
+
         byte[] keyValue = keyText.getBytes();
-        
+
         SecretKey key = new SecretKeySpec(keyValue, "AES");
         String encryptedText = "";
         Cipher cipher = null;
-        
+
         try {
             cipher = Cipher.getInstance("AES");
         } catch (NoSuchPaddingException ex) {
             Logger.getLogger(MIFEOpenIDTokenBuilder.class.getName()).log(Level.SEVERE, null, ex);
         }
-               
+
         if (serviceProvider != null) {
             byte[] plainTextByte = (serviceProvider + msisdn).getBytes();
             cipher.init(Cipher.ENCRYPT_MODE, key);
@@ -538,17 +541,17 @@ public class MIFEOpenIDTokenBuilder implements
         else{
             ///nop
         }
-        
+
         log.info("Encrypted Text:" + encryptedText);
-        
+
         String encryptedPcr = encryptedText.replaceAll("\r", "").replaceAll("\n", "");
 
         return encryptedPcr;
-        
-        
-        
+
+
+
     }
-	 
+
 	/**
 	 * Retrieve acr.
 	 *
@@ -610,7 +613,7 @@ public class MIFEOpenIDTokenBuilder implements
 		}
 	}
 
-	 
+
 	/**
 	 * Creates the acr.
 	 *
