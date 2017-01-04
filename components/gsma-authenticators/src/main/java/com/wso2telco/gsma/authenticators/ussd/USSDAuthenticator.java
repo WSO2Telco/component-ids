@@ -15,7 +15,8 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.ussd;
 
-import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
@@ -71,6 +72,9 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
      * The Constant PIN_CLAIM.
      */
     private static final String PIN_CLAIM = "http://wso2.org/claims/pin";
+
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     private static final String CLAIM = "http://wso2.org/claims";
 
@@ -159,7 +163,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
             log.info("Service Provider Name = " + serviceProviderName);
             if (serviceProviderName.equals("wso2_sp_dashboard")) {
-                serviceProviderName = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getDashBoard();
+                serviceProviderName = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getDashBoard();
 
             }
             //String operator= request.getParameter("operator");
@@ -189,7 +193,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
         if (isRegistering) {
             context.setProperty(Constants.IS_REGISTERING, true);
-            loginPage = DataHolder.getInstance().getMobileConnectConfig().getAuthEndpointUrl() + Constants.VIEW_REGISTRATION_WAITING;
+            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.VIEW_REGISTRATION_WAITING;
         } else {
             loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         }

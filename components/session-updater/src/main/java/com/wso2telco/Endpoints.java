@@ -18,7 +18,7 @@ package com.wso2telco;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.wso2telco.core.entity.PinConfig;
+import com.wso2telco.core.config.model.PinConfig;
 import com.wso2telco.cryptosystem.AESencrp;
 import com.wso2telco.entity.LoginHistory;
 import com.wso2telco.exception.AuthenticatorException;

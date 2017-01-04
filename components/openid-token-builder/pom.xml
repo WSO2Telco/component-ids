@@ -39,7 +39,8 @@
         <dependency>
             <groupId>com.wso2telco.core</groupId>
             <artifactId>config-util</artifactId>
-        </dependency>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>

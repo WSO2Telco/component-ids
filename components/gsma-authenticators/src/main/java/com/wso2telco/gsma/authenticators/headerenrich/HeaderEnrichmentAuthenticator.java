@@ -15,8 +15,9 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.headerenrich;
 
-import com.wso2telco.core.config.DataHolder;
-import com.wso2telco.core.config.MobileConnectConfig;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.IPRangeChecker;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
@@ -61,6 +62,9 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
     
     /** The log. */
     private static Log log = LogFactory.getLog(HeaderEnrichmentAuthenticator.class);
+
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
@@ -116,7 +120,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         //String enrichpage = DataHolder.getInstance().getMobileConnectConfig().getHEADERENRICH().getEndpoint();
         String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
-        String loginprefix = DataHolder.getInstance().getMobileConnectConfig().getListenerWebappHost();
+        String loginprefix = configurationService.getDataHolder().getMobileConnectConfig().getListenerWebappHost();
         String msisdn = null;
         String operator = request.getParameter("operator");
         
@@ -206,7 +210,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         operator = request.getParameter("operator");
 
-        operators = DataHolder.getInstance().getMobileConnectConfig().getHEADERENRICH().getOperators();
+        operators = configurationService.getDataHolder().getMobileConnectConfig().getHEADERENRICH().getOperators();
 
         for (MobileConnectConfig.OPERATOR op : operators){
             if(operator.equalsIgnoreCase(op.getOperatorName())){
@@ -400,7 +404,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         log.info("Operator name  " + operator);
 
         //        operatorips = DataHolder.getInstance().getMobileConnectConfig().getHEADERENRICH().getMobileIPRanges();
-        operators = DataHolder.getInstance().getMobileConnectConfig().getHEADERENRICH().getOperators();
+        operators = configurationService.getDataHolder().getMobileConnectConfig().getHEADERENRICH().getOperators();
 
         for (MobileConnectConfig.OPERATOR op : operators){
             if(operator.equalsIgnoreCase(op.getOperatorName())){

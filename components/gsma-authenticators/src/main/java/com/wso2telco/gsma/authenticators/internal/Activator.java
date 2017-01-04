@@ -17,14 +17,15 @@
  */
 package com.wso2telco.gsma.authenticators.internal ;
 
-import com.wso2telco.core.config.Authentication;
-import com.wso2telco.core.config.AuthenticationLevel;
-import com.wso2telco.core.config.AuthenticationLevels;
-import com.wso2telco.core.config.Authenticator;
-import com.wso2telco.core.config.Authenticators;
+import com.wso2telco.core.config.model.Authentication;
+import com.wso2telco.core.config.model.AuthenticationLevel;
+import com.wso2telco.core.config.model.AuthenticationLevels;
+import com.wso2telco.core.config.model.Authenticator;
+import com.wso2telco.core.config.model.Authenticators;
 import com.wso2telco.core.config.ConfigLoader;
-import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.MIFEAuthentication;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
@@ -59,7 +60,11 @@ import java.util.Map;
 public class Activator implements BundleActivator {
     private static final Log log = LogFactory.getLog(Activator.class);
 
-    public void startDeploy(BundleContext bundleContext) throws Exception {
+	/** The Configuration service */
+	private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
+
+	public void startDeploy(BundleContext bundleContext) throws Exception {
     	
     	if(log.isDebugEnabled()){
     	log.debug("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH__________0001");
@@ -96,11 +101,11 @@ public class Activator implements BundleActivator {
     	}
     	
         AuthenticationLevels authenticationLevels = ConfigLoader.getInstance().getAuthenticationLevels();
-        DataHolder.getInstance().setAuthenticationLevels(authenticationLevels);
+        configurationService.getDataHolder().setAuthenticationLevels(authenticationLevels);
 
-        DataHolder.getInstance().setMobileConnectConfig(ConfigLoader.getInstance().getMobileConnectConfig());
+        configurationService.getDataHolder().setMobileConnectConfig(ConfigLoader.getInstance().getMobileConnectConfig());
         Map<String, MIFEAuthentication> authenticationMap = loadMIFEAuthenticatorMap(authenticationLevels);
-        DataHolder.getInstance().setAuthenticationLevelMap(authenticationMap);
+        configurationService.getDataHolder().setAuthenticationLevelMap(authenticationMap);
          if (log.isDebugEnabled()) {
          log.debug("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH__________0003");
          }

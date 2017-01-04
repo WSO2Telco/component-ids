@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.wso2telco.Util;
 import com.wso2telco.core.config.DataHolder;
-import com.wso2telco.core.config.MobileConnectConfig;
+import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.gsma.authenticators.ussd.USSDRequest;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.logging.Log;

@@ -15,9 +15,10 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.ussd;
 
-import com.wso2telco.core.config.DataHolder;
-import com.wso2telco.core.entity.PinConfig;
-import com.wso2telco.core.util.PinConfigUtil;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.config.model.PinConfig;
+import com.wso2telco.core.config.util.PinConfigUtil;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
@@ -81,6 +82,9 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
      */
     private static final String PIN_CLAIM = "http://wso2.org/claims/pin";
 
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
      */
@@ -134,7 +138,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
             log.info("Service Provider Name = " + serviceProviderName);
             if (serviceProviderName.equals("wso2_sp_dashboard")) {
-                serviceProviderName = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getDashBoard();
+                serviceProviderName = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getDashBoard();
 
             }
             String operator = (String) context.getProperty("operator");
@@ -178,7 +182,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         String openator = (String) context.getProperty(Constants.OPERATOR);
 
-        PinConfig pinConfig = (PinConfig) context.getProperty(com.wso2telco.core.util.Constants.PIN_CONFIG_OBJECT);
+        PinConfig pinConfig = (PinConfig) context.getProperty(com.wso2telco.core.config.util.Constants.PIN_CONFIG_OBJECT);
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
 
         try {
@@ -261,7 +265,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
         if (isRegistering) {
             context.setProperty(Constants.IS_REGISTERING, true);
-            loginPage = DataHolder.getInstance().getMobileConnectConfig().getAuthEndpointUrl()
+            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl()
                     + Constants.VIEW_PIN_REGISTRATION_WAITING;
         } else {
             loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
