@@ -20,6 +20,7 @@ import com.wso2telco.core.config.MIFEAuthentication;
 import com.wso2telco.gsma.ClaimManagementClient;
 import com.wso2telco.gsma.LoginAdminServiceClient;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
+import com.wso2telco.gsma.authenticators.model.ScopeParam;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import org.apache.axis2.AxisFault;
 import org.apache.commons.lang.StringUtils;
@@ -106,12 +107,34 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		boolean isAuthenticated;
 		//Unregister Customer Token
 		String msisdn = request.getParameter("msisdn");
-		String msisdnHeader = request.getParameter("msisdn_header");
+        if (StringUtils.isEmpty(msisdn)) {
+            msisdn = request.getHeader("msisdn");
+        }
+        String msisdnHeader = request.getParameter("msisdn_header");
+        if (StringUtils.isEmpty(msisdnHeader)) {
+            msisdnHeader = request.getHeader("msisdnHeader");
+        }
 		String flowType = getFlowType(msisdnHeader);
 		String tokenId = request.getParameter("tokenid");
 		boolean userProfileUpdateRequired = isUserProfileUpdateRequired(request, msisdnHeader, selectedLOA);
 		context.setProperty(Constants.USER_PROFILE_UPDATE_REQUIRED, userProfileUpdateRequired);
-		//Change authentication flow just after registration
+
+
+        //TODO: get all scope related params. This should be move to a initialization method later
+        Map scopeDetail;
+        try {
+            scopeDetail = DBUtils.getScopeParams();
+        } catch (AuthenticatorException e) {
+            throw new AuthenticationFailedException(
+                    "Error occurred while getting scope parameters from the database", e);
+        }
+
+        //set the scope specific params
+        context.setProperty("scopeParams", scopeDetail.get("params"));
+
+        //TODO: scope param validations
+
+        //Change authentication flow just after registration
 		if (tokenId != null && msisdn != null) {
 			try {
 				AuthenticationData authenticationData = DBUtils.getAuthenticateData(tokenId);

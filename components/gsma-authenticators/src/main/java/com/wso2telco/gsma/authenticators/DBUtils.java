@@ -16,6 +16,7 @@
 package com.wso2telco.gsma.authenticators;
 
 
+import com.wso2telco.gsma.authenticators.model.ScopeParam;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
@@ -32,9 +33,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.HashMap;
+import java.util.Map;
 
 // TODO: Auto-generated Javadoc
 
@@ -559,4 +559,48 @@ public class DBUtils {
             connection.close();
         }
     }
+
+    /**
+     * Get a map of parameters mapped to a scope
+     *
+     * @return map of scope vs parameters
+     * @throws AuthenticatorException
+     */
+    public static Map<String, String> getScopeParams() throws AuthenticatorException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet results = null;
+        String sql = "SELECT * FROM `scope_parameter`";
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query " + sql);
+        }
+
+        Map scopeParamsMap = new HashMap();
+        try {
+            conn = getConnectDBConnection();
+            ps = conn.prepareStatement(sql);
+            results = ps.executeQuery();
+
+            while (results.next()) {
+                scopeParamsMap.put("scope", results.getString("scope"));
+
+                ScopeParam parameters = new ScopeParam();
+                parameters.setLoginHintMandatory(Boolean.parseBoolean(results.getString("is_login_hint_mandatory")));
+                parameters.setLoginHintFormat(ScopeParam.loginHintFormat.valueOf(results.getString(
+                        "login_hint_format")));
+                parameters.setMsisdnMismatchResult(ScopeParam.msisdnMismatchResultTypes.valueOf(results.getString(
+                        "msisdn_mismatch_result")));
+                parameters.setTncVisible(Boolean.parseBoolean(results.getString("is_tnc_visible")));
+
+                scopeParamsMap.put("params", parameters);
+            }
+        } catch (SQLException e) {
+            handleException("Error occurred while getting scope parameters from the database", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
+        }
+        return scopeParamsMap;
+    }
+
 }
