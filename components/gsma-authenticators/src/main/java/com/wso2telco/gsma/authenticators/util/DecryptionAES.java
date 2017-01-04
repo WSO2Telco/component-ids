@@ -16,9 +16,9 @@
 package com.wso2telco.gsma.authenticators.util;
 
 import com.google.gdata.util.common.util.Base64;
-import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 
-import java.security.NoSuchAlgorithmException;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -36,9 +36,12 @@ public class DecryptionAES {
     
     /** The key value. */
     private static byte[] keyValue;
-    
+
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
     static{
-          keyValue = DataHolder.getInstance().getMobileConnectConfig().getMsisdn().getEncryptionKey().getBytes();
+        keyValue = configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getEncryptionKey().getBytes();
     }
     
     /**

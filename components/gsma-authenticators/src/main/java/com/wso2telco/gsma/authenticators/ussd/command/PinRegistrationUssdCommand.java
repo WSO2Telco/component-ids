@@ -1,7 +1,8 @@
 package com.wso2telco.gsma.authenticators.ussd.command;
 
-import com.wso2telco.core.config.DataHolder;
-import com.wso2telco.core.config.MobileConnectConfig;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.model.OutboundUSSDMessageRequest;
 import com.wso2telco.gsma.authenticators.model.ResponseRequest;
@@ -19,10 +20,13 @@ public class PinRegistrationUssdCommand extends UssdCommand {
 
     private static Log log = LogFactory.getLog(PinRegistrationUssdCommand.class);
 
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
     @Override
     protected String getUrl(String msisdn) {
 
-        MobileConnectConfig.USSDConfig ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
+        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
 
         String url = ussdConfig.getEndpoint();
         if (url.endsWith("/")) {
@@ -37,7 +41,7 @@ public class PinRegistrationUssdCommand extends UssdCommand {
 
     @Override
     protected USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String operator) {
-        MobileConnectConfig.USSDConfig ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
+        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
 
         USSDRequest req = new USSDRequest();
 

@@ -1,7 +1,8 @@
 package com.wso2telco.gsma.authenticators.ussd.command;
 
-import com.wso2telco.core.config.DataHolder;
-import com.wso2telco.core.config.MobileConnectConfig;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.OutboundUSSDMessageRequest;
 import com.wso2telco.gsma.authenticators.model.ResponseRequest;
 import com.wso2telco.gsma.authenticators.ussd.USSDRequest;
@@ -21,10 +22,13 @@ public class PinLoginUssdCommand extends UssdCommand {
     /** The const mtinit. */
     private static String CONST_MTINIT = "mtinit";
 
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
     @Override
     protected String getUrl(String msisdn) {
 
-        MobileConnectConfig.USSDConfig ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
+        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
 
         String url = ussdConfig.getEndpoint();
         if (url.endsWith("/")) {
@@ -39,7 +43,7 @@ public class PinLoginUssdCommand extends UssdCommand {
 
     @Override
     protected USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String operator) {
-        MobileConnectConfig.USSDConfig ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
+        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
 
         USSDRequest req = new USSDRequest();
 
@@ -52,7 +56,7 @@ public class PinLoginUssdCommand extends UssdCommand {
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
         ResponseRequest responseRequest = new ResponseRequest();
-        responseRequest.setNotifyURL(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getUssdPinContextEndpoint());
+        responseRequest.setNotifyURL(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getUssdPinContextEndpoint());
         responseRequest.setCallbackData("");
 
         outboundUSSDMessageRequest.setResponseRequest(responseRequest);

@@ -16,8 +16,9 @@
 package com.wso2telco.gsma.authenticators;
 
 import com.google.gson.Gson;
-import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.MSSServiceURL;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.MSSRequest;
 
 import org.apache.commons.logging.Log;
@@ -35,8 +36,11 @@ import org.apache.http.impl.client.DefaultHttpClient;
 public class MSSRestClient extends Thread{
 
     /** The log. */
-    private static Log log = LogFactory.getLog(MSSRestClient.class); 
-	
+    private static Log log = LogFactory.getLog(MSSRestClient.class);
+
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
     /** The context identifier. */
     String contextIdentifier;
     
@@ -68,7 +72,7 @@ public class MSSRestClient extends Thread{
             org.apache.http.client.HttpClient client = new DefaultHttpClient();
 
             String serviceURL = String.format(MSSServiceURL.MSS_SIGNATURE_SERVICE,
-                                              DataHolder.getInstance().getMobileConnectConfig().getMSS().getEndpoint());
+                    configurationService.getDataHolder().getMobileConnectConfig().getMSS().getEndpoint());
             String json = gson.toJson(mssRequest);
 
             HttpPost httprequest = new HttpPost(serviceURL);
@@ -76,7 +80,7 @@ public class MSSRestClient extends Thread{
             StringEntity entity = new StringEntity(json, "application/json", "ISO-8859-1");
             httprequest.setEntity(entity);
             HttpResponse httpResponse=client.execute(httprequest);
-            if(httpResponse.getStatusLine().getStatusCode()==DataHolder.getInstance().getMobileConnectConfig().getMSS().getSuccessStatus())
+            if(httpResponse.getStatusLine().getStatusCode()==configurationService.getDataHolder().getMobileConnectConfig().getMSS().getSuccessStatus())
             {
                 DBUtils.updateUserResponse(contextIdentifier,String.valueOf(UserResponse.APPROVED));
 

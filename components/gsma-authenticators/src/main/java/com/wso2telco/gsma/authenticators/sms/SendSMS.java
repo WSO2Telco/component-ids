@@ -17,11 +17,11 @@ package com.wso2telco.gsma.authenticators.sms;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.wso2telco.core.config.DataHolder;
-import com.wso2telco.core.config.MobileConnectConfig;
 import com.wso2telco.core.config.ReadMobileConnectConfig;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.ReceiptRequest;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -30,13 +30,12 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
 import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -46,7 +45,10 @@ public class SendSMS {
     
     /** The Constant LOG. */
     private static final Logger LOG = Logger.getLogger(SendSMS.class.getName());
-    
+
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
     /** The sms config. */
     private MobileConnectConfig.SMSConfig smsConfig;
 
@@ -113,7 +115,7 @@ public class SendSMS {
         
         returnString = gson.toJson(req);
 
-        smsConfig = DataHolder.getInstance().getMobileConnectConfig().getSmsConfig();
+        smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
         postRequest(smsConfig.getEndpoint(),returnString,operator);
         
         return returnString;
