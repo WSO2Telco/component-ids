@@ -2,12 +2,13 @@ package com.wso2telco.gsma.authenticators.util;
 
 import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.gsma.LoginAdminServiceClient;
+import com.wso2telco.gsma.authenticators.Constants;
+import com.wso2telco.gsma.manager.client.ClaimManagementClient;
 import com.wso2telco.gsma.manager.client.RemoteUserStoreServiceAdminClient;
 import com.wso2telco.gsma.manager.client.UserRegistrationAdminServiceClient;
 import com.wso2telco.gsma.manager.entity.UserRegistrationData;
 import com.wso2telco.gsma.manager.util.UserProfileClaimsConstant;
 import org.apache.axis2.AxisFault;
-import org.apache.axis2.dataretrieval.Data;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
@@ -26,7 +27,7 @@ import java.sql.SQLException;
 /**
  * Created by isuru on 1/3/17.
  */
-public class UserProfileUtil {
+public class UserProfileManager {
 
     private static final String CLAIM = "http://wso2.org/claims";
 
@@ -46,9 +47,17 @@ public class UserProfileUtil {
 
     private static final String MOBILE_CLAIM_NAME = "http://wso2.org/claims/mobile";
 
-    private static Log log = LogFactory.getLog(UserProfileUtil.class);
+    private static Log log = LogFactory.getLog(UserProfileManager.class);
 
     private static RemoteUserStoreServiceAdminClient remoteUserStoreServiceAdminClient;
+
+    public UserProfileManager() {
+//        if(remoteUserStoreServiceAdminClient != null){
+//            return;
+//        }else {
+//            init();
+//        }
+    }
 
     public static boolean createUserProfileLoa2(String username, String operator, String scope) throws UserRegistrationAdminServiceIdentityException, RemoteException {
         boolean isNewUser = false;
@@ -203,62 +212,62 @@ public class UserProfileUtil {
         return hexString.toString();
     }
 
-    public void updateUserProfile(UserRegistrationData userRegistrationData) throws RemoteException,
-            UserRegistrationAdminServiceIdentityException, LoginAuthenticationExceptionException,
-            RemoteUserStoreManagerServiceUserStoreExceptionException, SQLException {
-
-        String userName = userRegistrationData.getUserName();
-        String pinHash = userRegistrationData.getHashPin();
-        String requested_acr = "";
-        String challenge_question_answer_1 = "";
-        String challenge_question_answer_2 = "";
-
-
-        log.info("user profile update for the loa2 to loa3 registration " + userRegistrationData.getUserName());
-        String adminURL = DataHolder.getInstance().getMobileConnectConfig().getAdminUrl() + UserProfileClaimsConstant.SERVICE_URL;
-        log.debug(adminURL);
-        UserRegistrationAdminServiceClient userRegistrationAdminServiceClient = new UserRegistrationAdminServiceClient(
-                adminURL);
-        UserFieldDTO[] userFieldDTOs = userRegistrationAdminServiceClient
-                .readUserFieldsForUserRegistration(userRegistrationData.getClaim());
-
-        String[] fieldValues = userRegistrationData.getFieldValues().split(",");
-
-        for (int count = 0; count < fieldValues.length; count++) {
-            if (userFieldDTOs[count].getClaimUri().equals(UserProfileClaimsConstant.LOA)) {
-                log.info(userFieldDTOs[count].getClaimUri() + " : " + fieldValues[count]);
-                requested_acr = fieldValues[count];
-            }
-            if (userFieldDTOs[count].getClaimUri().equals(UserProfileClaimsConstant.CHALLENGEQUESTION1)) {
-                log.info(userFieldDTOs[count].getClaimUri() + " : " + fieldValues[count]);
-                challenge_question_answer_1 = fieldValues[count];
-            }
-            if (userFieldDTOs[count].getClaimUri().equals(UserProfileClaimsConstant.CHALLENGEQUESTION2)) {
-                log.debug(userFieldDTOs[count].getClaimUri() + " : " + fieldValues[count]);
-                challenge_question_answer_2 = fieldValues[count];
-            }
-
-        }
-
-        if (Integer.parseInt(requested_acr) == UserProfileClaimsConstant.LOA2) {
-                /* update user profile - loa */
-
-            updateUserProfileForLOA2(requested_acr, userName);
-        } else if (Integer.parseInt(requested_acr) == UserProfileClaimsConstant.LOA3) {
-                /* update user profile - loa, challenge question, pin */
-            updateUserProfileForLOA3(requested_acr, challenge_question_answer_1, challenge_question_answer_2,
-                    userName);
-            updateUserProfilePIN(userName, pinHash);
-        }
-
-			/* PIN reset for the LOA3 registered users */
-//            updateUserProfilePIN(userName, pinHash); // TODO: 1/3/17 enable for pin reset flow
-
-        // update databse after success profile update
-//        DatabaseUtils.updateAuthenticateData(userName, UserProfileClaimsConstant.AUTH_STATUS);
-//        DatabaseUtils.updateRegStatus(userName, UserProfileClaimsConstant.REG_STATUS);
-        log.info("user profile update successfull " + userRegistrationData.getUserName());
-    }
+//    public void updateUserProfile(UserRegistrationData userRegistrationData) throws RemoteException,
+//            UserRegistrationAdminServiceIdentityException, LoginAuthenticationExceptionException,
+//            RemoteUserStoreManagerServiceUserStoreExceptionException, SQLException {
+//
+//        String userName = userRegistrationData.getUserName();
+//        String pinHash = userRegistrationData.getHashPin();
+//        String requested_acr = "";
+//        String challenge_question_answer_1 = "";
+//        String challenge_question_answer_2 = "";
+//
+//
+//        log.info("user profile update for the loa2 to loa3 registration " + userRegistrationData.getUserName());
+//        String adminURL = DataHolder.getInstance().getMobileConnectConfig().getAdminUrl() + UserProfileClaimsConstant.SERVICE_URL;
+//        log.debug(adminURL);
+//        UserRegistrationAdminServiceClient userRegistrationAdminServiceClient = new UserRegistrationAdminServiceClient(
+//                adminURL);
+//        UserFieldDTO[] userFieldDTOs = userRegistrationAdminServiceClient
+//                .readUserFieldsForUserRegistration(userRegistrationData.getClaim());
+//
+//        String[] fieldValues = userRegistrationData.getFieldValues().split(",");
+//
+//        for (int count = 0; count < fieldValues.length; count++) {
+//            if (userFieldDTOs[count].getClaimUri().equals(UserProfileClaimsConstant.LOA)) {
+//                log.info(userFieldDTOs[count].getClaimUri() + " : " + fieldValues[count]);
+//                requested_acr = fieldValues[count];
+//            }
+//            if (userFieldDTOs[count].getClaimUri().equals(UserProfileClaimsConstant.CHALLENGEQUESTION1)) {
+//                log.info(userFieldDTOs[count].getClaimUri() + " : " + fieldValues[count]);
+//                challenge_question_answer_1 = fieldValues[count];
+//            }
+//            if (userFieldDTOs[count].getClaimUri().equals(UserProfileClaimsConstant.CHALLENGEQUESTION2)) {
+//                log.debug(userFieldDTOs[count].getClaimUri() + " : " + fieldValues[count]);
+//                challenge_question_answer_2 = fieldValues[count];
+//            }
+//
+//        }
+//
+//        if (Integer.parseInt(requested_acr) == UserProfileClaimsConstant.LOA2) {
+//                /* update user profile - loa */
+//
+//            updateUserProfileForLOA2(userName);
+//        } else if (Integer.parseInt(requested_acr) == UserProfileClaimsConstant.LOA3) {
+//                /* update user profile - loa, challenge question, pin */
+//            updateUserProfileForLOA3(challenge_question_answer_1, challenge_question_answer_2,
+//                    userName);
+//            updateUserProfilePIN(userName, pinHash);
+//        }
+//
+//			/* PIN reset for the LOA3 registered users */
+////            updateUserProfilePIN(userName, pinHash); // TODO: 1/3/17 enable for pin reset flow
+//
+//        // update databse after success profile update
+////        DatabaseUtils.updateAuthenticateData(userName, UserProfileClaimsConstant.AUTH_STATUS);
+////        DatabaseUtils.updateRegStatus(userName, UserProfileClaimsConstant.REG_STATUS);
+//        log.info("user profile update successfull " + userRegistrationData.getUserName());
+//    }
 
     /**
      * update user profile for USSD (LOA2) registration update loa
@@ -267,12 +276,12 @@ public class UserProfileUtil {
      * @throws RemoteException                                          fieldValues, userName
      */
 
-    private void updateUserProfileForLOA2(String requested_acr, String userName)
+    private void updateUserProfileForLOA2(String userName)
             throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException {
 
 		/* updating loa cliam for the loa2 to loa3 registration */
 
-        remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.LOA, requested_acr,
+        remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.LOA, Constants.LOA2,
                 UserCoreConstants.DEFAULT_PROFILE);
 
     }
@@ -285,13 +294,13 @@ public class UserProfileUtil {
      * @throws RemoteUserStoreManagerServiceUserStoreExceptionException
      * @throws RemoteException                                          fieldValues, userName
      */
-    public static void updateUserProfileForLOA3(String requestedAcr, String challengeQuestionAnswer1,
-                                                String challengeQuestionAnswer2, String userName)
-            throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException {
+    public static void updateUserProfileForLOA3(String challengeQuestionAnswer1,
+                                                String challengeQuestionAnswer2, String pin, String userName)
+            throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException, UnsupportedEncodingException, NoSuchAlgorithmException {
 
 		/* updating loa cliam of the user profile */
-        log.info("user profile update for loa " + requestedAcr);
-        remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.LOA, requestedAcr,
+        log.info("user profile update for loa " + Constants.LOA3);
+        remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.LOA, Constants.LOA3,
                 UserCoreConstants.DEFAULT_PROFILE);
 
 		/*
@@ -307,6 +316,10 @@ public class UserProfileUtil {
         log.info("user profile update for challengeQuestionAnswer2 " + challengeQuestionAnswer2);
         remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.CHALLENGEQUESTION2,
                 challengeQuestionAnswer2, UserCoreConstants.DEFAULT_PROFILE);
+
+        log.info("user profile update for challengeQuestionAnswer2 " + challengeQuestionAnswer2);
+        remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.PIN,
+                getHashValue(pin), UserCoreConstants.DEFAULT_PROFILE);
 
     }
 
@@ -329,17 +342,12 @@ public class UserProfileUtil {
     }
 
     static {
-        /* reading admin url from application properties */
-        LoginAdminServiceClient lAdmin;
         try {
-            lAdmin = new LoginAdminServiceClient(DataHolder.getInstance().getMobileConnectConfig().getAdminUrl());
-        /*
-		 * getting session cookie by sending username and password to the
-		 * authenticate admin service
-		 */
-            String sessionCookie = lAdmin.authenticate(DataHolder.getInstance().getMobileConnectConfig().getAdminUrl(),
+
+            String adminURL = DataHolder.getInstance().getMobileConnectConfig().getAdminUrl();
+            com.wso2telco.gsma.manager.client.LoginAdminServiceClient lAdmin = new com.wso2telco.gsma.manager.client.LoginAdminServiceClient(adminURL);
+            String sessionCookie = lAdmin.authenticate(DataHolder.getInstance().getMobileConnectConfig().getAdminUsername(),
                     DataHolder.getInstance().getMobileConnectConfig().getAdminPassword());
-		/* using the session cookie as a key getting user store admin client */
             remoteUserStoreServiceAdminClient = new RemoteUserStoreServiceAdminClient(
                     DataHolder.getInstance().getMobileConnectConfig().getAdminUrl(), sessionCookie);
 
@@ -351,5 +359,29 @@ public class UserProfileUtil {
             e.printStackTrace();
         }
     }
+
+//    public void init(){
+//         /* reading admin url from application properties */
+//        LoginAdminServiceClient lAdmin;
+//        try {
+//            lAdmin = new LoginAdminServiceClient(DataHolder.getInstance().getMobileConnectConfig().getAdminUrl());
+//        /*
+//		 * getting session cookie by sending username and password to the
+//		 * authenticate admin service
+//		 */
+//            String sessionCookie = lAdmin.authenticate(DataHolder.getInstance().getMobileConnectConfig().getAdminUrl(),
+//                    DataHolder.getInstance().getMobileConnectConfig().getAdminPassword());
+//		/* using the session cookie as a key getting user store admin client */
+//            remoteUserStoreServiceAdminClient = new RemoteUserStoreServiceAdminClient(
+//                    DataHolder.getInstance().getMobileConnectConfig().getAdminUrl(), sessionCookie);
+//
+//        } catch (AxisFault axisFault) {
+//            axisFault.printStackTrace();
+//        } catch (RemoteException e) {
+//            e.printStackTrace();
+//        } catch (LoginAuthenticationExceptionException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
 }

@@ -121,6 +121,11 @@
     </servlet>
 
     <servlet>
+        <servlet-name>auth_registration_profile_upgrade</servlet-name>
+        <jsp-file>/mcx-user-registration/profile_upgrade.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>oauth2_logout_consent.do</servlet-name>
         <jsp-file>/oauth2_logout_consent.jsp</jsp-file>
     </servlet>
@@ -198,6 +203,11 @@
     <servlet-mapping>
         <servlet-name>auth_registration_pin</servlet-name>
         <url-pattern>/mcx-user-registration/auth_registration_pin</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>auth_registration_profile_upgrade</servlet-name>
+        <url-pattern>/mcx-user-registration/auth_registration_profile_upgrade</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

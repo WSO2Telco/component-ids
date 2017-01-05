@@ -43,13 +43,18 @@ public class ClaimManagementClient {
         option.setProperty(
                 org.apache.axis2.transport.http.HTTPConstants.COOKIE_STRING,
                 sessionCookie);
+        remoteUser._getServiceClient().setOptions(option);
     }
     
     public void setClaim() throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException{
         System.out.println("Remote User "
                 + remoteUser.getProfileNames(DataHolder.getInstance().getMobileConnectConfig().getAdminUrl()));
     }
-    
+
+    public String getRegisteredLOA(String msisdn) throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException{
+
+        return remoteUser.getUserClaimValue(msisdn, "http://wso2.org/claims/loa", "default");
+    }
 
     
 }

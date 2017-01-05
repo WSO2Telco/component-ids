@@ -213,12 +213,13 @@ public final class Constants {
     /**
      * The Constant to hold the view for Consent Authenticator
      */
-    public static final String VIEW_CONSENT = "/mcx-user-registration/auth_consent";
+    public static final String CONSENT_JSP = "/mcx-user-registration/auth_consent";
 
+    public static final String REGISTRATION_JSP = "/mcx-user-registration/auth_registration";
 
-    public static final String VIEW_REGISTRATION_WAITING = "/mcx-user-registration/auth_registration";
+    public static final String PIN_REGISTRATION_WAITING_JSP = "/mcx-user-registration/auth_registration_pin";
 
-    public static final String VIEW_PIN_REGISTRATION_WAITING = "/mcx-user-registration/auth_registration_pin";
+    public static final String PROFILE_UPGRADE_JSP = "/mcx-user-registration/auth_registration_profile_upgrade";
 
     public static final String REDIRECT_URI = "redirectURI";
 
@@ -230,7 +231,9 @@ public final class Constants {
 
     public static final String OPERATOR = "operator";
 
-    public static final String ACR = "acr_code";
+    public static final String ACR = "acr";
+
+    public static final String PARAM_ACR = "acr_values";
 
     public static final String UPDATE_PROFILE = "updateProfile";
 
@@ -269,4 +272,12 @@ public final class Constants {
     public static final String PIN_ATTEMPT = "pinAttempt";
 
     public static final String NO_OF_ATTEMPTS = "noOfAttempts";
+
+    public static final String IS_PROFILE_UPGRADE = "isLoaUpgrade";
+
+    public static final String LOA2 = "2";
+
+    public static final String LOA3 = "3";
+
+    public static final String USSD_PIN_AUTHENTICATOR = "USSDPinAuthenticator";
 }
