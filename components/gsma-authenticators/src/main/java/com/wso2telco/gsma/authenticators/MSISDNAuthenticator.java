@@ -22,9 +22,12 @@ import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.DecryptionAES;
 import com.wso2telco.gsma.authenticators.util.ConfigLoader;
+import com.wso2telco.gsma.manager.client.ClaimManagementClient;
+import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -38,6 +41,7 @@ import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
+import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import javax.crypto.Cipher;
@@ -47,6 +51,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -134,10 +139,21 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        String msisdn = (String) context.getProperty(Constants.MSISDN);
+
+        boolean isProfileUpgrade = false;
         String loginPage;
         try {
-            loginPage = getAuthEndpointUrl(context, msisdn);
+
+            String msisdn = request.getParameter(Constants.MSISDN);
+            int currentLoa = getAcr(request, context);
+
+            if(context.isRetrying()){
+                isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
+            }
+            context.setProperty(Constants.ACR, currentLoa);
+//            setPropertiesToContext(context, msisdn, isProfileUpgrade);
+
+            loginPage = getAuthEndpointUrl(msisdn, isProfileUpgrade);
 
             String queryParams = FrameworkUtils
                     .getQueryStringWithFrameworkContextId(context.getQueryParams(),
@@ -155,19 +171,23 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         } catch (UserStoreException e) {
             e.printStackTrace();
         } catch (IOException e) {
+            log.error("Error occurred while redirecting request", e);
+            throw new AuthenticationFailedException(e.getMessage(), e);
+        } catch (RemoteUserStoreManagerServiceUserStoreExceptionException | LoginAuthenticationExceptionException e) {
+            log.error("Error occurred while accessing admin services", e);
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
     }
 
-    private String getAuthEndpointUrl(AuthenticationContext context, String msisdn) throws UserStoreException, AuthenticationFailedException {
-        String loginPage;
-        if (msisdn != null && !AdminServiceUtil.isUserExists(msisdn)) {
-            context.setProperty(Constants.IS_REGISTERING, true);
-            loginPage = ConfigLoader.mobileConnectConfig.getAuthEndpointUrl() + Constants.VIEW_CONSENT;
+    private int getAcr(HttpServletRequest request, AuthenticationContext context) {
+        int acr;
+
+        if (!context.isRetrying()) {
+            acr = Integer.parseInt(request.getParameter(Constants.PARAM_ACR));
         } else {
-            loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
+            acr = (int) context.getProperty(Constants.ACR);
         }
-        return loginPage;
+        return acr;
     }
 
     /* (non-Javadoc)
@@ -183,14 +203,17 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
         try {
             boolean isUserExists = AdminServiceUtil.isUserExists(msisdn);
+            int currentLoa = (int) context.getProperty(Constants.ACR);
+            boolean isProfileUpgrade = isProfileUpgrade(msisdn, currentLoa);
+
             context.setProperty(Constants.IS_USER_EXISTS, isUserExists);
             context.setProperty(Constants.MSISDN, msisdn);
             context.setProperty(Constants.OPERATOR, operator);
-            context.setProperty(Constants.ACR, request.getParameter(Constants.ACR));
+            context.setProperty(Constants.ACR, currentLoa);
+            context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade);
 
             if (!isUserExists && !context.isRetrying()) {
 
-                log.info("MSISDN Authenticator authentication failed ");
                 context.setProperty("faileduser", msisdn);
                 context.setProperty(Constants.IS_REGISTERING, true);
                 if (log.isDebugEnabled()) {
@@ -201,6 +224,10 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
                 updateDatabase(request, context, msisdn);
 
+            } else if (isUserExists && isProfileUpgrade && !context.isRetrying()) {
+
+                context.setProperty(Constants.IS_REGISTERING, false);
+                throw new AuthenticationFailedException("User exists. Moving for profile updating");
             } else {
                 context.setProperty(Constants.IS_REGISTERING, false);
                 DBUtils.insertLoginStatus(context.getContextIdentifier(), String.valueOf(Constants.STATUS_PENDING));
@@ -221,7 +248,73 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             log.error("Error occurred while saving request type");
         } catch (SQLException | NamingException e) {
             log.error("Error occurred while saving data", e);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+            e.printStackTrace();
+        } catch (LoginAuthenticationExceptionException e) {
+            e.printStackTrace();
         }
+    }
+
+    private void setPropertiesToContext(AuthenticationContext context, String msisdn, boolean isProfileUpgrade) throws UserStoreException,
+            AuthenticationFailedException, RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException,
+            LoginAuthenticationExceptionException {
+
+        if (msisdn != null) {
+
+            boolean isUserExists = AdminServiceUtil.isUserExists(msisdn);
+
+            if (!isUserExists) {
+                context.setProperty(Constants.IS_REGISTERING, true);
+                context.setProperty(Constants.IS_PROFILE_UPGRADE, false);
+            } else {
+                context.setProperty(Constants.IS_REGISTERING, false);
+                if (isProfileUpgrade) {
+                    context.setProperty(Constants.IS_PROFILE_UPGRADE, true);
+                } else {
+                    context.setProperty(Constants.IS_PROFILE_UPGRADE, false);
+                }
+            }
+        }
+    }
+
+    private boolean isProfileUpgrade(String msisdn, int currentLoa) throws RemoteException, LoginAuthenticationExceptionException, RemoteUserStoreManagerServiceUserStoreExceptionException {
+
+        if (msisdn != null) {
+            String adminURL = configurationService.getDataHolder().getMobileConnectConfig().getAdminUrl();
+            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
+            String sessionCookie = lAdmin.authenticate(configurationService.getDataHolder().getMobileConnectConfig().getAdminUsername(),
+                    configurationService.getDataHolder().getMobileConnectConfig().getAdminPassword());
+            ClaimManagementClient claimManager = new ClaimManagementClient(adminURL, sessionCookie);
+            int registeredLoa = Integer.parseInt(claimManager.getRegisteredLOA(msisdn));
+
+            return currentLoa > registeredLoa;
+        } else {
+            return false;
+        }
+
+    }
+
+    private String getAuthEndpointUrl(String msisdn, boolean isProfileUpgrade) throws UserStoreException,
+            AuthenticationFailedException, RemoteException, LoginAuthenticationExceptionException,
+            RemoteUserStoreManagerServiceUserStoreExceptionException {
+
+        String loginPage;
+        if (msisdn != null && !AdminServiceUtil.isUserExists(msisdn)) {
+
+            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.CONSENT_JSP;
+        } else {
+
+            if (isProfileUpgrade) {
+
+                loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl()
+                        + Constants.PROFILE_UPGRADE_JSP;
+            } else {
+                loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
+            }
+        }
+        return loginPage;
     }
 
     private void updateDatabase(HttpServletRequest request, AuthenticationContext context, String msisdn) throws SQLException, NamingException, AuthenticatorException {

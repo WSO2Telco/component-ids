@@ -120,9 +120,6 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         }
 		String flowType = getFlowType(msisdnHeader);
 		String tokenId = request.getParameter("tokenid");
-		boolean userProfileUpdateRequired = isUserProfileUpdateRequired(request, msisdnHeader, selectedLOA);
-		context.setProperty(Constants.USER_PROFILE_UPDATE_REQUIRED, userProfileUpdateRequired);
-
 
         //TODO: get all scope related params. This should be move to a initialization method later
         Map scopeDetail;

@@ -24,7 +24,7 @@ import com.wso2telco.gsma.authenticators.ussd.command.LoginUssdCommand;
 import com.wso2telco.gsma.authenticators.ussd.command.RegistrationUssdCommand;
 import com.wso2telco.gsma.authenticators.ussd.command.UssdCommand;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import com.wso2telco.gsma.authenticators.util.UserProfileUtil;
+import com.wso2telco.gsma.authenticators.util.UserProfileManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
@@ -160,18 +160,14 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
             serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
 
-
             log.info("Service Provider Name = " + serviceProviderName);
             if (serviceProviderName.equals("wso2_sp_dashboard")) {
                 serviceProviderName = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getDashBoard();
 
             }
-            //String operator= request.getParameter("operator");
             String operator = (String) context.getProperty(Constants.OPERATOR);
 
             log.info("operator:" + operator);
-
-//            new SendUSSD().sendUSSD(msisdn, context.getContextIdentifier(), serviceProviderName,operator);
 
             boolean isUserExists = (boolean) context.getProperty(Constants.IS_USER_EXISTS);
             sendUssd(context, msisdn, serviceProviderName, operator, isUserExists);
@@ -193,7 +189,11 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
         if (isRegistering) {
             context.setProperty(Constants.IS_REGISTERING, true);
+<<<<<<< 2836767394972222837143f0d50fdd4d80f3956c
             loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.VIEW_REGISTRATION_WAITING;
+=======
+            loginPage = DataHolder.getInstance().getMobileConnectConfig().getAuthEndpointUrl() + Constants.REGISTRATION_JSP;
+>>>>>>> Added LOA2 to LOA3 registration
         } else {
             loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         }
@@ -237,7 +237,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
                 isAuthenticated = true;
 
                 if (isRegistering) {
-                    UserProfileUtil.createUserProfileLoa2(msisdn, openator, Constants.SCOPE_MNV);
+                    UserProfileManager.createUserProfileLoa2(msisdn, openator, Constants.SCOPE_MNV);
                 }
             }
 
