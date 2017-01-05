@@ -15,18 +15,21 @@
  ******************************************************************************/
 package com.wso2telco;
 
-import java.rmi.RemoteException;
-
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import org.apache.axis2.AxisFault;
+import org.apache.axis2.client.Options;
+import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.context.ServiceContext;
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.wso2.carbon.authenticator.stub.AuthenticationAdminStub;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.authenticator.stub.LogoutAuthenticationExceptionException;
-import org.wso2.carbon.um.ws.api.stub.*;
+import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.um.ws.api.stub.SetUserClaimValues;
-import org.apache.axis2.client.Options;
-import org.apache.axis2.client.ServiceClient;
+
+import java.rmi.RemoteException;
 
 // TODO: Auto-generated Javadoc
 //import org.wso2.
@@ -46,6 +49,9 @@ public class LoginAdminServiceClient {
     
     /** The end point. */
     private String endPoint;
+
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /**
      * Instantiates a new login admin service client.
@@ -112,14 +118,17 @@ public class LoginAdminServiceClient {
      */
     public String LoginUser(String userName,String password) throws RemoteUserStoreManagerServiceUserStoreExceptionException{
         String sessionKey = null;
-        
+
+        // load config values
+        MobileConnectConfig.SessionUpdaterConfig sessionUpdaterConfig = configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig();
+
         //String path = "/home/gayan/Documents/Dev/GSMA/IS_OpenId/testSetup1908/wso2is-5.0.0/repository/resources/security/"
         //        + "wso2carbon.jks";
         
         try {
-                LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(FileUtil.getApplicationProperty("admin_url"));
-                String sessionCookie = lAdmin.authenticate("admin", "admin");
-                ClaimManagementClient claimManager = new ClaimManagementClient(FileUtil.getApplicationProperty("admin_url"),sessionCookie);
+                LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(sessionUpdaterConfig.getAdmin_url());
+                String sessionCookie = lAdmin.authenticate(sessionUpdaterConfig.getAdminusername(), sessionUpdaterConfig.getAdminpassword());
+                ClaimManagementClient claimManager = new ClaimManagementClient(sessionUpdaterConfig.getAdmin_url(), sessionCookie);
                 claimManager.setClaim();
         } catch (AxisFault e) {
                 e.printStackTrace();
