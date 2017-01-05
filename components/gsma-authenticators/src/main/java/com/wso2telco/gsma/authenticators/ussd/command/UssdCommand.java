@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.wso2telco.Util;
 import com.wso2telco.core.config.DataHolder;
-import com.wso2telco.core.config.MobileConnectConfig;
+import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.gsma.authenticators.ussd.USSDRequest;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.logging.Log;
@@ -20,9 +20,9 @@ import java.util.concurrent.CountDownLatch;
 /**
  * Created by isuru on 12/23/16.
  */
-public abstract class SendUssdCommand {
+public abstract class UssdCommand {
 
-    private static Log log = LogFactory.getLog(SendUssdCommand.class);
+    private static Log log = LogFactory.getLog(UssdCommand.class);
 
     public void execute(String msisdn, String sessionID, String serviceProvider, String operator) throws IOException {
         USSDRequest ussdRequest = getUssdRequest(msisdn, sessionID, serviceProvider, operator);
@@ -32,8 +32,6 @@ public abstract class SendUssdCommand {
 
         postRequest(getUrl(msisdn), reqString, operator);
     }
-
-    protected abstract String getAccessToken();
 
     protected abstract String getUrl(String msisdn);
 

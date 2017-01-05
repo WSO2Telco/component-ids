@@ -111,7 +111,6 @@
 	<body>
 
 	<%
-		System.out.println("waiting on login cccccccccccccccccccccccccccccccccc");
 		String sessionDataKey = request.getParameter("sessionDataKey");
 
 		AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(sessionDataKey);

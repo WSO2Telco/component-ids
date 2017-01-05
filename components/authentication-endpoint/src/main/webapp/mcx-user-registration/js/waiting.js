@@ -171,7 +171,7 @@ console.log("Inside checkUSSDResponseStatus-------------------------------");
  			if(result != null) {
  				var responseStatus = result.status; 
 
- 				if(responseStatus != null && responseStatus == STATUS_APPROVED) {
+ 				if(responseStatus != null && responseStatus.toUpperCase() == STATUS_APPROVED.toUpperCase()) {
  					status = result.status;
  					console.log("status : "+status);
  					hasResponse = true;

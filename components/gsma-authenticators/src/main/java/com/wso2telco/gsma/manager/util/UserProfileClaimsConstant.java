@@ -9,5 +9,7 @@ public class UserProfileClaimsConstant {
 	public static final String REG_STATUS="Approved";
 	public static final String AUTH_STATUS="1";
 	public static final String SERVICE_URL="/services/UserRegistrationAdminService";
-	
+
+	public static final int LOA2 = 2;
+	public static final int LOA3 = 3;
 }

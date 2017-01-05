@@ -339,7 +339,10 @@
     /*
      * USSD Pin Registration page 1
      * hide terms
+     *
      */
+
+    console.log('xxxxxxxxxxxxx uoioiuoiuoiuoi :' + acr_code)
     if (acr_code == "USSDPinAuthenticator") {
         term_ussd_pin.style.display = 'none';
         term_ussd.style.display = 'none';
@@ -356,6 +359,7 @@
         term_ussd.style.display = 'block';
     }
 
+    <% System.out.println("xxxxxxxxxxxxxxxxxxxx ssssssssssss :" + updateProfile); %>
     if ('<%=updateProfile%>' == "true") {
         flow();
         term_ussd_pin.style.display = 'none';
@@ -374,7 +378,7 @@
          * USSD Registration or USSD Pin Registration page 1
          * click on YES button
          */
-        if (auth == "LoA3") {
+        if (acr_code == "USSDPinAuthenticator") {
             header.style.display = 'block';
             term_ussd_pin.style.display = 'block';
             term_ussd.style.display = 'none';

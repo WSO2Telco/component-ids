@@ -120,6 +120,12 @@ function registration() {
     var msisdn_header_str = getParameterByName('msisdn_header_str');
     var isUserExists = getParameterByName('isUserExists');
     var acr_code;
+    var selectQ1 ="";
+    var challengeQ1 = "";
+    var selectQ2 = "";
+    var challengeQ2 ="";
+    var challengeA1 = "";
+    var challengeA2 = "";
 
     /*for the inline registration get acr code from acr value and msisdn (username) from token*/
     if (sessionDataKey) {
@@ -131,20 +137,20 @@ function registration() {
     }
 
     if (acr_code == "USSDPinAuthenticator") {
-        var selectQ1 = document.getElementsByName('challengeQuestion1')[0];
-        var challengeQ1 = selectQ1.options[selectQ1.selectedIndex].value;
-        var selectQ2 = document.getElementsByName('challengeQuestion2')[0];
-        var challengeQ2 = selectQ2.options[selectQ2.selectedIndex].value;
 
-        var challengeA1 = document.getElementsByName('challengeAns1')[0].value;
-        var challengeA2 = document.getElementsByName('challengeAns2')[0].value;
+        selectQ1 = document.getElementsByName('challengeQuestion1')[0];
+        challengeQ1 = selectQ1.options[selectQ1.selectedIndex].value;
+        selectQ2 = document.getElementsByName('challengeQuestion2')[0];
+        challengeQ2 = selectQ2.options[selectQ2.selectedIndex].value;
+
+        challengeA1 = document.getElementsByName('challengeAns1')[0].value;
+        challengeA2 = document.getElementsByName('challengeAns2')[0].value;
 
         document.getElementsByName('http://wso2.org/claims/challengeQuestion1')[0].value = challengeQ1 + "!" + challengeA1;
         document.getElementsByName('http://wso2.org/claims/challengeQuestion2')[0].value = challengeQ2 + "!" + challengeA2;
 
     }
 
-    var strBack = "/commonauth";
 
     var values = {};
     values["msisdn"] = msisdn_header_str;
@@ -163,9 +169,18 @@ function registration() {
     values["isHERegistration"] = msisdn_header;
     values["isUserExists"] = isUserExists;
 
+    console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
+    console.log("/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
+        + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true&domain=" + domain
+        + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str + "&pwd=" + pwd
+        + "&challengeQuestion1=" + challengeQ1 + "&challengeQuestion2=" + challengeQ2 + "&challengeAnswer1=" + challengeA1
+        + "&challengeAnswer2=" + challengeA2);
+
     window.location = "/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
         + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true&domain=" + domain
-        + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str + "&pwd=" + pwd;
+        + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str + "&pwd=" + pwd
+        + "&challengeQuestion1=" + challengeQ1 + "&challengeQuestion2=" + challengeQ2 + "&challengeAnswer1=" + challengeA1
+        + "&challengeAnswer2=" + challengeA2;
 
     // var f = document.createElement('form');
     // f.action = '/authenticationendpoint/mcx-user-registration/waiting.jsp';

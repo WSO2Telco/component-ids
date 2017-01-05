@@ -16,15 +16,15 @@
 package com.wso2telco.user.impl;
 
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
+import com.wso2telco.config.ConfigLoader;
+import com.wso2telco.config.DataHolder;
+import com.wso2telco.config.Scope;
+import com.wso2telco.config.ScopeConfigs;
+import com.wso2telco.util.ClaimUtil;
 import org.apache.amber.oauth2.common.utils.JSONUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.codehaus.jettison.json.JSONException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.oauth.cache.AuthorizationGrantCache;
@@ -35,11 +35,7 @@ import org.wso2.carbon.identity.oauth.user.UserInfoEndpointException;
 import org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
 
-import com.wso2telco.config.ConfigLoader;
-import com.wso2telco.config.DataHolder;
-import com.wso2telco.config.Scope;
-import com.wso2telco.config.ScopeConfigs;
-import com.wso2telco.util.ClaimUtil;
+import java.util.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -49,7 +45,7 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
     
     /** The log. */
     private static Log log = LogFactory.getLog(ClaimInfoMultipleScopeResponseBuilder.class);
-    
+
     /** The openid scopes. */
     List<String> openidScopes = Arrays.asList("profile", "email", "address", "phone", "openid");
 

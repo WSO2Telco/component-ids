@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  * 
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,40 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.openidtokenbuilder;
-
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
+package com.wso2telco.exception;
 
 // TODO: Auto-generated Javadoc
 /**
- * The Class Messages.
+ * The Class AuthenticatorException.
  */
-public class Messages {
-	
-	/** The Constant BUNDLE_NAME. */
-	private static final String BUNDLE_NAME = "application"; //$NON-NLS-1$
+public class AuthenticatorException extends Exception {
+    
+    /**
+     * Instantiates a new authenticator exception.
+     */
+    public AuthenticatorException() {
+        super();
+    }
 
-	/** The Constant RESOURCE_BUNDLE. */
-	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME);
+    /**
+     * Instantiates a new authenticator exception.
+     *
+     * @param message the message
+     */
+    public AuthenticatorException(String message) {
+        super(message);
+    }
 
-	/**
-	 * Instantiates a new messages.
-	 */
-	private Messages() {
-	}
-
-	/**
-	 * Gets the string.
-	 *
-	 * @param key the key
-	 * @return the string
-	 */
-	public static String getString(String key) {
-		try {
-			return RESOURCE_BUNDLE.getString(key);
-		} catch (MissingResourceException e) {
-			return '!' + key + '!';
-		}
-	}
+    /**
+     * Instantiates a new authenticator exception.
+     *
+     * @param message the message
+     * @param cause the cause
+     */
+    public AuthenticatorException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

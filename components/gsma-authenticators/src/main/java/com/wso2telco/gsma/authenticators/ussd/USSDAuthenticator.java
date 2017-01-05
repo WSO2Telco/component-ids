@@ -15,16 +15,16 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.ussd;
 
-import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
-import com.wso2telco.gsma.authenticators.ussd.command.SendLoginUssdCommand;
-import com.wso2telco.gsma.authenticators.ussd.command.SendRegistrationUssdCommand;
-import com.wso2telco.gsma.authenticators.ussd.command.SendUssdCommand;
+import com.wso2telco.gsma.authenticators.ussd.command.LoginUssdCommand;
+import com.wso2telco.gsma.authenticators.ussd.command.RegistrationUssdCommand;
+import com.wso2telco.gsma.authenticators.ussd.command.UssdCommand;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import com.wso2telco.gsma.manager.client.UserRegistrationAdminServiceClient;
-import com.wso2telco.gsma.manager.util.UserProfileClaimsConstant;
+import com.wso2telco.gsma.authenticators.util.UserProfileUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
@@ -42,8 +42,6 @@ import org.wso2.carbon.identity.oauth.dao.OAuthAppDAO;
 import org.wso2.carbon.identity.oauth.dao.OAuthAppDO;
 import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
-import org.wso2.carbon.identity.user.registration.stub.dto.UserDTO;
-import org.wso2.carbon.identity.user.registration.stub.dto.UserFieldDTO;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -74,6 +72,9 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
      * The Constant PIN_CLAIM.
      */
     private static final String PIN_CLAIM = "http://wso2.org/claims/pin";
+
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     private static final String CLAIM = "http://wso2.org/claims";
 
@@ -162,7 +163,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
             log.info("Service Provider Name = " + serviceProviderName);
             if (serviceProviderName.equals("wso2_sp_dashboard")) {
-                serviceProviderName = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getDashBoard();
+                serviceProviderName = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getDashBoard();
 
             }
             //String operator= request.getParameter("operator");
@@ -177,7 +178,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
             log.info("query params: " + queryParams);
 
-            log.info("Context_RedirectURI:" + (String) context.getProperty("redirectURI"));
+            log.info("Context_RedirectURI:" + context.getProperty("redirectURI"));
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" + (String) context.getProperty("redirectURI") + "&authenticators="
                     + getName() + ":" + "LOCAL" + retryParam);
 
@@ -192,7 +193,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
         if (isRegistering) {
             context.setProperty(Constants.IS_REGISTERING, true);
-            loginPage = DataHolder.getInstance().getMobileConnectConfig().getAuthEndpointUrl() + Constants.VIEW_REGISTRATION_WAITING;
+            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.VIEW_REGISTRATION_WAITING;
         } else {
             loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         }
@@ -200,14 +201,14 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
     }
 
     private void sendUssd(AuthenticationContext context, String msisdn, String serviceProviderName, String operator, boolean isUserExists) throws IOException {
-        SendUssdCommand sendUssdCommand;
+        UssdCommand ussdCommand;
 
         if (isUserExists) {
-            sendUssdCommand = new SendLoginUssdCommand();
+            ussdCommand = new LoginUssdCommand();
         } else {
-            sendUssdCommand = new SendRegistrationUssdCommand();
+            ussdCommand = new RegistrationUssdCommand();
         }
-        sendUssdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator);
+        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator);
     }
 
     /* (non-Javadoc)
@@ -236,7 +237,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
                 isAuthenticated = true;
 
                 if (isRegistering) {
-                    createUserProfile(msisdn, openator, Constants.SCOPE_MNV);
+                    UserProfileUtil.createUserProfileLoa2(msisdn, openator, Constants.SCOPE_MNV);
                 }
             }
 
@@ -270,75 +271,6 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         }
     }
 
-    public boolean createUserProfile(String username, String operator, String scope) throws UserRegistrationAdminServiceIdentityException, RemoteException {
-        boolean isNewUser = false;
-
-                    /* reading admin url from application properties */
-        String adminURL = DataHolder.getInstance().getMobileConnectConfig().getAdminUrl() +
-                UserProfileClaimsConstant.SERVICE_URL;
-        if (log.isDebugEnabled()) {
-            log.debug(adminURL);
-        }
-            /*  getting user registration admin service */
-        UserRegistrationAdminServiceClient userRegistrationAdminServiceClient = new UserRegistrationAdminServiceClient(
-                adminURL);
-
-                    /*  by sending the claim dialects, gets existing claims list */
-        UserFieldDTO[] userFieldDTOs = new UserFieldDTO[0];
-        try {
-            userFieldDTOs = userRegistrationAdminServiceClient
-                    .readUserFieldsForUserRegistration(CLAIM);
-        } catch (UserRegistrationAdminServiceIdentityException e) {
-            log.error("UserRegistrationAdminServiceIdentityException : " + e.getMessage());
-        } catch (RemoteException e) {
-            log.error("RemoteException : " + e.getMessage());
-        }
-
-
-        for (int count = 0; count < userFieldDTOs.length; count++) {
-
-            if (OPERATOR_CLAIM_NAME.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
-                userFieldDTOs[count].setFieldValue(operator);
-            } else if (LOA_CLAIM_NAME.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
-
-                if (scope.equals(SCOPE_CPI)) {
-                    userFieldDTOs[count].setFieldValue(LOA_CPI_VALUE);
-                } else if (scope.equals(SCOPE_MNV)) {
-                    userFieldDTOs[count].setFieldValue(LOA_MNV_VALUE);
-                } else {
-                    //nop
-                }
-
-            } else if (MOBILE_CLAIM_NAME.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
-                userFieldDTOs[count].setFieldValue(username);
-            } else {
-                userFieldDTOs[count].setFieldValue("");
-            }
-
-            if (log.isDebugEnabled()) {
-                log.debug("Value :" + userFieldDTOs[count].getFieldValue() + " : Claim " + userFieldDTOs[count].getClaimUri() + " : Name " + userFieldDTOs[count].getFieldName());
-            }
-        }
-        // setting properties of user DTO
-        UserDTO userDTO = new UserDTO();
-        userDTO.setOpenID(SCOPE_OPENID);
-        userDTO.setPassword(DataHolder.getInstance().getMobileConnectConfig().getAdminPassword());
-        userDTO.setUserFields(userFieldDTOs);
-        userDTO.setUserName(username);
-
-        // add user DTO to the user registration admin service client
-        try {
-            userRegistrationAdminServiceClient.addUser(userDTO);
-
-            log.info("User successfully added [ " + username + " ] ");
-
-            isNewUser = true;
-        } catch (Exception e) {
-            log.error("Error occurred while adding User", e);
-        }
-
-        return isNewUser;
-    }
 
     private String getResponseStatus(AuthenticationContext context, String sessionDataKey) throws AuthenticatorException {
         String responseStatus;

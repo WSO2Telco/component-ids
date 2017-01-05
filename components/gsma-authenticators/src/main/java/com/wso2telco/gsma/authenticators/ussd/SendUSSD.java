@@ -18,24 +18,24 @@ package com.wso2telco.gsma.authenticators.ussd;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.wso2telco.core.config.DataHolder;
-import com.wso2telco.core.config.MobileConnectConfig;
+import com.wso2telco.Util;
 import com.wso2telco.core.config.ReadMobileConnectConfig;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.OutboundUSSDMessageRequest;
 import com.wso2telco.gsma.authenticators.model.ResponseRequest;
 import com.wso2telco.gsma.authenticators.util.Application;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.entity.StringEntity;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-
-import com.wso2telco.Util;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -45,7 +45,10 @@ public class SendUSSD {
 
     /** The log. */
     private static Log log = LogFactory.getLog(SendUSSD.class);
-    
+
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
     /** The ussd config. */
     private MobileConnectConfig.USSDConfig ussdConfig;
     
@@ -66,7 +69,7 @@ public class SendUSSD {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     protected void sendUSSD(String msisdn, String sessionID, String serviceProvider,String operator) throws IOException {
-        ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
+        ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
 
         USSDRequest req = new USSDRequest();
 
@@ -79,7 +82,7 @@ public class SendUSSD {
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
         ResponseRequest responseRequest = new ResponseRequest();
-        responseRequest.setNotifyURL(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getUssdContextEndpoint());
+        responseRequest.setNotifyURL(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getUssdContextEndpoint());
         responseRequest.setCallbackData("");
 
         outboundUSSDMessageRequest.setResponseRequest(responseRequest);
@@ -117,7 +120,7 @@ public class SendUSSD {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     protected void sendUSSDPIN(String msisdn, String sessionID, String serviceProvider,String operator) throws IOException {
-        ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
+        ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
         Map<String, String> readMobileConnectConfigResult=null;
         ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
         try {
@@ -136,7 +139,7 @@ public class SendUSSD {
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
         ResponseRequest responseRequest = new ResponseRequest();
-        responseRequest.setNotifyURL(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getUssdPinContextEndpoint());
+        responseRequest.setNotifyURL(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getUssdPinContextEndpoint());
         responseRequest.setCallbackData("");
 
         outboundUSSDMessageRequest.setResponseRequest(responseRequest);

@@ -15,15 +15,14 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
-
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.ScopeParam;
+import com.wso2telco.gsma.authenticators.ussd.Pinresponse;
+import com.wso2telco.gsma.authenticators.util.TableName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
-
-import com.wso2telco.gsma.authenticators.ussd.Pinresponse;
-import com.wso2telco.gsma.authenticators.util.TableName;
-import com.wso2telco.core.config.DataHolder;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -66,7 +65,8 @@ public class DBUtils {
         String dataSourceName = null;
         try {
             Context ctx = new InitialContext();
-            dataSourceName = DataHolder.getInstance().getMobileConnectConfig().getDataSourceName();
+            ConfigurationService configurationService = new ConfigurationServiceImpl();
+            dataSourceName = configurationService.getDataHolder().getMobileConnectConfig().getDataSourceName();
             mConnectDatasource = (DataSource) ctx.lookup(dataSourceName);
         } catch (NamingException e) {
             handleException("Error while looking up the data source: " + dataSourceName, e);
@@ -206,6 +206,7 @@ public class DBUtils {
         }
         return userResponse;
     }
+
     /**
      * Gets the user pin response.
      *
@@ -535,7 +536,7 @@ public class DBUtils {
         log.info(ps.toString());
         ps.execute();
 
-        if(connection != null){
+        if (connection != null) {
             connection.close();
         }
     }
@@ -559,8 +560,8 @@ public class DBUtils {
             connection.close();
         }
     }
-
-    /**
+  
+   /**
      * Get a map of parameters mapped to a scope
      *
      * @return map of scope vs parameters
@@ -602,5 +603,115 @@ public class DBUtils {
         }
         return scopeParamsMap;
     }
+  
+     public static int readPinAttempts(String sessionId) throws SQLException, AuthenticatorException {
 
+        Connection connection;
+        PreparedStatement ps;
+        int noOfAttempts = 0;
+        ResultSet rs;
+
+        String sql = "select attempts from `multiplepasswords` where " + "ussdsessionid=?;";
+
+        connection = getConnectDBConnection();
+
+        ps = connection.prepareStatement(sql);
+
+        ps.setString(1, sessionId);
+
+        rs = ps.executeQuery();
+
+        while (rs.next()) {
+            noOfAttempts = rs.getInt("attempts");
+        }
+        if (connection != null) {
+            connection.close();
+        }
+
+        return noOfAttempts;
+    }
+
+    public static void updateMultiplePasswordNoOfAttempts(String username, int attempts) throws SQLException, AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+
+        String sql = "update `multiplepasswords` set  attempts=? where  username=?;";
+
+        connection = getConnectDBConnection();
+
+        ps = connection.prepareStatement(sql);
+
+        ps.setInt(1, attempts);
+        ps.setString(2, username);
+        log.info(ps.toString());
+        ps.execute();
+
+        if (connection != null) {
+            connection.close();
+        }
+    }
+
+    public static void incrementPinAttempts(String sessionId) throws SQLException, AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+
+        String sql = "update multiplepasswords set attempts=attempts +1 where ussdsessionid = ?;";
+
+        connection = getConnectDBConnection();
+
+        ps = connection.prepareStatement(sql);
+
+        ps.setString(1, sessionId);
+        log.info(ps.toString());
+        ps.execute();
+
+        if (connection != null) {
+            connection.close();
+        }
+    }
+
+    public static void updatePin(int pin, String sessionId) throws SQLException, AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+
+        String sql = "update multiplepasswords set pin=? where ussdsessionid = ?;";
+
+        connection = getConnectDBConnection();
+
+        ps = connection.prepareStatement(sql);
+
+        ps.setInt(1, pin);
+        ps.setString(2, sessionId);
+        log.info(ps.toString());
+        ps.execute();
+
+        if (connection != null) {
+            connection.close();
+        }
+    }
+
+    public static void insertPinAttempt(String msisdn, int attempts, String sessionId) throws SQLException, AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+
+        String sql = "insert into multiplepasswords(username, attempts, ussdsessionid) values  (?,?,?);";
+
+        connection = getConnectDBConnection();
+
+        ps = connection.prepareStatement(sql);
+
+        ps.setString(1, msisdn);
+        ps.setInt(2, attempts);
+        ps.setString(3, sessionId);
+        log.info(ps.toString());
+        ps.execute();
+
+        if (connection != null) {
+            connection.close();
+        }
+    }
 }
