@@ -73,7 +73,9 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
      */
     private static final String PIN_CLAIM = "http://wso2.org/claims/pin";
 
-    /** The Configuration service */
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     private static final String CLAIM = "http://wso2.org/claims";
@@ -102,10 +104,6 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         if (log.isDebugEnabled()) {
             log.debug("USSD Authenticator canHandle invoked");
         }
-
-//        if (request.getParameter("msisdn") != null) {
-//            return true;
-//        }
         return true;
     }
 
@@ -133,32 +131,17 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
 
         String loginPage;
-        String queryParams = FrameworkUtils
-                .getQueryStringWithFrameworkContextId(context.getQueryParams(),
-                        context.getCallerSessionKey(),
-                        context.getContextIdentifier());
+        String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
+                context.getCallerSessionKey(), context.getContextIdentifier());
+
+        String msisdn = (String) context.getProperty(Constants.MSISDN);
+        boolean isUserExists = (boolean) context.getProperty(Constants.IS_USER_EXISTS);
+        String serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
 
         try {
             String retryParam = "";
 
-            if (context.isRetrying()) {
-                retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
-            } else {
-                // todo : This is moved to Msisdn Authenticator. Remove if required
-//                DBUtils.insertUserResponse(context.getContextIdentifier(), String.valueOf(UserResponse.PENDING));
-            }
-
-            //MSISDN will be saved in the context in the MSISDNAuthenticator
-            String msisdn = (String) context.getProperty(Constants.MSISDN);
-
             loginPage = getAuthEndpointUrl(context);
-            //String pinEnabled = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinauth();
-            String ussdResponse = null;
-
-            //Changing SP dashboard Name
-            String serviceProviderName = null;
-
-            serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
 
             log.info("Service Provider Name = " + serviceProviderName);
             if (serviceProviderName.equals("wso2_sp_dashboard")) {
@@ -169,7 +152,6 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
             log.info("operator:" + operator);
 
-            boolean isUserExists = (boolean) context.getProperty(Constants.IS_USER_EXISTS);
             sendUssd(context, msisdn, serviceProviderName, operator, isUserExists);
 
             log.info("query params: " + queryParams);
@@ -189,11 +171,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
         if (isRegistering) {
             context.setProperty(Constants.IS_REGISTERING, true);
-<<<<<<< 2836767394972222837143f0d50fdd4d80f3956c
-            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.VIEW_REGISTRATION_WAITING;
-=======
-            loginPage = DataHolder.getInstance().getMobileConnectConfig().getAuthEndpointUrl() + Constants.REGISTRATION_JSP;
->>>>>>> Added LOA2 to LOA3 registration
+            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.REGISTRATION_JSP;
         } else {
             loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         }
@@ -224,21 +202,22 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         String openator = (String) context.getProperty(Constants.OPERATOR);
 
-        boolean isAuthenticated = false;
-
-        // Check if the user has provided consent
         try {
-
-            //String pinEnabled = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinauth();
-
             String responseStatus = getResponseStatus(context, sessionDataKey);
 
             if (responseStatus != null && responseStatus.equalsIgnoreCase(UserResponse.APPROVED.toString())) {
-                isAuthenticated = true;
 
                 if (isRegistering) {
                     UserProfileManager.createUserProfileLoa2(msisdn, openator, Constants.SCOPE_MNV);
                 }
+            } else {
+                log.info("USSD Authenticator authentication failed ");
+                context.setProperty("faileduser", (String) context.getProperty("msisdn"));
+
+                if (log.isDebugEnabled()) {
+                    log.debug("User authentication failed due to user not providing consent.");
+                }
+                throw new AuthenticationFailedException("Authentication Failed");
             }
 
         } catch (AuthenticatorException e) {
@@ -246,24 +225,9 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         } catch (UserRegistrationAdminServiceIdentityException | RemoteException e) {
             throw new AuthenticationFailedException("Error occurred while creating user profile", e);
         }
-
-        if (!isAuthenticated) {
-            log.info("USSD Authenticator authentication failed ");
-            context.setProperty("faileduser", (String) context.getProperty("msisdn"));
-
-            if (log.isDebugEnabled()) {
-                log.debug("User authentication failed due to user not providing consent.");
-            }
-
-            throw new AuthenticationFailedException("Authentication Failed");
-        }
-//        AuthenticatedUser user=new AuthenticatedUser();
-//        context.setSubject(user);
         AuthenticationContextHelper.setSubject(context, msisdn);
 
         log.info("USSD Authenticator authentication success");
-
-//        context.setSubject(msisdn);
         String rememberMe = request.getParameter("chkRemember");
 
         if (rememberMe != null && "on".equals(rememberMe)) {
