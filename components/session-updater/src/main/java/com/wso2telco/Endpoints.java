@@ -18,7 +18,10 @@ package com.wso2telco;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.PinConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.cryptosystem.AESencrp;
 import com.wso2telco.entity.LoginHistory;
 import com.wso2telco.exception.AuthenticatorException;
@@ -108,6 +111,9 @@ public class Endpoints {
      * The log.
      */
     private static Log log = LogFactory.getLog(Endpoints.class);
+
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /**
      * The ussd no of attempts.
@@ -245,7 +251,7 @@ public class Endpoints {
 
         USSDRequest ussdRequest;
         String response;
-        String message = ReadMobileConnectConfig.readUssdConfig(Constants.PIN_REG_SUCCESS);
+        String message = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinRegistrationSuccessMessage();
         ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, message);
         response = gson.toJson(ussdRequest);
 
@@ -257,7 +263,7 @@ public class Endpoints {
 
         USSDRequest ussdRequest;
         String response;
-        String ussdMessage = ReadMobileConnectConfig.readUssdConfig(Constants.PIN_CONFIRM_MSG);
+        String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinConfirmMessage();
         ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
 
         pinConfig.setCurrentStep(PinConfig.CurrentStep.CONFIRMATION);
@@ -272,14 +278,14 @@ public class Endpoints {
         USSDRequest ussdRequest;
         String response;
 
-        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(ReadMobileConnectConfig.readUssdConfig("PinMismatchAttempts"))) {
-            String ussdMessage = ReadMobileConnectConfig.readUssdConfig(Constants.PIN_MISMATCH);
+        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts())) {
+            String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchMessage();
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
             response = gson.toJson(ussdRequest);
 
             log.info("Pin mismatch detected. Sending retry pin message [ " + ussdMessage + " ]");
         } else {
-            String ussdMessage = ReadMobileConnectConfig.readUssdConfig(Constants.ERROR_PIN_MISMATCH_EXCEED);
+            String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchAttemptsExceedMessage();
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
             response = gson.toJson(ussdRequest);
 
@@ -298,14 +304,13 @@ public class Endpoints {
         USSDRequest ussdRequest;
         String response;
 
-        if (pinConfig.getInvalidFormatAttempts() < Integer.parseInt(ReadMobileConnectConfig
-                .readUssdConfig("InvalidFormatPinAttempts"))) {
-            String message = ReadMobileConnectConfig.readUssdConfig(Constants.PIN_INVALID_FORMAT);
+        if (pinConfig.getInvalidFormatAttempts() < Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getInvalidFormatPinAttempts())) {
+            String message = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinInvalidFormatMessage();
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, message);
 
             log.info("Invalid pin. Sending retry pin message [ " + message + " ]");
         } else {
-            String ussdMessage = ReadMobileConnectConfig.readUssdConfig(Constants.ERROR_PIN_FORMAT_EXCEED);
+            String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinInvalidFormatAttemptsExceedMessage();
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
 
             DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
@@ -338,7 +343,7 @@ public class Endpoints {
 
     private boolean isValidPinFormat(String pin) {
 
-        if (pin.matches("[0-9]+") && pin.length() <= Integer.parseInt(ReadMobileConnectConfig.readUssdConfig(Constants.KEY_MAX_LENGTH))) {
+        if (pin.matches("[0-9]+") && pin.length() <= Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMaxLength())) {
             return true;
         } else {
             return false;
@@ -447,15 +452,18 @@ public class Endpoints {
      */
     private String validatePIN(String pin, String sessionID, String msisdn) {
 
+        // load config values
+        MobileConnectConfig.SessionUpdaterConfig sessionUpdaterConfig = configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig();
+
         log.info("pin : " + pin);
         log.info("sessionID : " + sessionID);
         log.info("msisdn : " + msisdn);
 
         String responseString = null;
         try {
-            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(FileUtil.getApplicationProperty("admin_url"));
-            String sessionCookie = lAdmin.authenticate(FileUtil.getApplicationProperty("adminusername"), FileUtil.getApplicationProperty("adminpassword"));
-            ClaimManagementClient claimManager = new ClaimManagementClient(FileUtil.getApplicationProperty("admin_url"), sessionCookie);
+            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(sessionUpdaterConfig.getAdmin_url());
+            String sessionCookie = lAdmin.authenticate(sessionUpdaterConfig.getAdminusername(), sessionUpdaterConfig.getAdminpassword());
+            ClaimManagementClient claimManager = new ClaimManagementClient(sessionUpdaterConfig.getAdmin_url(), sessionCookie);
             String profilePin = claimManager.getPIN(msisdn);
             String hashedUserPin = getHashedPin(pin);
             if (hashedUserPin != null && profilePin != null && profilePin.equals(hashedUserPin)) {
@@ -468,7 +476,7 @@ public class Endpoints {
                     log.info("responseString 01: " + responseString);
                     DatabaseUtils.updateMultiplePasswordNoOfAttempts(sessionID, noOfAttempts + 1);
                 } else {//lock user
-                    UserIdentityManagementClient identityClient = new UserIdentityManagementClient(FileUtil.getApplicationProperty("admin_url"), sessionCookie);
+                    UserIdentityManagementClient identityClient = new UserIdentityManagementClient(sessionUpdaterConfig.getAdmin_url(), sessionCookie);
                     identityClient.lockUser(msisdn);
                     DatabaseUtils.deleteUser(sessionID);
                 }
@@ -502,12 +510,16 @@ public class Endpoints {
      * @return the string
      */
     private String validatePIN(String pin, String sessionID, String msisdn, String ussdSessionID) {
+
+        // load config values
+        MobileConnectConfig.SessionUpdaterConfig sessionUpdaterConfig = configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig();
+
         String responseString = null;
         try {
             log.info("####### validatePIN  : ");
-            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(FileUtil.getApplicationProperty("admin_url"));
-            String sessionCookie = lAdmin.authenticate(FileUtil.getApplicationProperty("adminusername"), FileUtil.getApplicationProperty("adminpassword"));
-            ClaimManagementClient claimManager = new ClaimManagementClient(FileUtil.getApplicationProperty("admin_url"), sessionCookie);
+            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(sessionUpdaterConfig.getAdmin_url());
+            String sessionCookie = lAdmin.authenticate(sessionUpdaterConfig.getAdminusername(), sessionUpdaterConfig.getAdminpassword());
+            ClaimManagementClient claimManager = new ClaimManagementClient(sessionUpdaterConfig.getAdmin_url(), sessionCookie);
             String profilePin = claimManager.getPIN(msisdn);
 
             String hashedUserPin = getHashedPin(pin);
@@ -825,17 +837,17 @@ public class Endpoints {
 
         OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
         outboundUSSDMessageRequest.setAddress("tel:+" + msisdn);
-        outboundUSSDMessageRequest.setShortCode(ReadMobileConnectConfig.readUssdConfig(Constants.SHORT_CODE));
-        outboundUSSDMessageRequest.setKeyword(ReadMobileConnectConfig.readUssdConfig(Constants.KEY_WORD));
+        outboundUSSDMessageRequest.setShortCode(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getShortCode());
+        outboundUSSDMessageRequest.setKeyword(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getKeyword());
         outboundUSSDMessageRequest.setSessionID(ussdSessionID);
 
-        outboundUSSDMessageRequest.setOutboundUSSDMessage(ReadMobileConnectConfig.readUssdConfig(Constants.PIN_CONFIRM_MSG));
+        outboundUSSDMessageRequest.setOutboundUSSDMessage(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinConfirmMessage());
 
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
         ResponseRequest responseRequest = new ResponseRequest();
 
-        responseRequest.setNotifyURL(ReadMobileConnectConfig.readUssdConfig(Constants.PIN_REG_NOTIFY_URL));
+        responseRequest.setNotifyURL(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinRegistrationNotifyUrl());
         responseRequest.setCallbackData("");
 
         outboundUSSDMessageRequest.setResponseRequest(responseRequest);
@@ -853,17 +865,17 @@ public class Endpoints {
 
         OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
         outboundUSSDMessageRequest.setAddress("tel:+" + msisdn);
-        outboundUSSDMessageRequest.setShortCode(ReadMobileConnectConfig.readUssdConfig(Constants.SHORT_CODE));
-        outboundUSSDMessageRequest.setKeyword(ReadMobileConnectConfig.readUssdConfig(Constants.KEY_WORD));
+        outboundUSSDMessageRequest.setShortCode(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getShortCode());
+        outboundUSSDMessageRequest.setKeyword(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getKeyword());
         outboundUSSDMessageRequest.setSessionID(ussdSessionID);
 
-        outboundUSSDMessageRequest.setOutboundUSSDMessage(ReadMobileConnectConfig.readUssdConfig(message));
+        outboundUSSDMessageRequest.setOutboundUSSDMessage(message);
 
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
         ResponseRequest responseRequest = new ResponseRequest();
 
-        responseRequest.setNotifyURL(ReadMobileConnectConfig.readUssdConfig(Constants.PIN_REG_NOTIFY_URL));
+        responseRequest.setNotifyURL(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getRegistrationNotifyUrl());
         responseRequest.setCallbackData("");
 
         outboundUSSDMessageRequest.setResponseRequest(responseRequest);
@@ -880,17 +892,17 @@ public class Endpoints {
 
         OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
         outboundUSSDMessageRequest.setAddress("tel:+" + msisdn);
-        outboundUSSDMessageRequest.setShortCode(ReadMobileConnectConfig.readUssdConfig(Constants.SHORT_CODE));
-        outboundUSSDMessageRequest.setKeyword(ReadMobileConnectConfig.readUssdConfig(Constants.KEY_WORD));
+        outboundUSSDMessageRequest.setShortCode(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getShortCode());
+        outboundUSSDMessageRequest.setKeyword(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getKeyword());
         outboundUSSDMessageRequest.setSessionID(ussdSessionID);
 
-        outboundUSSDMessageRequest.setOutboundUSSDMessage(ReadMobileConnectConfig.readUssdConfig(Constants.PIN_INVALID_FORMAT));
+        outboundUSSDMessageRequest.setOutboundUSSDMessage(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinInvalidFormatMessage());
 
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
         ResponseRequest responseRequest = new ResponseRequest();
 
-        responseRequest.setNotifyURL(ReadMobileConnectConfig.readUssdConfig(Constants.PIN_REG_NOTIFY_URL));
+        responseRequest.setNotifyURL(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinRegistrationNotifyUrl());
         responseRequest.setCallbackData("");
 
         outboundUSSDMessageRequest.setResponseRequest(responseRequest);
