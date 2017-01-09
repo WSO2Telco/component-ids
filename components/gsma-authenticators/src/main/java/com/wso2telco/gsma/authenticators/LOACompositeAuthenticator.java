@@ -23,6 +23,7 @@ import com.wso2telco.gsma.LoginAdminServiceClient;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import com.wso2telco.gsma.authenticators.model.ScopeParam;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.gsma.authenticators.util.MobileConnectConfig;
 import org.apache.axis2.AxisFault;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -53,6 +54,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.rmi.RemoteException;
+import java.sql.SQLException;
 import java.util.*;
 
  
@@ -109,6 +111,8 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		}
 		boolean isLogin = false;
 		boolean isAuthenticated;
+		String mobileNetworkOperator = request.getParameter("operator");
+		String serviceProvider = request.getParameter("client_id");
 		//Unregister Customer Token
 		String msisdn = request.getParameter("msisdn");
         if (StringUtils.isEmpty(msisdn)) {
@@ -232,65 +236,85 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
 			int stepOrder = 2;
 
+			boolean isMNOBasedAuthenticatorSelectionEnabled = isMNObasedAunthenticatorSelectionEnabled();
+			boolean isSPBasedAuthenticationSelectionEnabled = isSPBasedAuthenticatorSelectionEnabled();
+
+			Set<String> authenticatorsAllowedForMNO = null;
+			Set<String> authenticatorsAllowedForSP = null;
+			if (isMNOBasedAuthenticatorSelectionEnabled) {
+				try {
+					authenticatorsAllowedForMNO = DBUtils.getAllowedAuthenticatorSetForMNO(mobileNetworkOperator);
+				} catch (AuthenticatorException e) {
+					throw new AuthenticationFailedException(e.getMessage(), e);
+				}
+			}
+
+			if (isSPBasedAuthenticationSelectionEnabled) {
+				try {
+					authenticatorsAllowedForSP = DBUtils.getAllowedAuthenticatorSetForSP(serviceProvider);
+				} catch (AuthenticatorException e) {
+					throw new AuthenticationFailedException(e.getMessage(), e);
+				}
+			}
 			while (true) {
 				List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList =
 						mifeAuthentication.getAuthenticatorList();
 				String fallBack = mifeAuthentication.getLevelToFail();
 
 				for (MIFEAuthentication.MIFEAbstractAuthenticator authenticator : authenticatorList) {
-					String onFailAction = authenticator.getOnFailAction();
-					String supportiveFlow = authenticator.getSupportFlow();
-					if (supportiveFlow.equals("any") || supportiveFlow.equals(flowType)) {
+					if (isAuthenticatorAllowedForMNOAndSP(isMNOBasedAuthenticatorSelectionEnabled,
+							isSPBasedAuthenticationSelectionEnabled, authenticatorsAllowedForMNO,
+							authenticatorsAllowedForSP, authenticator)) {
+						String onFailAction = authenticator.getOnFailAction();
+						String supportiveFlow = authenticator.getSupportFlow();
+						if (supportiveFlow.equals("any") || supportiveFlow.equals(flowType)) {
+							StepConfig stepConfig = new StepConfig();
+							stepConfig.setOrder(stepOrder);
+							if (stepOrder == 2) {
+								stepConfig.setSubjectAttributeStep(true);
+								stepConfig.setSubjectIdentifierStep(true);
+							}
 
-						StepConfig stepConfig = new StepConfig();
-						stepConfig.setOrder(stepOrder);
-						if (stepOrder == 2) {
-							stepConfig.setSubjectAttributeStep(true);
-							stepConfig.setSubjectIdentifierStep(true);
+							List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
+							if (authenticatorConfigs == null) {
+								authenticatorConfigs = new ArrayList<AuthenticatorConfig>();
+								stepConfig.setAuthenticatorList(authenticatorConfigs);
+							}
+
+							String authenticatorName = authenticator.getAuthenticator();
+							ApplicationAuthenticator applicationAuthenticator = FrameworkUtils
+									.getAppAuthenticatorByName(authenticatorName);
+							AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
+							authenticatorConfig.setName(authenticatorName);
+							authenticatorConfig.setApplicationAuthenticator(applicationAuthenticator);
+
+							Map<String, String> parameterMap = new HashMap<String, String>();
+							parameterMap.put("currentLOA", selectedLOA);
+							parameterMap.put("fallBack", (null != fallBack) ? fallBack : "");
+							parameterMap.put("onFail", (null != onFailAction) ? onFailAction : "");
+							//						parameterMap
+							//								.put("isLastAuthenticator",
+							//								     (authenticatorList.indexOf(authenticator) == authenticatorList.size() - 1) ?
+							//										     "true"
+							//										     : "false");
+							authenticatorConfig.setParameterMap(parameterMap);
+
+							stepConfig.getAuthenticatorList().add(authenticatorConfig);
+							stepMap.put(stepOrder, stepConfig);
+
+							stepOrder++;
+						} else {
+							if (!StringUtils.isEmpty(fallBack)) {
+								selectedLOA = fallBack;
+								mifeAuthentication = authenticationMap.get(selectedLOA);
+							}
+							break;
 						}
-
-						List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
-						if (authenticatorConfigs == null) {
-							authenticatorConfigs = new ArrayList<AuthenticatorConfig>();
-							stepConfig.setAuthenticatorList(authenticatorConfigs);
-						}
-
-						String authenticatorName = authenticator.getAuthenticator();
-						ApplicationAuthenticator applicationAuthenticator = FrameworkUtils.getAppAuthenticatorByName(
-								authenticatorName);
-						AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
-						authenticatorConfig.setName(authenticatorName);
-						authenticatorConfig.setApplicationAuthenticator(applicationAuthenticator);
-
-						Map<String, String> parameterMap = new HashMap<String, String>();
-						parameterMap.put("currentLOA", selectedLOA);
-						parameterMap.put("fallBack", (null != fallBack) ? fallBack : "");
-						parameterMap.put("onFail", (null != onFailAction) ? onFailAction : "");
-//						parameterMap
-//								.put("isLastAuthenticator",
-//								     (authenticatorList.indexOf(authenticator) == authenticatorList.size() - 1) ?
-//										     "true"
-//										     : "false");
-						authenticatorConfig.setParameterMap(parameterMap);
-
-						stepConfig.getAuthenticatorList().add(authenticatorConfig);
-						stepMap.put(stepOrder, stepConfig);
-
-						stepOrder++;
-					} else {
-						if (StringUtils.isEmpty(fallBack)) {
-							selectedLOA = fallBack;
-							mifeAuthentication = authenticationMap.get(selectedLOA);
-						}
-						break;
 					}
 				}
-				// increment LOA to fallBack level
 				if (null == fallBack) {
 					break;
 				}
-				selectedLOA = fallBack;
-				mifeAuthentication = authenticationMap.get(selectedLOA);
 			}
 			sequenceConfig.setStepMap(stepMap);
 			context.setSequenceConfig(sequenceConfig);
@@ -384,5 +408,34 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         }
         return userProfileUpdateRequired;
     }
+
+	private boolean isAuthenticatorAllowedForMNOAndSP(
+			boolean isMNObasedAunthenticatorSelectionEnabled, boolean isSPBasedAuthenticatorSelectionEnabled,
+			Set<String> allowedAuthenticatorMapForMNO, Set<String> allowedAuthenticatorMapForSP,
+			MIFEAuthentication.MIFEAbstractAuthenticator authenticator) {
+		boolean isAuthenticatorAllowedForMNO = true, isAuthenticatorAllowedForSP = true;
+
+		if (isMNObasedAunthenticatorSelectionEnabled
+				&& !allowedAuthenticatorMapForMNO.contains(authenticator.getAuthenticator())) {
+			isAuthenticatorAllowedForMNO = false;
+		}
+
+		if (isSPBasedAuthenticatorSelectionEnabled
+				&& !allowedAuthenticatorMapForSP.contains(authenticator.getAuthenticator())) {
+			isAuthenticatorAllowedForSP = false;
+		}
+
+		return isAuthenticatorAllowedForMNO && isAuthenticatorAllowedForSP;
+	}
+
+	private boolean isMNObasedAunthenticatorSelectionEnabled() {
+		return "true".equals(configurationService.getDataHolder().getMobileConnectConfig()
+				.getAuthenticatorSelectionConfig().getMobileNetworkOperatorBasedSelectionEnabled());
+	}
+
+	private boolean isSPBasedAuthenticatorSelectionEnabled() {
+		return "true".equals(configurationService.getDataHolder().getMobileConnectConfig()
+				.getAuthenticatorSelectionConfig().getServiceProviderBasedSelectionEnabled());
+	}
 
 }
