@@ -1,5 +1,7 @@
 package com.wso2telco.gsma.authenticators.model;
 
+import java.util.List;
+
 public class ScopeParam {
 
     public enum msisdnMismatchResultTypes {
@@ -7,21 +9,16 @@ public class ScopeParam {
         OFFNET_FALLBACK
     }
 
-    public enum loginHintFormat {
-        PLAINTEXT,
-        ENCRYPTED;
-    }
-
     private boolean isLoginHintMandatory;
-    private loginHintFormat loginHintFormat;
+    private List<LoginHintFormatDetails> loginHintFormat;
     private boolean isTncVisible;
     private msisdnMismatchResultTypes msisdnMismatchResult;
 
-    public void setLoginHintFormat(ScopeParam.loginHintFormat loginHintFormat) {
+    public void setLoginHintFormat(List<LoginHintFormatDetails> loginHintFormat) {
         this.loginHintFormat = loginHintFormat;
     }
 
-    public ScopeParam.loginHintFormat getLoginHintFormat() {
+    public List<LoginHintFormatDetails> getLoginHintFormat() {
         return loginHintFormat;
     }
 
