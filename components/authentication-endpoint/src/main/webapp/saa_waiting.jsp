@@ -1,4 +1,4 @@
-<%@ page import="org.wso2.carbon.identity.application.authentication.endpoint.util.ReadMobileConnectConfig" %>
+<%@ page import="com.wso2telco.identity.application.authentication.endpoint.util.ReadMobileConnectConfig" %>
 <input type="hidden" name="sessionDataKey" id="sessionDataKey" value='<%=request.getParameter("sessionDataKey")%>'/>
 <body class="theme--dark">
 <div class="site__root" id="content-placeholder">
