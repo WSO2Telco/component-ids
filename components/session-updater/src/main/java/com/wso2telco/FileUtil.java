@@ -37,6 +37,7 @@ import java.util.*;
 /**
  * The Class FileUtil.
  */
+@Deprecated
 public class FileUtil {
 
     /** The props. */

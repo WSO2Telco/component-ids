@@ -5,8 +5,6 @@ import org.w3c.dom.NodeList;
 import org.wso2.carbon.utils.CarbonUtils;
 import org.xml.sax.SAXException;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -16,6 +14,7 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.Map;
 
+@Deprecated
 public class ReadMobileConnectConfig{
 
     private static Map<String, String> ussdConfigMap;
