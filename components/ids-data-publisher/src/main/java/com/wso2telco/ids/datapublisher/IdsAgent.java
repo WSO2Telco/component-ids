@@ -40,7 +40,7 @@ public class IdsAgent {
     private DataPublisher publisher = null;
     private boolean isPublisherEnabled = true;
 
-    private IdsAgent(){
+    private IdsAgent() {
         initPublisher();
     }
 
@@ -48,13 +48,13 @@ public class IdsAgent {
         private static final IdsAgent INSTANCE = new IdsAgent();
     }
 
-    public static IdsAgent getInstance(){
+    public static IdsAgent getInstance() {
         return AgentFactoryHolder.INSTANCE;
     }
 
-    private void initPublisher(){
+    private void initPublisher() {
         setPublisherEnabled(Boolean.parseBoolean(FileUtil.getApplicationProperty("publisher_enable")));
-        if(isPublisherEnabled()) {
+        if (isPublisherEnabled()) {
             AgentHolder.setConfigPath(CarbonUtils.getCarbonConfigDirPath() + File.separator + "data-bridge" +
                     File.separator + "data-agent-conf.xml");
             System.setProperty("javax.net.ssl.trustStore", System.getProperty("carbon.home") +
@@ -66,26 +66,26 @@ public class IdsAgent {
                         FileUtil.getApplicationProperty("username"),
                         FileUtil.getApplicationProperty("password"));
             } catch (DataEndpointAgentConfigurationException e) {
-                e.printStackTrace();
+                log.error(e.getMessage());
             } catch (DataEndpointException e) {
-                e.printStackTrace();
+                log.error(e.getMessage());
             } catch (DataEndpointConfigurationException e) {
-                e.printStackTrace();
+                log.error(e.getMessage());
             } catch (DataEndpointAuthenticationException e) {
-                e.printStackTrace();
+                log.error(e.getMessage());
             } catch (TransportException e) {
-                e.printStackTrace();
+                log.error(e.getMessage());
             }
-        }else{
+        } else {
             log.warn("IDS data agent disabled");
         }
     }
 
-    public  void publish(String streamName, String streamVersion, long timestamp, Object[] dataArray){
-        if(isPublisherEnabled()) {
+    public void publish(String streamName, String streamVersion, long timestamp, Object[] dataArray) {
+        if (isPublisherEnabled()) {
             String streamId = DataBridgeCommonsUtils.generateStreamId(streamName, streamVersion);
             publisher.publish(streamId, timestamp, null, null, dataArray);
-        }else {
+        } else {
             log.warn("IDS data agent disabled");
         }
     }
