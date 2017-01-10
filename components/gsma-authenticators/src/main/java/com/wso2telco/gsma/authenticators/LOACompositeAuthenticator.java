@@ -380,13 +380,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		boolean isAuthenticated;
 		//Unregister Customer Token
 		String msisdn = request.getParameter("msisdn");
-        if (StringUtils.isEmpty(msisdn)) {
-            msisdn = request.getHeader("msisdn");
-        }
         String msisdnHeader = request.getParameter("msisdn_header");
-        if (StringUtils.isEmpty(msisdnHeader)) {
-            msisdnHeader = request.getHeader("msisdnHeader");
-        }
 		String flowType = getFlowType(msisdnHeader);
 		String tokenId = request.getParameter("tokenid");
 
