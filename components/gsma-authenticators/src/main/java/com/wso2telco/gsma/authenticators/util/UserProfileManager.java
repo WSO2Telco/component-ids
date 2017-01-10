@@ -1,12 +1,10 @@
 package com.wso2telco.gsma.authenticators.util;
 
 import com.wso2telco.core.config.DataHolder;
-import com.wso2telco.gsma.LoginAdminServiceClient;
 import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.manager.client.ClaimManagementClient;
+import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
 import com.wso2telco.gsma.manager.client.RemoteUserStoreServiceAdminClient;
 import com.wso2telco.gsma.manager.client.UserRegistrationAdminServiceClient;
-import com.wso2telco.gsma.manager.entity.UserRegistrationData;
 import com.wso2telco.gsma.manager.util.UserProfileClaimsConstant;
 import org.apache.axis2.AxisFault;
 import org.apache.commons.logging.Log;
@@ -22,7 +20,6 @@ import java.io.UnsupportedEncodingException;
 import java.rmi.RemoteException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.sql.SQLException;
 
 /**
  * Created by isuru on 1/3/17.
@@ -195,6 +192,10 @@ public class UserProfileManager {
         return isNewUser;
     }
 
+    public static String getCurrentPin(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+        return remoteUserStoreServiceAdminClient.getCurrentPin(username);
+    }
+
     private static String getHashValue(String value) throws NoSuchAlgorithmException, UnsupportedEncodingException {
 
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -303,6 +304,7 @@ public class UserProfileManager {
         remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.LOA, Constants.LOA3,
                 UserCoreConstants.DEFAULT_PROFILE);
 
+
 		/*
          * updating challenge question 1 cliam of the user profile
 		 */
@@ -321,6 +323,19 @@ public class UserProfileManager {
         remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.PIN,
                 getHashValue(pin), UserCoreConstants.DEFAULT_PROFILE);
 
+    }
+
+    public static String getCurrentLoa(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+        return remoteUserStoreServiceAdminClient.getCurrentLoa(username);
+    }
+
+    public static String getChallengeQuestionAndAnswer1(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+
+        return remoteUserStoreServiceAdminClient.getChallengeQuestionAndAnswer1(username);
+    }
+
+    public static String getChallengeQuestionAndAnswer2(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+        return remoteUserStoreServiceAdminClient.getChallengeQuestionAndAnswer2(username);
     }
 
     /**
@@ -342,10 +357,14 @@ public class UserProfileManager {
     }
 
     static {
+        authenticate();
+    }
+
+    private static void authenticate() {
         try {
 
             String adminURL = DataHolder.getInstance().getMobileConnectConfig().getAdminUrl();
-            com.wso2telco.gsma.manager.client.LoginAdminServiceClient lAdmin = new com.wso2telco.gsma.manager.client.LoginAdminServiceClient(adminURL);
+            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
             String sessionCookie = lAdmin.authenticate(DataHolder.getInstance().getMobileConnectConfig().getAdminUsername(),
                     DataHolder.getInstance().getMobileConnectConfig().getAdminPassword());
             remoteUserStoreServiceAdminClient = new RemoteUserStoreServiceAdminClient(

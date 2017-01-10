@@ -357,32 +357,32 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		return "offnet";
 	}
 
-    private boolean isUserProfileUpdateRequired(HttpServletRequest request, String msisdnHeader, String selectedLOA) {
-        boolean userProfileUpdateRequired = false;
-        String requestURL = request.getRequestURL().toString();
-        String requestURI = request.getRequestURI();
-        String baseURL = requestURL.substring(0, requestURL.indexOf(requestURI));
-        LoginAdminServiceClient lAdmin = null;
-        try {
-            lAdmin = new LoginAdminServiceClient(baseURL);
-            String sessionCookie = lAdmin.authenticate(isAdminUserName, isAdminPassword);
-            ClaimManagementClient claimManager = new ClaimManagementClient(baseURL, sessionCookie);
-            if (msisdnHeader != null) {
-                String registeredLOA = claimManager.getRegisteredLOA(msisdnHeader);
-                if (Integer.parseInt(registeredLOA) < Integer.parseInt(selectedLOA)) {
-                    userProfileUpdateRequired = true;
-                }
-            }
-        } catch (AxisFault axisFault) {
-            axisFault.printStackTrace();
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
-            e.printStackTrace();
-        } catch (LoginAuthenticationExceptionException e) {
-            e.printStackTrace();
-        }
-        return userProfileUpdateRequired;
-    }
+//    private boolean isUserProfileUpdateRequired(HttpServletRequest request, String msisdnHeader, String selectedLOA) {
+//        boolean userProfileUpdateRequired = false;
+//        String requestURL = request.getRequestURL().toString();
+//        String requestURI = request.getRequestURI();
+//        String baseURL = requestURL.substring(0, requestURL.indexOf(requestURI));
+//        LoginAdminServiceClient lAdmin = null;
+//        try {
+//            lAdmin = new LoginAdminServiceClient(baseURL);
+//            String sessionCookie = lAdmin.authenticate(isAdminUserName, isAdminPassword);
+//            ClaimManagementClient claimManager = new ClaimManagementClient(baseURL, sessionCookie);
+//            if (msisdnHeader != null) {
+//                String registeredLOA = claimManager.getRegisteredLOA(msisdnHeader);
+//                if (Integer.parseInt(registeredLOA) < Integer.parseInt(selectedLOA)) {
+//                    userProfileUpdateRequired = true;
+//                }
+//            }
+//        } catch (AxisFault axisFault) {
+//            axisFault.printStackTrace();
+//        } catch (RemoteException e) {
+//            e.printStackTrace();
+//        } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+//            e.printStackTrace();
+//        } catch (LoginAuthenticationExceptionException e) {
+//            e.printStackTrace();
+//        }
+//        return userProfileUpdateRequired;
+//    }
 
 }

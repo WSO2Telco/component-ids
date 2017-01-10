@@ -310,7 +310,7 @@ function getAcrValue() {
 
 
     var acrReturn = "";
-    var url = "/user-registration/webresources/endpoint/loa/authenticator?acr=" + acr;
+    var url = "/sessionupdater/tnspoints/endpoint/loa/authenticator?acr=" + acr;
 
     $.ajax({
         type: "GET",
