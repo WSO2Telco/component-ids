@@ -22,4 +22,6 @@ public class Constants {
     public static final String ERROR_PIN_MISMATCH_EXCEED = "PinMismatchAttemptsExceedMessage";
     public static final String STATUS_REJECTED = "rejected";
     public static final String STATUS_APPROVED = "approved";
+    public static final String STATUS_SUCCESS = "SUCCESS";
+    public static final String STATUS_FAILED = "FAILED";
 }

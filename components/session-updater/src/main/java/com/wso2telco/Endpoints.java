@@ -24,10 +24,11 @@ import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.cryptosystem.AESencrp;
 import com.wso2telco.entity.LoginHistory;
+import com.wso2telco.entity.SaaResponse;
+import com.wso2telco.entity.SaaStatusRequest;
 import com.wso2telco.exception.AuthenticatorException;
 import com.wso2telco.util.Constants;
 import com.wso2telco.util.DbUtil;
-import com.wso2telco.util.ReadMobileConnectConfig;
 import org.apache.axis2.AxisFault;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,7 +41,6 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Authe
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.mgt.stub.UserIdentityManagementAdminServiceIdentityMgtServiceExceptionException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
-import org.wso2.carbon.utils.DBUtils;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -131,6 +131,26 @@ public class Endpoints {
     public Endpoints() {
 
 
+    }
+
+    @POST
+    @Path("/saa/status")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Response saaUpdateStatus(SaaStatusRequest saaStatusRequest) {
+        Response response;
+
+        try {
+            DatabaseUtils.updateStatus(saaStatusRequest.getSessionDataKey(), saaStatusRequest.getStatus());
+
+            response = Response.status(Response.Status.ACCEPTED)
+                    .entity(new SaaResponse(saaStatusRequest.getSessionDataKey(), Constants.STATUS_SUCCESS)).build();
+        } catch (SQLException e) {
+
+            response = Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new SaaResponse(saaStatusRequest.getSessionDataKey(), Constants.STATUS_FAILED)).build();
+        }
+        return response;
     }
 
     /**

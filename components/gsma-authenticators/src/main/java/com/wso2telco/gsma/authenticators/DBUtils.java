@@ -18,6 +18,7 @@ package com.wso2telco.gsma.authenticators;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.ScopeParam;
+import com.wso2telco.gsma.authenticators.model.UserStatus;
 import com.wso2telco.gsma.authenticators.ussd.Pinresponse;
 import com.wso2telco.gsma.authenticators.util.TableName;
 import org.apache.commons.logging.Log;
@@ -560,8 +561,8 @@ public class DBUtils {
             connection.close();
         }
     }
-  
-   /**
+
+    /**
      * Get a map of parameters mapped to a scope
      *
      * @return map of scope vs parameters
@@ -603,8 +604,8 @@ public class DBUtils {
         }
         return scopeParamsMap;
     }
-  
-     public static int readPinAttempts(String sessionId) throws SQLException, AuthenticatorException {
+
+    public static int readPinAttempts(String sessionId) throws SQLException, AuthenticatorException {
 
         Connection connection;
         PreparedStatement ps;
@@ -713,5 +714,45 @@ public class DBUtils {
         if (connection != null) {
             connection.close();
         }
+    }
+
+    public static int saveStatusData(UserStatus userStatus) throws SQLException,AuthenticatorException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getConnectDBConnection();
+
+            String ADD_USER_STATUS =  " INSERT INTO USER_STATUS (Time, Status, Msisdn, State, Nonce, Scope, AcrValue, SessionId, IsMsisdnHeader, IpHeader," +
+                    "IsNewUser, LoginHint, Operator, UserAgent, Comment, ConsumerKey) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+            ps = conn.prepareStatement(ADD_USER_STATUS);
+
+            ps.setTimestamp(1, new java.sql.Timestamp( new java.util.Date().getTime()));
+            ps.setString(2, userStatus.getStatus());
+            ps.setString(3, userStatus.getMsisdn());
+            ps.setString(4, userStatus.getState());
+            ps.setString(5, userStatus.getNonce());
+            ps.setString(6, userStatus.getScope());
+            ps.setString(7, userStatus.getAcrValue());
+            ps.setString(8, userStatus.getSessionId());
+            ps.setInt(9, userStatus.getIsMsisdnHeader());
+            ps.setString(10, userStatus.getIpHeader());
+            ps.setInt(11, userStatus.getIsNewUser());
+            ps.setString(12, userStatus.getLoginHint());
+            ps.setString(13, userStatus.getOperator());
+            ps.setString(14, userStatus.getUserAgent());
+            ps.setString(15, userStatus.getComment());
+            ps.setString(16, userStatus.getConsumerKey());
+
+
+            ps.executeUpdate();
+            return 1;
+        } catch (SQLException e) {
+            handleException("Error occured while inserting User status for SessionDataKey: " + userStatus.getSessionId() + " to the database", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(conn, null, ps);
+        }
+        return -1;
     }
 }
