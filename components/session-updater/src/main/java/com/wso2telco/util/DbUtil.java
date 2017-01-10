@@ -1,17 +1,15 @@
 package com.wso2telco.util;
 
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.exception.AuthenticatorException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.xml.sax.SAXException;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -31,6 +29,9 @@ public class DbUtil {
 
     private static final Log log = LogFactory.getLog(DbUtil.class);
 
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
     private static void initializeDatasources() throws AuthenticatorException {
         if (mConnectDatasource != null) {
             return;
@@ -39,18 +40,10 @@ public class DbUtil {
         String dataSourceName = null;
         try {
             Context ctx = new InitialContext();
-            dataSourceName = ReadMobileConnectConfig.query(Constants.MC_CONFIG).get(Constants.DATA_SOURCE_NAME);
+            dataSourceName = configurationService.getDataHolder().getMobileConnectConfig().getDataSourceName();
             mConnectDatasource = (DataSource) ctx.lookup(dataSourceName);
         } catch (NamingException e) {
             handleException("Error while looking up the data source: " + dataSourceName, e);
-        } catch (SAXException e) {
-            e.printStackTrace();
-        } catch (XPathExpressionException e) {
-            e.printStackTrace();
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

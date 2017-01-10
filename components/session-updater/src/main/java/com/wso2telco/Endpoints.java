@@ -27,7 +27,6 @@ import com.wso2telco.entity.LoginHistory;
 import com.wso2telco.exception.AuthenticatorException;
 import com.wso2telco.util.Constants;
 import com.wso2telco.util.DbUtil;
-import com.wso2telco.util.ReadMobileConnectConfig;
 import org.apache.axis2.AxisFault;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
