@@ -17,6 +17,7 @@ import java.util.Map;
 /**
  *
  */
+@Deprecated
 public class ReadMobileConnectConfig {
 
     public Map<String, String> query(String XpathExpression) throws ParserConfigurationException, SAXException,
