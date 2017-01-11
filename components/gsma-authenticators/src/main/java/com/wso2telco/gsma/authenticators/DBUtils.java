@@ -19,7 +19,6 @@ import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.LoginHintFormatDetails;
 import com.wso2telco.gsma.authenticators.model.MSISDNHeader;
-import com.wso2telco.gsma.authenticators.model.ScopeParam;
 import com.wso2telco.gsma.authenticators.ussd.Pinresponse;
 import com.wso2telco.gsma.authenticators.util.TableName;
 import org.apache.commons.logging.Log;
@@ -50,7 +49,6 @@ public class DBUtils {
      * The m connect datasource.
      */
     private static volatile DataSource mConnectDatasource = null;
-    private static volatile DataSource authProxyDataSource = null;
 
     /**
      * The Constant log.
@@ -78,21 +76,6 @@ public class DBUtils {
         } catch (NamingException e) {
             handleException("Error while looking up the data source: " + dataSourceName, e);
         }
-
-
-        if (authProxyDataSource != null) {
-            return;
-        }
-
-        try {
-            Context ctx = new InitialContext();
-            ConfigurationService configurationService = new ConfigurationServiceImpl();
-            dataSourceName =
-                    configurationService.getDataHolder().getMobileConnectConfig().getAuthProxy().getDataSourceName();
-            authProxyDataSource = (DataSource) ctx.lookup(dataSourceName);
-        } catch (NamingException e) {
-            handleException("Exception occurred while initiating data source : " + dataSourceName, e);
-        }
     }
 
     /**
@@ -107,16 +90,6 @@ public class DBUtils {
 
         if (mConnectDatasource != null) {
             return mConnectDatasource.getConnection();
-        }
-        throw new SQLException("Sessions Datasource not initialized properly");
-    }
-
-
-    private static Connection getAuthProxyDBConnection() throws SQLException, AuthenticatorException {
-        initializeDatasources();
-
-        if (authProxyDataSource != null) {
-            return authProxyDataSource.getConnection();
         }
         throw new SQLException("Sessions Datasource not initialized properly");
     }
@@ -592,84 +565,6 @@ public class DBUtils {
             connection.close();
         }
     }
-  
-   /**
-     * Get a map of parameters mapped to a scope
-     *
-     * @return map of scope vs parameters
-     * @throws AuthenticatorException
-     */
-   public static Map<String, ScopeParam> getScopeParams() throws AuthenticatorException {
-       Connection conn = null;
-       PreparedStatement ps = null;
-       ResultSet results = null;
-       String sql = "SELECT * FROM `scope_parameter`";
-
-       if (log.isDebugEnabled()) {
-           log.debug("Executing the query " + sql);
-       }
-
-       Map scopeParamsMap = new HashMap();
-       try {
-           conn = getConnectDBConnection();
-           ps = conn.prepareStatement(sql);
-           results = ps.executeQuery();
-
-           while (results.next()) {
-               scopeParamsMap.put("scope", results.getString("scope"));
-
-               ScopeParam parameters = new ScopeParam();
-               parameters.setLoginHintMandatory(Boolean.parseBoolean(results.getString("is_login_hint_mandatory")));
-               parameters.setMsisdnMismatchResult(ScopeParam.msisdnMismatchResultTypes.valueOf(results.getString(
-                       "msisdn_mismatch_result")));
-               parameters.setTncVisible(Boolean.parseBoolean(results.getString("is_tnc_visible")));
-               parameters.setLoginHintFormat(getLoginHintFormatTypeDetails(results.getInt("param_id"), conn));
-
-               scopeParamsMap.put("params", parameters);
-           }
-       } catch (SQLException e) {
-           handleException("Error occurred while getting scope parameters from the database", e);
-       } finally {
-           IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
-       }
-       return scopeParamsMap;
-   }
-
-    private static List<LoginHintFormatDetails> getLoginHintFormatTypeDetails(int paramId, Connection conn)
-            throws AuthenticatorException, SQLException {
-        PreparedStatement ps = null;
-        ResultSet results = null;
-        String sql =
-                "SELECT * FROM `login_hint_format` WHERE `format_id` IN (SELECT `format_id` FROM " +
-                        "`scope_supp_login_hint_format` WHERE `param_id` = ?);";
-
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql);
-        }
-
-        List<LoginHintFormatDetails> loginHintFormatDetails = new ArrayList<>();
-        try {
-            ps = conn.prepareStatement(sql);
-            ps.setInt(1, paramId);
-            results = ps.executeQuery();
-
-            while (results.next()) {
-                LoginHintFormatDetails loginHintFormat = new LoginHintFormatDetails();
-                loginHintFormat.setFormatType(LoginHintFormatDetails.loginHintFormatTypes.valueOf(results.getString("type")));
-                loginHintFormat.setEncrypted(results.getBoolean("is_encrypted"));
-                loginHintFormat.setDecryptAlgorithm(results.getString("decrypt_algorithm"));
-                loginHintFormatDetails.add(loginHintFormat);
-            }
-        } catch (SQLException e) {
-            //using the same connection to avoid connection pool exhaust exception within the loop. SQL exception to
-            // be handled in the parent function.
-            log.error("Error occurred while getting login format details from the database", e);
-            throw e;
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(null, results, ps);
-        }
-        return loginHintFormatDetails;
-    }
 
     public static int readPinAttempts(String sessionId) throws SQLException, AuthenticatorException {
 
@@ -780,41 +675,6 @@ public class DBUtils {
         if (connection != null) {
             connection.close();
         }
-    }
-
-    /**
-     * Get operators' MSISDN header properties.
-     *
-     * @return operators' MSISDN header properties map.
-     * @throws SQLException
-     * @throws NamingException
-     */
-    public static Map<String, List<MSISDNHeader>> getOperatorsMSISDNHeaderProperties() throws SQLException,
-                                                                                              AuthenticatorException {
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        Map<String, List<MSISDNHeader>> operatorsMSISDNHeadersList = new HashMap<String, List<MSISDNHeader>>();
-        String queryToGetOperatorProperty = "SELECT DISTINCT operatorId, LOWER(operatorName) AS operatorName FROM " +
-                "operators_msisdn_headers_properties prop LEFT JOIN operators op ON op.ID=prop.operatorId";
-        try {
-            connection = getAuthProxyDBConnection();
-            preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
-            resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                int operatorId = resultSet.getInt("operatorId");
-                String operatorName = resultSet.getString("operatorName");
-                //Get msisdn properties of the operator.
-                List<MSISDNHeader> msisdnHeaderList = getMSISDNPropertiesByOperatorId(operatorId, operatorName,
-                                                                                      connection);
-                operatorsMSISDNHeadersList.put(operatorName, msisdnHeaderList);
-            }
-        } catch (SQLException e) {
-            throw new SQLException("Error occurred while retrieving operator MSISDN properties of operators : ", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
-        }
-        return operatorsMSISDNHeadersList;
     }
 
     /**

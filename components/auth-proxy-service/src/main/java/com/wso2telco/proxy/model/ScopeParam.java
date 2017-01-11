@@ -1,4 +1,4 @@
-package com.wso2telco.gsma.authenticators.model;
+package com.wso2telco.proxy.model;
 
 import java.util.List;
 

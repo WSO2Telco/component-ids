@@ -79,6 +79,16 @@
         <version>2.0.13</version>
         <scope>provided</scope>
     </dependency>
+    <dependency>
+        <groupId>com.wso2telco.core</groupId>
+        <artifactId>config-util</artifactId>
+        <scope>provided</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.wso2.carbon.identity</groupId>
+        <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+        <scope>provided</scope>
+    </dependency>
 </dependencies>
 
 <build>

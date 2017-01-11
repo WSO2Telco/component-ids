@@ -25,6 +25,9 @@ public class RedirectUrlInfo {
     private String msisdnHeader;
     private String ipAddress;
     private String telcoScope;
+    private boolean isLoginhintMandatory;
+    private boolean showTnc;
+    private boolean isOffnetFlow;
 
     public String getQueryString() {
         return queryString;
@@ -72,5 +75,29 @@ public class RedirectUrlInfo {
 
     public void setAuthorizeUrl(String authorizeUrl) {
         this.authorizeUrl = authorizeUrl;
+    }
+
+    public void setLoginhintMandatory(boolean isLoginhintMandatory) {
+        this.isLoginhintMandatory = isLoginhintMandatory;
+    }
+
+    public boolean isLoginhintMandatory() {
+        return isLoginhintMandatory;
+    }
+
+    public void setShowTnc(boolean showTnc) {
+        this.showTnc = showTnc;
+    }
+
+    public boolean isShowTnc() {
+        return showTnc;
+    }
+
+    public void setOffnetFlow(boolean isOffnetFlow) {
+        this.isOffnetFlow = isOffnetFlow;
+    }
+
+    public boolean isOffnetFlow() {
+        return isOffnetFlow;
     }
 }
