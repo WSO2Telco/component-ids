@@ -285,7 +285,8 @@ public class Endpoints {
 
 
     private void validateAndSetScopeParameters(String loginHint, String msisdnHeader, String operator,
-                                               RedirectUrlInfo redirectUrlInfo) throws AuthenticationFailedException {
+                                               RedirectUrlInfo redirectUrlInfo)
+            throws AuthenticationFailedException, ConfigurationException {
         //TODO: get all scope related params. This should be move to a initialization method or add to cache later
         Map scopeDetail;
         try {
@@ -293,6 +294,9 @@ public class Endpoints {
         } catch (AuthenticatorException e) {
             throw new AuthenticationFailedException("Error occurred while getting scope parameters from the database",
                                                     e);
+        }
+        if (scopeDetail == null || scopeDetail.isEmpty()) {
+            throw new ConfigurationException("PLease configure Scope related Parameters");
         }
 
         //set the scope specific params
