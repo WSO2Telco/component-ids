@@ -305,8 +305,8 @@ public class DBUtils {
 
         StringBuilder sql = new StringBuilder();
         sql.append("INSERT INTO ");
-        sql.append(TableName.CLIENT_STATUS);
-        sql.append(" (SessionID, Status) VALUES (?,?)");
+        sql.append(TableName.REG_STATUS);
+        sql.append(" (uuid, status) VALUES (?,?)");
 
         if (log.isDebugEnabled()) {
             log.debug("Executing the query " + sql + " to Insert sessionDataKey : " + sessionDataKey
