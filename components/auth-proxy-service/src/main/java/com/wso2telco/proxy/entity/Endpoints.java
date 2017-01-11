@@ -15,7 +15,7 @@
  ******************************************************************************/
 package com.wso2telco.proxy.entity;
 
-import com.google.gdata.util.common.util.Base64DecoderException; 
+import com.google.gdata.util.common.util.Base64DecoderException;
 import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.proxy.MSISDNDecryption;
 import com.wso2telco.proxy.model.AuthenticatorException;
@@ -280,7 +280,7 @@ public class Endpoints {
         if (log.isDebugEnabled()) {
             log.debug("redirectURL : " + redirectURL);
         }
-
+        httpServletResponse.sendRedirect(redirectURL);
     }
 
 
