@@ -34,6 +34,7 @@ import java.util.Map;
 /**
  * The Class ReadMobileConnectConfig.
  */
+@Deprecated
 public class ReadMobileConnectConfig {
 
     /**

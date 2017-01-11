@@ -1,11 +1,15 @@
 package com.wso2telco.gsma.manager.client;
 
+import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.gsma.authenticators.Constants;
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
+import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.um.ws.api.stub.ClaimValue;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceStub;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
+import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.rmi.RemoteException;
 
@@ -13,6 +17,7 @@ public class RemoteUserStoreServiceAdminClient {
     private final String serviceName = "RemoteUserStoreManagerService";
     private RemoteUserStoreManagerServiceStub remoteUserStoreManagerServiceStub;
     private String endPoint;
+    private static ClaimManagementClient claimManagementClient;
 
     public RemoteUserStoreServiceAdminClient(String backEndUrl, String sessionCookie) throws AxisFault {
         this.endPoint = backEndUrl + "/services/" + serviceName;
@@ -30,16 +35,52 @@ public class RemoteUserStoreServiceAdminClient {
     public void setUserClaim(String userName, String claimURI, String claimValue, String profileName) throws
             RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException {
 
-            remoteUserStoreManagerServiceStub.setUserClaimValue(userName, claimURI, claimValue, profileName);
+        remoteUserStoreManagerServiceStub.setUserClaimValue(userName, claimURI, claimValue, profileName);
     }
 
-    public void setUserClaims(String userName, ClaimValue[] claimValues, String profileName ) throws
+    public void setUserClaims(String userName, ClaimValue[] claimValues, String profileName) throws
             RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException {
-            remoteUserStoreManagerServiceStub.setUserClaimValues(userName, claimValues, profileName);
+        remoteUserStoreManagerServiceStub.setUserClaimValues(userName, claimValues, profileName);
     }
 
     public boolean isExistingUser(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
         return remoteUserStoreManagerServiceStub.isExistingUser(username);
     }
 
+    public String getCurrentPin(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+        return remoteUserStoreManagerServiceStub.getUserClaimValue(username, Constants.PIN_CLAIM, UserCoreConstants.DEFAULT_PROFILE);
+    }
+
+    public String getCurrentLoa(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+        return remoteUserStoreManagerServiceStub.getUserClaimValue(username, Constants.LOA_CLAIM, UserCoreConstants.DEFAULT_PROFILE);
+    }
+
+    public String getChallengeQuestionAndAnswer1(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+        return remoteUserStoreManagerServiceStub.getUserClaimValue(username, Constants.CHALLENGE_QUESTION_1_CLAIM,
+                UserCoreConstants.DEFAULT_PROFILE);
+    }
+
+    public String getChallengeQuestionAndAnswer2(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+
+
+        return remoteUserStoreManagerServiceStub.getUserClaimValue(username, Constants.CHALLENGE_QUESTION_2_CLAIM,
+                UserCoreConstants.DEFAULT_PROFILE);
+    }
+
+    static {
+        try {
+            String adminURL = DataHolder.getInstance().getMobileConnectConfig().getAdminUrl();
+            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
+            String sessionCookie = lAdmin.authenticate(DataHolder.getInstance().getMobileConnectConfig().getAdminUsername(),
+                    DataHolder.getInstance().getMobileConnectConfig().getAdminPassword());
+            claimManagementClient = new ClaimManagementClient(adminURL, sessionCookie);
+
+        } catch (AxisFault e) {
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (LoginAuthenticationExceptionException e) {
+            e.printStackTrace();
+        }
+    }
 }

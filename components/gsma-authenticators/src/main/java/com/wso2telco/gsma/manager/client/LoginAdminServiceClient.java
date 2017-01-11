@@ -70,7 +70,7 @@ public class LoginAdminServiceClient {
                 String sessionCookie = lAdmin.authenticate(DataHolder.getInstance().getMobileConnectConfig().getAdminUsername(),
                         DataHolder.getInstance().getMobileConnectConfig().getAdminPassword());
                 ClaimManagementClient claimManager = new ClaimManagementClient(adminURL,sessionCookie);
-                claimManager.setClaim();
+
         } catch (AxisFault e) {
                 e.printStackTrace();
         } catch (RemoteException e) {

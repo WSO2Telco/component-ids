@@ -15,7 +15,7 @@
  ******************************************************************************/
 package com.wso2telco.proxy.entity;
 
-import com.google.gdata.util.common.util.Base64DecoderException;
+import com.google.gdata.util.common.util.Base64DecoderException; 
 import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.proxy.MSISDNDecryption;
 import com.wso2telco.proxy.model.AuthenticatorException;
@@ -172,7 +172,7 @@ public class Endpoints {
         if (isScopeExists) {
             operatorScopeWithClaims = queryParams.get(AuthProxyConstants.SCOPE).get(0);
             //split form space or + sign  
-            String [] scopeValues = operatorScopeWithClaims.split("\\s+|\\+");
+            String[] scopeValues = operatorScopeWithClaims.split("\\s+|\\+");
 
           //  if (Arrays.asList(scopeValues).contains(ScopeConstant.OAUTH20_VALUE_SCOPE)) {
 
@@ -280,7 +280,7 @@ public class Endpoints {
         if (log.isDebugEnabled()) {
             log.debug("redirectURL : " + redirectURL);
         }
-        httpServletResponse.sendRedirect(redirectURL);
+
     }
 
 
@@ -413,8 +413,8 @@ public class Endpoints {
 
     private String decryptMSISDN(HttpHeaders httpHeaders, String operatorName)
             throws ClassNotFoundException, NoSuchPaddingException, BadPaddingException, UnsupportedEncodingException,
-                   IllegalBlockSizeException, Base64DecoderException, NoSuchAlgorithmException, InvalidKeyException,
-                   IllegalAccessException, InstantiationException {
+            IllegalBlockSizeException, Base64DecoderException, NoSuchAlgorithmException, InvalidKeyException,
+            IllegalAccessException, InstantiationException {
         String msisdn = null;
         List<MSISDNHeader> msisdnHeaderList = operatorsMSISDNHeadersMap.get(operatorName);
 
@@ -494,7 +494,7 @@ public class Endpoints {
     }
 
     private boolean isUserExists(String userName) throws RemoteException,
-                                                        UserRegistrationAdminServiceUserRegistrationException {
+            UserRegistrationAdminServiceUserRegistrationException {
         UserRegistrationAdminService userRegistrationAdminService = new UserRegistrationAdminServiceStub();
         boolean isUserExists = userRegistrationAdminService.isUserExist(userName);
         return isUserExists;
@@ -502,7 +502,7 @@ public class Endpoints {
 
     private void createUserProfile(String username, String operator, String scope)
             throws RemoteException, UserRegistrationAdminServiceUserRegistrationException,
-                   UserRegistrationAdminServiceIdentityException, UserRegistrationAdminServiceException {
+            UserRegistrationAdminServiceIdentityException, UserRegistrationAdminServiceException {
         UserRegistrationAdminService userRegistrationAdminService = new UserRegistrationAdminServiceStub();
 
         UserFieldDTO[] userFieldDTOs = userRegistrationAdminService.readUserFieldsForUserRegistration
@@ -526,8 +526,8 @@ public class Endpoints {
 
             if (log.isDebugEnabled()) {
                 log.debug("User Fields Value :" + userFieldDTOs[count].getFieldValue() + " : Claim " +
-                                  userFieldDTOs[count].getClaimUri() + " : Name " +
-                                  userFieldDTOs[count].getFieldName());
+                        userFieldDTOs[count].getClaimUri() + " : Name " +
+                        userFieldDTOs[count].getFieldName());
             }
         }
 

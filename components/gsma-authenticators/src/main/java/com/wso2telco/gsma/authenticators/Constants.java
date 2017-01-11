@@ -221,6 +221,8 @@ public final class Constants {
 
     public static final String PROFILE_UPGRADE_JSP = "/mcx-user-registration/auth_registration_profile_upgrade";
 
+    public static final String PIN_RESET_JSP = "/mcx-user-registration/auth_registration_pin_reset";
+
     public static final String REDIRECT_URI = "redirectURI";
 
     public static final String COMMON_AUTH_HANDLED = "commonAuthHandled";
@@ -280,4 +282,16 @@ public final class Constants {
     public static final String LOA3 = "3";
 
     public static final String USSD_PIN_AUTHENTICATOR = "USSDPinAuthenticator";
+
+    public static final String USER_CHALLENGE_SEPARATOR = "!";
+
+    public static final String PIN_CLAIM = "http://wso2.org/claims/pin";
+
+    public static final String LOA_CLAIM = "http://wso2.org/claims/loa";
+
+    public static final String CHALLENGE_QUESTION_1_CLAIM = "http://wso2.org/claims/challengeQuestion1";
+
+    public static final String CHALLENGE_QUESTION_2_CLAIM = "http://wso2.org/claims/challengeQuestion2";
+
+    public static final String IS_PIN_RESET = "isPinReset";
 }
