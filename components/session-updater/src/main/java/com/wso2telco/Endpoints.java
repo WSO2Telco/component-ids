@@ -366,7 +366,11 @@ public class Endpoints {
                     return Response.status(Response.Status.CREATED).entity(response).build();
                 } else {
                     response = getPinMatchedResponse(gson, sessionID, msisdn, ussdSessionId);
+
                     DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_APPROVED);
+
+                    pinConfig.setCurrentStep(PinConfig.CurrentStep.PIN_RESET_CONFIRMATION);
+
                     return Response.status(Response.Status.CREATED).entity(response).build();
                 }
             }

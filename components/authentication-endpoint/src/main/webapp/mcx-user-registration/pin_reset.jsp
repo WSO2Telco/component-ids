@@ -171,10 +171,12 @@
 
         function pollForUssdStatus() {
 
+            console.log("Polling for ussd status")
             var sessionDataKey = qs("sessionDataKey");
 
             var url = "/sessionupdater/tnspoints/endpoint/ussd/status?sessionID=" + sessionDataKey;
             var STATUS_APPROVED = "Approved";
+            var isApproved = false;
 
             setTimeout(function () {
                 $.ajax({
@@ -187,13 +189,17 @@
 
                             if (responseStatus != null && responseStatus.toUpperCase() === STATUS_APPROVED.toUpperCase()) {
                                 status = result.status;
+                                isApproved = true;
                                 console.log("User status APPROVED.");
                                 loadPinResetSuccessWindow();
-//                                completeAuthorization();
                             }
                         }
                     },
-                    complete: pollForUssdStatus,
+                    complete: function (result) {
+                        if(!isApproved){
+                            pollForUssdStatus();
+                        }
+                    },
                     timeout: timeout
                 })
             }, pollingInterval);
@@ -267,7 +273,7 @@
          */
         function completeAuthorization() {
 
-            var sessionDataKey = qs("token");
+            var sessionDataKey = qs("sessionDataKey");
             console.log("Session data key: " + sessionDataKey);
             window.location = "/commonauth?sessionDataKey=" + sessionDataKey;
         }
@@ -435,12 +441,12 @@
                         </div>
                     </div>
 
-                    <form action="/commonauth" method="post" class="space--top" novalidate>
-                        <button name="action" value="yes" class="btn btn--full btn--fill btn--large btn--color"
-                                onclick="pinResetDone('FORWARD');">
+                    <div class="space--top">
+                        <button class="btn btn--full btn--fill btn--large btn--color"
+                                onclick="completeAuthorization();">
                             Continue
                         </button>
-                    </form>
+                    </div>
                 </main>
             </div>
 

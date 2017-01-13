@@ -150,10 +150,15 @@
 							org.wso2.carbon.identity.user.profile.mgt;
 							version="${carbon.identity.package.import.version.range}",
 							org.wso2.carbon.idp.mgt;
-							version="${carbon.identity.package.import.version.range}"
+							version="${carbon.identity.package.import.version.range}",
+							com.wso2telco.core.config.*,
+							com.wso2telco.core.dbutils.*,
+							com.wso2telco.dbutils.*
 						</Import-Package>
 						<Export-Package>
-							com.wso2telco.*
+							com.wso2telco.claimhandler.*, com.wso2telco.dao.*, com.wso2telco.model.*,
+							com.wso2telco.openidtokenbuilder.*, com.wso2telco.reqpathsequencehandler.*,
+							com.wso2telco.transaction.log.*, com.wso2telco.util.*
 						</Export-Package>
 						<Embed-Dependency>
 							nimbus-jose-jwt|json-smart;scope=compile|runtime;inline=false

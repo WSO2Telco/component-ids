@@ -255,7 +255,7 @@ public class Endpoints {
         if (log.isDebugEnabled()) {
             log.debug("redirectURL : " + redirectURL);
         }
-
+        httpServletResponse.sendRedirect(redirectURL);
     }
 
     private String decryptMSISDN(HttpHeaders httpHeaders, String operatorName)
