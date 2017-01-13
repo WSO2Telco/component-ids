@@ -37,6 +37,7 @@ import java.util.Map;
 /**
  * The Class ReadMobileConnectConfig.
  */
+@Deprecated
 public class ReadMobileConnectConfig {
 
     private static Log log = LogFactory.getLog(ReadMobileConnectConfig.class);

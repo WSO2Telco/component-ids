@@ -34,7 +34,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 // TODO: Auto-generated Javadoc
 
@@ -306,8 +308,8 @@ public class DBUtils {
 
         StringBuilder sql = new StringBuilder();
         sql.append("INSERT INTO ");
-        sql.append(TableName.CLIENT_STATUS);
-        sql.append(" (SessionID, Status) VALUES (?,?)");
+        sql.append(TableName.REG_STATUS);
+        sql.append(" (uuid, status) VALUES (?,?)");
 
         if (log.isDebugEnabled()) {
             log.debug("Executing the query " + sql + " to Insert sessionDataKey : " + sessionDataKey
@@ -374,7 +376,8 @@ public class DBUtils {
             ps.setString(2, sessionDataKey);
             ps.executeUpdate();
         } catch (SQLException e) {
-            handleException("Error occured while inserting User Response for SessionDataKey: " + sessionDataKey + " to the database", e);
+            handleException("Error occured while inserting User Response for SessionDataKey: " + sessionDataKey
+                    + " to the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, null, ps);
         }
@@ -714,6 +717,58 @@ public class DBUtils {
         if (connection != null) {
             connection.close();
         }
+    }
+
+    public static Set<String> getAllowedAuthenticatorSetForMNO(String mobileNetworkOperator)
+            throws AuthenticatorException {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT *");
+        sql.append(" from ");
+        sql.append(TableName.ALLOWED_AUTHENTICATORS_MNO);
+        sql.append(" where mobile_network_operator=?");
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query " + sql + " for mobile network operator " + mobileNetworkOperator);
+        }
+
+        Set<String> authenticatorSet = new HashSet<>();
+        try (Connection connection = getConnectDBConnection()) {
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
+            ps.setString(1, mobileNetworkOperator);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                authenticatorSet.add(rs.getString("allowed_authenticator"));
+            }
+        } catch (SQLException e) {
+            handleException("Error occurred while retrieving allowed authenticators for " + mobileNetworkOperator, e);
+        }
+        return authenticatorSet;
+    }
+
+    public static Set<String> getAllowedAuthenticatorSetForSP(String serviceProvider)
+            throws AuthenticatorException {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT *");
+        sql.append(" from ");
+        sql.append(TableName.ALLOWED_AUTHENTICATORS_SP);
+        sql.append(" where client_id=?");
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query " + sql + " for service provider " + serviceProvider);
+        }
+
+        Set<String> authenticatorSet = new HashSet<>();
+        try (Connection connection = getConnectDBConnection()) {
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
+            ps.setString(1, serviceProvider);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                authenticatorSet.add(rs.getString("allowed_authenticator"));
+            }
+        } catch (SQLException e) {
+            handleException("Error occurred while retrieving allowed authenticators for " + serviceProvider, e);
+        }
+        return authenticatorSet;
     }
 
     public static int saveStatusData(UserStatus userStatus) throws SQLException,AuthenticatorException {

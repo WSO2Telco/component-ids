@@ -24,4 +24,11 @@ public class Constants {
     public static final String STATUS_APPROVED = "approved";
     public static final String STATUS_SUCCESS = "SUCCESS";
     public static final String STATUS_FAILED = "FAILED";
+    public static final String STATUS_PIN_RESET = "pin_reset";
+    public static final String smsAuthenticator = "SMSAuthenticator";
+    public static final String ussdAuthenticator = "USSDAuthenticator";
+    public static final String ussdPinAuthenticator = "USSDPinAuthenticator";
+    public static final String MTINIT = "mtinit";
+    public static final String MSISDN = "msisdn";
+    public static final String OPERATOR = "operator";
 }

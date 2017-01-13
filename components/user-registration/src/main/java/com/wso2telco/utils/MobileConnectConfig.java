@@ -5,7 +5,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import java.util.List;
-
+@Deprecated
 @XmlRootElement(name = "MobileConnectConfig")
 public class MobileConnectConfig {
 

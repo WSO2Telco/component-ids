@@ -18,9 +18,9 @@ package com.wso2telco.cryptosystem;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import org.apache.commons.codec.binary.Base64;
-
-import com.wso2telco.FileUtil;
 
 import java.nio.charset.Charset;
 import java.security.Key;
@@ -33,9 +33,12 @@ public class AESencrp {
 
     /** The Constant ALGO. */
     private static final String ALGO = "AES";
-    
+
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
     /** The key. */
-    private static String key= FileUtil.getApplicationProperty("aeskey");
+    private static String key = configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig().getAeskey();
     
     /** The Constant keyValue. */
     private static final byte[] keyValue = key.getBytes(Charset.forName("UTF-8"));
