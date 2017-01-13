@@ -16,6 +16,9 @@
 package com.wso2telco.proxy.util;
 
 
+import com.wso2telco.core.config.model.LoginHintFormatDetails;
+import com.wso2telco.core.config.model.ScopeParam;
+import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.model.MSISDNHeader;
 import com.wso2telco.proxy.model.Operator;
 import org.apache.commons.logging.Log;
@@ -193,6 +196,87 @@ public class DBUtils {
         return msisdnHeaderList;
     }
 
+    /**
+     * Get a map of parameters mapped to a scope
+     *
+     * @return map of scope vs parameters
+     * @throws javax.naming.NamingException
+     */
+    public static Map<String, ScopeParam> getScopeParams() throws AuthenticatorException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet results = null;
+        String sql = "SELECT * FROM `scope_parameter`";
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query " + sql);
+        }
+
+        Map scopeParamsMap = new HashMap();
+        try {
+            conn = getConnection();
+            ps = conn.prepareStatement(sql);
+            results = ps.executeQuery();
+
+            while (results.next()) {
+                scopeParamsMap.put("scope", results.getString("scope"));
+
+                ScopeParam parameters = new ScopeParam();
+                parameters.setLoginHintMandatory(Boolean.parseBoolean(results.getString("is_login_hint_mandatory")));
+                parameters.setMsisdnMismatchResult(ScopeParam.msisdnMismatchResultTypes.valueOf(results.getString(
+                        "msisdn_mismatch_result")));
+                parameters.setTncVisible(Boolean.parseBoolean(results.getString("is_tnc_visible")));
+                parameters.setLoginHintFormat(getLoginHintFormatTypeDetails(results.getInt("param_id"), conn));
+
+                scopeParamsMap.put("params", parameters);
+            }
+        } catch (SQLException e) {
+            handleException("Error occurred while getting scope parameters from the database", e);
+        } catch (NamingException e) {
+            e.printStackTrace();
+        } finally {
+            closeAllConnections(ps, conn, results);
+        }
+        return scopeParamsMap;
+    }
+
+    private static List<LoginHintFormatDetails> getLoginHintFormatTypeDetails(int paramId, Connection conn)
+            throws AuthenticatorException, SQLException {
+        PreparedStatement ps = null;
+        ResultSet results = null;
+        String sql =
+                "SELECT * FROM `login_hint_format` WHERE `format_id` IN (SELECT `format_id` FROM " +
+                        "`scope_supp_login_hint_format` WHERE `param_id` = ?);";
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query " + sql);
+        }
+
+        List<LoginHintFormatDetails> loginHintFormatDetails = new ArrayList<LoginHintFormatDetails>();
+        try {
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, paramId);
+            results = ps.executeQuery();
+
+            while (results.next()) {
+                LoginHintFormatDetails loginHintFormat = new LoginHintFormatDetails();
+                loginHintFormat.setFormatType(LoginHintFormatDetails.loginHintFormatTypes.valueOf(results.getString(
+                        "type")));
+                loginHintFormat.setEncrypted(results.getBoolean("is_encrypted"));
+                loginHintFormat.setDecryptAlgorithm(results.getString("decrypt_algorithm"));
+                loginHintFormatDetails.add(loginHintFormat);
+            }
+        } catch (SQLException e) {
+            //using the same connection to avoid connection pool exhaust exception within the loop. SQL exception to
+            // be handled in the parent function.
+            log.error("Error occurred while getting login format details from the database", e);
+            throw e;
+        } finally {
+            closeAllConnections(ps, null, results);
+        }
+        return loginHintFormatDetails;
+    }
+
     private static void closeAllConnections(PreparedStatement preparedStatement,
                                            Connection connection, ResultSet resultSet) {
         closeResultSet(resultSet);
@@ -242,6 +326,18 @@ public class DBUtils {
                         .getMessage(), e);
             }
         }
+    }
+
+    /**
+     * Handle exception.
+     *
+     * @param msg the msg
+     * @param t   the t
+     * @throws AuthenticatorException the authenticator exception
+     */
+    private static void handleException(String msg, Throwable t) throws AuthenticatorException {
+        log.error(msg, t);
+        throw new AuthenticatorException(msg, t);
     }
 
 }

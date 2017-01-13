@@ -15,17 +15,13 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.cryptosystem;
 
+import com.wso2telco.core.config.ReadMobileConnectConfig;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.xml.sax.SAXException;
-import com.wso2telco.core.config.ReadMobileConnectConfig;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.security.Key;
 import java.util.Map;
@@ -93,7 +89,6 @@ public class AESencrp {
     private static Key generateKey() throws Exception {
         Map<String, String> readMobileConnectConfigResult= null;
         readMobileConnectConfigResult = ReadMobileConnectConfig.query("SMS");
-
         key = readMobileConnectConfigResult.get("AesKey");
         keyValue = key.getBytes(Charset.forName("UTF-8"));
         Key key = new SecretKeySpec(keyValue, ALGO);

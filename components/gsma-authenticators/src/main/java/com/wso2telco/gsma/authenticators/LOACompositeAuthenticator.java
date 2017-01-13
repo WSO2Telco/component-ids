@@ -16,6 +16,7 @@
 package com.wso2telco.gsma.authenticators;
 
 import com.wso2telco.core.config.MIFEAuthentication;
+import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
@@ -46,9 +47,14 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
- 
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class LOACompositeAuthenticator.
@@ -67,7 +73,8 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 	private String isAdminUserName = null;
 	private String isAdminPassword = null;
 
-	public LOACompositeAuthenticator() {
+
+    public LOACompositeAuthenticator() {
 		//Use this credentials to login to IS.
 		//TODO : get this username and password from a suitable configuration file.
 		isAdminUserName = "admin";
@@ -91,7 +98,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		}			
 	}
 
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#process(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
 	 */
 	public AuthenticatorFlowStatus process(HttpServletRequest request,
@@ -106,29 +113,20 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		String serviceProvider = request.getParameter("client_id");
 		//Unregister Customer Token
 		String msisdn = request.getParameter("msisdn");
-        if (StringUtils.isEmpty(msisdn)) {
-            msisdn = request.getHeader("msisdn");
-        }
         String msisdnHeader = request.getParameter("msisdn_header");
-        if (StringUtils.isEmpty(msisdnHeader)) {
-            msisdnHeader = request.getHeader("msisdnHeader");
-        }
-		String flowType = getFlowType(msisdnHeader);
+
 		String tokenId = request.getParameter("tokenid");
+        boolean isLoginhintMandatory = Boolean.parseBoolean(request.getParameter("isLoginhintMandatory"));
+        boolean isShowTnc = Boolean.parseBoolean(request.getParameter("isShowTnc"));
+        ScopeParam.msisdnMismatchResultTypes headerMismatchResult = ScopeParam.msisdnMismatchResultTypes.valueOf(
+                request.getParameter(
+                        "headerMismatchResult"));
 
-        //TODO: get all scope related params. This should be move to a initialization method later
-        Map scopeDetail;
-        try {
-            scopeDetail = DBUtils.getScopeParams();
-        } catch (AuthenticatorException e) {
-            throw new AuthenticationFailedException(
-                    "Error occurred while getting scope parameters from the database", e);
-        }
+        context.setProperty("isLoginhintMandatory", isLoginhintMandatory);
+        context.setProperty("isShowTnc", isShowTnc);
+        context.setProperty("isOffnetFlow", headerMismatchResult);
 
-        //set the scope specific params
-        context.setProperty("scopeParams", scopeDetail.get("params"));
-
-        //TODO: scope param validations
+        String flowType = getFlowType(msisdnHeader, headerMismatchResult);
 
         //Change authentication flow just after registration
 		if (tokenId != null && msisdn != null) {
@@ -365,12 +363,14 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		return acrValues;
 	}
 
-	private String getFlowType(String msisdn) {
-		if (!StringUtils.isEmpty(msisdn)) {
-			return "onnet";
-		}
-		return "offnet";
-	}
+    private String getFlowType(String msisdn, ScopeParam.msisdnMismatchResultTypes headerMismatchResult) {
+        if (!ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK.equals(headerMismatchResult)) {
+            if (!StringUtils.isEmpty(msisdn)) {
+                return "onnet";
+            }
+        }
+        return "offnet";
+    }
 
 //    private boolean isUserProfileUpdateRequired(HttpServletRequest request, String msisdnHeader, String selectedLOA) {
 //        boolean userProfileUpdateRequired = false;

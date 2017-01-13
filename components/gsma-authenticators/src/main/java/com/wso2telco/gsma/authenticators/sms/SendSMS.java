@@ -28,10 +28,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,6 +83,7 @@ public class SendSMS {
         outbound.setAddress(address);
 
         Map<String, String> readMobileConnectConfigResult= null;
+
         readMobileConnectConfigResult = ReadMobileConnectConfig.query("SMS");
 
         String senderAddress = readMobileConnectConfigResult.get("SenderAddres");
