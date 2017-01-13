@@ -18,15 +18,12 @@ package com.wso2telco.gsma.authenticators;
 import com.wso2telco.core.config.MIFEAuthentication;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.gsma.ClaimManagementClient;
-import com.wso2telco.gsma.LoginAdminServiceClient;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
+import com.wso2telco.gsma.authenticators.model.ScopeParam;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import org.apache.axis2.AxisFault;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -44,14 +41,12 @@ import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
-import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -116,15 +111,19 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		//Unregister Customer Token
 		String msisdn = request.getParameter("msisdn");
         String msisdnHeader = request.getParameter("msisdn_header");
-		String flowType = getFlowType(msisdnHeader);
+
 		String tokenId = request.getParameter("tokenid");
         boolean isLoginhintMandatory = Boolean.parseBoolean(request.getParameter("isLoginhintMandatory"));
         boolean isShowTnc = Boolean.parseBoolean(request.getParameter("isShowTnc"));
-        boolean isOffnetFlow = Boolean.parseBoolean(request.getParameter("isOffnetFlow"));
+        ScopeParam.msisdnMismatchResultTypes headerMismatchResult = ScopeParam.msisdnMismatchResultTypes.valueOf(
+                request.getParameter(
+                        "headerMismatchResult"));
 
         context.setProperty("isLoginhintMandatory", isLoginhintMandatory);
         context.setProperty("isShowTnc", isShowTnc);
-        context.setProperty("isOffnetFlow", isOffnetFlow);
+        context.setProperty("isOffnetFlow", headerMismatchResult);
+
+        String flowType = getFlowType(msisdnHeader, headerMismatchResult);
 
         //Change authentication flow just after registration
 		if (tokenId != null && msisdn != null) {
@@ -341,12 +340,14 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		return acrValues;
 	}
 
-	private String getFlowType(String msisdn) {
-		if (!StringUtils.isEmpty(msisdn)) {
-			return "onnet";
-		}
-		return "offnet";
-	}
+    private String getFlowType(String msisdn, ScopeParam.msisdnMismatchResultTypes headerMismatchResult) {
+        if (!ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK.equals(headerMismatchResult)) {
+            if (!StringUtils.isEmpty(msisdn)) {
+                return "onnet";
+            }
+        }
+        return "offnet";
+    }
 
 //    private boolean isUserProfileUpdateRequired(HttpServletRequest request, String msisdnHeader, String selectedLOA) {
 //        boolean userProfileUpdateRequired = false;

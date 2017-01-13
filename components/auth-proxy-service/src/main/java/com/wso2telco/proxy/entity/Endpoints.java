@@ -160,11 +160,12 @@ public class Endpoints {
             }
         }
 
-        validateAndSetScopeParameters(loginHint, msisdn, operatorName, redirectUrlInfo);
-
         msisdn = decryptMSISDN(httpHeaders, operatorName);
         ipAddress = getIpAddress(httpHeaders, operatorName);
         queryParams.putSingle(AuthProxyConstants.PROMPT, AuthProxyConstants.LOGIN);
+
+
+        validateAndSetScopeParameters(loginHint, msisdn, operatorName, redirectUrlInfo);
 
         Boolean isScopeExists = queryParams.containsKey(AuthProxyConstants.SCOPE);
         String operatorScopeWithClaims;
@@ -303,6 +304,7 @@ public class Endpoints {
         ScopeParam scopeParam = (ScopeParam) scopeDetail.get("params");
         redirectUrlInfo.setLoginhintMandatory(scopeParam.isLoginHintMandatory());
         redirectUrlInfo.setShowTnc(scopeParam.isTncVisible());
+        redirectUrlInfo.setHeaderMismatchResult(scopeParam.getMsisdnMismatchResult());
 
         if (scopeParam != null) {
             //check login hit existance validation
@@ -321,28 +323,21 @@ public class Endpoints {
                     }
 
                     //validate login hint format
-                    if (!validateFormatAndMatchLoginHintWithHeaderMsisdn(loginHint, scopeParam.getLoginHintFormat(),
-                                                                         msisdnHeader)) {
-                        if (scopeParam.getMsisdnMismatchResult().equals(
-                                ScopeParam.msisdnMismatchResultTypes.ERROR_RETURN)) {
-
-                            throw new AuthenticationFailedException(
-                                    "login hint is malformat or not matching with the header msisdn");
-                        } else if (scopeParam.getMsisdnMismatchResult().equals(
-                                ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK)) {
-                            redirectUrlInfo.setOffnetFlow(true);
-                        }
-                    }
+                    validateFormatAndMatchLoginHintWithHeaderMsisdn(loginHint, scopeParam.getLoginHintFormat(),
+                                                                    msisdnHeader, scopeParam.getMsisdnMismatchResult());
                 }
             }
         }
     }
 
-    private boolean validateFormatAndMatchLoginHintWithHeaderMsisdn(String loginHint,
-                                                                    List<LoginHintFormatDetails>
-                                                                            loginHintAllowedFormatDetailsList,
-                                                                    String plainTextMsisdnHeader)
+    private void validateFormatAndMatchLoginHintWithHeaderMsisdn(String loginHint,
+                                                                 List<LoginHintFormatDetails>
+                                                                         loginHintAllowedFormatDetailsList,
+                                                                 String plainTextMsisdnHeader,
+                                                                 ScopeParam.msisdnMismatchResultTypes
+                                                                         headerMismatchResult)
             throws AuthenticationFailedException {
+        boolean isValidFormatType = false; //msisdn/loginhint should be a either of defined formats
         for (LoginHintFormatDetails loginHintFormatDetails : loginHintAllowedFormatDetailsList) {
             String msisdn = null;
             switch (loginHintFormatDetails.getFormatType()) {
@@ -353,16 +348,16 @@ public class Endpoints {
                     if (StringUtils.isNotEmpty(loginHint)) {
                         msisdn = loginHint;
                     }
+                    isValidFormatType = true;
                     break;
                 case ENCRYPTED:
                     String decryptAlgorithm = loginHintFormatDetails.getDecryptAlgorithm();
-                    if(StringUtils.isNotEmpty(loginHint)) {
+                    if (StringUtils.isNotEmpty(loginHint)) {
                         if (loginHint.startsWith(LOGIN_HINT_ENCRYPTED_PREFIX)) {
-                            loginHint = loginHint.replace(LOGIN_HINT_ENCRYPTED_PREFIX, "");
                             String decrypted = null;
                             try {
                                 decrypted = Decrypt.decryptData(loginHint.replace(LOGIN_HINT_ENCRYPTED_PREFIX, ""),
-                                                    decryptAlgorithm);
+                                                                decryptAlgorithm);
                             } catch (Exception e) {
                                 log.error("Error while decrypting login hint - " + loginHint);
                             }
@@ -371,32 +366,53 @@ public class Endpoints {
                             if (log.isDebugEnabled()) {
                                 log.debug("MSISDN by encrypted login hint: " + msisdn);
                             }
+                            isValidFormatType = true;
+                            break;
                         }
+                    } else {
+                        isValidFormatType = true;
+                        break;
                     }
-                    break;
                 case MSISDN:
-                    if(StringUtils.isNotEmpty(loginHint)) {
+                    if (StringUtils.isNotEmpty(loginHint)) {
                         if (loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX)) {
                             msisdn = loginHint.replace(LOGIN_HINT_NOENCRYPTED_PREFIX, "");
                             if (log.isDebugEnabled()) {
                                 log.debug("MSISDN by login hint: " + msisdn);
                             }
+                            isValidFormatType = true;
+                            break;
                         }
+                    } else {
+                        isValidFormatType = true;
+                        break;
                     }
-                    break;
                 default:
                     log.error("Invalid Login Hint format - " + loginHintFormatDetails.getFormatType());
-                    break;
             }
+
+            //msisdn/loginhint should be a either of defined formats
+            if (!isValidFormatType) {
+                throw new AuthenticationFailedException(
+                        "login hint is malformat");
+            }
+
             if (StringUtils.isNotEmpty(msisdn)) {
-                if (validateMsisdnFormat(msisdn) && plainTextMsisdnHeader.equals(msisdn)) {
-                    return true;
+                //validate format
+                if (validateMsisdnFormat(msisdn)) {
+                    if (ScopeParam.msisdnMismatchResultTypes.ERROR_RETURN.equals(headerMismatchResult)) {
+                        if (!plainTextMsisdnHeader.equals(msisdn)) {
+                            throw new AuthenticationFailedException(
+                                    "login hint is not matching with the header msisdn");
+                        }
+                    }
+                } else {
+                    throw new AuthenticationFailedException(
+                            "login hint is malformat");
                 }
-            } else {
-                return true;
+
             }
         }
-        return false;
     }
 
 
@@ -467,15 +483,15 @@ public class Endpoints {
         String ipAddress = redirectUrlInfo.getIpAddress();
         boolean isLoginhintMandatory = redirectUrlInfo.isLoginhintMandatory();
         boolean isShowTnc = redirectUrlInfo.isShowTnc();
-        boolean isOffnetFlow = redirectUrlInfo.isOffnetFlow();
+        ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
 
         if (authorizeUrl != null) {
             redirectURL = authorizeUrl + queryString + AuthProxyConstants.MSISDN_HEADER + "=" +
                     msisdnHeader + "&" + AuthProxyConstants.OPERATOR + "=" +
                     operatorName + "&" + AuthProxyConstants.TELCO_SCOPE + "=" + telcoScope + "&" +
                     AuthProxyConstants.LOGIN_HINT_MANDATORY + "=" + isLoginhintMandatory + "&" +
-                    AuthProxyConstants.SHOW_TNC + "=" + isShowTnc + "&" + AuthProxyConstants.OFFNET_FLOW + "=" +
-                    isOffnetFlow;
+                    AuthProxyConstants.SHOW_TNC + "=" + isShowTnc + "&" + AuthProxyConstants.HEADER_MISMATCH_RESULT +
+                    "=" + headerMismatchResult;
             // Reconstruct Authorize url with ip address.
             if (ipAddress != null) {
                 redirectURL += "&" + AuthProxyConstants.IP_ADDRESS + "=" + ipAddress;

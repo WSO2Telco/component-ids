@@ -1,8 +1,7 @@
-package com.wso2telco.proxy.model;
+package com.wso2telco.gsma.authenticators.model;
 
 import java.util.List;
 
-//todo: this class is duplicated also in gsma authenticator. need to move to core-utils
 public class ScopeParam {
 
     public enum msisdnMismatchResultTypes {

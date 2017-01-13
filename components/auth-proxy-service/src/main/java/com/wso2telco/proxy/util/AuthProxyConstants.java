@@ -56,6 +56,6 @@ public class AuthProxyConstants {
     public static final String UTF_ENCODER = "UTF-8";
     public static final String SHOW_TNC = "isShowTnc";
     public static final String LOGIN_HINT_MANDATORY = "isLoginhintMandatory";
-    public static final String OFFNET_FLOW = "isOffnetFlow";
+    public static final String HEADER_MISMATCH_RESULT = "headerMismatchResult";
 
 }

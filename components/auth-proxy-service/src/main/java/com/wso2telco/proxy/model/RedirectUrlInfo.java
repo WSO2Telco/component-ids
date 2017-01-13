@@ -27,7 +27,7 @@ public class RedirectUrlInfo {
     private String telcoScope;
     private boolean isLoginhintMandatory;
     private boolean showTnc;
-    private boolean isOffnetFlow;
+    private ScopeParam.msisdnMismatchResultTypes headerMismatchResult;
 
     public String getQueryString() {
         return queryString;
@@ -93,11 +93,11 @@ public class RedirectUrlInfo {
         return showTnc;
     }
 
-    public void setOffnetFlow(boolean isOffnetFlow) {
-        this.isOffnetFlow = isOffnetFlow;
+    public void setHeaderMismatchResult(ScopeParam.msisdnMismatchResultTypes headerMismatchResult) {
+        this.headerMismatchResult = headerMismatchResult;
     }
 
-    public boolean isOffnetFlow() {
-        return isOffnetFlow;
+    public ScopeParam.msisdnMismatchResultTypes getHeaderMismatchResult() {
+        return headerMismatchResult;
     }
 }
