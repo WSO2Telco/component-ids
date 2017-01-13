@@ -133,6 +133,11 @@ public class Endpoints {
     private static final int FIRST_ATTEMPT = 1;
 
     /**
+     * The Configuration service
+     */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
+    /**
      * Instantiates a new endpoints.
      */
     public Endpoints() {
