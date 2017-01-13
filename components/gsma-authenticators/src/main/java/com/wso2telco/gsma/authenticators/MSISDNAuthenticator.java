@@ -202,7 +202,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         try {
             boolean isUserExists = AdminServiceUtil.isUserExists(msisdn);
             int currentLoa = (int) context.getProperty(Constants.ACR);
-            boolean isProfileUpgrade = isProfileUpgrade(msisdn, currentLoa);
+            boolean isProfileUpgrade = isProfileUpgrade(msisdn, currentLoa, isUserExists);
 
             setPropertiesToContext(context, msisdn, operator, isUserExists, currentLoa, isProfileUpgrade);
 
@@ -313,9 +313,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         }
     }
 
-    private boolean isProfileUpgrade(String msisdn, int currentLoa) throws RemoteException, LoginAuthenticationExceptionException, RemoteUserStoreManagerServiceUserStoreExceptionException {
+    private boolean isProfileUpgrade(String msisdn, int currentLoa, boolean isUserExits) throws RemoteException, LoginAuthenticationExceptionException, RemoteUserStoreManagerServiceUserStoreExceptionException, AuthenticationFailedException, UserStoreException {
 
-        if (msisdn != null) {
+        if (msisdn != null && isUserExits) {
             String adminURL = configurationService.getDataHolder().getMobileConnectConfig().getAdminUrl();
             LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
             String sessionCookie = lAdmin.authenticate(configurationService.getDataHolder().getMobileConnectConfig().getAdminUsername(),
@@ -361,10 +361,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
     private String getMsisdn(HttpServletRequest request, AuthenticationContext context) {
         String msisdn;
-        if (context.isRetrying()) {
+        msisdn = request.getParameter(Constants.MSISDN);
+        if (msisdn == null) {
             msisdn = (String) context.getProperty(Constants.MSISDN);
-        } else {
-            msisdn = request.getParameter(Constants.MSISDN);
         }
         return msisdn;
     }
