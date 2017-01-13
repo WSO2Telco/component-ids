@@ -16,11 +16,11 @@
 package com.wso2telco.proxy.util;
 
 
+import com.wso2telco.core.config.model.LoginHintFormatDetails;
+import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.proxy.model.AuthenticatorException;
-import com.wso2telco.proxy.model.LoginHintFormatDetails;
 import com.wso2telco.proxy.model.MSISDNHeader;
 import com.wso2telco.proxy.model.Operator;
-import com.wso2telco.proxy.model.ScopeParam;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 

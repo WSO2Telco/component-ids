@@ -16,10 +16,10 @@
 package com.wso2telco.gsma.authenticators;
 
 import com.wso2telco.core.config.MIFEAuthentication;
+import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
-import com.wso2telco.gsma.authenticators.model.ScopeParam;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;

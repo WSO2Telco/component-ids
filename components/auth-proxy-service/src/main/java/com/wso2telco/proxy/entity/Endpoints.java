@@ -17,13 +17,13 @@ package com.wso2telco.proxy.entity;
 
 import com.google.gdata.util.common.util.Base64DecoderException;
 import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.model.LoginHintFormatDetails;
+import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.proxy.MSISDNDecryption;
 import com.wso2telco.proxy.model.AuthenticatorException;
-import com.wso2telco.proxy.model.LoginHintFormatDetails;
 import com.wso2telco.proxy.model.MSISDNHeader;
 import com.wso2telco.proxy.model.Operator;
 import com.wso2telco.proxy.model.RedirectUrlInfo;
-import com.wso2telco.proxy.model.ScopeParam;
 import com.wso2telco.proxy.util.AuthProxyConstants;
 import com.wso2telco.proxy.util.ConfigLoader;
 import com.wso2telco.proxy.util.DBUtils;
@@ -323,8 +323,7 @@ public class Endpoints {
                     }
 
                     //validate login hint format
-                    validateFormatAndMatchLoginHintWithHeaderMsisdn(loginHint, scopeParam.getLoginHintFormat(),
-                                                                    msisdnHeader, scopeParam.getMsisdnMismatchResult());
+                    validateFormatAndMatchLoginHintWithHeaderMsisdn(loginHint, scopeParam.getLoginHintFormat(),msisdnHeader, scopeParam.getMsisdnMismatchResult());
                 }
             }
         }

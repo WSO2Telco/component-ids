@@ -15,6 +15,8 @@
  ******************************************************************************/
 package com.wso2telco.proxy.model;
 
+import com.wso2telco.core.config.model.ScopeParam;
+
 /**
  * RedirectUrlInfo is using to construct redirect url.
  */

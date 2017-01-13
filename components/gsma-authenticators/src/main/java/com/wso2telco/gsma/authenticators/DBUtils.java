@@ -17,7 +17,6 @@ package com.wso2telco.gsma.authenticators;
 
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.gsma.authenticators.model.LoginHintFormatDetails;
 import com.wso2telco.gsma.authenticators.model.MSISDNHeader;
 import com.wso2telco.gsma.authenticators.ussd.Pinresponse;
 import com.wso2telco.gsma.authenticators.util.TableName;
