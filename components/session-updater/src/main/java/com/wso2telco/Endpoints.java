@@ -133,6 +133,11 @@ public class Endpoints {
     private static final int FIRST_ATTEMPT = 1;
 
     /**
+     * The Configuration service
+     */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
+    /**
      * Instantiates a new endpoints.
      */
     public Endpoints() {
@@ -366,7 +371,11 @@ public class Endpoints {
                     return Response.status(Response.Status.CREATED).entity(response).build();
                 } else {
                     response = getPinMatchedResponse(gson, sessionID, msisdn, ussdSessionId);
+
                     DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_APPROVED);
+
+                    pinConfig.setCurrentStep(PinConfig.CurrentStep.PIN_RESET_CONFIRMATION);
+
                     return Response.status(Response.Status.CREATED).entity(response).build();
                 }
             }

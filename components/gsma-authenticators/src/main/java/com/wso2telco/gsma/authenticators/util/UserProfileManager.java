@@ -196,6 +196,14 @@ public class UserProfileManager {
         return remoteUserStoreServiceAdminClient.getCurrentPin(username);
     }
 
+
+    public static void setCurrentPin(String username, String pin) throws RemoteUserStoreManagerServiceUserStoreExceptionException,
+            RemoteException, UnsupportedEncodingException, NoSuchAlgorithmException {
+
+        remoteUserStoreServiceAdminClient.setUserClaim(username, UserProfileClaimsConstant.PIN,
+                getHashValue(pin), UserCoreConstants.DEFAULT_PROFILE);
+    }
+
     private static String getHashValue(String value) throws NoSuchAlgorithmException, UnsupportedEncodingException {
 
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -319,7 +327,7 @@ public class UserProfileManager {
         remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.CHALLENGEQUESTION2,
                 challengeQuestionAnswer2, UserCoreConstants.DEFAULT_PROFILE);
 
-        log.info("user profile update for challengeQuestionAnswer2 " + challengeQuestionAnswer2);
+        log.info("user profile update for pin ");
         remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.PIN,
                 getHashValue(pin), UserCoreConstants.DEFAULT_PROFILE);
 
