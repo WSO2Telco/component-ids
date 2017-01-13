@@ -283,6 +283,25 @@ public final class Constants {
 
     public static final String USSD_PIN_AUTHENTICATOR = "USSDPinAuthenticator";
 
+    public static final String SAA_AUTHENTICATOR_NAME = "SmartPhoneAppAuthenticator";
+
+    public static final String SAA_AUTHENTICATOR_FRIENDLY_NAME = "saa";
+
+    public static final String SAA_AUTHENTICATOR_STATUS = "SmartPhoneAppAuthenticatorStatus";
+
+    public static final String SAA_ENPOINT = "Endpoint";
+
+    public static final String TRANSACTION_ID = "TransactionId";
+
+    public static final String USER_STATUS_STREAM_NAME = "com.wso2telco.userstatus";
+
+    public static final String USER_STATUS_STREAM_VERSION = "1.0.0";
+
+    public static final String USER_STATUS_META_STREAM_NAME = "com.wso2telco.userstatus.meta";
+
+    public static final String USER_STATUS_META_STREAM_VERSION = "1.0.0";
+
+
     public static final String USER_CHALLENGE_SEPARATOR = "!";
 
     public static final String PIN_CLAIM = "http://wso2.org/claims/pin";

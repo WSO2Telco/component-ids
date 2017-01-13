@@ -81,16 +81,13 @@ public class SendSMS {
       
         outbound.setOutboundTextMessage(messageObj);
         outbound.setAddress(address);
-        
-        
 
-        ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
         Map<String, String> readMobileConnectConfigResult= null;
-        readMobileConnectConfigResult = readMobileConnectConfig.query("SMS");
 
-       
-       String senderAddress = readMobileConnectConfigResult.get("SenderAddres");
-       senderAddress =senderAddress.trim()==null?"26451":senderAddress.trim();
+        readMobileConnectConfigResult = ReadMobileConnectConfig.query("SMS");
+
+        String senderAddress = readMobileConnectConfigResult.get("SenderAddres");
+        senderAddress =senderAddress.trim()==null?"26451":senderAddress.trim();
         
         outbound.setSenderAddress(senderAddress);
         
@@ -146,7 +143,4 @@ public class SendSMS {
         }
         
     }
-    
-    
-    
 }
