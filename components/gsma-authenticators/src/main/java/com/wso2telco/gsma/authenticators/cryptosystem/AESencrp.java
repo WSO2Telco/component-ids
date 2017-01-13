@@ -91,19 +91,8 @@ public class AESencrp {
      * @throws Exception the exception
      */
     private static Key generateKey() throws Exception {
-        ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
         Map<String, String> readMobileConnectConfigResult= null;
-        try {
-            readMobileConnectConfigResult = readMobileConnectConfig.query("SMS");
-        } catch (ParserConfigurationException e) {
-            log.error("Error occured during ParseCOnfiguration " + e);
-        } catch (SAXException e) {
-        	log.error("Error occured during processing XML " + e);
-        } catch (IOException e) {
-        	log.error("I/O exception occured " + e);
-        } catch (XPathExpressionException e) {
-            log.error("Error occured in XPath expression " + e);
-        }
+        readMobileConnectConfigResult = ReadMobileConnectConfig.query("SMS");
 
         key = readMobileConnectConfigResult.get("AesKey");
         keyValue = key.getBytes(Charset.forName("UTF-8"));

@@ -471,7 +471,18 @@
 				</div>
 
 				<%
-						}
+                } else if(localAuthenticatorNames.size()>0 && localAuthenticatorNames.contains("SmartPhoneAppAuthenticator")) {
+                    hasLocalLoginOptions = true;
+                %>
+                <div class="row">
+                    <div class="span12">
+
+                        <%@ include file="saa_waiting.jsp" %>
+
+                    </div>
+                </div>
+                <%
+                        }
 					}
 
 					if ((hasLocalLoginOptions && localAuthenticatorNames.size() > 1) || (!hasLocalLoginOptions)

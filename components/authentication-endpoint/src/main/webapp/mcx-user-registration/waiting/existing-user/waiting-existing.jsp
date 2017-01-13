@@ -55,16 +55,7 @@
 		</div>
 		<% if (showSMSLink) { %>
 		<%  ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
-			String fallbackPrefix = "";
-			try {
-				fallbackPrefix = readMobileConnectConfig.query("SMS").get("FallbackPrefix");
-			} catch (ParserConfigurationException e) {
-				e.printStackTrace();
-			} catch (SAXException e) {
-				e.printStackTrace();
-			} catch (XPathExpressionException e) {
-				e.printStackTrace();
-			}
+			String fallbackPrefix = readMobileConnectConfig.query("SMS").get("FallbackPrefix");
 		%>
 		<p class="page__copy flush">{{ussd-sent-resend-sms-prompt}}
 			<br>

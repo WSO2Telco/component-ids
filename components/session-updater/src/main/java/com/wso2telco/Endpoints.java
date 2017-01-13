@@ -29,6 +29,8 @@ import com.wso2telco.cryptosystem.AESencrp;
 import com.wso2telco.entity.LoginHistory;
 import com.wso2telco.entity.StatusCode;
 import com.wso2telco.entity.ValidationResponse;
+import com.wso2telco.entity.SaaResponse;
+import com.wso2telco.entity.SaaStatusRequest;
 import com.wso2telco.exception.AuthenticatorException;
 import com.wso2telco.util.Constants;
 import com.wso2telco.util.DbUtil;
@@ -131,16 +133,31 @@ public class Endpoints {
     private static final int FIRST_ATTEMPT = 1;
 
     /**
-     * The Configuration service
-     */
-    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
-
-    /**
      * Instantiates a new endpoints.
      */
     public Endpoints() {
 
 
+    }
+
+    @POST
+    @Path("/saa/status")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Response saaUpdateStatus(SaaStatusRequest saaStatusRequest) {
+        Response response;
+
+        try {
+            DatabaseUtils.updateStatus(saaStatusRequest.getSessionDataKey(), saaStatusRequest.getStatus());
+
+            response = Response.status(Response.Status.ACCEPTED)
+                    .entity(new SaaResponse(saaStatusRequest.getSessionDataKey(), Constants.STATUS_SUCCESS)).build();
+        } catch (SQLException e) {
+
+            response = Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new SaaResponse(saaStatusRequest.getSessionDataKey(), Constants.STATUS_FAILED)).build();
+        }
+        return response;
     }
 
     /**
