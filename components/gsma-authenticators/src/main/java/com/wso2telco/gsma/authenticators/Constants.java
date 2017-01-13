@@ -313,4 +313,16 @@ public final class Constants {
     public static final String CHALLENGE_QUESTION_2_CLAIM = "http://wso2.org/claims/challengeQuestion2";
 
     public static final String IS_PIN_RESET = "isPinReset";
+
+    public static final String CURRENT_STEP = "currentStep";
+
+    public static final Object REGISTRATION = "stepRegistration";
+
+    public static final String REGISTERED_PIN = "registeredPin";
+
+    public static final String LOGIN = "stepLogin";
+
+    public static final String FIRST_PIN = "firstPin";
+
+    public static final String SECOND_PIN = "secondPin";
 }

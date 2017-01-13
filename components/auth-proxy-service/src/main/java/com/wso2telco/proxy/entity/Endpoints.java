@@ -323,7 +323,8 @@ public class Endpoints {
                     }
 
                     //validate login hint format
-                    validateFormatAndMatchLoginHintWithHeaderMsisdn(loginHint, scopeParam.getLoginHintFormat(),msisdnHeader, scopeParam.getMsisdnMismatchResult());
+                    validateFormatAndMatchLoginHintWithHeaderMsisdn(loginHint, scopeParam.getLoginHintFormat(),
+                                                                    msisdnHeader, scopeParam.getMsisdnMismatchResult());
                 }
             }
         }

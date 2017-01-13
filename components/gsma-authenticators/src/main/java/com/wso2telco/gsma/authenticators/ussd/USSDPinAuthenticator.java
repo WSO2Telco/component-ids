@@ -168,13 +168,16 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
                                         boolean isPinReset)
             throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
 
-        PinConfig pinConfig = new PinConfig();
 
-        pinConfig.setInvalidFormatAttempts(0);
+        PinConfig pinConfig;
         if (isRegistering) {
 
+            pinConfig = new PinConfig();
+            pinConfig.setInvalidFormatAttempts(0);
             pinConfig.setCurrentStep(PinConfig.CurrentStep.REGISTRATION);
         } else if (isPinReset) {
+            pinConfig = PinConfigUtil.getPinConfig(context);
+
             String challengeQuestionAndAnswer1 = UserProfileManager.getChallengeQuestionAndAnswer1(msisdn);
             String challengeQuestionAndAnswer2 = UserProfileManager.getChallengeQuestionAndAnswer2(msisdn);
 
@@ -184,6 +187,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             pinConfig.setChallengeAnswer2(challengeQuestionAndAnswer2.split("!")[1]);
 
         } else {
+            pinConfig = new PinConfig();
             String registeredPin = UserProfileManager.getCurrentPin(msisdn);
             pinConfig.setRegisteredPin(registeredPin);
             pinConfig.setCurrentStep(PinConfig.CurrentStep.LOGIN);
@@ -216,10 +220,12 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
 
         String msisdn = (String) context.getProperty(Constants.MSISDN);
+        PinConfig pinConfig = PinConfigUtil.getPinConfig(context);
 
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
         boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
-        boolean isPinReset = isPinReset(context);
+        boolean isPinReset = isPinReset(pinConfig);
+        boolean isPinResetConfirmation = isPinResetConfirmation(pinConfig);
 
         log.info("Processing authentication request [ msisdn : " + msisdn + " ] ");
         try {
@@ -230,6 +236,8 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
                     handleProfileUpgrade(context);
                 } else if (isPinReset) {
                     retryAuthenticatorForPinReset(context);
+                } else if (isPinResetConfirmation) {
+                    handlePinResetConfirmation(msisdn, pinConfig);
                 } else {
                     handleUserLogin(context);
                 }
@@ -252,6 +260,16 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             log.error("Error occurred while hashing the pin", e);
 //            throw new AuthenticationFailedException(e.getMessage(), e);
         }
+    }
+
+    private void handlePinResetConfirmation(String msisdn, PinConfig pinConfig) throws RemoteException, NoSuchAlgorithmException,
+            RemoteUserStoreManagerServiceUserStoreExceptionException, UnsupportedEncodingException {
+
+        UserProfileManager.setCurrentPin(msisdn, pinConfig.getConfirmedPin());
+    }
+
+    private boolean isPinResetConfirmation(PinConfig pinConfig) {
+        return pinConfig.getCurrentStep() == PinConfig.CurrentStep.PIN_RESET_CONFIRMATION;
     }
 
     private void retryAuthenticatorForPinReset(AuthenticationContext context) throws AuthenticationFailedException, RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
@@ -278,8 +296,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         throw new AuthenticationFailedException("User entered an incorrect pin for login. Moving to pin reset");
     }
 
-    private boolean isPinReset(AuthenticationContext context) {
-        PinConfig pinConfig = PinConfigUtil.getPinConfig(context);
+    private boolean isPinReset(PinConfig pinConfig) {
         return pinConfig.getCurrentStep() == PinConfig.CurrentStep.PIN_RESET;
     }
 

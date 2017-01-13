@@ -277,6 +277,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         context.setProperty(Constants.OPERATOR, operator);
         context.setProperty(Constants.ACR, currentLoa);
         context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade);
+        context.setProperty(Constants.IS_PIN_RESET, false);
     }
 
     private boolean isProfileUpgrade(AuthenticationContext context, boolean isUserExists, boolean isProfileUpgrade) {

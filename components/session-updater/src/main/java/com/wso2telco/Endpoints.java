@@ -22,6 +22,8 @@ import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.MIFEAuthentication;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.PinConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.config.util.PinConfigUtil;
 import com.wso2telco.cryptosystem.AESencrp;
 import com.wso2telco.entity.LoginHistory;
@@ -136,6 +138,11 @@ public class Endpoints {
      * constant for the first attempt in LOA3 flow
      */
     private static final int FIRST_ATTEMPT = 1;
+
+    /**
+     * The Configuration service
+     */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /**
      * Instantiates a new endpoints.
@@ -371,7 +378,11 @@ public class Endpoints {
                     return Response.status(Response.Status.CREATED).entity(response).build();
                 } else {
                     response = getPinMatchedResponse(gson, sessionID, msisdn, ussdSessionId);
+
                     DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_APPROVED);
+
+                    pinConfig.setCurrentStep(PinConfig.CurrentStep.PIN_RESET_CONFIRMATION);
+
                     return Response.status(Response.Status.CREATED).entity(response).build();
                 }
             }
