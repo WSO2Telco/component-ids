@@ -325,4 +325,6 @@ public final class Constants {
     public static final String FIRST_PIN = "firstPin";
 
     public static final String SECOND_PIN = "secondPin";
+
+    public static final String MSISDN_HEADER = "msisdn_header";
 }
