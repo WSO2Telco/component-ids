@@ -327,4 +327,17 @@ public final class Constants {
     public static final String SECOND_PIN = "secondPin";
 
     public static final String MSISDN_HEADER = "msisdn_header";
+
+    public static final String IS_LOGIN_HINT_MANDATORY = "isLoginhintMandatory";
+
+    public static final String IS_SHOW_TNC = "isShowTnc";
+
+    public static final String IS_OFFNET_FLOW = "isOffnetFlow";
+
+    public static final String HEADER_MISMATCH_RESULT = "headerMismatchResult";
+
+    public static final String TOKEN_ID = "tokenid";
+
+    public static final String CLIENT_ID = "client_id";
+
 }

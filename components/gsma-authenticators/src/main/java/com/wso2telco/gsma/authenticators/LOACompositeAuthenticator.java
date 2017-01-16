@@ -109,22 +109,21 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		}
 		boolean isLogin = false;
 		boolean isAuthenticated;
-		String mobileNetworkOperator = request.getParameter("operator");
-		String serviceProvider = request.getParameter("client_id");
+		String mobileNetworkOperator = request.getParameter(Constants.OPERATOR);
+		String serviceProvider = request.getParameter(Constants.CLIENT_ID);
 		//Unregister Customer Token
-		String msisdn = request.getParameter("msisdn");
-        String msisdnHeader = request.getParameter("msisdn_header");
+		String msisdn = request.getParameter(Constants.MSISDN_AUTHENTICATOR_FRIENDLY_NAME);
+        String msisdnHeader = request.getParameter(Constants.MSISDN_HEADER);
 
-		String tokenId = request.getParameter("tokenid");
-        boolean isLoginhintMandatory = Boolean.parseBoolean(request.getParameter("isLoginhintMandatory"));
-        boolean isShowTnc = Boolean.parseBoolean(request.getParameter("isShowTnc"));
+        String tokenId = request.getParameter(Constants.TOKEN_ID);
+        boolean isLoginhintMandatory = Boolean.parseBoolean(request.getParameter(Constants.IS_LOGIN_HINT_MANDATORY));
+        boolean isShowTnc = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = ScopeParam.msisdnMismatchResultTypes.valueOf(
-                request.getParameter(
-                        "headerMismatchResult"));
+                request.getParameter(Constants.HEADER_MISMATCH_RESULT));
 
-        context.setProperty("isLoginhintMandatory", isLoginhintMandatory);
-        context.setProperty("isShowTnc", isShowTnc);
-        context.setProperty("isOffnetFlow", headerMismatchResult);
+        context.setProperty(Constants.IS_LOGIN_HINT_MANDATORY, isLoginhintMandatory);
+        context.setProperty(Constants.IS_SHOW_TNC, isShowTnc);
+        context.setProperty(Constants.HEADER_MISMATCH_RESULT, headerMismatchResult);
 
         String flowType = getFlowType(msisdnHeader, headerMismatchResult);
 
