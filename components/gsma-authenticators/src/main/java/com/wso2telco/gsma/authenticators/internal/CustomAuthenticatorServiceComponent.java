@@ -15,37 +15,17 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.internal;
 
-import com.wso2telco.core.config.model.Authentication;
-import com.wso2telco.core.config.model.AuthenticationLevel;
-import com.wso2telco.core.config.model.AuthenticationLevels;
-import com.wso2telco.core.config.model.Authenticators;
-import com.wso2telco.core.config.model.Authenticator;
-import com.wso2telco.core.config.ConfigLoader;
-import com.wso2telco.core.config.MIFEAuthentication;
-import com.wso2telco.core.config.service.ConfigurationService;
-import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.ReferencePolicy;
-import org.osgi.service.component.ComponentContext;
-import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
-import org.wso2.carbon.user.core.service.RealmService;
-
 import com.wso2telco.gsma.authenticators.*;
 import com.wso2telco.gsma.authenticators.headerenrich.HeaderEnrichmentAuthenticator;
 import com.wso2telco.gsma.authenticators.sms.SMSAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDPinAuthenticator;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.felix.scr.annotations.*;
+import org.osgi.service.component.ComponentContext;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.user.core.service.RealmService;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -66,9 +46,6 @@ public class CustomAuthenticatorServiceComponent {
     /** The log. */
     private static Log log = LogFactory.getLog(CustomAuthenticatorServiceComponent.class);
 
-    /** The Configuration service */
-    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
-
     /** The realm service. */
     private static RealmService realmService;
 
@@ -80,7 +57,6 @@ public class CustomAuthenticatorServiceComponent {
     @Activate
     protected void activate(ComponentContext ctxt) {
 
-         
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new PinAuthenticator(), null);
 
@@ -107,17 +83,10 @@ public class CustomAuthenticatorServiceComponent {
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new SelfAuthenticator(), null);
 
-        AuthenticationLevels authenticationLevels = ConfigLoader.getInstance().getAuthenticationLevels();
-        configurationService.getDataHolder().setAuthenticationLevels(authenticationLevels);
-
-        configurationService.getDataHolder().setMobileConnectConfig(ConfigLoader.getInstance().getMobileConnectConfig());
-
-        Map<String, MIFEAuthentication> authenticationMap = loadMIFEAuthenticatorMap(authenticationLevels);
-        configurationService.getDataHolder().setAuthenticationLevelMap(authenticationMap);
         if (log.isDebugEnabled()) {
             log.debug("Custom Application Authenticator bundle is activated");
         }
-    }
+     }
 
     /**
      * Deactivate.
@@ -164,29 +133,4 @@ public class CustomAuthenticatorServiceComponent {
         return realmService;
     }
 
-    private Map<String, MIFEAuthentication> loadMIFEAuthenticatorMap(AuthenticationLevels authenticationLevels) {
-        Map<String, MIFEAuthentication> authenticatorMap = new HashMap<>();
-        List<AuthenticationLevel> authenticationLevelList = authenticationLevels.getAuthenticationLevelList();
-        for (AuthenticationLevel authenticationLevel : authenticationLevelList) {
-            MIFEAuthentication mifeAuthentication = new MIFEAuthentication();
-            String authenticationLevelValue = authenticationLevel.getLevel();
-            Authentication authentication = authenticationLevel.getAuthentication();
-            Authenticators authenticators = authentication.getAuthenticators();
-            String levelToFallBack = authentication.getLevelToFallback();
-            List<Authenticator> authenticatorList = authenticators.getAuthenticators();
-            List<MIFEAuthentication.MIFEAbstractAuthenticator> mifeAuthenticationList = new ArrayList<>();
-            for (Authenticator authenticator : authenticatorList) {
-                MIFEAuthentication.MIFEAbstractAuthenticator mifeAuthenticator = new MIFEAuthentication
-                        .MIFEAbstractAuthenticator();
-                mifeAuthenticator.setAuthenticator(authenticator.getAuthenticatorName());
-                mifeAuthenticator.setOnFailAction(authenticator.getOnfail());
-                mifeAuthenticator.setSupportFlow(authenticator.getSupportiveFlow());
-                mifeAuthenticationList.add(mifeAuthenticator);
-            }
-            mifeAuthentication.setLevelToFail(levelToFallBack);
-            mifeAuthentication.setAuthenticatorList(mifeAuthenticationList);
-            authenticatorMap.put(authenticationLevelValue, mifeAuthentication);
-        }
-        return  authenticatorMap;
-    }
 }

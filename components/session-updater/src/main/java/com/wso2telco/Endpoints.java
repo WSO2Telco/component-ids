@@ -54,6 +54,7 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -168,19 +169,25 @@ public class Endpoints {
         ussdSessionID = ((ussdSessionID != null) ? ussdSessionID : "");
         log.info("####### LOGS  ussdSessionID 02 : " + ussdSessionID);
 
-        //USSD 1 = YES
-        //USSD 2 = NO
-        if (message.equals("1")) {
+        //Accept or Reject response depending on configured values
+        String acceptInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getAcceptUserInputs();
+        String rejectInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getRejectUserInputs();
+
+        if (validateUserInputs(acceptInputs, message)) {
             status = "Approved";
             responseCode = Response.Status.CREATED.getStatusCode();
             DatabaseUtils.updateStatus(sessionID, status);
-        } else {
+        } else if (validateUserInputs(rejectInputs, message)) {
             status = "Rejected";
             responseCode = Response.Status.BAD_REQUEST.getStatusCode();
             DatabaseUtils.updateStatus(sessionID, status);
+        }else {
+            status = "Rejected";
+            responseCode = Response.Status.NOT_ACCEPTABLE.getStatusCode();
+            DatabaseUtils.updateStatus(sessionID, status);
         }
 
-        if (responseCode == Response.Status.BAD_REQUEST.getStatusCode()) {
+        if (responseCode == Response.Status.BAD_REQUEST.getStatusCode() || responseCode == Response.Status.NOT_ACCEPTABLE.getStatusCode()) {
             responseString = "{" + "\"requestError\":" + "{"
                     + "\"serviceException\":" + "{" + "\"messageId\":\"" + "SVC0275" + "\"" + "," + "\"text\":\"" + "Internal server Error" + "\"" + "}"
                     + "}}";
@@ -245,110 +252,6 @@ public class Endpoints {
         return Response.status(Response.Status.CREATED).entity(response).build();
     }
 
-    private String getPinMatchedResponse(Gson gson, String sessionID, String msisdn, String ussdSessionId) {
-        log.info("Pins are matched");
-
-        USSDRequest ussdRequest;
-        String response;
-        String message = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinRegistrationSuccessMessage();
-        ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, message);
-        response = gson.toJson(ussdRequest);
-
-        return response;
-    }
-
-    private String getPinConfirmResponse(Gson gson, String pin, String sessionID, PinConfig pinConfig, String msisdn, String ussdSessionId) {
-        log.info("Valid pin received");
-
-        USSDRequest ussdRequest;
-        String response;
-        String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinConfirmMessage();
-        ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
-
-        pinConfig.setCurrentStep(PinConfig.CurrentStep.CONFIRMATION);
-        pinConfig.setRegisteredPin(pin);
-
-        response = gson.toJson(ussdRequest);
-        return response;
-    }
-
-    private String handlePinMismatches(Gson gson, String sessionID, PinConfig pinConfig, String msisdn, String ussdSessionId)
-            throws SQLException, AuthenticatorException {
-        USSDRequest ussdRequest;
-        String response;
-
-        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts())) {
-            String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchMessage();
-            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
-            response = gson.toJson(ussdRequest);
-
-            log.info("Pin mismatch detected. Sending retry pin message [ " + ussdMessage + " ]");
-        } else {
-            String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchAttemptsExceedMessage();
-            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
-            response = gson.toJson(ussdRequest);
-
-            DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
-
-            log.info("Maximum attempts reached. Sending access denied message [ " + ussdMessage + " ]");
-        }
-
-        pinConfig.incrementPinMistmachAttempts();
-
-        return response;
-    }
-
-    private String handleInvalidFormat(Gson gson, String sessionID, PinConfig pinConfig, String msisdn, String ussdSessionId)
-            throws SQLException, AuthenticatorException {
-        USSDRequest ussdRequest;
-        String response;
-
-        if (pinConfig.getInvalidFormatAttempts() < Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getInvalidFormatPinAttempts())) {
-            String message = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinInvalidFormatMessage();
-            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, message);
-
-            log.info("Invalid pin. Sending retry pin message [ " + message + " ]");
-        } else {
-            String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinInvalidFormatAttemptsExceedMessage();
-            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
-
-            DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
-
-            log.info("Invalid pin maximum attempts reached. Sending access denied message [ " + ussdMessage + " ]");
-        }
-        pinConfig.incrementInvalidFormatAttempts();
-
-        response = gson.toJson(ussdRequest);
-        return response;
-    }
-
-    private String getUssdSessionId(JSONObject jsonObj) {
-        String ussdSessionId = null;
-
-        if (jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID")
-                && !jsonObj.getJSONObject("inboundUSSDMessageRequest").isNull("sessionID")) {
-            ussdSessionId = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("sessionID");
-
-            log.debug("Ussd session id retrieved [ " + ussdSessionId + " ] ");
-        }
-        return ussdSessionId;
-    }
-
-    private AuthenticationContext getAuthenticationContext(String sessionID) {
-        AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(sessionID);
-        Object cacheEntryObj = AuthenticationContextCache.getInstance().getValueFromCache(cacheKey);
-        return ((AuthenticationContextCacheEntry) cacheEntryObj).getContext();
-    }
-
-    private boolean isValidPinFormat(String pin) {
-
-        if (pin.matches("[0-9]+") && pin.length() <= Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMaxLength())) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     @POST
     @Path("/registration/ussd")
     @Consumes("application/json")
@@ -367,11 +270,12 @@ public class Endpoints {
 
         String status;
 
-        //USSD 1 = YES
-        //USSD 2 = NO
-        if (message.equals("1")) {
-            log.info("Updating registration status as success");
+        //Accept or Reject response depending on configured values
+        String acceptInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getAcceptUserInputs();
+        String rejectInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getRejectUserInputs();
 
+        if (validateUserInputs(acceptInputs, message)) {
+            log.info("Updating registration status as success");
             status = "Approved";
             responseCode = Response.Status.CREATED.getStatusCode();
             DatabaseUtils.updateRegistrationStatus(sessionID, status);
@@ -666,55 +570,6 @@ public class Endpoints {
     }
 
     /**
-     * Extract msisdn.
-     *
-     * @param jsonObj the json obj
-     * @return the string
-     * @throws JSONException the JSON exception
-     */
-    private String extractMsisdn(JSONObject jsonObj) throws JSONException {
-        String address = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("address");
-        if (address != null) {
-            return address.split(":\\+")[1];
-        }
-        return null;
-    }
-
-    /**
-     * Gets the hashed pin.
-     *
-     * @param pinvalue the pinvalue
-     * @return the hashed pin
-     */
-    private String getHashedPin(String pinvalue) {
-        String hashString = "";
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(pinvalue.getBytes("UTF-8"));
-
-            StringBuilder hexString = new StringBuilder();
-
-            for (int i = 0; i < hash.length; i++) {
-                String hex = Integer.toHexString(0xff & hash[i]);
-                if (hex.length() == 1) {
-                    hexString.append('0');
-                }
-                hexString.append(hex);
-            }
-
-            hashString = hexString.toString();
-
-        } catch (UnsupportedEncodingException ex) {
-            log.info("Error getHashValue");
-        } catch (NoSuchAlgorithmException ex) {
-            log.info("Error getHashValue");
-        }
-
-        return hashString;
-
-    }
-
-    /**
      * Login history.
      *
      * @param userID      the user id
@@ -830,6 +685,158 @@ public class Endpoints {
         return Response.status(200).build();
     }
 
+    private String getPinMatchedResponse(Gson gson, String sessionID, String msisdn, String ussdSessionId) {
+        log.info("Pins are matched");
+
+        USSDRequest ussdRequest;
+        String response;
+        String message = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinRegistrationSuccessMessage();
+        ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, message);
+        response = gson.toJson(ussdRequest);
+
+        return response;
+    }
+
+    private String getPinConfirmResponse(Gson gson, String pin, String sessionID, PinConfig pinConfig, String msisdn, String ussdSessionId) {
+        log.info("Valid pin received");
+
+        USSDRequest ussdRequest;
+        String response;
+        String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinConfirmMessage();
+        ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
+
+        pinConfig.setCurrentStep(PinConfig.CurrentStep.CONFIRMATION);
+        pinConfig.setRegisteredPin(pin);
+
+        response = gson.toJson(ussdRequest);
+        return response;
+    }
+
+    private String handlePinMismatches(Gson gson, String sessionID, PinConfig pinConfig, String msisdn, String ussdSessionId)
+            throws SQLException, AuthenticatorException {
+        USSDRequest ussdRequest;
+        String response;
+
+        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts())) {
+            String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchMessage();
+            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
+            response = gson.toJson(ussdRequest);
+
+            log.info("Pin mismatch detected. Sending retry pin message [ " + ussdMessage + " ]");
+        } else {
+            String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchAttemptsExceedMessage();
+            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
+            response = gson.toJson(ussdRequest);
+
+            DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
+
+            log.info("Maximum attempts reached. Sending access denied message [ " + ussdMessage + " ]");
+        }
+
+        pinConfig.incrementPinMistmachAttempts();
+
+        return response;
+    }
+
+    private String handleInvalidFormat(Gson gson, String sessionID, PinConfig pinConfig, String msisdn, String ussdSessionId)
+            throws SQLException, AuthenticatorException {
+        USSDRequest ussdRequest;
+        String response;
+
+        if (pinConfig.getInvalidFormatAttempts() < Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getInvalidFormatPinAttempts())) {
+            String message = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinInvalidFormatMessage();
+            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, message);
+
+            log.info("Invalid pin. Sending retry pin message [ " + message + " ]");
+        } else {
+            String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinInvalidFormatAttemptsExceedMessage();
+            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
+
+            DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
+
+            log.info("Invalid pin maximum attempts reached. Sending access denied message [ " + ussdMessage + " ]");
+        }
+        pinConfig.incrementInvalidFormatAttempts();
+
+        response = gson.toJson(ussdRequest);
+        return response;
+    }
+
+    private String getUssdSessionId(JSONObject jsonObj) {
+        String ussdSessionId = null;
+
+        if (jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID")
+                && !jsonObj.getJSONObject("inboundUSSDMessageRequest").isNull("sessionID")) {
+            ussdSessionId = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("sessionID");
+
+            log.debug("Ussd session id retrieved [ " + ussdSessionId + " ] ");
+        }
+        return ussdSessionId;
+    }
+
+    private AuthenticationContext getAuthenticationContext(String sessionID) {
+        AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(sessionID);
+        Object cacheEntryObj = AuthenticationContextCache.getInstance().getValueFromCache(cacheKey);
+        return ((AuthenticationContextCacheEntry) cacheEntryObj).getContext();
+    }
+
+    private boolean isValidPinFormat(String pin) {
+
+        if (pin.matches("[0-9]+") && pin.length() <= Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMaxLength())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Extract msisdn.
+     *
+     * @param jsonObj the json obj
+     * @return the string
+     * @throws JSONException the JSON exception
+     */
+    private String extractMsisdn(JSONObject jsonObj) throws JSONException {
+        String address = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("address");
+        if (address != null) {
+            return address.split(":\\+")[1];
+        }
+        return null;
+    }
+
+    /**
+     * Gets the hashed pin.
+     *
+     * @param pinvalue the pinvalue
+     * @return the hashed pin
+     */
+    private String getHashedPin(String pinvalue) {
+        String hashString = "";
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(pinvalue.getBytes("UTF-8"));
+
+            StringBuilder hexString = new StringBuilder();
+
+            for (int i = 0; i < hash.length; i++) {
+                String hex = Integer.toHexString(0xff & hash[i]);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+
+            hashString = hexString.toString();
+
+        } catch (UnsupportedEncodingException ex) {
+            log.info("Error getHashValue");
+        } catch (NoSuchAlgorithmException ex) {
+            log.info("Error getHashValue");
+        }
+
+        return hashString;
+    }
+
     private static USSDRequest getUssdContinueRequest(String msisdn, String sessionID, String ussdSessionID, String action) {
 
         USSDRequest req = new USSDRequest();
@@ -910,5 +917,30 @@ public class Endpoints {
         outboundUSSDMessageRequest.setUssdAction(action);
         req.setOutboundUSSDMessageRequest(outboundUSSDMessageRequest);
         return req;
+    }
+
+    /**
+     * Validates ussd user response against a comma separated values string and returns
+     * true if list contains the ussd input value.
+     * @param ussdInputs comma separated list of possible responses
+     * @param ussdValue value to check
+     * @return true if list contains the value to check
+     */
+    private boolean validateUserInputs(String ussdInputs, String ussdValue) {
+        boolean validUserInput = false;
+
+        if(ussdInputs != null && ussdValue != null) {
+            String[] validInputsList = ussdInputs.split(",");
+            for(String validInput:validInputsList) {
+                if(validInput.trim().equalsIgnoreCase(ussdValue)) {
+                    validUserInput = true;
+                    break;
+                }
+            }
+        }else if(ussdValue != null && ussdValue.equalsIgnoreCase("1")){
+            return true;
+        }
+
+        return validUserInput;
     }
 }
