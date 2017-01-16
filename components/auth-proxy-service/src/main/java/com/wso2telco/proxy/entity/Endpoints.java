@@ -16,20 +16,22 @@
 package com.wso2telco.proxy.entity;
 
 import com.google.gdata.util.common.util.Base64DecoderException;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.openid.extension.scope.ScopeConstant;
 import com.wso2telco.proxy.MSISDNDecryption;
+import com.wso2telco.proxy.model.MSISDNHeader;
 import com.wso2telco.proxy.model.Operator;
 import com.wso2telco.proxy.model.RedirectUrlInfo;
-import com.wso2telco.proxy.util.*;
-import com.wso2telco.proxy.model.MSISDNHeader;
+import com.wso2telco.proxy.util.AuthProxyConstants;
+import com.wso2telco.proxy.util.DBUtils;
+import com.wso2telco.proxy.util.DecryptAES;
+import com.wso2telco.proxy.util.EncryptAES;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminService;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceException;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceStub;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceUserRegistrationException;
+import org.wso2.carbon.identity.user.registration.stub.*;
 import org.wso2.carbon.identity.user.registration.stub.dto.UserDTO;
 import org.wso2.carbon.identity.user.registration.stub.dto.UserFieldDTO;
 
@@ -68,10 +70,13 @@ public class Endpoints {
     private static Map<String, List<MSISDNHeader>> operatorsMSISDNHeadersMap;
     private static Map<String, Operator> operatorPropertiesMap = null;
 
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
     static {
         try {
             //Load mobile-connect.xml file.
-            mobileConnectConfigs = ConfigLoader.getInstance().getMobileConnectConfig();
+            mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
             //Load msisdn header properties.
             operatorsMSISDNHeadersMap = DBUtils.getOperatorsMSISDNHeaderProperties();
             //Load operator properties.
