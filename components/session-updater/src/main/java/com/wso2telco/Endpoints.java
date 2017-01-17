@@ -202,8 +202,6 @@ public class Endpoints {
 
         String status = null;
         AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
-        PinConfig pinConfig = PinConfigUtil.getPinConfig(authenticationContext);
-        pinConfig.setConfirmedPin(getHashedPin(message));
 
         String ussdSessionID = null;
         if (jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID") && !jsonObj.getJSONObject("inboundUSSDMessageRequest").isNull("sessionID")) {
@@ -225,7 +223,7 @@ public class Endpoints {
             status = "Rejected";
             responseCode = Response.Status.BAD_REQUEST.getStatusCode();
             DatabaseUtils.updateStatus(sessionID, status);
-        }else {
+        } else {
             status = "Rejected";
             responseCode = Response.Status.NOT_ACCEPTABLE.getStatusCode();
             DatabaseUtils.updateStatus(sessionID, status);
@@ -514,7 +512,7 @@ public class Endpoints {
         USSDRequest ussdRequest;
         String response;
 
-        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts())) {
+        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts()) - 1) {
             String ussdMessage = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinMismatchMessage();
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
             response = gson.toJson(ussdRequest);
@@ -1242,22 +1240,23 @@ public class Endpoints {
     /**
      * Validates ussd user response against a comma separated values string and returns
      * true if list contains the ussd input value.
+     *
      * @param ussdInputs comma separated list of possible responses
-     * @param ussdValue value to check
+     * @param ussdValue  value to check
      * @return true if list contains the value to check
      */
     private boolean validateUserInputs(String ussdInputs, String ussdValue) {
         boolean validUserInput = false;
 
-        if(ussdInputs != null && ussdValue != null) {
+        if (ussdInputs != null && ussdValue != null) {
             String[] validInputsList = ussdInputs.split(",");
-            for(String validInput:validInputsList) {
-                if(validInput.trim().equalsIgnoreCase(ussdValue)) {
+            for (String validInput : validInputsList) {
+                if (validInput.trim().equalsIgnoreCase(ussdValue)) {
                     validUserInput = true;
                     break;
                 }
             }
-        }else if(ussdValue != null && ussdValue.equalsIgnoreCase("1")){
+        } else if (ussdValue != null && ussdValue.equalsIgnoreCase("1")) {
             return true;
         }
 

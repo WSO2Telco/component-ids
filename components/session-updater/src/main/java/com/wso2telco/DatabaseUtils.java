@@ -130,9 +130,9 @@ public class DatabaseUtils {
         PreparedStatement ps = null;
 
         String sql =
-                "update `clientstatus` set "
-                        + "Status=? where "
-                        + "SessionID=?;";
+                "update `regstatus` set "
+                        + "status=? where "
+                        + "uuid=?;";
 
         try {
             connection = getUssdDBConnection();
