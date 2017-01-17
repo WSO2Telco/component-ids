@@ -71,6 +71,7 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -211,19 +212,25 @@ public class Endpoints {
         ussdSessionID = ((ussdSessionID != null) ? ussdSessionID : "");
         log.info("####### LOGS  ussdSessionID 02 : " + ussdSessionID);
 
-        //USSD 1 = YES
-        //USSD 2 = NO
-        if (message.equals("1")) {
+        //Accept or Reject response depending on configured values
+        String acceptInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getAcceptUserInputs();
+        String rejectInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getRejectUserInputs();
+
+        if (validateUserInputs(acceptInputs, message)) {
             status = "Approved";
             responseCode = Response.Status.CREATED.getStatusCode();
             DatabaseUtils.updateStatus(sessionID, status);
-        } else {
+        } else if (validateUserInputs(rejectInputs, message)) {
             status = "Rejected";
             responseCode = Response.Status.BAD_REQUEST.getStatusCode();
             DatabaseUtils.updateStatus(sessionID, status);
+        }else {
+            status = "Rejected";
+            responseCode = Response.Status.NOT_ACCEPTABLE.getStatusCode();
+            DatabaseUtils.updateStatus(sessionID, status);
         }
 
-        if (responseCode == Response.Status.BAD_REQUEST.getStatusCode()) {
+        if (responseCode == Response.Status.BAD_REQUEST.getStatusCode() || responseCode == Response.Status.NOT_ACCEPTABLE.getStatusCode()) {
             responseString = "{" + "\"requestError\":" + "{"
                     + "\"serviceException\":" + "{" + "\"messageId\":\"" + "SVC0275" + "\"" + "," + "\"text\":\"" + "Internal server Error" + "\"" + "}"
                     + "}}";
@@ -1125,17 +1132,17 @@ public class Endpoints {
 
         OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
         outboundUSSDMessageRequest.setAddress("tel:+" + msisdn);
-        outboundUSSDMessageRequest.setShortCode(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getShortCode());
-        outboundUSSDMessageRequest.setKeyword(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getKeyword());
+        outboundUSSDMessageRequest.setShortCode(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getShortCode());
+        outboundUSSDMessageRequest.setKeyword(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getKeyword());
         outboundUSSDMessageRequest.setSessionID(ussdSessionID);
 
-        outboundUSSDMessageRequest.setOutboundUSSDMessage(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinConfirmMessage());
+        outboundUSSDMessageRequest.setOutboundUSSDMessage(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinConfirmMessage());
 
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
         ResponseRequest responseRequest = new ResponseRequest();
 
-        responseRequest.setNotifyURL(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinRegistrationNotifyUrl());
+        responseRequest.setNotifyURL(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinRegistrationNotifyUrl());
         responseRequest.setCallbackData("");
 
         outboundUSSDMessageRequest.setResponseRequest(responseRequest);
@@ -1153,8 +1160,8 @@ public class Endpoints {
 
         OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
         outboundUSSDMessageRequest.setAddress("tel:+" + msisdn);
-        outboundUSSDMessageRequest.setShortCode(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getShortCode());
-        outboundUSSDMessageRequest.setKeyword(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getKeyword());
+        outboundUSSDMessageRequest.setShortCode(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getShortCode());
+        outboundUSSDMessageRequest.setKeyword(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getKeyword());
         outboundUSSDMessageRequest.setSessionID(ussdSessionID);
 
         outboundUSSDMessageRequest.setOutboundUSSDMessage(message);
@@ -1163,7 +1170,7 @@ public class Endpoints {
 
         ResponseRequest responseRequest = new ResponseRequest();
 
-        responseRequest.setNotifyURL(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getRegistrationNotifyUrl());
+        responseRequest.setNotifyURL(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getRegistrationNotifyUrl());
         responseRequest.setCallbackData("");
 
         outboundUSSDMessageRequest.setResponseRequest(responseRequest);
@@ -1180,17 +1187,17 @@ public class Endpoints {
 
         OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
         outboundUSSDMessageRequest.setAddress("tel:+" + msisdn);
-        outboundUSSDMessageRequest.setShortCode(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getShortCode());
-        outboundUSSDMessageRequest.setKeyword(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getKeyword());
+        outboundUSSDMessageRequest.setShortCode(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getShortCode());
+        outboundUSSDMessageRequest.setKeyword(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getKeyword());
         outboundUSSDMessageRequest.setSessionID(ussdSessionID);
 
-        outboundUSSDMessageRequest.setOutboundUSSDMessage(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinInvalidFormatMessage());
+        outboundUSSDMessageRequest.setOutboundUSSDMessage(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinInvalidFormatMessage());
 
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
         ResponseRequest responseRequest = new ResponseRequest();
 
-        responseRequest.setNotifyURL(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinRegistrationNotifyUrl());
+        responseRequest.setNotifyURL(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinRegistrationNotifyUrl());
         responseRequest.setCallbackData("");
 
         outboundUSSDMessageRequest.setResponseRequest(responseRequest);
@@ -1225,5 +1232,30 @@ public class Endpoints {
 
         req.setOutboundUSSDMessageRequest(outboundUSSDMessageRequest);
         return req;
+    }
+
+    /**
+     * Validates ussd user response against a comma separated values string and returns
+     * true if list contains the ussd input value.
+     * @param ussdInputs comma separated list of possible responses
+     * @param ussdValue value to check
+     * @return true if list contains the value to check
+     */
+    private boolean validateUserInputs(String ussdInputs, String ussdValue) {
+        boolean validUserInput = false;
+
+        if(ussdInputs != null && ussdValue != null) {
+            String[] validInputsList = ussdInputs.split(",");
+            for(String validInput:validInputsList) {
+                if(validInput.trim().equalsIgnoreCase(ussdValue)) {
+                    validUserInput = true;
+                    break;
+                }
+            }
+        }else if(ussdValue != null && ussdValue.equalsIgnoreCase("1")){
+            return true;
+        }
+
+        return validUserInput;
     }
 }

@@ -81,13 +81,13 @@
     </dependency>
     <dependency>
         <groupId>com.wso2telco.core</groupId>
-        <artifactId>dbutils</artifactId>
-        <version>2.0.4-SNAPSHOT</version>
+        <artifactId>config-util</artifactId>
+        <scope>provided</scope>
     </dependency>
     <dependency>
         <groupId>com.wso2telco.core</groupId>
-        <artifactId>config-util</artifactId>
-        <scope>provided</scope>
+        <artifactId>dbutils</artifactId>
+        <version>2.0.4-SNAPSHOT</version>
     </dependency>
     <dependency>
         <groupId>org.wso2.carbon.identity</groupId>

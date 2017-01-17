@@ -16,30 +16,22 @@
 package com.wso2telco.proxy.entity;
 
 import com.google.gdata.util.common.util.Base64DecoderException;
-import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.model.LoginHintFormatDetails;
+import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.ScopeParam;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.proxy.MSISDNDecryption;
 import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.model.MSISDNHeader;
 import com.wso2telco.proxy.model.Operator;
 import com.wso2telco.proxy.model.RedirectUrlInfo;
-import com.wso2telco.proxy.util.AuthProxyConstants;
-import com.wso2telco.proxy.util.ConfigLoader;
-import com.wso2telco.proxy.util.DBUtils;
-import com.wso2telco.proxy.util.Decrypt;
-import com.wso2telco.proxy.util.DecryptAES;
-import com.wso2telco.proxy.util.EncryptAES;
-import com.wso2telco.proxy.util.MobileConnectConfig;
+import com.wso2telco.proxy.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminService;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceException;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceStub;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceUserRegistrationException;
+import org.wso2.carbon.identity.user.registration.stub.*;
 import org.wso2.carbon.identity.user.registration.stub.dto.UserDTO;
 import org.wso2.carbon.identity.user.registration.stub.dto.UserFieldDTO;
 
@@ -77,6 +69,9 @@ public class Endpoints {
     private static Map<String, List<MSISDNHeader>> operatorsMSISDNHeadersMap;
     private static Map<String, Operator> operatorPropertiesMap = null;
 
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
     /**
      * The Constant LOGIN_HINT_ENCRYPTED_PREFIX.
      */
@@ -95,7 +90,7 @@ public class Endpoints {
     static {
         try {
             //Load mobile-connect.xml file.
-            mobileConnectConfigs = ConfigLoader.getInstance().getMobileConnectConfig();
+            mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
             //Load msisdn header properties.
             operatorsMSISDNHeadersMap = DBUtils.getOperatorsMSISDNHeaderProperties();
             //Load operator properties.
@@ -419,7 +414,7 @@ public class Endpoints {
     private boolean validateMsisdnFormat(String msisdn) {
         if (StringUtils.isNotEmpty(msisdn)) {
             String plaintextMsisdnRegex =
-                    DataHolder.getInstance().getMobileConnectConfig().getMsisdn().getValidationRegex();
+                    configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getValidationRegex();
             return msisdn.matches(plaintextMsisdnRegex);
         }
         return true;

@@ -16,6 +16,9 @@
 package com.wso2telco.proxy.util;
 
 
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.config.model.LoginHintFormatDetails;
 import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.proxy.model.AuthenticatorException;
@@ -45,6 +48,8 @@ public class DBUtils {
     private static final Log log = LogFactory.getLog(DBUtils.class);
     private static DataSource dataSource = null;
 
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     private static void initializeDatasource() throws NamingException {
         if (dataSource != null) {

@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
+
 package com.wso2telco.proxy.util;
 
 import com.google.gdata.util.common.util.Base64;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
+import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
 import javax.naming.ConfigurationException;
 import java.security.InvalidKeyException;
@@ -34,9 +34,12 @@ public class EncryptAES {
     private static MobileConnectConfig mobileConnectConfigs = null;
     private static String encryptionKey = null;
 
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
     static {
         //Load mobile-connect.xml file.
-        mobileConnectConfigs = ConfigLoader.getInstance().getMobileConnectConfig();
+        mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
         if (mobileConnectConfigs != null) {
             encryptionKey = mobileConnectConfigs.getMsisdn().getEncryptionKey();
         }
