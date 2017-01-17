@@ -1,12 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
- * 
+ * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com)
+ *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,21 +14,6 @@
  * limitations under the License.
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.security.KeyFactory;
-import java.security.PublicKey;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.crypto.Cipher;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
@@ -53,10 +38,24 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import com.wso2telco.mnc.resolver.MNCQueryClient;
-import com.wso2telco.mnc.resolver.MobileNtException;
+import javax.crypto.Cipher;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
- 
+//import com.wso2telco.mnc.resolver.MNCQueryClient;
+//import com.wso2telco.mnc.resolver.MobileNtException;
+
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class OpCoCompositeAuthenticator.
@@ -66,7 +65,7 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
 
     /** The Constant serialVersionUID. */
     private static final long serialVersionUID = -7533605620408092358L;
-    
+
     /** The log. */
     private static Log log = LogFactory.getLog(OpCoCompositeAuthenticator.class);
 
@@ -253,12 +252,12 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
      * @return the provider brand
      */
     private String getProviderBrand(String mcc, String endUser) {
-        try {
-            MNCQueryClient mncQueryclient = new MNCQueryClient();
-            return mncQueryclient.QueryNetwork(mcc, endUser);
-        } catch (MobileNtException ex) {
-            log.error("No IDPs brand found for User Mobile", ex);
-        }
+//        try {
+//            MNCQueryClient mncQueryclient = new MNCQueryClient();
+//            return mncQueryclient.QueryNetwork(mcc, endUser);
+//        } catch (MobileNtException ex) {
+//            log.error("No IDPs brand found for User Mobile", ex);
+//        }
 
         return null;
     }
@@ -280,7 +279,7 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
             PublicKey pubKey = readPublicKeyFromFile(getPublicKeyFile());
             Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher.init(Cipher.ENCRYPT_MODE, pubKey);
-            encryptedData = cipher.doFinal(dataToEncrypt);            
+            encryptedData = cipher.doFinal(dataToEncrypt);
             return new String(Base64.encodeBase64(encryptedData));
 
         } catch (Exception e) {
@@ -298,7 +297,7 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
      */
     private PublicKey readPublicKeyFromFile(String fileName) throws AuthenticationFailedException {
         try {
-            String publicK = readStringKey(fileName);           
+            String publicK = readStringKey(fileName);
             byte[] keyBytes = Base64.decodeBase64(publicK.getBytes());;
             X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");

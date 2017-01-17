@@ -15,25 +15,17 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.internal;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.felix.scr.annotations.Activate;
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Deactivate;
-import org.apache.felix.scr.annotations.Reference;
-import org.apache.felix.scr.annotations.ReferenceCardinality;
-import org.apache.felix.scr.annotations.ReferencePolicy;
-import org.osgi.service.component.ComponentContext;
-import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
-import org.wso2.carbon.user.core.service.RealmService;
-
 import com.wso2telco.gsma.authenticators.*;
-import com.wso2telco.gsma.authenticators.config.ConfigLoader;
-import com.wso2telco.gsma.authenticators.config.LOAConfig;
 import com.wso2telco.gsma.authenticators.headerenrich.HeaderEnrichmentAuthenticator;
 import com.wso2telco.gsma.authenticators.sms.SMSAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDPinAuthenticator;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.felix.scr.annotations.*;
+import org.osgi.service.component.ComponentContext;
+import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
+import org.wso2.carbon.user.core.service.RealmService;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -82,6 +74,8 @@ public class CustomAuthenticatorServiceComponent {
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new USSDAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
+                new SmartPhoneAppAuthenticator(), null);
+        ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new USSDPinAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new SMSAuthenticator(), null);
@@ -89,21 +83,13 @@ public class CustomAuthenticatorServiceComponent {
                 new MSSAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new MSSPinAuthenticator(), null);
-        
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new SelfAuthenticator(), null);
-
-
-        LOAConfig config = ConfigLoader.getInstance().getLoaConfig();
-
-        DataHolder.getInstance().setLOAConfig(config);
-
-        DataHolder.getInstance().setMobileConnectConfig(ConfigLoader.getInstance().getMobileConnectConfig());
 
         if (log.isDebugEnabled()) {
             log.debug("Custom Application Authenticator bundle is activated");
         }
-    }
+     }
 
     /**
      * Deactivate.

@@ -36,6 +36,11 @@
 			<groupId>com.wso2telco.core</groupId>
 			<artifactId>dbutils</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>com.wso2telco.core</groupId>
+            <artifactId>config-util</artifactId>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
@@ -62,14 +67,19 @@
 			<artifactId>org.wso2.carbon.identity.core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.wso2telco.ids</groupId>
-			<artifactId>gsma-authenticator</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.json.wso2</groupId>
 			<artifactId>json</artifactId>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>com.wso2telco.ids</groupId>
+            <artifactId>openid-token-builder</artifactId>
+            <version>2.0.13</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+    </dependencies>
 
 
 	<build>
@@ -140,10 +150,15 @@
 							org.wso2.carbon.identity.user.profile.mgt;
 							version="${carbon.identity.package.import.version.range}",
 							org.wso2.carbon.idp.mgt;
-							version="${carbon.identity.package.import.version.range}"
+							version="${carbon.identity.package.import.version.range}",
+							com.wso2telco.core.config.*,
+							com.wso2telco.core.dbutils.*,
+							com.wso2telco.dbutils.*
 						</Import-Package>
 						<Export-Package>
-							com.wso2telco.*
+							com.wso2telco.claimhandler.*, com.wso2telco.dao.*, com.wso2telco.model.*,
+							com.wso2telco.openidtokenbuilder.*, com.wso2telco.reqpathsequencehandler.*,
+							com.wso2telco.transaction.log.*, com.wso2telco.util.*
 						</Export-Package>
 						<Embed-Dependency>
 							nimbus-jose-jwt|json-smart;scope=compile|runtime;inline=false

@@ -4,7 +4,13 @@ public enum TableName {
 	
 	CLIENT_STATUS("clientstatus"),
 	
-	AUTHENTICATED_LOGIN("authenticated_login");
+	AUTHENTICATED_LOGIN("authenticated_login"),
+
+    REG_STATUS("regstatus"),
+
+    ALLOWED_AUTHENTICATORS_MNO("allowed_authenticators_mno"),
+
+    ALLOWED_AUTHENTICATORS_SP("allowed_authenticators_sp");
 	
     private final String text;
 

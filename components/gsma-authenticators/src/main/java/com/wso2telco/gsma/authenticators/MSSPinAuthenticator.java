@@ -15,11 +15,13 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.MSSRequest;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -48,6 +50,9 @@ public class MSSPinAuthenticator extends AbstractApplicationAuthenticator
     
     /** The log. */
     private static Log log = LogFactory.getLog(MSSPinAuthenticator.class);
+
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#process(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
@@ -94,7 +99,7 @@ public class MSSPinAuthenticator extends AbstractApplicationAuthenticator
             String msisdn = (String) context.getProperty("msisdn");
             MSSRequest mssRequest=new MSSRequest();
             mssRequest.setMsisdnNo("+"+msisdn);
-            mssRequest.setSendString(DataHolder.getInstance().getMobileConnectConfig().getMSS().getMssPinTest());
+            mssRequest.setSendString(configurationService.getDataHolder().getMobileConnectConfig().getMSS().getMssPinTest());
 
             String contextIdentifier=context.getContextIdentifier();
             MSSRestClient mssRestClient =new MSSRestClient(contextIdentifier,mssRequest);

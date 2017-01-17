@@ -15,14 +15,10 @@
  ******************************************************************************/
 package com.wso2telco.reqpathsequencehandler;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.wso2telco.core.config.model.AuthenticationLevels;
+import com.wso2telco.core.config.MIFEAuthentication;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -38,20 +34,19 @@ import org.wso2.carbon.identity.application.authentication.framework.handler.seq
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedIdPData;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.oauth.cache.CacheKey;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 
-import com.wso2telco.gsma.authenticators.DataHolder;
-import com.wso2telco.gsma.authenticators.config.LOA;
-import com.wso2telco.gsma.authenticators.config.LOAConfig;
-import com.wso2telco.gsma.authenticators.config.LOA.MIFEAbstractAuthenticator;
-import com.wso2telco.util.AuthenticationHealper;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class MIFERequestPathBasedSequenceHandler.
  */
@@ -59,7 +54,10 @@ public class MIFERequestPathBasedSequenceHandler extends DefaultRequestPathBased
 
 	/** The log. */
 	private static Log log = LogFactory.getLog(MIFERequestPathBasedSequenceHandler.class);
-	
+
+	/** The Configuration service */
+	private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
 	/** The instance. */
 	private static volatile MIFERequestPathBasedSequenceHandler instance;
 
@@ -174,24 +172,22 @@ public class MIFERequestPathBasedSequenceHandler extends DefaultRequestPathBased
 		LinkedHashSet<?> acrs = this.getACRValues(request);
 		String selectedLOA = (String) acrs.iterator().next();
 
-		LOAConfig config = DataHolder.getInstance().getLOAConfig();
-		LOA loa = config.getLOA(selectedLOA);
-		if (loa.getAuthenticators() == null) {
-			config.init();
-		}
+		AuthenticationLevels config = configurationService.getDataHolder().getAuthenticationLevels();
+		Map<String, MIFEAuthentication> authenticationMap = configurationService.getDataHolder().getAuthenticationLevelMap();
+		MIFEAuthentication mifeAuthentication = authenticationMap.get(selectedLOA);
 
-		List<MIFEAbstractAuthenticator> mifeAuthenticators = loa.getAuthenticators();
+		List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList = mifeAuthentication.getAuthenticatorList();
 		SequenceConfig sequenceConfig = context.getSequenceConfig();
 
 		// Clear existing ReqPathAuthenticators list
 		sequenceConfig.setReqPathAuthenticators(new ArrayList<AuthenticatorConfig>());
 
-		for (MIFEAbstractAuthenticator mifeAuthenticator : mifeAuthenticators) {
+		for (MIFEAuthentication.MIFEAbstractAuthenticator mifeAuthenticator : authenticatorList) {
 			AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
-			authenticatorConfig.setName(mifeAuthenticator.getAuthenticator().getName());
-			authenticatorConfig.setApplicationAuthenticator(mifeAuthenticator.getAuthenticator());
-
-			sequenceConfig.getReqPathAuthenticators().add(authenticatorConfig);
+			ApplicationAuthenticator applicationAuthenticator = FrameworkUtils
+					.getAppAuthenticatorByName(mifeAuthenticator.getAuthenticator());
+			authenticatorConfig.setName(mifeAuthenticator.getAuthenticator());
+			authenticatorConfig.setApplicationAuthenticator(applicationAuthenticator);
 		}
 
 		context.setSequenceConfig(sequenceConfig);

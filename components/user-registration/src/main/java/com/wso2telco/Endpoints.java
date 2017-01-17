@@ -7,31 +7,18 @@
  */
 package com.wso2telco;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.rmi.RemoteException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.wso2telco.core.config.MIFEAuthentication;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.shorten.SelectShortUrl;
+import com.wso2telco.manager.UserProfileManager;
+import com.wso2telco.sms.OutboundSMSMessageRequest;
+import com.wso2telco.sms.OutboundSMSTextMessage;
+import com.wso2telco.sms.SendSMSRequest;
+import com.wso2telco.utils.ReadMobileConnectConfig;
+import com.wso2telco.utils.UserRegistrationConstants;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -43,31 +30,23 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.json.JSONException;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceException;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.wso2telco.gsma.shorten.SelectShortUrl;
-import com.wso2telco.manager.UserProfileManager;
-import com.wso2telco.sms.OutboundSMSMessageRequest;
-import com.wso2telco.sms.OutboundSMSTextMessage;
-import com.wso2telco.sms.SendSMSRequest;
-import com.wso2telco.utils.ConfigLoader;
-import com.wso2telco.utils.LOA;
-import com.wso2telco.utils.LOA.MIFEAbstractAuthenticator;
-import com.wso2telco.utils.LOAConfig;
-import com.wso2telco.utils.ReadMobileConnectConfig;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.rmi.RemoteException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-//import org.json.JSONException;
-//import Aloo.AdminServicesInvoker.LoginAdminServiceClient;
-
-/**
- * REST Web Service Dialog Axiata
- * 
- * @version $Id: Queries.java,v 1.00.000
- */
 @Path("/endpoint")
 public class Endpoints {
 
@@ -84,6 +63,9 @@ public class Endpoints {
 	String serviceException = "\"" + "serviceException" + "\"";
 	String policyException = "\"" + "policyException" + "\"";
 	String errorReturn = "\"" + "errorreturn" + "\"";
+
+	/** The Configuration service */
+	private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
 	/**
 	 * Creates a new instance of QueriesResource
@@ -949,14 +931,12 @@ public class Endpoints {
 		int statusCode = 500;
 		try {
 			log.info("Searching default Authenticator for acr: " + acr);
-			LOAConfig config = ConfigLoader.getInstance().getLoaConfig();
-			LOA loa = config.getLOA(acr);
+			Map<String, MIFEAuthentication> authenticationMap = configurationService.getDataHolder().getAuthenticationLevelMap();
+			MIFEAuthentication mifeAuthentication = authenticationMap.get(acr);
+			List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList = mifeAuthentication
+					.getAuthenticatorList();
 
-			if (loa.getAuthenticators() == null) {
-				log.info("Authenticators null and calling config init");
-				config.init();
-			}
-			String selected = selectDefaultAuthenticator(loa.getAuthenticators());
+			String selected = selectDefaultAuthenticator(authenticatorList);
 
 			if (selected == null) {
 				returnJson = "{\"status\":\"error\", \"message\":\"Invalid configuration in LOA.xml, couldn't find valid Authenticator\"}";
@@ -982,18 +962,17 @@ public class Endpoints {
 	 * Select the first authenticator from, SMSAuthenticator, USSDAuthenticator
 	 * or USSDPinAuthenticator
 	 * 
-	 * @param name
-	 *            name of the authenticator.
-	 * @return true if valid authenticator found.
+	 * @param authenticatorList
+	 *           authenticator list.
+	 * @return authenticatorName if valid authenticator found.
 	 */
-	private String selectDefaultAuthenticator(List<MIFEAbstractAuthenticator> authenticators) {
+	private String selectDefaultAuthenticator(List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList) {
 		try {
-			for (MIFEAbstractAuthenticator a : authenticators) {
-
-				String authenticatorName = a.getAuthenticator().getName();
-				if ("SMSAuthenticator".equalsIgnoreCase(authenticatorName)
-						|| "USSDAuthenticator".equalsIgnoreCase(authenticatorName)
-						|| "USSDPinAuthenticator".equalsIgnoreCase(authenticatorName)) {
+			for (MIFEAuthentication.MIFEAbstractAuthenticator mifeAbstractAuthenticator : authenticatorList) {
+				String authenticatorName = mifeAbstractAuthenticator.getAuthenticator();
+				if (UserRegistrationConstants.smsAuthenticator.equalsIgnoreCase(authenticatorName)
+						|| UserRegistrationConstants.ussdAuthenticator.equalsIgnoreCase(authenticatorName)
+						|| UserRegistrationConstants.ussdPinAuthenticator.equalsIgnoreCase(authenticatorName)) {
 					String msg = "Found valid authenticator: " + authenticatorName;
 					log.debug(msg);
 					log.info(msg);

@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
- * 
+ *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,13 +15,16 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
-import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import com.wso2telco.gsma.authenticators.util.DecryptionAES;
-
+import com.wso2telco.gsma.manager.client.ClaimManagementClient;
+import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -30,51 +33,70 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.oauth.cache.CacheKey;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
-import org.wso2.carbon.user.api.UserRealm;
-import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
+import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import javax.crypto.Cipher;
+import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
- 
+import java.sql.SQLException;
+
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class MSISDNAuthenticator.
  */
 public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 
-    /** The Constant serialVersionUID. */
+    /**
+     * The Constant serialVersionUID.
+     */
     private static final long serialVersionUID = 6817280268460894001L;
-    
-    /** The log. */
+    private static final int LOA_3 = 3;
+
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(MSISDNAuthenticator.class);
 
-    /** The Constant LOGIN_HINT_ENCRYPTED_PREFIX. */
+    /**
+     * The Constant LOGIN_HINT_ENCRYPTED_PREFIX.
+     */
     private static final String LOGIN_HINT_ENCRYPTED_PREFIX = "ENCR_MSISDN:";
-    
-    /** The Constant LOGIN_HINT_NOENCRYPTED_PREFIX. */
+
+    /**
+     * The Constant LOGIN_HINT_NOENCRYPTED_PREFIX.
+     */
     private static final String LOGIN_HINT_NOENCRYPTED_PREFIX = "MSISDN:";
-    
-    /** The Constant LOGIN_HINT_SEPARATOR. */
+
+    /**
+     * The Constant LOGIN_HINT_SEPARATOR.
+     */
     private static final String LOGIN_HINT_SEPARATOR = "|";
-    
-    /** The Constant ENCRYPTION_ALGORITHM. */
+
+    /**
+     * The Constant ENCRYPTION_ALGORITHM.
+     */
     private static final String ENCRYPTION_ALGORITHM = "RSA";
+
+    /**
+     * The Configuration service
+     */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
@@ -84,13 +106,11 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         if (log.isDebugEnabled()) {
             log.debug("MSISDN Authenticator canHandle invoked");
         }
-        
-        
 
-         
-        if ((request.getParameter("msisdn") != null) || (getLoginHintValues(request) != null) || ((request.getParameter("msisdn_header") != null) && (request.getParameter("msisdn_header") != ""))) {
+        if ((request.getParameter("msisdn") != null) || (getLoginHintValues(request) != null)
+                || ((request.getParameter("msisdn_header") != null) && (request.getParameter("msisdn_header") != ""))) {
             log.info("msisdn forwarding ");
-        	return true;
+            return true;
         }
         return false;
     }
@@ -100,7 +120,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
      */
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request,
-            HttpServletResponse response, AuthenticationContext context)
+                                           HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
 
         if (context.isLogoutRequest()) {
@@ -115,32 +135,57 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
      */
     @Override
     protected void initiateAuthenticationRequest(HttpServletRequest request,
-            HttpServletResponse response, AuthenticationContext context)
+                                                 HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
 
-        String queryParams = FrameworkUtils
-                .getQueryStringWithFrameworkContextId(context.getQueryParams(),
-                context.getCallerSessionKey(),
-                context.getContextIdentifier());
-
+        boolean isProfileUpgrade = false;
+        String loginPage;
         try {
 
+            String msisdn = request.getParameter(Constants.MSISDN);
+            int currentLoa = getAcr(request, context);
+
+            if (context.isRetrying()) {
+                isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
+            }
+            context.setProperty(Constants.ACR, currentLoa);
+
+            loginPage = getAuthEndpointUrl(msisdn, isProfileUpgrade);
+
+            String queryParams = FrameworkUtils
+                    .getQueryStringWithFrameworkContextId(context.getQueryParams(),
+                            context.getCallerSessionKey(),
+                            context.getContextIdentifier());
             String retryParam = "";
 
             if (context.isRetrying()) {
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
-            
             log.info("Query params: " + queryParams);
-            
-            response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams))+ "&redirect_uri="+ request.getParameter("redirect_uri") + "&authenticators="
-                    + getName() + ":" + "LOCAL" + retryParam);
 
+            response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" + request.getParameter("redirect_uri") + "&authenticators="
+                    + getName() + ":" + "LOCAL" + retryParam);
+        } catch (UserStoreException e) {
+            e.printStackTrace();
         } catch (IOException e) {
+            log.error("Error occurred while redirecting request", e);
+            throw new AuthenticationFailedException(e.getMessage(), e);
+        } catch (RemoteUserStoreManagerServiceUserStoreExceptionException | LoginAuthenticationExceptionException e) {
+            log.error("Error occurred while accessing admin services", e);
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
+    }
+
+    private int getAcr(HttpServletRequest request, AuthenticationContext context) {
+        int acr;
+
+        if (!context.isRetrying()) {
+            acr = Integer.parseInt(request.getParameter(Constants.PARAM_ACR));
+        } else {
+            acr = (int) context.getProperty(Constants.ACR);
+        }
+        return acr;
     }
 
     /* (non-Javadoc)
@@ -148,107 +193,180 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
      */
     @Override
     protected void processAuthenticationResponse(HttpServletRequest request,
-            HttpServletResponse response, AuthenticationContext context)
+                                                 HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-    	String msisdn = request.getParameter("msisdn");
-    	//extract msisdn from headers for HE scenario 
-    	final String msisdnHE = request.getParameter("msisdn_header");
-        if((msisdn==null) & (msisdnHE!=null && msisdnHE.trim().length()>0)){
-        	log.debug("Set msisdn from header msisdn_header" + msisdnHE);
-        	msisdn=msisdnHE.trim();
-			try {
-				msisdn = DecryptionAES.decrypt(msisdn);
-			} catch (Exception e) {
-				log.error("processAuthenticationResponse", e);
-				throw new AuthenticationFailedException("Decryption error",e);
-			}
-        	
-        }
-        boolean isAuthenticated = false;
+        String msisdn = getMsisdn(request, context);
+        String operator = request.getParameter(Constants.OPERATOR);
 
-        // Check the authentication by checking if username exists
         try {
+            boolean isUserExists = AdminServiceUtil.isUserExists(msisdn);
+            int currentLoa = (int) context.getProperty(Constants.ACR);
+            boolean isProfileUpgrade = isProfileUpgrade(msisdn, currentLoa, isUserExists);
 
-            if (msisdn == null) {
-                String loginHint = getLoginHintValues(request); //request.getParameter("login_hint");
+            setPropertiesToContext(context, msisdn, operator, isUserExists, currentLoa, isProfileUpgrade);
 
-                if (loginHint != null) {
-                    log.info("MSISDN by login hint: " + loginHint);
-                    // String encryptappend = DataHolder.getInstance().getMobileConnectConfig().getEncryptAppend();
-                    // encryptappend not used as per latest comment hence subsstring for 11 digits
-                    if (loginHint.startsWith(LOGIN_HINT_ENCRYPTED_PREFIX)){
-                        loginHint = loginHint.replace(LOGIN_HINT_ENCRYPTED_PREFIX, "");
-                        String decrypted = decryptData(loginHint);
-                        log.debug("Decrypted login hint: " + decrypted);
-                        msisdn = decrypted.substring(0, decrypted.indexOf(LOGIN_HINT_SEPARATOR));
-                        if (log.isDebugEnabled()) {
-                        log.debug("MSISDN by encrypted login hint: " + msisdn);
-                        }
-                    } else if (loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX)){
-                        msisdn = loginHint.replace(LOGIN_HINT_NOENCRYPTED_PREFIX, "");
-                        if (log.isDebugEnabled()) {
-                        log.debug("MSISDN by login hint: " + msisdn);
-                        }
-                    } else {
-                        log.warn("No supported login hint format");
-                }
-                }
-            } else {
-            	log.info("MSISDN by request parameter or context parameter: " + msisdn);
+            handleFlow(request, context, msisdn, isUserExists, isProfileUpgrade);
+
+            AuthenticationContextHelper.setSubject(context, msisdn);
+            String rememberMe = request.getParameter("chkRemember");
+
+            if (rememberMe != null && "eon".equals(rememberMe)) {
+                context.setRememberMe(true);
             }
-            context.setProperty("msisdn", msisdn);
-            int tenantId = -1234;
-            UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService()
-                    .getTenantUserRealm(tenantId);
-
-            if (userRealm != null) {
-                UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
-
-                /*String userLocked = userStoreManager.getUserClaimValue(msisdn, "http://wso2.org/claims/identity/accountLocked", "default");
-                if(userLocked != null && userLocked.equalsIgnoreCase("true")) {
-                    log.info("MSISDN Authenticator authentication failed ");
-                    if (log.isDebugEnabled()) {
-                        log.debug("User authentication failed due to locked account.");
-                    }
-                    throw new AuthenticationFailedException("Authentication Failed");
-                }*/
-
-                isAuthenticated = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(msisdn));
-            } else {
-                throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: " + tenantId);
-            }
-        } catch (IdentityException e) {
-            log.error("MSISDN Authentication failed while trying to get the tenant ID of the user", e);
-            throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             log.error("MSISDN Authentication failed while trying to authenticate", e);
             throw new AuthenticationFailedException(e.getMessage(), e);
-        } catch (Exception e) {
-            log.error("MSISDN Authentication failed while trying to obtain login hint value", e);
+        } catch (AuthenticatorException e) {
+            log.error("Error occurred while saving request type");
+        } catch (SQLException | NamingException e) {
+            log.error("Error occurred while saving data", e);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+            e.printStackTrace();
+        } catch (LoginAuthenticationExceptionException e) {
+            e.printStackTrace();
         }
+    }
 
-        if (!isAuthenticated) {
-            log.info("MSISDN Authenticator authentication failed ");
-            context.setProperty("faileduser", msisdn);
-            if (log.isDebugEnabled()) {
-                log.debug("User authentication failed due to not existing user MSISDN.");
+    private void handleFlow(HttpServletRequest request, AuthenticationContext context, String msisdn, boolean isUserExists,
+                            boolean isProfileUpgrade) throws AuthenticationFailedException, SQLException, NamingException,
+            AuthenticatorException {
+
+        if (isUserRegistration(context, isUserExists)) {
+
+            retryAuthenticatorToGetConsent(context, msisdn);
+
+        } else if (isProfileUpgrade(context, isUserExists, isProfileUpgrade)) {
+
+            retryAuthenticatorToUpdateProfile(context);
+
+        } else if (isRegistrationCompletion(context, isUserExists)) {
+
+            updateDatabaseForRegirationPending(request, context, msisdn);
+
+        } else {
+
+            handleLogin(context);
+        }
+    }
+
+    private void retryAuthenticatorToUpdateProfile(AuthenticationContext context) throws AuthenticationFailedException {
+        context.setProperty(Constants.IS_REGISTERING, false);
+        throw new AuthenticationFailedException("User exists. Moving for profile updating");
+    }
+
+    private void retryAuthenticatorToGetConsent(AuthenticationContext context, String msisdn) throws AuthenticationFailedException {
+        context.setProperty("faileduser", msisdn);
+        context.setProperty(Constants.IS_REGISTERING, true);
+        if (log.isDebugEnabled()) {
+            log.debug("User authentication failed due to not existing user MSISDN.");
+        }
+        throw new AuthenticationFailedException("User does not exist. Moving for registration");
+    }
+
+    private void handleLogin(AuthenticationContext context) throws AuthenticatorException {
+        context.setProperty(Constants.IS_REGISTERING, false);
+        DBUtils.insertLoginStatus(context.getContextIdentifier(), String.valueOf(Constants.STATUS_PENDING));
+    }
+
+    private void setPropertiesToContext(AuthenticationContext context, String msisdn, String operator, boolean isUserExists, int currentLoa, boolean isProfileUpgrade) {
+        context.setProperty(Constants.IS_USER_EXISTS, isUserExists);
+        context.setProperty(Constants.MSISDN, msisdn);
+        context.setProperty(Constants.OPERATOR, operator);
+        context.setProperty(Constants.ACR, currentLoa);
+        context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade);
+        context.setProperty(Constants.IS_PIN_RESET, false);
+    }
+
+    private boolean isProfileUpgrade(AuthenticationContext context, boolean isUserExists, boolean isProfileUpgrade) {
+        return isUserExists && isProfileUpgrade && !context.isRetrying();
+    }
+
+    private boolean isRegistrationCompletion(AuthenticationContext context, boolean isUserExists) {
+        return !isUserExists && context.isRetrying();
+    }
+
+    private boolean isUserRegistration(AuthenticationContext context, boolean isUserExists) {
+        return !isUserExists && !context.isRetrying();
+    }
+
+    private void setPropertiesToContext(AuthenticationContext context, String msisdn, boolean isProfileUpgrade) throws UserStoreException,
+            AuthenticationFailedException, RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException,
+            LoginAuthenticationExceptionException {
+
+        if (msisdn != null) {
+
+            boolean isUserExists = AdminServiceUtil.isUserExists(msisdn);
+
+            if (!isUserExists) {
+                context.setProperty(Constants.IS_REGISTERING, true);
+                context.setProperty(Constants.IS_PROFILE_UPGRADE, false);
+            } else {
+                context.setProperty(Constants.IS_REGISTERING, false);
+                if (isProfileUpgrade) {
+                    context.setProperty(Constants.IS_PROFILE_UPGRADE, true);
+                } else {
+                    context.setProperty(Constants.IS_PROFILE_UPGRADE, false);
+                }
             }
-
-            throw new AuthenticationFailedException("Authentication Failed");
         }
-        log.info("MSISDN Authenticator authentication success for MSISDN - " + msisdn);
-        
-        context.setProperty("msisdn", msisdn);
-        /*context.setSubject(msisdn);
-        AuthenticatedUser user=new AuthenticatedUser();*/
-//		context.setSubject(AuthenticatedUser.createLocalAuthenticatedUserFromSubjectIdentifier(msisdn));
-        AuthenticationContextHelper.setSubject(context,msisdn);
-        String rememberMe = request.getParameter("chkRemember");
+    }
 
-        if (rememberMe != null && "on".equals(rememberMe)) {
-            context.setRememberMe(true);
+    private boolean isProfileUpgrade(String msisdn, int currentLoa, boolean isUserExits) throws RemoteException, LoginAuthenticationExceptionException, RemoteUserStoreManagerServiceUserStoreExceptionException, AuthenticationFailedException, UserStoreException {
+
+        if (msisdn != null && isUserExits) {
+            String adminURL = configurationService.getDataHolder().getMobileConnectConfig().getAdminUrl();
+            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
+            String sessionCookie = lAdmin.authenticate(configurationService.getDataHolder().getMobileConnectConfig().getAdminUsername(),
+                    configurationService.getDataHolder().getMobileConnectConfig().getAdminPassword());
+            ClaimManagementClient claimManager = new ClaimManagementClient(adminURL, sessionCookie);
+            int registeredLoa = Integer.parseInt(claimManager.getRegisteredLOA(msisdn));
+
+            return currentLoa > registeredLoa;
+        } else {
+            return false;
         }
+
+    }
+
+    private String getAuthEndpointUrl(String msisdn, boolean isProfileUpgrade) throws UserStoreException,
+            AuthenticationFailedException, RemoteException, LoginAuthenticationExceptionException,
+            RemoteUserStoreManagerServiceUserStoreExceptionException {
+
+        String loginPage;
+        if (msisdn != null && !AdminServiceUtil.isUserExists(msisdn)) {
+
+            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.CONSENT_JSP;
+        } else {
+
+            if (isProfileUpgrade) {
+
+                loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl()
+                        + Constants.PROFILE_UPGRADE_JSP;
+            } else {
+                loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
+            }
+        }
+        return loginPage;
+    }
+
+    private void updateDatabaseForRegirationPending(HttpServletRequest request, AuthenticationContext context, String msisdn) throws SQLException, NamingException, AuthenticatorException {
+        DBUtils.saveRequestType(msisdn, 1);
+        DBUtils.insertRegistrationStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
+        if (request.getParameter("isRegistration") != null) {
+            context.setProperty("isRegistration", request.getParameter("isRegistration"));
+        }
+    }
+
+    private String getMsisdn(HttpServletRequest request, AuthenticationContext context) {
+        String msisdn;
+        msisdn = request.getParameter(Constants.MSISDN);
+        if (msisdn == null) {
+            msisdn = (String) context.getProperty(Constants.MSISDN);
+        }
+        return msisdn;
     }
 
     /**
@@ -258,18 +376,18 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
      * @return the string
      * @throws Exception the exception
      */
-    public String decryptData(String data) throws Exception{
+    public String decryptData(String data) throws Exception {
         byte[] bytes = hexStringToByteArray(data);
-            String filename = DataHolder.getInstance().getMobileConnectConfig().getKeyfile();
+        String filename = configurationService.getDataHolder().getMobileConnectConfig().getKeyfile();
         PrivateKey key = getPrivateKey(filename);
         return decrypt(bytes, key);
-        }
+    }
 
     /**
      * Decrypt.
      *
      * @param text the text
-     * @param key the key
+     * @param key  the key
      * @return the string
      */
     public static String decrypt(byte[] text, PrivateKey key) {
@@ -280,12 +398,12 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             // decrypt the text using the private key
             cipher.init(Cipher.DECRYPT_MODE, key);
             byte[] dectyptedText = cipher.doFinal(text);
-            
+
             return new String(dectyptedText);
 
         } catch (Exception ex) {
-            log.error("Exception encrypting data " + ex.getClass().getName() + ": "+ ex.getMessage());
-        return null;
+            log.error("Exception encrypting data " + ex.getClass().getName() + ": " + ex.getMessage());
+            return null;
         }
     }
 
@@ -313,10 +431,10 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         } catch (Exception ex) {
             log.error("Exception reading private key:" + ex.getMessage());
             return null;
-    }
+        }
 
     }
-    
+
     /**
      * Read string key.
      *
@@ -352,7 +470,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     }
 
 
-
     /**
      * Hex string to byte array.
      *
@@ -364,7 +481,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         byte[] data = new byte[len / 2];
         for (int i = 0; i < len; i += 2) {
             data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                                 + Character.digit(s.charAt(i+1), 16));
+                    + Character.digit(s.charAt(i + 1), 16));
         }
         return data;
     }
@@ -395,7 +512,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         try {
             String sdk = request.getParameter(OAuthConstants.SESSION_DATA_KEY);
             CacheKey ck = new SessionDataCacheKey(sdk);
-            SessionDataCacheKey sessionDataCacheKey=new SessionDataCacheKey(sdk);            
+            SessionDataCacheKey sessionDataCacheKey = new SessionDataCacheKey(sdk);
             SessionDataCacheEntry sdce =
                     (SessionDataCacheEntry) SessionDataCache.getInstance().getValueFromCache(sessionDataCacheKey);
             loginHintValues = sdce.getoAuth2Parameters().getLoginHint();

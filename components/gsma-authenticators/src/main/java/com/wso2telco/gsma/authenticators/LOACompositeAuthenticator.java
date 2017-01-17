@@ -15,11 +15,13 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
-import com.wso2telco.gsma.authenticators.config.LOA;
-import com.wso2telco.gsma.authenticators.config.LOA.MIFEAbstractAuthenticator;
-import com.wso2telco.gsma.authenticators.config.LOAConfig;
+import com.wso2telco.core.config.MIFEAuthentication;
+import com.wso2telco.core.config.model.ScopeParam;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
@@ -45,9 +47,14 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
- 
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class LOACompositeAuthenticator.
@@ -63,6 +70,19 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
     
     /** The log. */
     private static Log log = LogFactory.getLog(LOACompositeAuthenticator.class);
+	private String isAdminUserName = null;
+	private String isAdminPassword = null;
+
+
+    public LOACompositeAuthenticator() {
+		//Use this credentials to login to IS.
+		//TODO : get this username and password from a suitable configuration file.
+		isAdminUserName = "admin";
+		isAdminPassword = "admin";
+	}
+
+	/** The Configuration service */
+	private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
 	/* (non-Javadoc)
 	 * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
@@ -78,7 +98,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		}			
 	}
 
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#process(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
 	 */
 	public AuthenticatorFlowStatus process(HttpServletRequest request,
@@ -87,24 +107,40 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		if (!canHandle(request)) {
 			return AuthenticatorFlowStatus.INCOMPLETE;
 		}
-       boolean isLogin=false;
-       boolean isAuthenticated;
-        //Unregister Customer Token
+		boolean isLogin = false;
+		boolean isAuthenticated;
+		String mobileNetworkOperator = request.getParameter(Constants.OPERATOR);
+		String serviceProvider = request.getParameter(Constants.CLIENT_ID);
+		//Unregister Customer Token
+		String msisdn = request.getParameter(Constants.MSISDN_AUTHENTICATOR_FRIENDLY_NAME);
+        String msisdnHeader = request.getParameter(Constants.MSISDN_HEADER);
 
-       String msisdn=request.getParameter("msisdn");
-       String tokenId=tokenId=request.getParameter("tokenid");
+        String tokenId = request.getParameter(Constants.TOKEN_ID);
+        boolean isLoginhintMandatory = Boolean.parseBoolean(request.getParameter(Constants.IS_LOGIN_HINT_MANDATORY));
+        boolean isShowTnc = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
+        ScopeParam.msisdnMismatchResultTypes headerMismatchResult = ScopeParam.msisdnMismatchResultTypes.valueOf(
+                request.getParameter(Constants.HEADER_MISMATCH_RESULT));
+
+        context.setProperty(Constants.IS_LOGIN_HINT_MANDATORY, isLoginhintMandatory);
+        context.setProperty(Constants.IS_SHOW_TNC, isShowTnc);
+        context.setProperty(Constants.HEADER_MISMATCH_RESULT, headerMismatchResult);
+
+        String flowType = getFlowType(msisdnHeader, headerMismatchResult);
+
         //Change authentication flow just after registration
-        if (tokenId != null && msisdn != null) {
-            try {
-                AuthenticationData authenticationData = DBUtils.getAuthenticateData(tokenId);
-                int status = authenticationData.getStatus();
-                int tenantId = -1234;
-                UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService().getTenantUserRealm(tenantId);
+		if (tokenId != null && msisdn != null) {
+			try {
+				AuthenticationData authenticationData = DBUtils.getAuthenticateData(tokenId);
+				int status = authenticationData.getStatus();
+				int tenantId = -1234;
+				UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService().getTenantUserRealm(
+						tenantId);
 
-                if (userRealm != null) {
-                    UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
+				if (userRealm != null) {
+					UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
 
-                   /* String userLocked = userStoreManager.getUserClaimValue(msisdn, "http://wso2.org/claims/identity/accountLocked", "default");
+                   /* String userLocked = userStoreManager.getUserClaimValue(msisdn, "http://wso2
+                   .org/claims/identity/accountLocked", "default");
                     if (userLocked != null && userLocked.equalsIgnoreCase("true")) {
                         log.info("Self Authenticator authentication failed ");
                         if (log.isDebugEnabled()) {
@@ -113,142 +149,170 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
                         throw new AuthenticationFailedException("Self Authentication Failed");
                     }*/
 
-                    isAuthenticated = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(msisdn));
-                } else {
-                    throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: " + tenantId);
-                }
-                if ((status == 1) & isAuthenticated) {
-                    isLogin = true;
-                }else{
-                    isLogin = false;
-                }
-                DBUtils.deleteAuthenticateData(tokenId);
-            } catch (Exception ex) {
-                log.error("Self Authentication failed while trying to authenticate", ex);
-            }
-
-        } else {
-            isLogin = false;
-        }
-
-        if(isLogin) {
-            SequenceConfig sequenceConfig = context.getSequenceConfig();
-            Map<Integer, StepConfig> stepMap = sequenceConfig.getStepMap();
-
-            StepConfig sc = stepMap.get(1);
-            sc.setSubjectAttributeStep(false);
-            sc.setSubjectIdentifierStep(false);
-            
-            AuthenticatedUser user=new AuthenticatedUser();
-            //context.setSubject(user);
-            sc.setAuthenticatedUser(user);
-
-
-            int stepOrder = 2;
-
-            StepConfig stepConfig = new StepConfig();
-            stepConfig.setOrder(stepOrder);
-            stepConfig.setSubjectAttributeStep(true);
-            stepConfig.setSubjectIdentifierStep(true);
-
-            List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
-            if (authenticatorConfigs == null) {
-                authenticatorConfigs = new ArrayList<AuthenticatorConfig>();
-                stepConfig.setAuthenticatorList(authenticatorConfigs);
-            }
-
-            AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
-            authenticatorConfig.setName("SelfAuthenticator");
-            authenticatorConfig.setApplicationAuthenticator(FrameworkUtils.getAppAuthenticatorByName("SelfAuthenticator"));
-
-            Map<String, String> parameterMap = new HashMap<String, String>();
-
-            parameterMap.put("isLastAuthenticat", "true");
-            authenticatorConfig.setParameterMap(parameterMap);
-
-            stepConfig.getAuthenticatorList().add(authenticatorConfig);
-            stepMap.put(stepOrder, stepConfig);
-
-            sequenceConfig.setStepMap(stepMap);
-            context.setSequenceConfig(sequenceConfig);
-            context.setProperty("msisdn", msisdn);
-           /* AuthenticatedUser aUser=new AuthenticatedUser();
-            context.setSubject(aUser)*/;
-            AuthenticationContextHelper.setSubject(context,msisdn);
-
-
-        }else{
-		LOAConfig config = DataHolder.getInstance().getLOAConfig();
-		LOA loa = config.getLOA(selectedLOA);
-		if (loa.getAuthenticators() == null) {
-			config.init();
-		}
-
-		SequenceConfig sequenceConfig = context.getSequenceConfig();
-		Map<Integer, StepConfig> stepMap = sequenceConfig.getStepMap();
-
-		StepConfig sc = stepMap.get(1);
-		sc.setSubjectAttributeStep(false);
-		sc.setSubjectIdentifierStep(false);
-
-		int stepOrder = 2;
-
-		while (true) {
-			List<MIFEAbstractAuthenticator> authenticators = loa.getAuthenticators();
-			String fallBack = loa.getAuthentication().getFallbackLevel();
-
-			for (MIFEAbstractAuthenticator authenticator : authenticators) {
-				StepConfig stepConfig = new StepConfig();
-				stepConfig.setOrder(stepOrder);
-				if (stepOrder == 2) {
-					stepConfig.setSubjectAttributeStep(true);
-					stepConfig.setSubjectIdentifierStep(true);
+					isAuthenticated = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(msisdn));
+				} else {
+					throw new AuthenticationFailedException(
+							"Cannot find the user realm for the given tenant: " + tenantId);
 				}
-
-				List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
-				if (authenticatorConfigs == null) {
-					authenticatorConfigs = new ArrayList<AuthenticatorConfig>();
-					stepConfig.setAuthenticatorList(authenticatorConfigs);
+				if ((status == 1) & isAuthenticated) {
+					isLogin = true;
+				} else {
+					isLogin = false;
 				}
-
-				AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
-				authenticatorConfig.setName(authenticator.getAuthenticator().getName());
-				authenticatorConfig.setApplicationAuthenticator(authenticator.getAuthenticator());
-
-				String onFail = authenticator.getOnFailAction();
-
-				Map<String, String> parameterMap = new HashMap<String, String>();
-				parameterMap.put("currentLOA", loa.getLevel());
-				parameterMap.put("fallBack", (null != fallBack) ? fallBack : "");
-				parameterMap.put("onFail", (null != onFail) ? onFail : "");
-				parameterMap
-						.put("isLastAuthenticator",
-								(authenticators.indexOf(authenticator) == authenticators.size() - 1) ? "true"
-										: "false");
-				authenticatorConfig.setParameterMap(parameterMap);
-
-				stepConfig.getAuthenticatorList().add(authenticatorConfig);
-				stepMap.put(stepOrder, stepConfig);
-
-				stepOrder++;
+				DBUtils.deleteAuthenticateData(tokenId);
+			} catch (Exception ex) {
+				log.error("Self Authentication failed while trying to authenticate", ex);
 			}
 
-			// increment LOA to fallBack level
-			if (null == fallBack) {
-				break;
-			}
-			loa = config.getLOA(fallBack);
+		} else {
+			isLogin = false;
 		}
 
-		sequenceConfig.setStepMap(stepMap);
-		context.setSequenceConfig(sequenceConfig);
+		if (isLogin) {
+			SequenceConfig sequenceConfig = context.getSequenceConfig();
+			Map<Integer, StepConfig> stepMap = sequenceConfig.getStepMap();
 
-        }
+			StepConfig sc = stepMap.get(1);
+			sc.setSubjectAttributeStep(false);
+			sc.setSubjectIdentifierStep(false);
+
+			AuthenticatedUser user = new AuthenticatedUser();
+			//context.setSubject(user);
+			sc.setAuthenticatedUser(user);
+
+
+			int stepOrder = 2;
+
+			StepConfig stepConfig = new StepConfig();
+			stepConfig.setOrder(stepOrder);
+			stepConfig.setSubjectAttributeStep(true);
+			stepConfig.setSubjectIdentifierStep(true);
+
+			List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
+			if (authenticatorConfigs == null) {
+				authenticatorConfigs = new ArrayList<AuthenticatorConfig>();
+				stepConfig.setAuthenticatorList(authenticatorConfigs);
+			}
+
+			AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
+			authenticatorConfig.setName("SelfAuthenticator");
+			authenticatorConfig.setApplicationAuthenticator(
+					FrameworkUtils.getAppAuthenticatorByName("SelfAuthenticator"));
+
+			Map<String, String> parameterMap = new HashMap<String, String>();
+
+			//parameterMap.put("isLastAuthenticat", "true");
+			authenticatorConfig.setParameterMap(parameterMap);
+
+			stepConfig.getAuthenticatorList().add(authenticatorConfig);
+			stepMap.put(stepOrder, stepConfig);
+
+			sequenceConfig.setStepMap(stepMap);
+			context.setSequenceConfig(sequenceConfig);
+			context.setProperty("msisdn", msisdn);
+			AuthenticationContextHelper.setSubject(context, msisdn);
+		} else {
+			Map<String, MIFEAuthentication> authenticationMap = configurationService.getDataHolder().getAuthenticationLevelMap();
+			MIFEAuthentication mifeAuthentication = authenticationMap.get(selectedLOA);
+
+			SequenceConfig sequenceConfig = context.getSequenceConfig();
+			Map<Integer, StepConfig> stepMap = sequenceConfig.getStepMap();
+
+			StepConfig sc = stepMap.get(1);
+			sc.setSubjectAttributeStep(false);
+			sc.setSubjectIdentifierStep(false);
+
+			int stepOrder = 2;
+
+			boolean isMNOBasedAuthenticatorSelectionEnabled = isMNObasedAunthenticatorSelectionEnabled();
+			boolean isSPBasedAuthenticationSelectionEnabled = isSPBasedAuthenticatorSelectionEnabled();
+
+			Set<String> authenticatorsAllowedForMNO = null;
+			Set<String> authenticatorsAllowedForSP = null;
+			if (isMNOBasedAuthenticatorSelectionEnabled) {
+				try {
+					authenticatorsAllowedForMNO = DBUtils.getAllowedAuthenticatorSetForMNO(mobileNetworkOperator);
+				} catch (AuthenticatorException e) {
+					throw new AuthenticationFailedException(e.getMessage(), e);
+				}
+			}
+
+			if (isSPBasedAuthenticationSelectionEnabled) {
+				try {
+					authenticatorsAllowedForSP = DBUtils.getAllowedAuthenticatorSetForSP(serviceProvider);
+				} catch (AuthenticatorException e) {
+					throw new AuthenticationFailedException(e.getMessage(), e);
+				}
+			}
+			while (true) {
+				List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList =
+						mifeAuthentication.getAuthenticatorList();
+				String fallBack = mifeAuthentication.getLevelToFail();
+
+				for (MIFEAuthentication.MIFEAbstractAuthenticator authenticator : authenticatorList) {
+					if (isAuthenticatorAllowedForMNOAndSP(isMNOBasedAuthenticatorSelectionEnabled,
+							isSPBasedAuthenticationSelectionEnabled, authenticatorsAllowedForMNO,
+							authenticatorsAllowedForSP, authenticator)) {
+						String onFailAction = authenticator.getOnFailAction();
+						String supportiveFlow = authenticator.getSupportFlow();
+						if (supportiveFlow.equals("any") || supportiveFlow.equals(flowType)) {
+							StepConfig stepConfig = new StepConfig();
+							stepConfig.setOrder(stepOrder);
+							if (stepOrder == 2) {
+								stepConfig.setSubjectAttributeStep(true);
+								stepConfig.setSubjectIdentifierStep(true);
+							}
+
+							List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
+							if (authenticatorConfigs == null) {
+								authenticatorConfigs = new ArrayList<AuthenticatorConfig>();
+								stepConfig.setAuthenticatorList(authenticatorConfigs);
+							}
+
+							String authenticatorName = authenticator.getAuthenticator();
+							ApplicationAuthenticator applicationAuthenticator = FrameworkUtils
+									.getAppAuthenticatorByName(authenticatorName);
+							AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
+							authenticatorConfig.setName(authenticatorName);
+							authenticatorConfig.setApplicationAuthenticator(applicationAuthenticator);
+
+							Map<String, String> parameterMap = new HashMap<String, String>();
+							parameterMap.put("currentLOA", selectedLOA);
+							parameterMap.put("fallBack", (null != fallBack) ? fallBack : "");
+							parameterMap.put("onFail", (null != onFailAction) ? onFailAction : "");
+							//						parameterMap
+							//								.put("isLastAuthenticator",
+							//								     (authenticatorList.indexOf(authenticator) == authenticatorList.size() - 1) ?
+							//										     "true"
+							//										     : "false");
+							authenticatorConfig.setParameterMap(parameterMap);
+
+							stepConfig.getAuthenticatorList().add(authenticatorConfig);
+							stepMap.put(stepOrder, stepConfig);
+
+							stepOrder++;
+						} else {
+							if (!StringUtils.isEmpty(fallBack)) {
+								selectedLOA = fallBack;
+								mifeAuthentication = authenticationMap.get(selectedLOA);
+							}
+							break;
+						}
+					}
+				}
+				if (null == fallBack) {
+					break;
+				}
+			}
+			sequenceConfig.setStepMap(stepMap);
+			context.setSequenceConfig(sequenceConfig);
+		}
 		return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
 	}
 
 	/* (non-Javadoc)
-	 * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
+	 * @see org.wso2.carbon.identity.application.authentication.framework
+	 * .ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
 	 */
 	public String getContextIdentifier(HttpServletRequest request) {
 		return null;
@@ -296,6 +360,72 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 				.getValueFromCache(sessionDataCacheKey);
 		LinkedHashSet<?> acrValues = sdce.getoAuth2Parameters().getACRValues();
 		return acrValues;
+	}
+
+    private String getFlowType(String msisdn, ScopeParam.msisdnMismatchResultTypes headerMismatchResult) {
+        if (!ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK.equals(headerMismatchResult)) {
+            if (!StringUtils.isEmpty(msisdn)) {
+                return "onnet";
+            }
+        }
+        return "offnet";
+    }
+
+//    private boolean isUserProfileUpdateRequired(HttpServletRequest request, String msisdnHeader, String selectedLOA) {
+//        boolean userProfileUpdateRequired = false;
+//        String requestURL = request.getRequestURL().toString();
+//        String requestURI = request.getRequestURI();
+//        String baseURL = requestURL.substring(0, requestURL.indexOf(requestURI));
+//        LoginAdminServiceClient lAdmin = null;
+//        try {
+//            lAdmin = new LoginAdminServiceClient(baseURL);
+//            String sessionCookie = lAdmin.authenticate(isAdminUserName, isAdminPassword);
+//            ClaimManagementClient claimManager = new ClaimManagementClient(baseURL, sessionCookie);
+//            if (msisdnHeader != null) {
+//                String registeredLOA = claimManager.getRegisteredLOA(msisdnHeader);
+//                if (Integer.parseInt(registeredLOA) < Integer.parseInt(selectedLOA)) {
+//                    userProfileUpdateRequired = true;
+//                }
+//            }
+//        } catch (AxisFault axisFault) {
+//            axisFault.printStackTrace();
+//        } catch (RemoteException e) {
+//            e.printStackTrace();
+//        } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+//            e.printStackTrace();
+//        } catch (LoginAuthenticationExceptionException e) {
+//            e.printStackTrace();
+//        }
+//        return userProfileUpdateRequired;
+//    }
+
+	private boolean isAuthenticatorAllowedForMNOAndSP(
+			boolean isMNObasedAunthenticatorSelectionEnabled, boolean isSPBasedAuthenticatorSelectionEnabled,
+			Set<String> allowedAuthenticatorMapForMNO, Set<String> allowedAuthenticatorMapForSP,
+			MIFEAuthentication.MIFEAbstractAuthenticator authenticator) {
+		boolean isAuthenticatorAllowedForMNO = true, isAuthenticatorAllowedForSP = true;
+
+		if (isMNObasedAunthenticatorSelectionEnabled
+				&& !allowedAuthenticatorMapForMNO.contains(authenticator.getAuthenticator())) {
+			isAuthenticatorAllowedForMNO = false;
+		}
+
+		if (isSPBasedAuthenticatorSelectionEnabled
+				&& !allowedAuthenticatorMapForSP.contains(authenticator.getAuthenticator())) {
+			isAuthenticatorAllowedForSP = false;
+		}
+
+		return isAuthenticatorAllowedForMNO && isAuthenticatorAllowedForSP;
+	}
+
+	private boolean isMNObasedAunthenticatorSelectionEnabled() {
+		return "true".equals(configurationService.getDataHolder().getMobileConnectConfig()
+				.getAuthenticatorSelectionConfig().getMobileNetworkOperatorBasedSelectionEnabled());
+	}
+
+	private boolean isSPBasedAuthenticatorSelectionEnabled() {
+		return "true".equals(configurationService.getDataHolder().getMobileConnectConfig()
+				.getAuthenticatorSelectionConfig().getServiceProviderBasedSelectionEnabled());
 	}
 
 }

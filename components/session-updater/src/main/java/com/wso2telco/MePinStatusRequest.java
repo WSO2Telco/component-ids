@@ -18,11 +18,16 @@ package com.wso2telco;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import javax.net.ssl.HttpsURLConnection;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.concurrent.Callable;
@@ -35,7 +40,10 @@ public class MePinStatusRequest implements Callable<String> {
 
     /** The log. */
     private static Log log = LogFactory.getLog(MePinStatusRequest.class);
-    
+
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
     /** The transaction id. */
     private String transactionId;
 
@@ -54,12 +62,12 @@ public class MePinStatusRequest implements Callable<String> {
     public String call() {
         String allowStatus = null;
 
-        String clientId = FileUtil.getApplicationProperty("mepin.clientid");
-        String url = FileUtil.getApplicationProperty("mepin.url");
+        String clientId = configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig().getMePinClientId();
+        String url = configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig().getMePinUrl();
         url = url + "?transaction_id=" + transactionId + "&client_id=" + clientId + "";
         log.info("MePIN Status URL: " + url);
 
-        String authHeader = "Basic " + FileUtil.getApplicationProperty("mepin.accesstoken");
+        String authHeader = "Basic " + configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig().getMePinAccessToken();
 
         try {
             HttpsURLConnection connection = (HttpsURLConnection) new URL(url).openConnection();

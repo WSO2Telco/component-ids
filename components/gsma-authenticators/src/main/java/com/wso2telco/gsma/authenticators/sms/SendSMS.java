@@ -17,29 +17,22 @@ package com.wso2telco.gsma.authenticators.sms;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.wso2telco.gsma.authenticators.DataHolder;
-import com.wso2telco.gsma.authenticators.config.MobileConnectConfig;
-import com.wso2telco.gsma.authenticators.config.ReadMobileConnectConfig;
+import com.wso2telco.core.config.ReadMobileConnectConfig;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.ReceiptRequest;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
-import org.xml.sax.SAXException;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import javax.crypto.spec.SecretKeySpec;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -49,7 +42,10 @@ public class SendSMS {
     
     /** The Constant LOG. */
     private static final Logger LOG = Logger.getLogger(SendSMS.class.getName());
-    
+
+    /** The Configuration service */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
     /** The sms config. */
     private MobileConnectConfig.SMSConfig smsConfig;
 
@@ -85,26 +81,13 @@ public class SendSMS {
       
         outbound.setOutboundTextMessage(messageObj);
         outbound.setAddress(address);
-        
-        
 
-        ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
         Map<String, String> readMobileConnectConfigResult= null;
-        try {
-            readMobileConnectConfigResult = readMobileConnectConfig.query("SMS");
-        } catch (ParserConfigurationException e) {
-        	LOG.error("Error occured during ParseCOnfiguration " + e);
-        } catch (SAXException e) {
-        	LOG.error("Error occured during processing XML " + e);
-        } catch (IOException e) {
-        	LOG.error("I/O exception occured " + e);
-        } catch (XPathExpressionException e) {
-        	LOG.error("Error occured in XPath expression " + e);
-        }
 
-       
-       String senderAddress = readMobileConnectConfigResult.get("SenderAddres");
-       senderAddress =senderAddress.trim()==null?"26451":senderAddress.trim();
+        readMobileConnectConfigResult = ReadMobileConnectConfig.query("SMS");
+
+        String senderAddress = readMobileConnectConfigResult.get("SenderAddres");
+        senderAddress =senderAddress.trim()==null?"26451":senderAddress.trim();
         
         outbound.setSenderAddress(senderAddress);
         
@@ -116,7 +99,7 @@ public class SendSMS {
         
         returnString = gson.toJson(req);
 
-        smsConfig = DataHolder.getInstance().getMobileConnectConfig().getSmsConfig();
+        smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
         postRequest(smsConfig.getEndpoint(),returnString,operator);
         
         return returnString;
@@ -160,7 +143,4 @@ public class SendSMS {
         }
         
     }
-    
-    
-    
 }
