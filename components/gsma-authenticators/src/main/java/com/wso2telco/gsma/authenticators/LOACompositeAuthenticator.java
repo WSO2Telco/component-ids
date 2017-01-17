@@ -49,6 +49,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -225,12 +226,14 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
 			int stepOrder = 2;
 
-			boolean isMNOBasedAuthenticatorSelectionEnabled = isMNObasedAunthenticatorSelectionEnabled();
-			boolean isSPBasedAuthenticationSelectionEnabled = isSPBasedAuthenticatorSelectionEnabled();
+			// This is read from mobile-connect.xml. We can globally enable/disable MNO/SP based authenticator
+			// selection.
+			boolean isGlobalMNOBasedAuthenticatorSelectionEnabled = isMNObasedAunthenticatorSelectionEnabled();
+			boolean isGlobalSPBasedAuthenticatorSelectionEnabled = isSPBasedAuthenticatorSelectionEnabled();
 
-			Set<String> authenticatorsAllowedForMNO = null;
-			Set<String> authenticatorsAllowedForSP = null;
-			if (isMNOBasedAuthenticatorSelectionEnabled) {
+			Set<String> authenticatorsAllowedForMNO = new HashSet<>();
+			Set<String> authenticatorsAllowedForSP = new HashSet<>();
+			if (isGlobalMNOBasedAuthenticatorSelectionEnabled) {
 				try {
 					authenticatorsAllowedForMNO = DBUtils.getAllowedAuthenticatorSetForMNO(mobileNetworkOperator);
 				} catch (AuthenticatorException e) {
@@ -238,21 +241,30 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 				}
 			}
 
-			if (isSPBasedAuthenticationSelectionEnabled) {
+			if (isGlobalSPBasedAuthenticatorSelectionEnabled) {
 				try {
 					authenticatorsAllowedForSP = DBUtils.getAllowedAuthenticatorSetForSP(serviceProvider);
 				} catch (AuthenticatorException e) {
 					throw new AuthenticationFailedException(e.getMessage(), e);
 				}
 			}
+
+			//Authenticator selection is enabled for a given MNO/SP only when MNO/SP based authenticator selection is
+			//globally enabled AND there are database entries of allowed authenticators for that specific MNO/SP.
+			boolean isAuthenticatorSelectionEnabledForMNO = isGlobalMNOBasedAuthenticatorSelectionEnabled
+					&& !authenticatorsAllowedForMNO.isEmpty();
+			boolean isAuthenticatorSelectionEnabledForSP = isGlobalSPBasedAuthenticatorSelectionEnabled
+					&& !authenticatorsAllowedForSP.isEmpty();
+
+
 			while (true) {
 				List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList =
 						mifeAuthentication.getAuthenticatorList();
 				String fallBack = mifeAuthentication.getLevelToFail();
 
 				for (MIFEAuthentication.MIFEAbstractAuthenticator authenticator : authenticatorList) {
-					if (isAuthenticatorAllowedForMNOAndSP(isMNOBasedAuthenticatorSelectionEnabled,
-							isSPBasedAuthenticationSelectionEnabled, authenticatorsAllowedForMNO,
+					if (isAuthenticatorAllowedForMNOAndSP(isAuthenticatorSelectionEnabledForMNO,
+							isAuthenticatorSelectionEnabledForSP, authenticatorsAllowedForMNO,
 							authenticatorsAllowedForSP, authenticator)) {
 						String onFailAction = authenticator.getOnFailAction();
 						String supportiveFlow = authenticator.getSupportFlow();
@@ -293,7 +305,8 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
 							stepOrder++;
 						} else {
-							if (!StringUtils.isEmpty(fallBack)) {
+							//This change is just a revert back to what previously was. Need to check and change
+							if (StringUtils.isEmpty(fallBack)) {
 								selectedLOA = fallBack;
 								mifeAuthentication = authenticationMap.get(selectedLOA);
 							}
@@ -304,6 +317,9 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 				if (null == fallBack) {
 					break;
 				}
+				//This change is just a revert back to what previously was. Need to check and change
+				selectedLOA = fallBack;
+				mifeAuthentication = authenticationMap.get(selectedLOA);
 			}
 			sequenceConfig.setStepMap(stepMap);
 			context.setSequenceConfig(sequenceConfig);
@@ -401,22 +417,29 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 //    }
 
 	private boolean isAuthenticatorAllowedForMNOAndSP(
-			boolean isMNObasedAunthenticatorSelectionEnabled, boolean isSPBasedAuthenticatorSelectionEnabled,
+			boolean isAuthenticatorSelectionEnabledForMNO, boolean isAuthenticatorSelectionEnabledForSP,
 			Set<String> allowedAuthenticatorMapForMNO, Set<String> allowedAuthenticatorMapForSP,
 			MIFEAuthentication.MIFEAbstractAuthenticator authenticator) {
-		boolean isAuthenticatorAllowedForMNO = true, isAuthenticatorAllowedForSP = true;
-
-		if (isMNObasedAunthenticatorSelectionEnabled
-				&& !allowedAuthenticatorMapForMNO.contains(authenticator.getAuthenticator())) {
-			isAuthenticatorAllowedForMNO = false;
+		//The effective allowed authenticator set for SP is a subset of the allowed authenticator set for MNO
+		//(if MNO based selection is enabled).
+		//Therefore if authentication selection is enabled for MNO, a given authenticator is allowed if its in
+		//the allowed authenticator set for MNO regardless whether it is an allowed authenticator for SP.
+		//Also, if authenticator selection is enabled for MNO and a given authenticator is not in the set of
+		//the allowed authenticators for MNO then that authenticator is not an allowed authenticator regardless
+		//whether it is an allowed authenticator for SP.
+		if (isAuthenticatorSelectionEnabledForMNO) {
+			return allowedAuthenticatorMapForMNO.contains(authenticator.getAuthenticator());
 		}
-
-		if (isSPBasedAuthenticatorSelectionEnabled
-				&& !allowedAuthenticatorMapForSP.contains(authenticator.getAuthenticator())) {
-			isAuthenticatorAllowedForSP = false;
+		//We'll reach here if either global MNO based authenticator selection is not enabled or
+		//authenticator based selection for this specific MNO is not enabled.
+		//In that case we only have to consider SP based selection.
+		if (isAuthenticatorSelectionEnabledForSP) {
+			return allowedAuthenticatorMapForSP.contains(authenticator.getAuthenticator());
 		}
-
-		return isAuthenticatorAllowedForMNO && isAuthenticatorAllowedForSP;
+		//We'll reach here if global SP based authenticator selection is not enabled or
+		//authenticator based selection for this specific SP is not enabled AND same for MNO as well
+		//Therefore we can allow this authenticator.
+		return true;
 	}
 
 	private boolean isMNObasedAunthenticatorSelectionEnabled() {
