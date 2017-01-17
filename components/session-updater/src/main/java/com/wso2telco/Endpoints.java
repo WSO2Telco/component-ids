@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Authe
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.mgt.stub.UserIdentityManagementAdminServiceIdentityMgtServiceExceptionException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
@@ -326,6 +327,8 @@ public class Endpoints {
             log.error("Error occurred while updating registration status", e);
         } catch (AuthenticatorException e) {
             log.error("Error occurred while inserting to the database", e);
+        } catch (AuthenticationFailedException e) {
+            log.error("Registered  pin or confirmed is empty");
         }
         USSDRequest ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, "Error Occurred");
         return Response.status(Response.Status.CREATED).entity(new Gson().toJson(ussdRequest)).build();
@@ -397,6 +400,8 @@ public class Endpoints {
             log.error("Error occurred while updating registration status", e);
         } catch (AuthenticatorException e) {
             log.error("Error occurred while inserting to the database", e);
+        } catch (AuthenticationFailedException e) {
+            log.error("Registered  pin or confirmed is empty");
         }
         USSDRequest ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, "" +
                 "Invalid Operation");

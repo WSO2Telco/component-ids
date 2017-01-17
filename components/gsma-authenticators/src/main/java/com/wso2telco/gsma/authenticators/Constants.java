@@ -301,7 +301,6 @@ public final class Constants {
 
     public static final String USER_STATUS_META_STREAM_VERSION = "1.0.0";
 
-
     public static final String USER_CHALLENGE_SEPARATOR = "!";
 
     public static final String PIN_CLAIM = "http://wso2.org/claims/pin";

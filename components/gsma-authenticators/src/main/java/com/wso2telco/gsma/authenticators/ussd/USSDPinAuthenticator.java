@@ -178,8 +178,8 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         } else if (isPinReset) {
             pinConfig = PinConfigUtil.getPinConfig(context);
 
-            String challengeQuestionAndAnswer1 = UserProfileManager.getChallengeQuestionAndAnswer1(msisdn);
-            String challengeQuestionAndAnswer2 = UserProfileManager.getChallengeQuestionAndAnswer2(msisdn);
+            String challengeQuestionAndAnswer1 = new UserProfileManager().getChallengeQuestionAndAnswer1(msisdn);
+            String challengeQuestionAndAnswer2 = new UserProfileManager().getChallengeQuestionAndAnswer2(msisdn);
 
             pinConfig.setChallengeQuestion1(challengeQuestionAndAnswer1.split("!")[0]);
             pinConfig.setChallengeQuestion2(challengeQuestionAndAnswer2.split("!")[0]);
@@ -188,7 +188,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
         } else {
             pinConfig = new PinConfig();
-            String registeredPin = UserProfileManager.getCurrentPin(msisdn);
+            String registeredPin = new UserProfileManager().getCurrentPin(msisdn);
             pinConfig.setRegisteredPin(registeredPin);
             pinConfig.setCurrentStep(PinConfig.CurrentStep.LOGIN);
         }
@@ -265,7 +265,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
     private void handlePinResetConfirmation(String msisdn, PinConfig pinConfig) throws RemoteException, NoSuchAlgorithmException,
             RemoteUserStoreManagerServiceUserStoreExceptionException, UnsupportedEncodingException {
 
-        UserProfileManager.setCurrentPin(msisdn, pinConfig.getConfirmedPin());
+        new UserProfileManager().setCurrentPin(msisdn, pinConfig.getConfirmedPin());
     }
 
     private boolean isPinResetConfirmation(PinConfig pinConfig) {
@@ -275,8 +275,8 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
     private void retryAuthenticatorForPinReset(AuthenticationContext context) throws AuthenticationFailedException, RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
         log.info("Retrying authenticator for pin reset flow");
         String msisdn = (String) context.getProperty(Constants.MSISDN);
-        String challengeQuestionAndAnswer1 = UserProfileManager.getChallengeQuestionAndAnswer1(msisdn);
-        String challengeQuestionAndAnswer2 = UserProfileManager.getChallengeQuestionAndAnswer2(msisdn);
+        String challengeQuestionAndAnswer1 = new UserProfileManager().getChallengeQuestionAndAnswer1(msisdn);
+        String challengeQuestionAndAnswer2 = new UserProfileManager().getChallengeQuestionAndAnswer2(msisdn);
 
         String challengeQuestion1 = challengeQuestionAndAnswer1.split("!")[0];
         String challengeQuestion2 = challengeQuestionAndAnswer2.split("!")[0];
@@ -316,7 +316,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         challengeAnswer1 = challengeQuestion1 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer1;
         challengeAnswer2 = challengeQuestion2 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer2;
 
-        UserProfileManager.updateUserProfileForLOA3(challengeAnswer1, challengeAnswer2, pinConfig.getConfirmedPin(), msisdn);
+        new UserProfileManager().updateUserProfileForLOA3(challengeAnswer1, challengeAnswer2, pinConfig.getConfirmedPin(), msisdn);
     }
 
     private void handleUserRegistration(AuthenticationContext context) throws UserRegistrationAdminServiceIdentityException, RemoteException, AuthenticationFailedException {
@@ -336,7 +336,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             challengeAnswer1 = challengeQuestion1 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer1;
             challengeAnswer2 = challengeQuestion2 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer2;
 
-            UserProfileManager.createUserProfileLoa3(msisdn, operator, challengeAnswer1, challengeAnswer2,
+            new UserProfileManager().createUserProfileLoa3(msisdn, operator, challengeAnswer1, challengeAnswer2,
                     pinConfig.getRegisteredPin());
         } else {
             throw new AuthenticationFailedException("Authentication failed for due to mismatch in entered and confirmed pin");
@@ -347,7 +347,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         PinConfig pinConfig = PinConfigUtil.getPinConfig(context);
-        String registeredPin = UserProfileManager.getCurrentPin(msisdn);
+        String registeredPin = new UserProfileManager().getCurrentPin(msisdn);
         String confirmedPin = pinConfig.getConfirmedPin();
 
 

@@ -67,20 +67,20 @@ public class RemoteUserStoreServiceAdminClient {
                 UserCoreConstants.DEFAULT_PROFILE);
     }
 
-    static {
-        try {
-            String adminURL = DataHolder.getInstance().getMobileConnectConfig().getAdminUrl();
-            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
-            String sessionCookie = lAdmin.authenticate(DataHolder.getInstance().getMobileConnectConfig().getAdminUsername(),
-                    DataHolder.getInstance().getMobileConnectConfig().getAdminPassword());
-            claimManagementClient = new ClaimManagementClient(adminURL, sessionCookie);
-
-        } catch (AxisFault e) {
-            e.printStackTrace();
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        } catch (LoginAuthenticationExceptionException e) {
-            e.printStackTrace();
-        }
-    }
+//    static {
+//        try {
+//            String adminURL = DataHolder.getInstance().getMobileConnectConfig().getAdminUrl();
+//            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
+//            String sessionCookie = lAdmin.authenticate(DataHolder.getInstance().getMobileConnectConfig().getAdminUsername(),
+//                    DataHolder.getInstance().getMobileConnectConfig().getAdminPassword());
+//            claimManagementClient = new ClaimManagementClient(adminURL, sessionCookie);
+//
+//        } catch (AxisFault e) {
+//            e.printStackTrace();
+//        } catch (RemoteException e) {
+//            e.printStackTrace();
+//        } catch (LoginAuthenticationExceptionException e) {
+//            e.printStackTrace();
+//        }
+//    }
 }
