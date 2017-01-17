@@ -17,6 +17,7 @@ package com.wso2telco.gsma.authenticators.internal;
 
 import com.wso2telco.gsma.authenticators.*;
 import com.wso2telco.gsma.authenticators.headerenrich.HeaderEnrichmentAuthenticator;
+import com.wso2telco.gsma.authenticators.saa.SmartPhoneAppAuthenticator;
 import com.wso2telco.gsma.authenticators.sms.SMSAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDPinAuthenticator;
