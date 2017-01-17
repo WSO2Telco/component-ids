@@ -38,7 +38,12 @@
         <AccessToken>fae2517b1a95b740f33058e28a1796faa80643a4</AccessToken>
         <SenderAddres>26451</SenderAddres>
         <FallbackPrefix>../</FallbackPrefix>
-   </SMS>
+    </SMS>
+    <SAA>
+        <Endpoint>http://localhost:9763/SAA_Authenticator_v1.0</Endpoint>
+        <PushMessageLOA_2>Please swipe your smart phone</PushMessageLOA_2>
+        <PushMessageLOA_3>Please provide your finger print</PushMessageLOA_3>
+    </SAA>
     <USSD>
         <Endpoint>http://ussdhost/request</Endpoint>
         <AuthToken>{UssdAuthToken}</AuthToken>

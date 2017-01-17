@@ -28,10 +28,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
-import org.xml.sax.SAXException;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,26 +81,13 @@ public class SendSMS {
       
         outbound.setOutboundTextMessage(messageObj);
         outbound.setAddress(address);
-        
-        
 
-        ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
         Map<String, String> readMobileConnectConfigResult= null;
-        try {
-            readMobileConnectConfigResult = readMobileConnectConfig.query("SMS");
-        } catch (ParserConfigurationException e) {
-        	LOG.error("Error occured during ParseCOnfiguration " + e);
-        } catch (SAXException e) {
-        	LOG.error("Error occured during processing XML " + e);
-        } catch (IOException e) {
-        	LOG.error("I/O exception occured " + e);
-        } catch (XPathExpressionException e) {
-        	LOG.error("Error occured in XPath expression " + e);
-        }
 
-       
-       String senderAddress = readMobileConnectConfigResult.get("SenderAddres");
-       senderAddress =senderAddress.trim()==null?"26451":senderAddress.trim();
+        readMobileConnectConfigResult = ReadMobileConnectConfig.query("SMS");
+
+        String senderAddress = readMobileConnectConfigResult.get("SenderAddres");
+        senderAddress =senderAddress.trim()==null?"26451":senderAddress.trim();
         
         outbound.setSenderAddress(senderAddress);
         
@@ -159,7 +143,4 @@ public class SendSMS {
         }
         
     }
-    
-    
-    
 }

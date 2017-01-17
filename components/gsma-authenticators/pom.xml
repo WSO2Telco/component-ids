@@ -52,6 +52,7 @@
 		<dependency>
 			<groupId>com.wso2telco.core</groupId>
 			<artifactId>mnc-resolver</artifactId>
+			<scope>provided</scope>
 		</dependency>
         <dependency>
             <groupId>com.wso2telco.core</groupId>
@@ -75,6 +76,7 @@
         <dependency>
             <groupId>com.wso2telco.ids</groupId>
             <artifactId>openid-token-builder</artifactId>
+			<scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -110,6 +112,16 @@
 			<type>jar</type>
 			<scope>provided</scope>
 		</dependency>
+        <dependency>
+            <groupId>com.wso2telco.core</groupId>
+            <artifactId>sp-config-util</artifactId>
+            <version>2.0.4-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.wso2telco.ids</groupId>
+            <artifactId>ids-data-publisher</artifactId>
+            <version>2.0.13</version>
+        </dependency>
     </dependencies>
 	<build>
 		<plugins>
@@ -144,9 +156,11 @@
                             org.wso2.carbon.user.core; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.service; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.util; version="${carbon.kernel.package.import.version.range}",
-                            org.wso2.carbon.utils.multitenancy; version="${carbon.kernel.package.import.version.range}"
+                            org.wso2.carbon.utils.multitenancy; version="${carbon.kernel.package.import.version.range}",
+							com.wso2telco.core.config.*,
+							com.wso2telco.core.mnc.resolver.*
 						</Import-Package>
-						<Export-Package>com.wso2telco.*</Export-Package>
+						<Export-Package>com.wso2telco.gsma*, com.wso2telco.historylog.*</Export-Package>
 						<DynamicImport-Package>*</DynamicImport-Package>
 					</instructions>
 				</configuration>

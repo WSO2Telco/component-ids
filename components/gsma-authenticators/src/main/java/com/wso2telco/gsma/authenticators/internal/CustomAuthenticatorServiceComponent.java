@@ -57,6 +57,7 @@ public class CustomAuthenticatorServiceComponent {
     @Activate
     protected void activate(ComponentContext ctxt) {
 
+         
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new PinAuthenticator(), null);
 
@@ -72,6 +73,8 @@ public class CustomAuthenticatorServiceComponent {
                 new GSMAMSISDNAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new USSDAuthenticator(), null);
+        ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
+                new SmartPhoneAppAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new USSDPinAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),

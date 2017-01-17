@@ -75,6 +75,7 @@
         log.info( "token :"+token );
         String updateProfile = request.getParameter("updateProfile") != null ? request.getParameter("updateProfile") : "";
         log.info( "updateProfile :"+updateProfile );
+        String authenticators = request.getParameter("authenticators");
         String imgPath = "";
         if (operator != "") {
             imgPath = "images/branding/" + operator + "_logo.svg";

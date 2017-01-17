@@ -124,7 +124,7 @@ public class SendUSSD {
         Map<String, String> readMobileConnectConfigResult=null;
         ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
         try {
-            readMobileConnectConfigResult = readMobileConnectConfig.query("USSD");
+            readMobileConnectConfigResult = ReadMobileConnectConfig.query("USSD");
         }catch (Exception ex){
             log.error("Exception :"+ex);
         }

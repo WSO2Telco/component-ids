@@ -17,7 +17,8 @@ package com.wso2telco.gsma.authenticators;
 
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.gsma.authenticators.model.ScopeParam;
+import com.wso2telco.gsma.authenticators.model.MSISDNHeader;
+import com.wso2telco.gsma.authenticators.model.UserStatus;
 import com.wso2telco.gsma.authenticators.ussd.Pinresponse;
 import com.wso2telco.gsma.authenticators.util.TableName;
 import org.apache.commons.logging.Log;
@@ -32,8 +33,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 // TODO: Auto-generated Javadoc
 
@@ -61,6 +64,8 @@ public class DBUtils {
         if (mConnectDatasource != null) {
             return;
         }
+
+
 
         String dataSourceName = null;
         try {
@@ -305,8 +310,8 @@ public class DBUtils {
 
         StringBuilder sql = new StringBuilder();
         sql.append("INSERT INTO ");
-        sql.append(TableName.CLIENT_STATUS);
-        sql.append(" (SessionID, Status) VALUES (?,?)");
+        sql.append(TableName.REG_STATUS);
+        sql.append(" (uuid, status) VALUES (?,?)");
 
         if (log.isDebugEnabled()) {
             log.debug("Executing the query " + sql + " to Insert sessionDataKey : " + sessionDataKey
@@ -373,7 +378,8 @@ public class DBUtils {
             ps.setString(2, sessionDataKey);
             ps.executeUpdate();
         } catch (SQLException e) {
-            handleException("Error occured while inserting User Response for SessionDataKey: " + sessionDataKey + " to the database", e);
+            handleException("Error occured while inserting User Response for SessionDataKey: " + sessionDataKey
+                    + " to the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, null, ps);
         }
@@ -560,51 +566,8 @@ public class DBUtils {
             connection.close();
         }
     }
-  
-   /**
-     * Get a map of parameters mapped to a scope
-     *
-     * @return map of scope vs parameters
-     * @throws AuthenticatorException
-     */
-    public static Map<String, String> getScopeParams() throws AuthenticatorException {
-        Connection conn = null;
-        PreparedStatement ps = null;
-        ResultSet results = null;
-        String sql = "SELECT * FROM `scope_parameter`";
 
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql);
-        }
-
-        Map scopeParamsMap = new HashMap();
-        try {
-            conn = getConnectDBConnection();
-            ps = conn.prepareStatement(sql);
-            results = ps.executeQuery();
-
-            while (results.next()) {
-                scopeParamsMap.put("scope", results.getString("scope"));
-
-                ScopeParam parameters = new ScopeParam();
-                parameters.setLoginHintMandatory(Boolean.parseBoolean(results.getString("is_login_hint_mandatory")));
-                parameters.setLoginHintFormat(ScopeParam.loginHintFormat.valueOf(results.getString(
-                        "login_hint_format")));
-                parameters.setMsisdnMismatchResult(ScopeParam.msisdnMismatchResultTypes.valueOf(results.getString(
-                        "msisdn_mismatch_result")));
-                parameters.setTncVisible(Boolean.parseBoolean(results.getString("is_tnc_visible")));
-
-                scopeParamsMap.put("params", parameters);
-            }
-        } catch (SQLException e) {
-            handleException("Error occurred while getting scope parameters from the database", e);
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
-        }
-        return scopeParamsMap;
-    }
-  
-     public static int readPinAttempts(String sessionId) throws SQLException, AuthenticatorException {
+    public static int readPinAttempts(String sessionId) throws SQLException, AuthenticatorException {
 
         Connection connection;
         PreparedStatement ps;
@@ -713,5 +676,138 @@ public class DBUtils {
         if (connection != null) {
             connection.close();
         }
+    }
+
+    /**
+     * Get MSISDN properties by operator Id.
+     *
+     * @param operatorId   operator Id.
+     * @param operatorName operator Name.
+     * @return MSISDN properties of given operator.
+     * @throws SQLException
+     * @throws NamingException
+     */
+    private static List<MSISDNHeader> getMSISDNPropertiesByOperatorId(int operatorId, String operatorName,
+                                                                      Connection connection) throws
+                                                                                             SQLException,
+                                                                                             AuthenticatorException {
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        List<MSISDNHeader> msisdnHeaderList = new ArrayList<MSISDNHeader>();
+        String queryToGetOperatorProperty = "SELECT  msisdnHeaderName, isHeaderEncrypted, encryptionImplementation, " +
+                "msisdnEncryptionKey, priority FROM operators_msisdn_headers_properties WHERE operatorId = ? ORDER BY" +
+                " priority ASC";
+        try {
+            preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
+            preparedStatement.setInt(1, operatorId);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                MSISDNHeader msisdnHeader = new MSISDNHeader();
+                msisdnHeader.setMsisdnHeaderName(resultSet.getString("msisdnHeaderName"));
+                msisdnHeader.setHeaderEncrypted(resultSet.getBoolean("isHeaderEncrypted"));
+                msisdnHeader.setHeaderEncryptionMethod(resultSet.getString("encryptionImplementation"));
+                msisdnHeader.setHeaderEncryptionKey(resultSet.getString("msisdnEncryptionKey"));
+                msisdnHeader.setPriority(resultSet.getInt("priority"));
+                msisdnHeaderList.add(msisdnHeader);
+            }
+        } catch (SQLException e) {
+            log.error("Error occurred while retrieving operator MSISDN properties of operator : " + operatorName, e);
+            throw e;
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(null, resultSet, preparedStatement);
+        }
+        return msisdnHeaderList;
+    }
+
+    public static Set<String> getAllowedAuthenticatorSetForMNO(String mobileNetworkOperator)
+            throws AuthenticatorException {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT *");
+        sql.append(" from ");
+        sql.append(TableName.ALLOWED_AUTHENTICATORS_MNO);
+        sql.append(" where mobile_network_operator=?");
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query " + sql + " for mobile network operator " + mobileNetworkOperator);
+        }
+
+        Set<String> authenticatorSet = new HashSet<>();
+        try (Connection connection = getConnectDBConnection()) {
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
+            ps.setString(1, mobileNetworkOperator);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                authenticatorSet.add(rs.getString("allowed_authenticator"));
+            }
+        } catch (SQLException e) {
+            handleException("Error occurred while retrieving allowed authenticators for " + mobileNetworkOperator, e);
+        }
+        return authenticatorSet;
+    }
+
+    public static Set<String> getAllowedAuthenticatorSetForSP(String serviceProvider)
+            throws AuthenticatorException {
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT *");
+        sql.append(" from ");
+        sql.append(TableName.ALLOWED_AUTHENTICATORS_SP);
+        sql.append(" where client_id=?");
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query " + sql + " for service provider " + serviceProvider);
+        }
+
+        Set<String> authenticatorSet = new HashSet<>();
+        try (Connection connection = getConnectDBConnection()) {
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
+            ps.setString(1, serviceProvider);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                authenticatorSet.add(rs.getString("allowed_authenticator"));
+            }
+        } catch (SQLException e) {
+            handleException("Error occurred while retrieving allowed authenticators for " + serviceProvider, e);
+        }
+        return authenticatorSet;
+    }
+
+    public static int saveStatusData(UserStatus userStatus) throws SQLException,AuthenticatorException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+
+        try {
+            conn = getConnectDBConnection();
+
+            String ADD_USER_STATUS =  " INSERT INTO USER_STATUS (Time, Status, Msisdn, State, Nonce, Scope, AcrValue, SessionId, IsMsisdnHeader, IpHeader," +
+                    "IsNewUser, LoginHint, Operator, UserAgent, Comment, ConsumerKey) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+            ps = conn.prepareStatement(ADD_USER_STATUS);
+
+            ps.setTimestamp(1, new java.sql.Timestamp( new java.util.Date().getTime()));
+            ps.setString(2, userStatus.getStatus());
+            ps.setString(3, userStatus.getMsisdn());
+            ps.setString(4, userStatus.getState());
+            ps.setString(5, userStatus.getNonce());
+            ps.setString(6, userStatus.getScope());
+            ps.setString(7, userStatus.getAcrValue());
+            ps.setString(8, userStatus.getSessionId());
+            ps.setInt(9, userStatus.getIsMsisdnHeader());
+            ps.setString(10, userStatus.getIpHeader());
+            ps.setInt(11, userStatus.getIsNewUser());
+            ps.setString(12, userStatus.getLoginHint());
+            ps.setString(13, userStatus.getOperator());
+            ps.setString(14, userStatus.getUserAgent());
+            ps.setString(15, userStatus.getComment());
+            ps.setString(16, userStatus.getConsumerKey());
+
+
+            ps.executeUpdate();
+            return 1;
+        } catch (SQLException e) {
+            handleException("Error occured while inserting User status for SessionDataKey: " + userStatus.getSessionId() + " to the database", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(conn, null, ps);
+        }
+        return -1;
     }
 }

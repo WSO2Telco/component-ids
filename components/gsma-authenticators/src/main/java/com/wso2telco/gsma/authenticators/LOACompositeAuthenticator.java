@@ -16,18 +16,14 @@
 package com.wso2telco.gsma.authenticators;
 
 import com.wso2telco.core.config.MIFEAuthentication;
+import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.gsma.ClaimManagementClient;
-import com.wso2telco.gsma.LoginAdminServiceClient;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
-import com.wso2telco.gsma.authenticators.model.ScopeParam;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import org.apache.axis2.AxisFault;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -45,17 +41,20 @@ import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
-import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.rmi.RemoteException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
- 
+
 // TODO: Auto-generated Javadoc
 /**
  * The Class LOACompositeAuthenticator.
@@ -74,7 +73,8 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 	private String isAdminUserName = null;
 	private String isAdminPassword = null;
 
-	public LOACompositeAuthenticator() {
+
+    public LOACompositeAuthenticator() {
 		//Use this credentials to login to IS.
 		//TODO : get this username and password from a suitable configuration file.
 		isAdminUserName = "admin";
@@ -98,7 +98,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		}			
 	}
 
-	/* (non-Javadoc)
+    /* (non-Javadoc)
 	 * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#process(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
 	 */
 	public AuthenticatorFlowStatus process(HttpServletRequest request,
@@ -109,31 +109,24 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		}
 		boolean isLogin = false;
 		boolean isAuthenticated;
+		String mobileNetworkOperator = request.getParameter("operator");
+		String serviceProvider = request.getParameter("client_id");
 		//Unregister Customer Token
 		String msisdn = request.getParameter("msisdn");
-        if (StringUtils.isEmpty(msisdn)) {
-            msisdn = request.getHeader("msisdn");
-        }
         String msisdnHeader = request.getParameter("msisdn_header");
-        if (StringUtils.isEmpty(msisdnHeader)) {
-            msisdnHeader = request.getHeader("msisdnHeader");
-        }
-		String flowType = getFlowType(msisdnHeader);
+
 		String tokenId = request.getParameter("tokenid");
+        boolean isLoginhintMandatory = Boolean.parseBoolean(request.getParameter("isLoginhintMandatory"));
+        boolean isShowTnc = Boolean.parseBoolean(request.getParameter("isShowTnc"));
+        ScopeParam.msisdnMismatchResultTypes headerMismatchResult = ScopeParam.msisdnMismatchResultTypes.valueOf(
+                request.getParameter(
+                        "headerMismatchResult"));
 
-        //TODO: get all scope related params. This should be move to a initialization method later
-        Map scopeDetail;
-        try {
-            scopeDetail = DBUtils.getScopeParams();
-        } catch (AuthenticatorException e) {
-            throw new AuthenticationFailedException(
-                    "Error occurred while getting scope parameters from the database", e);
-        }
+        context.setProperty("isLoginhintMandatory", isLoginhintMandatory);
+        context.setProperty("isShowTnc", isShowTnc);
+        context.setProperty("isOffnetFlow", headerMismatchResult);
 
-        //set the scope specific params
-        context.setProperty("scopeParams", scopeDetail.get("params"));
-
-        //TODO: scope param validations
+        String flowType = getFlowType(msisdnHeader, headerMismatchResult);
 
         //Change authentication flow just after registration
 		if (tokenId != null && msisdn != null) {
@@ -232,65 +225,85 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
 			int stepOrder = 2;
 
+			boolean isMNOBasedAuthenticatorSelectionEnabled = isMNObasedAunthenticatorSelectionEnabled();
+			boolean isSPBasedAuthenticationSelectionEnabled = isSPBasedAuthenticatorSelectionEnabled();
+
+			Set<String> authenticatorsAllowedForMNO = null;
+			Set<String> authenticatorsAllowedForSP = null;
+			if (isMNOBasedAuthenticatorSelectionEnabled) {
+				try {
+					authenticatorsAllowedForMNO = DBUtils.getAllowedAuthenticatorSetForMNO(mobileNetworkOperator);
+				} catch (AuthenticatorException e) {
+					throw new AuthenticationFailedException(e.getMessage(), e);
+				}
+			}
+
+			if (isSPBasedAuthenticationSelectionEnabled) {
+				try {
+					authenticatorsAllowedForSP = DBUtils.getAllowedAuthenticatorSetForSP(serviceProvider);
+				} catch (AuthenticatorException e) {
+					throw new AuthenticationFailedException(e.getMessage(), e);
+				}
+			}
 			while (true) {
 				List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList =
 						mifeAuthentication.getAuthenticatorList();
 				String fallBack = mifeAuthentication.getLevelToFail();
 
 				for (MIFEAuthentication.MIFEAbstractAuthenticator authenticator : authenticatorList) {
-					String onFailAction = authenticator.getOnFailAction();
-					String supportiveFlow = authenticator.getSupportFlow();
-					if (supportiveFlow.equals("any") || supportiveFlow.equals(flowType)) {
+					if (isAuthenticatorAllowedForMNOAndSP(isMNOBasedAuthenticatorSelectionEnabled,
+							isSPBasedAuthenticationSelectionEnabled, authenticatorsAllowedForMNO,
+							authenticatorsAllowedForSP, authenticator)) {
+						String onFailAction = authenticator.getOnFailAction();
+						String supportiveFlow = authenticator.getSupportFlow();
+						if (supportiveFlow.equals("any") || supportiveFlow.equals(flowType)) {
+							StepConfig stepConfig = new StepConfig();
+							stepConfig.setOrder(stepOrder);
+							if (stepOrder == 2) {
+								stepConfig.setSubjectAttributeStep(true);
+								stepConfig.setSubjectIdentifierStep(true);
+							}
 
-						StepConfig stepConfig = new StepConfig();
-						stepConfig.setOrder(stepOrder);
-						if (stepOrder == 2) {
-							stepConfig.setSubjectAttributeStep(true);
-							stepConfig.setSubjectIdentifierStep(true);
+							List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
+							if (authenticatorConfigs == null) {
+								authenticatorConfigs = new ArrayList<AuthenticatorConfig>();
+								stepConfig.setAuthenticatorList(authenticatorConfigs);
+							}
+
+							String authenticatorName = authenticator.getAuthenticator();
+							ApplicationAuthenticator applicationAuthenticator = FrameworkUtils
+									.getAppAuthenticatorByName(authenticatorName);
+							AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
+							authenticatorConfig.setName(authenticatorName);
+							authenticatorConfig.setApplicationAuthenticator(applicationAuthenticator);
+
+							Map<String, String> parameterMap = new HashMap<String, String>();
+							parameterMap.put("currentLOA", selectedLOA);
+							parameterMap.put("fallBack", (null != fallBack) ? fallBack : "");
+							parameterMap.put("onFail", (null != onFailAction) ? onFailAction : "");
+							//						parameterMap
+							//								.put("isLastAuthenticator",
+							//								     (authenticatorList.indexOf(authenticator) == authenticatorList.size() - 1) ?
+							//										     "true"
+							//										     : "false");
+							authenticatorConfig.setParameterMap(parameterMap);
+
+							stepConfig.getAuthenticatorList().add(authenticatorConfig);
+							stepMap.put(stepOrder, stepConfig);
+
+							stepOrder++;
+						} else {
+							if (!StringUtils.isEmpty(fallBack)) {
+								selectedLOA = fallBack;
+								mifeAuthentication = authenticationMap.get(selectedLOA);
+							}
+							break;
 						}
-
-						List<AuthenticatorConfig> authenticatorConfigs = stepConfig.getAuthenticatorList();
-						if (authenticatorConfigs == null) {
-							authenticatorConfigs = new ArrayList<AuthenticatorConfig>();
-							stepConfig.setAuthenticatorList(authenticatorConfigs);
-						}
-
-						String authenticatorName = authenticator.getAuthenticator();
-						ApplicationAuthenticator applicationAuthenticator = FrameworkUtils.getAppAuthenticatorByName(
-								authenticatorName);
-						AuthenticatorConfig authenticatorConfig = new AuthenticatorConfig();
-						authenticatorConfig.setName(authenticatorName);
-						authenticatorConfig.setApplicationAuthenticator(applicationAuthenticator);
-
-						Map<String, String> parameterMap = new HashMap<String, String>();
-						parameterMap.put("currentLOA", selectedLOA);
-						parameterMap.put("fallBack", (null != fallBack) ? fallBack : "");
-						parameterMap.put("onFail", (null != onFailAction) ? onFailAction : "");
-//						parameterMap
-//								.put("isLastAuthenticator",
-//								     (authenticatorList.indexOf(authenticator) == authenticatorList.size() - 1) ?
-//										     "true"
-//										     : "false");
-						authenticatorConfig.setParameterMap(parameterMap);
-
-						stepConfig.getAuthenticatorList().add(authenticatorConfig);
-						stepMap.put(stepOrder, stepConfig);
-
-						stepOrder++;
-					} else {
-						if (StringUtils.isEmpty(fallBack)) {
-							selectedLOA = fallBack;
-							mifeAuthentication = authenticationMap.get(selectedLOA);
-						}
-						break;
 					}
 				}
-				// increment LOA to fallBack level
 				if (null == fallBack) {
 					break;
 				}
-				selectedLOA = fallBack;
-				mifeAuthentication = authenticationMap.get(selectedLOA);
 			}
 			sequenceConfig.setStepMap(stepMap);
 			context.setSequenceConfig(sequenceConfig);
@@ -350,39 +363,70 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		return acrValues;
 	}
 
-	private String getFlowType(String msisdn) {
-		if (!StringUtils.isEmpty(msisdn)) {
-			return "onnet";
+    private String getFlowType(String msisdn, ScopeParam.msisdnMismatchResultTypes headerMismatchResult) {
+        if (!ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK.equals(headerMismatchResult)) {
+            if (!StringUtils.isEmpty(msisdn)) {
+                return "onnet";
+            }
+        }
+        return "offnet";
+    }
+
+//    private boolean isUserProfileUpdateRequired(HttpServletRequest request, String msisdnHeader, String selectedLOA) {
+//        boolean userProfileUpdateRequired = false;
+//        String requestURL = request.getRequestURL().toString();
+//        String requestURI = request.getRequestURI();
+//        String baseURL = requestURL.substring(0, requestURL.indexOf(requestURI));
+//        LoginAdminServiceClient lAdmin = null;
+//        try {
+//            lAdmin = new LoginAdminServiceClient(baseURL);
+//            String sessionCookie = lAdmin.authenticate(isAdminUserName, isAdminPassword);
+//            ClaimManagementClient claimManager = new ClaimManagementClient(baseURL, sessionCookie);
+//            if (msisdnHeader != null) {
+//                String registeredLOA = claimManager.getRegisteredLOA(msisdnHeader);
+//                if (Integer.parseInt(registeredLOA) < Integer.parseInt(selectedLOA)) {
+//                    userProfileUpdateRequired = true;
+//                }
+//            }
+//        } catch (AxisFault axisFault) {
+//            axisFault.printStackTrace();
+//        } catch (RemoteException e) {
+//            e.printStackTrace();
+//        } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+//            e.printStackTrace();
+//        } catch (LoginAuthenticationExceptionException e) {
+//            e.printStackTrace();
+//        }
+//        return userProfileUpdateRequired;
+//    }
+
+	private boolean isAuthenticatorAllowedForMNOAndSP(
+			boolean isMNObasedAunthenticatorSelectionEnabled, boolean isSPBasedAuthenticatorSelectionEnabled,
+			Set<String> allowedAuthenticatorMapForMNO, Set<String> allowedAuthenticatorMapForSP,
+			MIFEAuthentication.MIFEAbstractAuthenticator authenticator) {
+		boolean isAuthenticatorAllowedForMNO = true, isAuthenticatorAllowedForSP = true;
+
+		if (isMNObasedAunthenticatorSelectionEnabled
+				&& !allowedAuthenticatorMapForMNO.contains(authenticator.getAuthenticator())) {
+			isAuthenticatorAllowedForMNO = false;
 		}
-		return "offnet";
+
+		if (isSPBasedAuthenticatorSelectionEnabled
+				&& !allowedAuthenticatorMapForSP.contains(authenticator.getAuthenticator())) {
+			isAuthenticatorAllowedForSP = false;
+		}
+
+		return isAuthenticatorAllowedForMNO && isAuthenticatorAllowedForSP;
 	}
 
-    private boolean isUserProfileUpdateRequired(HttpServletRequest request, String msisdnHeader, String selectedLOA) {
-        boolean userProfileUpdateRequired = false;
-        String requestURL = request.getRequestURL().toString();
-        String requestURI = request.getRequestURI();
-        String baseURL = requestURL.substring(0, requestURL.indexOf(requestURI));
-        LoginAdminServiceClient lAdmin = null;
-        try {
-            lAdmin = new LoginAdminServiceClient(baseURL);
-            String sessionCookie = lAdmin.authenticate(isAdminUserName, isAdminPassword);
-            ClaimManagementClient claimManager = new ClaimManagementClient(baseURL, sessionCookie);
-            if (msisdnHeader != null) {
-                String registeredLOA = claimManager.getRegisteredLOA(msisdnHeader);
-                if (Integer.parseInt(registeredLOA) < Integer.parseInt(selectedLOA)) {
-                    userProfileUpdateRequired = true;
-                }
-            }
-        } catch (AxisFault axisFault) {
-            axisFault.printStackTrace();
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
-            e.printStackTrace();
-        } catch (LoginAuthenticationExceptionException e) {
-            e.printStackTrace();
-        }
-        return userProfileUpdateRequired;
-    }
+	private boolean isMNObasedAunthenticatorSelectionEnabled() {
+		return "true".equals(configurationService.getDataHolder().getMobileConnectConfig()
+				.getAuthenticatorSelectionConfig().getMobileNetworkOperatorBasedSelectionEnabled());
+	}
+
+	private boolean isSPBasedAuthenticatorSelectionEnabled() {
+		return "true".equals(configurationService.getDataHolder().getMobileConnectConfig()
+				.getAuthenticatorSelectionConfig().getServiceProviderBasedSelectionEnabled());
+	}
 
 }

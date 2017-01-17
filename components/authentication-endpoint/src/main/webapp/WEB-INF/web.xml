@@ -117,12 +117,17 @@
 
     <servlet>
         <servlet-name>auth_registration_pin</servlet-name>
-        <jsp-file>/mcx-user-registration/waiting.jsp</jsp-file>
+        <jsp-file>/mcx-user-registration/pin_waiting.jsp</jsp-file>
     </servlet>
 
     <servlet>
         <servlet-name>auth_registration_profile_upgrade</servlet-name>
         <jsp-file>/mcx-user-registration/profile_upgrade.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>auth_registration_pin_reset</servlet-name>
+        <jsp-file>/mcx-user-registration/pin_reset.jsp</jsp-file>
     </servlet>
 
     <servlet>
@@ -208,6 +213,11 @@
     <servlet-mapping>
         <servlet-name>auth_registration_profile_upgrade</servlet-name>
         <url-pattern>/mcx-user-registration/auth_registration_profile_upgrade</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>auth_registration_pin_reset</servlet-name>
+        <url-pattern>/mcx-user-registration/auth_registration_pin_reset</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

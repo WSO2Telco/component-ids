@@ -118,7 +118,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
             Application application=new Application();
             Map<String, String> readMobileConnectConfigResult;
-            readMobileConnectConfigResult = readMobileConnectConfig.query("SMS");
+            readMobileConnectConfigResult = ReadMobileConnectConfig.query("SMS");
 
             MobileConnectConfig connectConfig = configurationService.getDataHolder().getMobileConnectConfig();
             String messageText = readMobileConnectConfigResult.get("MessageContentFirst") + application.changeApplicationName(context.getSequenceConfig()

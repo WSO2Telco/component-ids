@@ -68,6 +68,7 @@
 		<module>components/authentication-endpoint</module>
 		<module>features</module>
         <module>components/openid-extension</module>
+        <module>components/ids-data-publisher</module>
     </modules>
 
 	<scm>

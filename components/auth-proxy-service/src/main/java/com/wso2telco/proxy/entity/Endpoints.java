@@ -16,21 +16,21 @@
 package com.wso2telco.proxy.entity;
 
 import com.google.gdata.util.common.util.Base64DecoderException;
+import com.wso2telco.core.config.model.LoginHintFormatDetails;
 import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.openid.extension.scope.ScopeConstant;
 import com.wso2telco.proxy.MSISDNDecryption;
+import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.model.MSISDNHeader;
 import com.wso2telco.proxy.model.Operator;
 import com.wso2telco.proxy.model.RedirectUrlInfo;
-import com.wso2telco.proxy.util.AuthProxyConstants;
-import com.wso2telco.proxy.util.DBUtils;
-import com.wso2telco.proxy.util.DecryptAES;
-import com.wso2telco.proxy.util.EncryptAES;
+import com.wso2telco.proxy.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.user.registration.stub.*;
 import org.wso2.carbon.identity.user.registration.stub.dto.UserDTO;
 import org.wso2.carbon.identity.user.registration.stub.dto.UserFieldDTO;
@@ -56,7 +56,6 @@ import java.rmi.RemoteException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +71,21 @@ public class Endpoints {
 
     /** The Configuration service */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
+    /**
+     * The Constant LOGIN_HINT_ENCRYPTED_PREFIX.
+     */
+    private static final String LOGIN_HINT_ENCRYPTED_PREFIX = "ENCR_MSISDN:";
+
+    /**
+     * The Constant LOGIN_HINT_NOENCRYPTED_PREFIX.
+     */
+    private static final String LOGIN_HINT_NOENCRYPTED_PREFIX = "MSISDN:";
+
+    /**
+     * The Constant LOGIN_HINT_SEPARATOR.
+     */
+    private static final String LOGIN_HINT_SEPARATOR = "|";
 
     static {
         try {
@@ -145,15 +159,18 @@ public class Endpoints {
         ipAddress = getIpAddress(httpHeaders, operatorName);
         queryParams.putSingle(AuthProxyConstants.PROMPT, AuthProxyConstants.LOGIN);
 
+
+        validateAndSetScopeParameters(loginHint, msisdn, operatorName, redirectUrlInfo);
+
         Boolean isScopeExists = queryParams.containsKey(AuthProxyConstants.SCOPE);
         String operatorScopeWithClaims;
 
         if (isScopeExists) {
             operatorScopeWithClaims = queryParams.get(AuthProxyConstants.SCOPE).get(0);
             //split form space or + sign  
-            String [] scopeValues = operatorScopeWithClaims.split("\\s+|\\+");
+            String[] scopeValues = operatorScopeWithClaims.split("\\s+|\\+");
 
-            if (Arrays.asList(scopeValues).contains(ScopeConstant.OAUTH20_VALUE_SCOPE)) {
+          //  if (Arrays.asList(scopeValues).contains(ScopeConstant.OAUTH20_VALUE_SCOPE)) {
 
                 queryString = processQueryString(queryParams, queryString);
 
@@ -170,7 +187,7 @@ public class Endpoints {
                 redirectUrlInfo.setIpAddress(ipAddress);
                 redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
                 redirectURL = constructRedirectUrl(redirectUrlInfo);
-            }
+           // }
 
 //            if (operatorScope.equals(AuthProxyConstants.SCOPE_CPI)) {
 //                boolean isUserExists = isUserExists(msisdn);
@@ -262,10 +279,153 @@ public class Endpoints {
         httpServletResponse.sendRedirect(redirectURL);
     }
 
+
+    private void validateAndSetScopeParameters(String loginHint, String msisdnHeader, String operator,
+                                               RedirectUrlInfo redirectUrlInfo)
+            throws AuthenticationFailedException, ConfigurationException {
+        //TODO: get all scope related params. This should be move to a initialization method or add to cache later
+        Map scopeDetail;
+        try {
+            scopeDetail = DBUtils.getScopeParams();
+        } catch (AuthenticatorException e) {
+            throw new AuthenticationFailedException("Error occurred while getting scope parameters from the database",
+                                                    e);
+        }
+        if (scopeDetail == null || scopeDetail.isEmpty()) {
+            throw new ConfigurationException("PLease configure Scope related Parameters");
+        }
+
+        //set the scope specific params
+        ScopeParam scopeParam = (ScopeParam) scopeDetail.get("params");
+        redirectUrlInfo.setLoginhintMandatory(scopeParam.isLoginHintMandatory());
+        redirectUrlInfo.setShowTnc(scopeParam.isTncVisible());
+        redirectUrlInfo.setHeaderMismatchResult(scopeParam.getMsisdnMismatchResult());
+
+        if (scopeParam != null) {
+            //check login hit existance validation
+            if (scopeParam.isLoginHintMandatory()) {
+                if (StringUtils.isEmpty(loginHint)) {
+                    throw new AuthenticationFailedException("login hint cannot be empty");
+                }
+            } else {
+                if (StringUtils.isNotEmpty(msisdnHeader)) {
+                    // check if decryption possible
+                    log.debug("Set msisdn from header msisdn_header" + msisdnHeader);
+
+                    if (!validateMsisdnFormat(msisdnHeader)) {
+                        throw new AuthenticationFailedException(
+                                "Invalid msisdn format - " + msisdnHeader);
+                    }
+
+                    //validate login hint format
+                    validateFormatAndMatchLoginHintWithHeaderMsisdn(loginHint, scopeParam.getLoginHintFormat(),
+                                                                    msisdnHeader, scopeParam.getMsisdnMismatchResult());
+                }
+            }
+        }
+    }
+
+    private void validateFormatAndMatchLoginHintWithHeaderMsisdn(String loginHint,
+                                                                 List<LoginHintFormatDetails>
+                                                                         loginHintAllowedFormatDetailsList,
+                                                                 String plainTextMsisdnHeader,
+                                                                 ScopeParam.msisdnMismatchResultTypes
+                                                                         headerMismatchResult)
+            throws AuthenticationFailedException {
+        boolean isValidFormatType = false; //msisdn/loginhint should be a either of defined formats
+        for (LoginHintFormatDetails loginHintFormatDetails : loginHintAllowedFormatDetailsList) {
+            String msisdn = null;
+            switch (loginHintFormatDetails.getFormatType()) {
+                case PLAINTEXT:
+                    if (log.isDebugEnabled()) {
+                        log.debug("Plain text login hint: " + msisdn);
+                    }
+                    if (StringUtils.isNotEmpty(loginHint)) {
+                        msisdn = loginHint;
+                    }
+                    isValidFormatType = true;
+                    break;
+                case ENCRYPTED:
+                    String decryptAlgorithm = loginHintFormatDetails.getDecryptAlgorithm();
+                    if (StringUtils.isNotEmpty(loginHint)) {
+                        if (loginHint.startsWith(LOGIN_HINT_ENCRYPTED_PREFIX)) {
+                            String decrypted = null;
+                            try {
+                                decrypted = Decrypt.decryptData(loginHint.replace(LOGIN_HINT_ENCRYPTED_PREFIX, ""),
+                                                                decryptAlgorithm);
+                            } catch (Exception e) {
+                                log.error("Error while decrypting login hint - " + loginHint);
+                            }
+                            log.debug("Decrypted login hint: " + decrypted);
+                            msisdn = decrypted.substring(0, decrypted.indexOf(LOGIN_HINT_SEPARATOR));
+                            if (log.isDebugEnabled()) {
+                                log.debug("MSISDN by encrypted login hint: " + msisdn);
+                            }
+                            isValidFormatType = true;
+                            break;
+                        }
+                    } else {
+                        isValidFormatType = true;
+                        break;
+                    }
+                case MSISDN:
+                    if (StringUtils.isNotEmpty(loginHint)) {
+                        if (loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX)) {
+                            msisdn = loginHint.replace(LOGIN_HINT_NOENCRYPTED_PREFIX, "");
+                            if (log.isDebugEnabled()) {
+                                log.debug("MSISDN by login hint: " + msisdn);
+                            }
+                            isValidFormatType = true;
+                            break;
+                        }
+                    } else {
+                        isValidFormatType = true;
+                        break;
+                    }
+                default:
+                    log.error("Invalid Login Hint format - " + loginHintFormatDetails.getFormatType());
+            }
+
+            //msisdn/loginhint should be a either of defined formats
+            if (!isValidFormatType) {
+                throw new AuthenticationFailedException(
+                        "login hint is malformat");
+            }
+
+            if (StringUtils.isNotEmpty(msisdn)) {
+                //validate format
+                if (validateMsisdnFormat(msisdn)) {
+                    if (ScopeParam.msisdnMismatchResultTypes.ERROR_RETURN.equals(headerMismatchResult)) {
+                        if (!plainTextMsisdnHeader.equals(msisdn)) {
+                            throw new AuthenticationFailedException(
+                                    "login hint is not matching with the header msisdn");
+                        }
+                    }
+                } else {
+                    throw new AuthenticationFailedException(
+                            "login hint is malformat");
+                }
+
+            }
+        }
+    }
+
+
+    private boolean validateMsisdnFormat(String msisdn) {
+        if (StringUtils.isNotEmpty(msisdn)) {
+            String plaintextMsisdnRegex =
+                    configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getValidationRegex();
+            return msisdn.matches(plaintextMsisdnRegex);
+        }
+        return true;
+    }
+
+
+
     private String decryptMSISDN(HttpHeaders httpHeaders, String operatorName)
             throws ClassNotFoundException, NoSuchPaddingException, BadPaddingException, UnsupportedEncodingException,
-                   IllegalBlockSizeException, Base64DecoderException, NoSuchAlgorithmException, InvalidKeyException,
-                   IllegalAccessException, InstantiationException {
+            IllegalBlockSizeException, Base64DecoderException, NoSuchAlgorithmException, InvalidKeyException,
+            IllegalAccessException, InstantiationException {
         String msisdn = null;
         List<MSISDNHeader> msisdnHeaderList = operatorsMSISDNHeadersMap.get(operatorName);
 
@@ -316,10 +476,17 @@ public class Endpoints {
         String operatorName = redirectUrlInfo.getOperatorName();
         String telcoScope = redirectUrlInfo.getTelcoScope();
         String ipAddress = redirectUrlInfo.getIpAddress();
+        boolean isLoginhintMandatory = redirectUrlInfo.isLoginhintMandatory();
+        boolean isShowTnc = redirectUrlInfo.isShowTnc();
+        ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
+
         if (authorizeUrl != null) {
             redirectURL = authorizeUrl + queryString + AuthProxyConstants.MSISDN_HEADER + "=" +
                     msisdnHeader + "&" + AuthProxyConstants.OPERATOR + "=" +
-                    operatorName + "&" + AuthProxyConstants.TELCO_SCOPE + "=" + telcoScope;
+                    operatorName + "&" + AuthProxyConstants.TELCO_SCOPE + "=" + telcoScope + "&" +
+                    AuthProxyConstants.LOGIN_HINT_MANDATORY + "=" + isLoginhintMandatory + "&" +
+                    AuthProxyConstants.SHOW_TNC + "=" + isShowTnc + "&" + AuthProxyConstants.HEADER_MISMATCH_RESULT +
+                    "=" + headerMismatchResult;
             // Reconstruct Authorize url with ip address.
             if (ipAddress != null) {
                 redirectURL += "&" + AuthProxyConstants.IP_ADDRESS + "=" + ipAddress;
@@ -338,7 +505,7 @@ public class Endpoints {
     }
 
     private boolean isUserExists(String userName) throws RemoteException,
-                                                        UserRegistrationAdminServiceUserRegistrationException {
+            UserRegistrationAdminServiceUserRegistrationException {
         UserRegistrationAdminService userRegistrationAdminService = new UserRegistrationAdminServiceStub();
         boolean isUserExists = userRegistrationAdminService.isUserExist(userName);
         return isUserExists;
@@ -346,7 +513,7 @@ public class Endpoints {
 
     private void createUserProfile(String username, String operator, String scope)
             throws RemoteException, UserRegistrationAdminServiceUserRegistrationException,
-                   UserRegistrationAdminServiceIdentityException, UserRegistrationAdminServiceException {
+            UserRegistrationAdminServiceIdentityException, UserRegistrationAdminServiceException {
         UserRegistrationAdminService userRegistrationAdminService = new UserRegistrationAdminServiceStub();
 
         UserFieldDTO[] userFieldDTOs = userRegistrationAdminService.readUserFieldsForUserRegistration
@@ -370,8 +537,8 @@ public class Endpoints {
 
             if (log.isDebugEnabled()) {
                 log.debug("User Fields Value :" + userFieldDTOs[count].getFieldValue() + " : Claim " +
-                                  userFieldDTOs[count].getClaimUri() + " : Name " +
-                                  userFieldDTOs[count].getFieldName());
+                        userFieldDTOs[count].getClaimUri() + " : Name " +
+                        userFieldDTOs[count].getFieldName());
             }
         }
 

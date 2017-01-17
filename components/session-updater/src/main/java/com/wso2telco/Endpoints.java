@@ -18,18 +18,29 @@ package com.wso2telco;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.MIFEAuthentication;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.PinConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.config.util.PinConfigUtil;
 import com.wso2telco.cryptosystem.AESencrp;
 import com.wso2telco.entity.LoginHistory;
+import com.wso2telco.entity.SaaResponse;
+import com.wso2telco.entity.SaaStatusRequest;
+import com.wso2telco.entity.StatusCode;
+import com.wso2telco.entity.ValidationResponse;
 import com.wso2telco.exception.AuthenticatorException;
 import com.wso2telco.util.Constants;
 import com.wso2telco.util.DbUtil;
 import org.apache.axis2.AxisFault;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
@@ -39,9 +50,15 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Authe
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.mgt.stub.UserIdentityManagementAdminServiceIdentityMgtServiceExceptionException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
-import org.wso2.carbon.utils.DBUtils;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -58,6 +75,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
@@ -112,9 +130,6 @@ public class Endpoints {
      */
     private static Log log = LogFactory.getLog(Endpoints.class);
 
-    /** The Configuration service */
-    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
-
     /**
      * The ussd no of attempts.
      */
@@ -126,11 +141,36 @@ public class Endpoints {
     private static final int FIRST_ATTEMPT = 1;
 
     /**
+     * The Configuration service
+     */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
+    /**
      * Instantiates a new endpoints.
      */
     public Endpoints() {
 
 
+    }
+
+    @POST
+    @Path("/saa/status")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Response saaUpdateStatus(SaaStatusRequest saaStatusRequest) {
+        Response response;
+
+        try {
+            DatabaseUtils.updateStatus(saaStatusRequest.getSessionDataKey(), saaStatusRequest.getStatus());
+
+            response = Response.status(Response.Status.ACCEPTED)
+                    .entity(new SaaResponse(saaStatusRequest.getSessionDataKey(), Constants.STATUS_SUCCESS)).build();
+        } catch (SQLException e) {
+
+            response = Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(new SaaResponse(saaStatusRequest.getSessionDataKey(), Constants.STATUS_FAILED)).build();
+        }
+        return response;
     }
 
     /**
@@ -143,10 +183,11 @@ public class Endpoints {
      * @throws IOException   Signals that an I/O exception has occurred.
      */
     @POST
-    @Path("/ussd/receive")
+    @Path("/login/ussd/")
     @Consumes("application/json")
     @Produces("application/json")
-    public Response ussdReceive(String jsonBody) throws SQLException, JSONException, IOException {
+    public Response loginUssd(String jsonBody) throws SQLException, JSONException, IOException {
+        log.info("Received login request");
 
         log.info("Json Body" + jsonBody);
         Gson gson = new GsonBuilder().serializeNulls().create();
@@ -159,7 +200,9 @@ public class Endpoints {
         String responseString = null;
 
         String status = null;
-
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+        PinConfig pinConfig = PinConfigUtil.getPinConfig(authenticationContext);
+        pinConfig.setConfirmedPin(getHashedPin(message));
 
         String ussdSessionID = null;
         if (jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID") && !jsonObj.getJSONObject("inboundUSSDMessageRequest").isNull("sessionID")) {
@@ -199,64 +242,11 @@ public class Endpoints {
     }
 
     @POST
-    @Path("/registration/pin/ussd")
-    @Consumes("application/json")
-    @Produces("application/json")
-    public Response registrationPinUssd(String jsonBody) {
-        String response = "";
-
-        Gson gson = new GsonBuilder().serializeNulls().create();
-        org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
-        String pin = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("inboundUSSDMessage");
-        String sessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("clientCorrelator");
-
-        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
-
-        PinConfig pinConfig = (PinConfig) authenticationContext.getProperty(Constants.PIN_CONFIG_OBJECT);
-
-        boolean isValidFormatPin = isValidPinFormat(pin);
-        String msisdn = extractMsisdn(jsonObj);
-
-        String ussdSessionId = getUssdSessionId(jsonObj);
-
-        try {
-            if (pinConfig.getCurrentStep() == PinConfig.CurrentStep.REGISTRATION) {
-
-                if (!isValidFormatPin) {
-                    response = handleInvalidFormat(gson, sessionID, pinConfig, msisdn, ussdSessionId);
-                    return Response.status(Response.Status.CREATED).entity(response).build();
-                } else {
-                    response = getPinConfirmResponse(gson, pin, sessionID, pinConfig, msisdn, ussdSessionId);
-                    return Response.status(Response.Status.CREATED).entity(response).build();
-                }
-            } else {
-                pinConfig.setConfirmedPin(pin);
-
-                if (!isValidFormatPin) {
-                    response = handleInvalidFormat(gson, sessionID, pinConfig, msisdn, ussdSessionId);
-                    return Response.status(Response.Status.CREATED).entity(response).build();
-                } else if (!pinConfig.isPinsMatched()) {
-                    response = handlePinMismatches(gson, sessionID, pinConfig, msisdn, ussdSessionId);
-                    return Response.status(Response.Status.CREATED).entity(response).build();
-                } else {
-                    response = getPinMatchedResponse(gson, sessionID, msisdn, ussdSessionId);
-                    DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_APPROVED);
-                    return Response.status(Response.Status.CREATED).entity(response).build();
-                }
-            }
-        } catch (SQLException e) {
-           log.error("Error occurred while updating registration status");
-        } catch (AuthenticatorException e) {
-            log.error("Error occurred while inserting to the database");
-        }
-        return Response.status(Response.Status.CREATED).entity(response).build();
-    }
-
-    @POST
     @Path("/registration/ussd")
     @Consumes("application/json")
     @Produces("application/json")
     public Response registrationUssd(String jsonBody) throws SQLException, JSONException, IOException {
+        log.info("Received registration request");
 
         log.info("Json Body" + jsonBody);
         Gson gson = new GsonBuilder().serializeNulls().create();
@@ -270,12 +260,11 @@ public class Endpoints {
 
         String status;
 
-        //Accept or Reject response depending on configured values
-        String acceptInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getAcceptUserInputs();
-        String rejectInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getRejectUserInputs();
-
-        if (validateUserInputs(acceptInputs, message)) {
+        //USSD 1 = YES
+        //USSD 2 = NO
+        if (message.equals("1")) {
             log.info("Updating registration status as success");
+
             status = "Approved";
             responseCode = Response.Status.CREATED.getStatusCode();
             DatabaseUtils.updateRegistrationStatus(sessionID, status);
@@ -295,6 +284,338 @@ public class Endpoints {
         }*/
 
         return Response.status(responseCode).entity(responseString).build();
+    }
+
+    @POST
+    @Path("/pin/login/ussd")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Response pinLoginUssd(String jsonBody) {
+        log.info("Received pin login request");
+
+        String response;
+
+        Gson gson = new GsonBuilder().serializeNulls().create();
+        org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
+        String receivedPin = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("inboundUSSDMessage");
+        String sessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("clientCorrelator");
+
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+
+        PinConfig pinConfig = PinConfigUtil.getPinConfig(authenticationContext);
+        pinConfig.setConfirmedPin(getHashedPin(receivedPin));
+
+        boolean isValidFormatPin = isValidPinFormat(receivedPin);
+        String msisdn = extractMsisdn(jsonObj);
+
+        String ussdSessionId = getUssdSessionId(jsonObj);
+
+        try {
+            if (!isValidFormatPin) {
+                response = handleInvalidFormat(gson, sessionID, pinConfig, msisdn, ussdSessionId);
+                return Response.status(Response.Status.CREATED).entity(response).build();
+            } else if (!pinConfig.isPinsMatched()) {
+                response = handlePinMismatchesForLogin(gson, sessionID, pinConfig, msisdn, ussdSessionId);
+                return Response.status(Response.Status.CREATED).entity(response).build();
+            } else {
+                response = getPinMatchedResponse(gson, sessionID, msisdn, ussdSessionId);
+                DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_APPROVED);
+                return Response.status(Response.Status.CREATED).entity(response).build();
+            }
+        } catch (SQLException e) {
+            log.error("Error occurred while updating registration status", e);
+        } catch (AuthenticatorException e) {
+            log.error("Error occurred while inserting to the database", e);
+        }
+        USSDRequest ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, "Error Occurred");
+        return Response.status(Response.Status.CREATED).entity(new Gson().toJson(ussdRequest)).build();
+    }
+
+    @POST
+    @Path("/pin/registration/ussd")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Response pinRegistrationUssd(String jsonBody) {
+
+        log.info("Received pin registration request");
+        String response;
+
+        Gson gson = new GsonBuilder().serializeNulls().create();
+        org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
+        String pin = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("inboundUSSDMessage");
+        String sessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("clientCorrelator");
+
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+
+        PinConfig pinConfig = PinConfigUtil.getPinConfig(authenticationContext);
+
+        boolean isValidFormatPin = isValidPinFormat(pin);
+        String msisdn = extractMsisdn(jsonObj);
+
+        String ussdSessionId = getUssdSessionId(jsonObj);
+
+        try {
+            if (pinConfig.getCurrentStep() == PinConfig.CurrentStep.REGISTRATION) {
+
+                if (!isValidFormatPin) {
+                    response = handleInvalidFormat(gson, sessionID, pinConfig, msisdn, ussdSessionId);
+                    return Response.status(Response.Status.CREATED).entity(response).build();
+                } else {
+                    pinConfig.setCurrentStep(PinConfig.CurrentStep.CONFIRMATION);
+                    pinConfig.setRegisteredPin(pin);
+
+                    response = getPinConfirmResponse(gson, pin, sessionID, pinConfig, msisdn, ussdSessionId);
+                    return Response.status(Response.Status.CREATED).entity(response).build();
+                }
+            } else if (pinConfig.getCurrentStep() == PinConfig.CurrentStep.PIN_RESET) {
+
+                pinConfig.setCurrentStep(PinConfig.CurrentStep.CONFIRMATION);
+                pinConfig.setRegisteredPin(pin);
+
+                response = getPinConfirmResponse(gson, pin, sessionID, pinConfig, msisdn, ussdSessionId);
+                return Response.status(Response.Status.CREATED).entity(response).build();
+            } else if (pinConfig.getCurrentStep() == PinConfig.CurrentStep.CONFIRMATION) {
+                pinConfig.setConfirmedPin(pin);
+
+                if (!isValidFormatPin) {
+                    response = handleInvalidFormat(gson, sessionID, pinConfig, msisdn, ussdSessionId);
+                    return Response.status(Response.Status.CREATED).entity(response).build();
+                } else if (!pinConfig.isPinsMatched()) {
+                    response = handlePinMismatchesForRegistration(gson, sessionID, pinConfig, msisdn, ussdSessionId);
+                    return Response.status(Response.Status.CREATED).entity(response).build();
+                } else {
+                    response = getPinMatchedResponse(gson, sessionID, msisdn, ussdSessionId);
+
+                    DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_APPROVED);
+
+                    pinConfig.setCurrentStep(PinConfig.CurrentStep.PIN_RESET_CONFIRMATION);
+
+                    return Response.status(Response.Status.CREATED).entity(response).build();
+                }
+            }
+        } catch (SQLException e) {
+            log.error("Error occurred while updating registration status", e);
+        } catch (AuthenticatorException e) {
+            log.error("Error occurred while inserting to the database", e);
+        }
+        USSDRequest ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, "" +
+                "Invalid Operation");
+        return Response.status(Response.Status.CREATED).entity(new Gson().toJson(ussdRequest)).build();
+    }
+
+    @GET
+    @Path("/validate/answer1/{answer1}/answer2/{answer2}/sessionId/{sessionId}")
+    @Produces("application/json")
+    public Response validateSecurityQuestions(@PathParam("answer1") String answer1, @PathParam("answer2") String answer2,
+                                              @PathParam("sessionId") String sessionId) {
+        log.info("Received Q&A validation request");
+
+        ValidationResponse validationResponse;
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionId);
+
+        PinConfig pinConfig = PinConfigUtil.getPinConfig(authenticationContext);
+
+        String challengeAnswer1 = pinConfig.getChallengeAnswer1();
+        String challengeAnswer2 = pinConfig.getChallengeAnswer2();
+
+        if (challengeAnswer1.equalsIgnoreCase(answer1) && challengeAnswer2.equalsIgnoreCase(answer2)) {
+            log.info("Q&A are valid");
+
+            String msisdn = (String) authenticationContext.getProperty(Constants.MSISDN);
+            String operator = (String) authenticationContext.getProperty(Constants.OPERATOR);
+            USSDRequest pinUssdRequest = getPinUssdRequest(msisdn, sessionId);
+            try {
+                postRequest(getUssdEndpoint(msisdn), new Gson().toJson(pinUssdRequest), operator);
+                validationResponse = new ValidationResponse(StatusCode.SUCCESS.getCode(), sessionId, true, true);
+            } catch (IOException e) {
+                validationResponse = new ValidationResponse(StatusCode.USSD_ERROR.getCode(), sessionId, true, true);
+            }
+        } else {
+            log.info("Q&A are invalid. Sending error response");
+            validationResponse = new ValidationResponse(StatusCode.VALIDATION_ERROR.getCode(), sessionId,
+                    challengeAnswer1.equalsIgnoreCase(answer1), challengeAnswer2.equalsIgnoreCase(answer2));
+        }
+        return Response.status(Response.Status.OK).entity(new Gson().toJson(validationResponse)).build();
+
+    }
+
+    protected String getUssdEndpoint(String msisdn) {
+
+        MobileConnectConfig.USSDConfig ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
+
+        String url = ussdConfig.getEndpoint();
+        if (url.endsWith("/")) {
+            url = url.substring(0, url.length() - 1) + "/" + "tel:+" + msisdn;
+
+        } else {
+            url = url + "/tel:+" + msisdn;
+        }
+
+        return url;
+    }
+
+    private void postRequest(String url, String requestStr, String operator) throws IOException {
+        MobileConnectConfig.USSDConfig ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
+
+        final HttpPost postRequest = new HttpPost(url);
+        postRequest.addHeader("accept", "application/json");
+        postRequest.addHeader("Authorization", "Bearer " + ussdConfig.getAuthToken());
+
+        if (operator != null) {
+            postRequest.addHeader("operator", operator);
+        }
+
+        StringEntity input = new StringEntity(requestStr);
+        input.setContentType("application/json");
+
+        postRequest.setEntity(input);
+        final CountDownLatch latch = new CountDownLatch(1);
+
+        log.info("Posting data  [ " + requestStr + " ] to url [ " + url + " ]");
+
+        HttpClient client = new DefaultHttpClient();
+        client.execute(postRequest);
+    }
+
+    private String getPinMatchedResponse(Gson gson, String sessionID, String msisdn, String ussdSessionId) {
+        log.info("Pins are matched");
+
+        USSDRequest ussdRequest;
+        String response;
+        String message = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinRegistrationSuccessMessage();
+        ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, message);
+        response = gson.toJson(ussdRequest);
+
+        return response;
+    }
+
+    private String getPinConfirmResponse(Gson gson, String pin, String sessionID, PinConfig pinConfig, String msisdn, String ussdSessionId) {
+        log.info("Valid pin received");
+
+        USSDRequest ussdRequest;
+        String response;
+        String ussdMessage = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinConfirmMessage();
+        ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
+
+        pinConfig.setCurrentStep(PinConfig.CurrentStep.CONFIRMATION);
+        pinConfig.setRegisteredPin(pin);
+
+        response = gson.toJson(ussdRequest);
+        return response;
+    }
+
+    private String handlePinMismatchesForLogin(Gson gson, String sessionID, PinConfig pinConfig, String msisdn, String ussdSessionId)
+            throws SQLException, AuthenticatorException {
+        USSDRequest ussdRequest;
+        String response;
+
+        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts())) {
+            String ussdMessage = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinMismatchMessage();
+            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
+            response = gson.toJson(ussdRequest);
+
+            log.info("Pin mismatch detected. Sending retry pin message [ " + ussdMessage + " ]");
+        } else if (pinConfig.getPinMismatchAttempts() == Integer.parseInt(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts()) - 1) {
+
+            String ussdMessage = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinMismatchMessage();
+            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
+            response = gson.toJson(ussdRequest);
+
+            DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_PIN_RESET);
+            pinConfig.setCurrentStep(PinConfig.CurrentStep.PIN_RESET);
+
+            log.info("Pin mismatch detected for the last attempt. Terminating ussd session to move user to pin reset flow");
+        } else {
+            String ussdMessage = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinMismatchAttemptsExceedMessage();
+            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
+            response = gson.toJson(ussdRequest);
+
+            DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
+            pinConfig.setCurrentStep(PinConfig.CurrentStep.PIN_RESET);
+
+            log.info("Maximum attempts reached. Sending access denied message [ " + ussdMessage + " ]");
+        }
+        pinConfig.incrementPinMistmachAttempts();
+
+        return response;
+    }
+
+    private String handlePinMismatchesForRegistration(Gson gson, String sessionID, PinConfig pinConfig, String msisdn,
+                                                      String ussdSessionId) throws SQLException, AuthenticatorException {
+
+        USSDRequest ussdRequest;
+        String response;
+
+        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts())) {
+            String ussdMessage = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinMismatchMessage();
+            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
+            response = gson.toJson(ussdRequest);
+
+            log.info("Pin mismatch detected. Sending retry pin message [ " + ussdMessage + " ]");
+        } else {
+            String ussdMessage = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinMismatchAttemptsExceedMessage();
+            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
+            response = gson.toJson(ussdRequest);
+
+            DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
+
+            log.info("Maximum attempts reached. Sending access denied message [ " + ussdMessage + " ]");
+        }
+
+        pinConfig.incrementPinMistmachAttempts();
+
+        return response;
+    }
+
+    private String handleInvalidFormat(Gson gson, String sessionID, PinConfig pinConfig, String msisdn, String ussdSessionId)
+            throws SQLException, AuthenticatorException {
+        USSDRequest ussdRequest;
+        String response;
+
+        if (pinConfig.getInvalidFormatAttempts() < Integer.parseInt(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getInvalidFormatPinAttempts())) {
+            String message = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinInvalidFormatMessage();
+            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, message);
+
+            log.info("Invalid pin. Sending retry pin message [ " + message + " ]");
+        } else {
+            String ussdMessage = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinInvalidFormatAttemptsExceedMessage();
+            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
+
+            DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
+
+            log.info("Invalid pin maximum attempts reached. Sending access denied message [ " + ussdMessage + " ]");
+        }
+        pinConfig.incrementInvalidFormatAttempts();
+
+        response = gson.toJson(ussdRequest);
+        return response;
+    }
+
+    private String getUssdSessionId(JSONObject jsonObj) {
+        String ussdSessionId = null;
+
+        if (jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID")
+                && !jsonObj.getJSONObject("inboundUSSDMessageRequest").isNull("sessionID")) {
+            ussdSessionId = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("sessionID");
+
+            log.debug("Ussd session id retrieved [ " + ussdSessionId + " ] ");
+        }
+        return ussdSessionId;
+    }
+
+    private AuthenticationContext getAuthenticationContext(String sessionID) {
+        AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(sessionID);
+        Object cacheEntryObj = AuthenticationContextCache.getInstance().getValueFromCache(cacheKey);
+        return ((AuthenticationContextCacheEntry) cacheEntryObj).getContext();
+    }
+
+    private boolean isValidPinFormat(String pin) {
+
+        if (pin.matches("[0-9]+") && pin.length() <= Integer.parseInt(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinMaxLength())) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @GET
@@ -356,7 +677,7 @@ public class Endpoints {
     private String validatePIN(String pin, String sessionID, String msisdn) {
 
         // load config values
-        MobileConnectConfig.SessionUpdaterConfig sessionUpdaterConfig = configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig();
+        MobileConnectConfig.SessionUpdaterConfig sessionUpdaterConfig = DataHolder.getInstance().getMobileConnectConfig().getSessionUpdaterConfig();
 
         log.info("pin : " + pin);
         log.info("sessionID : " + sessionID);
@@ -415,7 +736,7 @@ public class Endpoints {
     private String validatePIN(String pin, String sessionID, String msisdn, String ussdSessionID) {
 
         // load config values
-        MobileConnectConfig.SessionUpdaterConfig sessionUpdaterConfig = configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig();
+        MobileConnectConfig.SessionUpdaterConfig sessionUpdaterConfig = DataHolder.getInstance().getMobileConnectConfig().getSessionUpdaterConfig();
 
         String responseString = null;
         try {
@@ -570,6 +891,55 @@ public class Endpoints {
     }
 
     /**
+     * Extract msisdn.
+     *
+     * @param jsonObj the json obj
+     * @return the string
+     * @throws JSONException the JSON exception
+     */
+    private String extractMsisdn(JSONObject jsonObj) throws JSONException {
+        String address = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("address");
+        if (address != null) {
+            return address.split(":\\+")[1];
+        }
+        return null;
+    }
+
+    /**
+     * Gets the hashed pin.
+     *
+     * @param pinvalue the pinvalue
+     * @return the hashed pin
+     */
+    private String getHashedPin(String pinvalue) {
+        String hashString = "";
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(pinvalue.getBytes("UTF-8"));
+
+            StringBuilder hexString = new StringBuilder();
+
+            for (int i = 0; i < hash.length; i++) {
+                String hex = Integer.toHexString(0xff & hash[i]);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+
+            hashString = hexString.toString();
+
+        } catch (UnsupportedEncodingException ex) {
+            log.info("Error getHashValue");
+        } catch (NoSuchAlgorithmException ex) {
+            log.info("Error getHashValue");
+        }
+
+        return hashString;
+
+    }
+
+    /**
      * Login history.
      *
      * @param userID      the user id
@@ -685,156 +1055,75 @@ public class Endpoints {
         return Response.status(200).build();
     }
 
-    private String getPinMatchedResponse(Gson gson, String sessionID, String msisdn, String ussdSessionId) {
-        log.info("Pins are matched");
+    /**
+     * Return the authenticator, based on the defined order in the LOA.xml and
+     * the given the acr value.
+     *
+     * @param acr value of the acr.
+     * @return Json string with authenticator.
+     * @throws Exception
+     */
+    @GET
+    @Path("/loa/authenticator")
+    @Produces("application/json")
+    public Response getCorrectAuthenticator(@QueryParam("acr") String acr) throws Exception {
 
-        USSDRequest ussdRequest;
-        String response;
-        String message = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinRegistrationSuccessMessage();
-        ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, message);
-        response = gson.toJson(ussdRequest);
+        String returnJson = null;
+        int statusCode = 500;
+        try {
+            log.info("Searching default Authenticator for acr: " + acr);
+            Map<String, MIFEAuthentication> authenticationMap = DataHolder.getInstance().getAuthenticationLevelMap();
+            MIFEAuthentication mifeAuthentication = authenticationMap.get(acr);
+            List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList = mifeAuthentication
+                    .getAuthenticatorList();
 
-        return response;
-    }
+            String selected = selectDefaultAuthenticator(authenticatorList);
 
-    private String getPinConfirmResponse(Gson gson, String pin, String sessionID, PinConfig pinConfig, String msisdn, String ussdSessionId) {
-        log.info("Valid pin received");
-
-        USSDRequest ussdRequest;
-        String response;
-        String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinConfirmMessage();
-        ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
-
-        pinConfig.setCurrentStep(PinConfig.CurrentStep.CONFIRMATION);
-        pinConfig.setRegisteredPin(pin);
-
-        response = gson.toJson(ussdRequest);
-        return response;
-    }
-
-    private String handlePinMismatches(Gson gson, String sessionID, PinConfig pinConfig, String msisdn, String ussdSessionId)
-            throws SQLException, AuthenticatorException {
-        USSDRequest ussdRequest;
-        String response;
-
-        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts())) {
-            String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchMessage();
-            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
-            response = gson.toJson(ussdRequest);
-
-            log.info("Pin mismatch detected. Sending retry pin message [ " + ussdMessage + " ]");
-        } else {
-            String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchAttemptsExceedMessage();
-            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
-            response = gson.toJson(ussdRequest);
-
-            DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
-
-            log.info("Maximum attempts reached. Sending access denied message [ " + ussdMessage + " ]");
+            if (selected == null) {
+                returnJson = "{\"status\":\"error\", \"message\":\"Invalid configuration in LOA.xml, couldn't find valid Authenticator\"}";
+                log.warn("Error: " + returnJson);
+                log.info("Response: \n" + returnJson);
+            } else {
+                returnJson = "{" + "\"acr\":\"" + acr + "\", \"" + "authenticator\":{\"" + "name\":\"" + selected
+                        + "\"}" + "}";
+                log.info("Default authenticator for acr:" + acr + " is \n" + returnJson);
+                log.info("Response: \n" + returnJson);
+                statusCode = 200;
+            }
+        } catch (Exception e) {
+            log.error("Error occurred:" + e);
+            returnJson = "{\"status\":\"error\", \"message\":\"" + e + "\"}";
+            // TODO handle exception.
+            throw e;
         }
-
-        pinConfig.incrementPinMistmachAttempts();
-
-        return response;
-    }
-
-    private String handleInvalidFormat(Gson gson, String sessionID, PinConfig pinConfig, String msisdn, String ussdSessionId)
-            throws SQLException, AuthenticatorException {
-        USSDRequest ussdRequest;
-        String response;
-
-        if (pinConfig.getInvalidFormatAttempts() < Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getInvalidFormatPinAttempts())) {
-            String message = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinInvalidFormatMessage();
-            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, message);
-
-            log.info("Invalid pin. Sending retry pin message [ " + message + " ]");
-        } else {
-            String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinInvalidFormatAttemptsExceedMessage();
-            ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
-
-            DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
-
-            log.info("Invalid pin maximum attempts reached. Sending access denied message [ " + ussdMessage + " ]");
-        }
-        pinConfig.incrementInvalidFormatAttempts();
-
-        response = gson.toJson(ussdRequest);
-        return response;
-    }
-
-    private String getUssdSessionId(JSONObject jsonObj) {
-        String ussdSessionId = null;
-
-        if (jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID")
-                && !jsonObj.getJSONObject("inboundUSSDMessageRequest").isNull("sessionID")) {
-            ussdSessionId = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("sessionID");
-
-            log.debug("Ussd session id retrieved [ " + ussdSessionId + " ] ");
-        }
-        return ussdSessionId;
-    }
-
-    private AuthenticationContext getAuthenticationContext(String sessionID) {
-        AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(sessionID);
-        Object cacheEntryObj = AuthenticationContextCache.getInstance().getValueFromCache(cacheKey);
-        return ((AuthenticationContextCacheEntry) cacheEntryObj).getContext();
-    }
-
-    private boolean isValidPinFormat(String pin) {
-
-        if (pin.matches("[0-9]+") && pin.length() <= Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMaxLength())) {
-            return true;
-        } else {
-            return false;
-        }
+        return Response.status(statusCode).entity(returnJson).build();
     }
 
     /**
-     * Extract msisdn.
+     * Select the first authenticator from, SMSAuthenticator, USSDAuthenticator
+     * or USSDPinAuthenticator
      *
-     * @param jsonObj the json obj
-     * @return the string
-     * @throws JSONException the JSON exception
+     * @param authenticatorList authenticator list.
+     * @return authenticatorName if valid authenticator found.
      */
-    private String extractMsisdn(JSONObject jsonObj) throws JSONException {
-        String address = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("address");
-        if (address != null) {
-            return address.split(":\\+")[1];
+    private String selectDefaultAuthenticator(List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList) {
+        try {
+            for (MIFEAuthentication.MIFEAbstractAuthenticator mifeAbstractAuthenticator : authenticatorList) {
+                String authenticatorName = mifeAbstractAuthenticator.getAuthenticator();
+                if (Constants.smsAuthenticator.equalsIgnoreCase(authenticatorName)
+                        || Constants.ussdAuthenticator.equalsIgnoreCase(authenticatorName)
+                        || Constants.ussdPinAuthenticator.equalsIgnoreCase(authenticatorName)) {
+                    String msg = "Found valid authenticator: " + authenticatorName;
+                    log.debug(msg);
+                    log.info(msg);
+                    return authenticatorName;
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error found: " + e);
+            log.info("Error found: " + e);
         }
         return null;
-    }
-
-    /**
-     * Gets the hashed pin.
-     *
-     * @param pinvalue the pinvalue
-     * @return the hashed pin
-     */
-    private String getHashedPin(String pinvalue) {
-        String hashString = "";
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(pinvalue.getBytes("UTF-8"));
-
-            StringBuilder hexString = new StringBuilder();
-
-            for (int i = 0; i < hash.length; i++) {
-                String hex = Integer.toHexString(0xff & hash[i]);
-                if (hex.length() == 1) {
-                    hexString.append('0');
-                }
-                hexString.append(hex);
-            }
-
-            hashString = hexString.toString();
-
-        } catch (UnsupportedEncodingException ex) {
-            log.info("Error getHashValue");
-        } catch (NoSuchAlgorithmException ex) {
-            log.info("Error getHashValue");
-        }
-
-        return hashString;
     }
 
     private static USSDRequest getUssdContinueRequest(String msisdn, String sessionID, String ussdSessionID, String action) {
@@ -915,6 +1204,32 @@ public class Endpoints {
 
 
         outboundUSSDMessageRequest.setUssdAction(action);
+        req.setOutboundUSSDMessageRequest(outboundUSSDMessageRequest);
+        return req;
+    }
+
+    protected USSDRequest getPinUssdRequest(String msisdn, String sessionID) {
+        MobileConnectConfig.USSDConfig ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
+
+        USSDRequest req = new USSDRequest();
+
+        OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
+        outboundUSSDMessageRequest.setAddress("tel:+" + msisdn);
+        outboundUSSDMessageRequest.setShortCode(ussdConfig.getShortCode());
+        outboundUSSDMessageRequest.setKeyword(ussdConfig.getKeyword());
+
+        outboundUSSDMessageRequest.setClientCorrelator(sessionID);
+
+        ResponseRequest responseRequest = new ResponseRequest();
+
+        responseRequest.setNotifyURL(ussdConfig.getPinRegistrationNotifyUrl());
+        responseRequest.setCallbackData("");
+
+        outboundUSSDMessageRequest.setResponseRequest(responseRequest);
+
+
+        outboundUSSDMessageRequest.setUssdAction(Constants.MTINIT);
+
         req.setOutboundUSSDMessageRequest(outboundUSSDMessageRequest);
         return req;
     }

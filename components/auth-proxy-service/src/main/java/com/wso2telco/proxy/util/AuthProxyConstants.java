@@ -54,4 +54,8 @@ public class AuthProxyConstants {
     public static final String SCOPE_OPENID = "openid";
     public static final String TELCO_SCOPE = "telco_scope";
     public static final String UTF_ENCODER = "UTF-8";
+    public static final String SHOW_TNC = "isShowTnc";
+    public static final String LOGIN_HINT_MANDATORY = "isLoginhintMandatory";
+    public static final String HEADER_MISMATCH_RESULT = "headerMismatchResult";
+
 }
