@@ -57,7 +57,7 @@ public class DBUtils {
         }
 
         String dataSourceName = null;
-        MobileConnectConfig mobileConnectConfigs = ConfigLoader.getInstance().getMobileConnectConfig();
+        MobileConnectConfig mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
         try {
             Context ctx = new InitialContext();
             dataSourceName = mobileConnectConfigs.getAuthProxy().getDataSourceName();
