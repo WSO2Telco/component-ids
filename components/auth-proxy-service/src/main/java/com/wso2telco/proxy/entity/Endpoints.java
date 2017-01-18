@@ -160,7 +160,7 @@ public class Endpoints {
         queryParams.putSingle(AuthProxyConstants.PROMPT, AuthProxyConstants.LOGIN);
 
 
-        validateAndSetScopeParameters(loginHint, msisdn, operatorName, redirectUrlInfo);
+        validateAndSetScopeParameters(loginHint, msisdn, queryParams.get(AuthProxyConstants.SCOPE).get(0), redirectUrlInfo);
 
         Boolean isScopeExists = queryParams.containsKey(AuthProxyConstants.SCOPE);
         String operatorScopeWithClaims;
@@ -280,13 +280,13 @@ public class Endpoints {
     }
 
 
-    private void validateAndSetScopeParameters(String loginHint, String msisdnHeader, String operator,
+    private void validateAndSetScopeParameters(String loginHint, String msisdnHeader, String scope,
                                                RedirectUrlInfo redirectUrlInfo)
             throws AuthenticationFailedException, ConfigurationException {
         //TODO: get all scope related params. This should be move to a initialization method or add to cache later
         Map scopeDetail;
         try {
-            scopeDetail = DBUtils.getScopeParams();
+            scopeDetail = DBUtils.getScopeParams(scope);
         } catch (AuthenticatorException e) {
             throw new AuthenticationFailedException("Error occurred while getting scope parameters from the database",
                                                     e);

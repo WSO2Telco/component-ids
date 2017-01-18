@@ -109,7 +109,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         }
 
         if ((request.getParameter("msisdn") != null) || (getLoginHintValues(request) != null)
-                || ((request.getParameter("msisdn_header") != null) && (request.getParameter("msisdn_header") != ""))) {
+                || (StringUtils.isNotEmpty(request.getParameter("msisdn_header")))) {
             log.info("msisdn forwarding ");
             return true;
         }
@@ -144,15 +144,19 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         String loginPage;
         try {
 
-            String msisdn = request.getParameter(Constants.MSISDN);
+            String msisdn;// = request.getParameter(Constants.MSISDN);
             int currentLoa = getAcr(request, context);
 
             if (context.isRetrying()) {
+                msisdn = (String) context.getProperty(Constants.MSISDN);
                 isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
+            } else {
+                msisdn = request.getParameter(Constants.MSISDN);
+                context.setProperty(Constants.MSISDN, msisdn);
             }
             context.setProperty(Constants.ACR, currentLoa);
 
-            loginPage = getAuthEndpointUrl(msisdn, isProfileUpgrade);
+            loginPage = getAuthEndpointUrl(msisdn, isProfileUpgrade, Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC)), context);
 
             String queryParams = FrameworkUtils
                     .getQueryStringWithFrameworkContextId(context.getQueryParams(),
@@ -332,14 +336,17 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
     }
 
-    private String getAuthEndpointUrl(String msisdn, boolean isProfileUpgrade) throws UserStoreException,
-            AuthenticationFailedException, RemoteException, LoginAuthenticationExceptionException,
-            RemoteUserStoreManagerServiceUserStoreExceptionException {
+    private String getAuthEndpointUrl(String msisdn, boolean isProfileUpgrade, boolean isShowTnc,
+                                      AuthenticationContext context) throws UserStoreException,
+                                                                            AuthenticationFailedException,
+                                                                            RemoteException,
+                                                                            LoginAuthenticationExceptionException,
+                                                                            RemoteUserStoreManagerServiceUserStoreExceptionException {
 
         String loginPage;
-        if (msisdn != null && !AdminServiceUtil.isUserExists(msisdn)) {
-
-            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.CONSENT_JSP;
+        if (msisdn != null && !AdminServiceUtil.isUserExists(msisdn) && isShowTnc) {
+            context.setProperty(Constants.IS_REGISTERING, true);
+                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.CONSENT_JSP;
         } else {
 
             if (isProfileUpgrade) {
