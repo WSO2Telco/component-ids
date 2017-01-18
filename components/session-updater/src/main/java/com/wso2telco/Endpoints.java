@@ -515,7 +515,7 @@ public class Endpoints {
         USSDRequest ussdRequest;
         String response;
 
-        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts())- 1) {
+        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts())) {
             String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchMessage();
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
             response = gson.toJson(ussdRequest);
