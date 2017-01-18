@@ -17,7 +17,10 @@
 package com.wso2telco.gsma.authenticators.saa;
 
 import com.google.gson.Gson;
+import com.wso2telco.Util;
 import com.wso2telco.core.config.ReadMobileConnectConfig;
+import com.wso2telco.core.sp.config.utils.service.SpConfigService;
+import com.wso2telco.core.sp.config.utils.service.impl.SpConfigServiceImpl;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
@@ -25,8 +28,6 @@ import com.wso2telco.gsma.authenticators.Utility;
 import com.wso2telco.gsma.authenticators.exception.SaaException;
 import com.wso2telco.gsma.authenticators.model.UserState;
 import com.wso2telco.gsma.authenticators.model.UserStatus;
-import com.wso2telco.core.sp.config.utils.service.SpConfigService;
-import com.wso2telco.core.sp.config.utils.service.impl.SpConfigServiceImpl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -50,7 +51,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
@@ -103,7 +103,7 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
         String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
                 context.getCallerSessionKey(), context.getContextIdentifier());
 
-        Map<String, String> paramMap = createQueryParamMap(queryParams);
+        Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
         ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
 
         String msisdn = (String) context.getProperty(MSISDN);
@@ -217,22 +217,6 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
             }
             Utility.saveUSSD(uStatus);
         }
-    }
-
-    private Map<String, String> createQueryParamMap(String params) {
-        String[] queryParams = params.split("&");
-        Map<String, String> paramMap = new HashMap<>();
-
-        for (String queryParam : queryParams) {
-            String[] param = queryParam.split("=");
-            String key = param[0];
-            String value = null;
-            if (param.length > 1) {
-                value = param[1];
-            }
-            paramMap.put(key, value);
-        }
-        return paramMap;
     }
 
     private SaaRequest createSaaRequest(Map<String, String> paramMap, String clientId, String applicationName) throws Exception {
