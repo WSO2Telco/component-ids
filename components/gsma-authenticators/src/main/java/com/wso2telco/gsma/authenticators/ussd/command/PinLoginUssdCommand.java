@@ -42,7 +42,7 @@ public class PinLoginUssdCommand extends UssdCommand {
     }
 
     @Override
-    protected USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String operator) {
+    protected USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String operator, String client_id) {
         MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
 
         USSDRequest req = new USSDRequest();

@@ -56,7 +56,7 @@ public class RegistrationUssdCommand extends UssdCommand {
     }
 
     @Override
-    protected USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String operator) {
+    protected USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String operator, String client_id) {
         MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
 
         USSDRequest ussdRequest = new USSDRequest();
@@ -64,7 +64,7 @@ public class RegistrationUssdCommand extends UssdCommand {
         // prepare the USSD message from template
         HashMap<String, String> variableMap = new HashMap<String, String>();
         variableMap.put("application", application.changeApplicationName(serviceProvider));
-        String message = USSDOutboundMessage.prepare("client id", USSDOutboundMessage.MessageType.REGISTRATION, variableMap, operator);
+        String message = USSDOutboundMessage.prepare(client_id, USSDOutboundMessage.MessageType.REGISTRATION, variableMap, operator);
 
         if(log.isInfoEnabled()){
             log.info("massage:" + message);

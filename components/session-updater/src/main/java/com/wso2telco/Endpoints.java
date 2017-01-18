@@ -258,9 +258,11 @@ public class Endpoints {
 
         String status;
 
-        //USSD 1 = YES
-        //USSD 2 = NO
-        if (message.equals("1")) {
+        //Accept or Reject response depending on configured values
+        String acceptInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getAcceptUserInputs();
+        String rejectInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getRejectUserInputs();
+
+        if (validateUserInputs(acceptInputs, message)){
             log.info("Updating registration status as success");
 
             status = "Approved";
