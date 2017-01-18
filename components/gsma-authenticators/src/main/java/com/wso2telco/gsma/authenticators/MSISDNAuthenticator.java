@@ -22,6 +22,7 @@ import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.manager.client.ClaimManagementClient;
 import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
@@ -361,12 +362,12 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     }
 
     private String getMsisdn(HttpServletRequest request, AuthenticationContext context) {
-        String msisdn;
-        msisdn = request.getParameter(Constants.MSISDN);
-        if (msisdn == null) {
-            msisdn = (String) context.getProperty(Constants.MSISDN);
+        String msisdn = request.getParameter(Constants.MSISDN);
+        if (msisdn != null && !StringUtils.isEmpty(msisdn)) {
+            return msisdn;
+        } else {
+            return (String) context.getProperty(Constants.MSISDN);
         }
-        return msisdn;
     }
 
     /**

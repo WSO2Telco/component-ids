@@ -18,24 +18,34 @@ package com.wso2telco.gsma.authenticators.headerenrich;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
+import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.IPRangeChecker;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.DecryptionAES;
 import com.wso2telco.gsma.authenticators.util.UserProfileManager;
+import com.wso2telco.gsma.manager.client.ClaimManagementClient;
+import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
+import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
+import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -45,6 +55,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.rmi.RemoteException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -91,23 +102,37 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         if (log.isDebugEnabled()) {
             log.debug("Header Enrich Authenticator canHandle invoked");
         }
-
-
-        String msisdn;
+        String msisdn = null;
+        boolean isUserExists;
         try {
-            msisdn = request.getParameter("msisdn_header");
+            msisdn = DecryptionAES.decrypt(request.getParameter("msisdn_header"));
+
+            /*this validation is used to identify the first request. when context retry happens msisdn_header parameter
+            * comes empty. When the user exists, we need to get user to the consent page by executing method initiateAuthenticationRequest.
+            * If the user exists, we need to complete the authenticator by executing processAuthenticationResponse
+            */
+            if (msisdn != null && !StringUtils.isEmpty(msisdn)) {
+                isUserExists = AdminServiceUtil.isUserExists(msisdn);
+
+                if (isUserExists) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return true;
+            }
         } catch (NullPointerException e) {
             // Deliberately return false since headers are null
             return false;
+        } catch (UserStoreException e) {
+            e.printStackTrace();
+        } catch (AuthenticationFailedException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        //Temporary check parameter
-        //String msisdn = request.getParameter("msisdn");
-
-        if (msisdn == null) {
-            return false;
-        } else {
-            return true;
-        }
+        return false;
     }
 
     /* (non-Javadoc)
@@ -134,6 +159,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
+        log.info("Initiating authentication request");
+
         //String enrichpage = DataHolder.getInstance().getMobileConnectConfig().getHEADERENRICH().getEndpoint();
         String msisdn = request.getParameter(Constants.MSISDN_HEADER);
         String loginprefix = configurationService.getDataHolder().getMobileConnectConfig().getListenerWebappHost();
@@ -146,6 +173,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 .getQueryStringWithFrameworkContextId(context.getQueryParams(),
                         context.getCallerSessionKey(),
                         context.getContextIdentifier());
+        context.setProperty(Constants.ACR, Integer.parseInt(request.getParameter(Constants.PARAM_ACR)));
 
         try {
             String loginPage = getAuthEndpointUrl(msisdn);
@@ -174,6 +202,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
             try {
                 msisdn = DecryptionAES.decrypt(msisdn);
+                context.setProperty(Constants.MSISDN, msisdn);
             } catch (Exception ex) {
                 Logger.getLogger(HeaderEnrichmentAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -230,12 +259,15 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
+        log.info("Processing authentication request");
+
+        int acr = getAcr(request, context);
+
         boolean isUserExists = false;
         String msisdn = null;
         String operator = null;
         Boolean ipValidation = false;
         String trimmedMsisdn = null;
-        String acr = (String) context.getProperty(Constants.ACR);
 
         operator = request.getParameter("operator");
 
@@ -251,7 +283,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
 
         try {
-            msisdn = request.getParameter("msisdn_header");
+            msisdn = getMsisdn(request, context);
+
             operator = request.getParameter("operator");
 
             log.info("HeaderEnrichment redirect URI = " + request.getParameter("redirect_uri"));
@@ -311,25 +344,36 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                         UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
                         trimmedMsisdn = msisdn.replace("+", "").trim();
                         isUserExists = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(trimmedMsisdn));
+
+                        context.setProperty(Constants.IS_REGISTERING, !isUserExists);
+                        context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade(msisdn, acr, isUserExists));
+                        context.setProperty(Constants.IS_PIN_RESET, false);
+
+                        DBUtils.insertRegistrationStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
                     } else {
                         throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: " + tenantId);
                     }
 
                     context.setProperty("msisdn", msisdn);
 
-                    if (!isUserExists) {
-
-                        if (acr.equals(Constants.LOA2)) {
-                            UserProfileManager.createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
-                        }
-                    }
                 } catch (org.wso2.carbon.user.api.UserStoreException e) {
                     log.error("HeaderEnrichment Authentication failed while trying to authenticate", e);
                     throw new AuthenticationFailedException(e.getMessage(), e);
-                } catch (UserRegistrationAdminServiceIdentityException e) {
+                } catch (SQLException e) {
                     e.printStackTrace();
+                    throw new AuthenticationFailedException(e.getMessage(), e);
+                } catch (AuthenticatorException e) {
+                    e.printStackTrace();
+                    throw new AuthenticationFailedException(e.getMessage(), e);
                 } catch (RemoteException e) {
                     e.printStackTrace();
+                    throw new AuthenticationFailedException(e.getMessage(), e);
+                } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+                    e.printStackTrace();
+                    throw new AuthenticationFailedException(e.getMessage(), e);
+                } catch (LoginAuthenticationExceptionException e) {
+                    e.printStackTrace();
+                    throw new AuthenticationFailedException(e.getMessage(), e);
                 }
 
 //                AuthenticatedUser user=new AuthenticatedUser();
@@ -338,15 +382,35 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             }
 
         }
-        AuthenticationContextHelper.setSubject(context, msisdn);
-
-
+        AuthenticationContextCache.getInstance().addToCache(new AuthenticationContextCacheKey(context.getContextIdentifier()),
+                new AuthenticationContextCacheEntry(context));
         String rememberMe = request.getParameter("chkRemember");
 
         if (rememberMe != null && "on".equals(rememberMe)) {
             context.setRememberMe(true);
         }
         log.info("HeaderEnrichment Authenticator authentication success for MSISDN - " + msisdn);
+    }
+
+    private int getAcr(HttpServletRequest request, AuthenticationContext context) {
+        String acr = request.getParameter(Constants.PARAM_ACR);
+
+        if (acr != null && !StringUtils.isEmpty(acr)) {
+            return Integer.parseInt(acr);
+        } else {
+            return (int) context.getProperty(Constants.ACR);
+        }
+    }
+
+    private String getMsisdn(HttpServletRequest request, AuthenticationContext authenticationContext) {
+
+        String msisdn = request.getParameter("msisdn_header");
+
+        if (msisdn != null && !StringUtils.isEmpty(msisdn)) {
+            return msisdn;
+        } else {
+            return (String) authenticationContext.getProperty(Constants.MSISDN);
+        }
     }
 
     /**
@@ -371,12 +435,29 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         return ipAddress;
     }
 
+    private boolean isProfileUpgrade(String msisdn, int currentLoa, boolean isUserExits) throws RemoteException, LoginAuthenticationExceptionException, RemoteUserStoreManagerServiceUserStoreExceptionException, AuthenticationFailedException, UserStoreException {
+
+        if (msisdn != null && isUserExits) {
+            String adminURL = configurationService.getDataHolder().getMobileConnectConfig().getAdminUrl();
+            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
+            String sessionCookie = lAdmin.authenticate(configurationService.getDataHolder().getMobileConnectConfig().getAdminUsername(),
+                    configurationService.getDataHolder().getMobileConnectConfig().getAdminPassword());
+            ClaimManagementClient claimManager = new ClaimManagementClient(adminURL, sessionCookie);
+            int registeredLoa = Integer.parseInt(claimManager.getRegisteredLOA(msisdn));
+
+            return currentLoa > registeredLoa;
+        } else {
+            return false;
+        }
+
+    }
+
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#retryAuthenticationEnabled()
      */
     @Override
     protected boolean retryAuthenticationEnabled() {
-        return true;
+        return false;
     }
 
     /* (non-Javadoc)

@@ -48,6 +48,7 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Authe
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.mgt.stub.UserIdentityManagementAdminServiceIdentityMgtServiceExceptionException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
@@ -201,8 +202,6 @@ public class Endpoints {
 
         String status = null;
         AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
-        PinConfig pinConfig = PinConfigUtil.getPinConfig(authenticationContext);
-        pinConfig.setConfirmedPin(getHashedPin(message));
 
         String ussdSessionID = null;
         if (jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID") && !jsonObj.getJSONObject("inboundUSSDMessageRequest").isNull("sessionID")) {
@@ -224,7 +223,7 @@ public class Endpoints {
             status = "Rejected";
             responseCode = Response.Status.BAD_REQUEST.getStatusCode();
             DatabaseUtils.updateStatus(sessionID, status);
-        }else {
+        } else {
             status = "Rejected";
             responseCode = Response.Status.NOT_ACCEPTABLE.getStatusCode();
             DatabaseUtils.updateStatus(sessionID, status);
@@ -326,6 +325,8 @@ public class Endpoints {
             log.error("Error occurred while updating registration status", e);
         } catch (AuthenticatorException e) {
             log.error("Error occurred while inserting to the database", e);
+        } catch (AuthenticationFailedException e) {
+            log.error("Registered  pin or confirmed is empty");
         }
         USSDRequest ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, "Error Occurred");
         return Response.status(Response.Status.CREATED).entity(new Gson().toJson(ussdRequest)).build();
@@ -397,6 +398,8 @@ public class Endpoints {
             log.error("Error occurred while updating registration status", e);
         } catch (AuthenticatorException e) {
             log.error("Error occurred while inserting to the database", e);
+        } catch (AuthenticationFailedException e) {
+            log.error("Registered  pin or confirmed is empty");
         }
         USSDRequest ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, "" +
                 "Invalid Operation");
@@ -509,7 +512,7 @@ public class Endpoints {
         USSDRequest ussdRequest;
         String response;
 
-        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts())) {
+        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts()) - 1) {
             String ussdMessage = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getPinMismatchMessage();
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
             response = gson.toJson(ussdRequest);
@@ -1237,22 +1240,23 @@ public class Endpoints {
     /**
      * Validates ussd user response against a comma separated values string and returns
      * true if list contains the ussd input value.
+     *
      * @param ussdInputs comma separated list of possible responses
-     * @param ussdValue value to check
+     * @param ussdValue  value to check
      * @return true if list contains the value to check
      */
     private boolean validateUserInputs(String ussdInputs, String ussdValue) {
         boolean validUserInput = false;
 
-        if(ussdInputs != null && ussdValue != null) {
+        if (ussdInputs != null && ussdValue != null) {
             String[] validInputsList = ussdInputs.split(",");
-            for(String validInput:validInputsList) {
-                if(validInput.trim().equalsIgnoreCase(ussdValue)) {
+            for (String validInput : validInputsList) {
+                if (validInput.trim().equalsIgnoreCase(ussdValue)) {
                     validUserInput = true;
                     break;
                 }
             }
-        }else if(ussdValue != null && ussdValue.equalsIgnoreCase("1")){
+        } else if (ussdValue != null && ussdValue.equalsIgnoreCase("1")) {
             return true;
         }
 

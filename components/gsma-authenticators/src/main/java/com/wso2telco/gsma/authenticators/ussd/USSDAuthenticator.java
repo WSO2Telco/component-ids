@@ -208,7 +208,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             if (responseStatus != null && responseStatus.equalsIgnoreCase(UserResponse.APPROVED.toString())) {
 
                 if (isRegistering) {
-                    UserProfileManager.createUserProfileLoa2(msisdn, openator, Constants.SCOPE_MNV);
+                    new UserProfileManager().createUserProfileLoa2(msisdn, openator, Constants.SCOPE_MNV);
                 }
             } else {
                 log.info("USSD Authenticator authentication failed ");

@@ -49,14 +49,12 @@ public class UserProfileManager {
     private static RemoteUserStoreServiceAdminClient remoteUserStoreServiceAdminClient;
 
     public UserProfileManager() {
-//        if(remoteUserStoreServiceAdminClient != null){
-//            return;
-//        }else {
-//            init();
-//        }
+        if(remoteUserStoreServiceAdminClient == null){
+            init();
+        }
     }
 
-    public static boolean createUserProfileLoa2(String username, String operator, String scope) throws UserRegistrationAdminServiceIdentityException, RemoteException {
+    public boolean createUserProfileLoa2(String username, String operator, String scope) throws UserRegistrationAdminServiceIdentityException, RemoteException {
         boolean isNewUser = false;
 
         String adminURL = DataHolder.getInstance().getMobileConnectConfig().getAdminUrl() +
@@ -123,7 +121,7 @@ public class UserProfileManager {
         return isNewUser;
     }
 
-    public static boolean createUserProfileLoa3(String username, String operator, String challengeAnswer1,
+    public boolean createUserProfileLoa3(String username, String operator, String challengeAnswer1,
                                                 String challengeAnswer2, String pin) throws UserRegistrationAdminServiceIdentityException, RemoteException {
         boolean isNewUser = false;
 
@@ -192,12 +190,12 @@ public class UserProfileManager {
         return isNewUser;
     }
 
-    public static String getCurrentPin(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+    public String getCurrentPin(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
         return remoteUserStoreServiceAdminClient.getCurrentPin(username);
     }
 
 
-    public static void setCurrentPin(String username, String pin) throws RemoteUserStoreManagerServiceUserStoreExceptionException,
+    public void setCurrentPin(String username, String pin) throws RemoteUserStoreManagerServiceUserStoreExceptionException,
             RemoteException, UnsupportedEncodingException, NoSuchAlgorithmException {
 
         remoteUserStoreServiceAdminClient.setUserClaim(username, UserProfileClaimsConstant.PIN,
@@ -303,7 +301,7 @@ public class UserProfileManager {
      * @throws RemoteUserStoreManagerServiceUserStoreExceptionException
      * @throws RemoteException                                          fieldValues, userName
      */
-    public static void updateUserProfileForLOA3(String challengeQuestionAnswer1,
+    public void updateUserProfileForLOA3(String challengeQuestionAnswer1,
                                                 String challengeQuestionAnswer2, String pin, String userName)
             throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException, UnsupportedEncodingException, NoSuchAlgorithmException {
 
@@ -333,16 +331,16 @@ public class UserProfileManager {
 
     }
 
-    public static String getCurrentLoa(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+    public String getCurrentLoa(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
         return remoteUserStoreServiceAdminClient.getCurrentLoa(username);
     }
 
-    public static String getChallengeQuestionAndAnswer1(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+    public String getChallengeQuestionAndAnswer1(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
 
         return remoteUserStoreServiceAdminClient.getChallengeQuestionAndAnswer1(username);
     }
 
-    public static String getChallengeQuestionAndAnswer2(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+    public String getChallengeQuestionAndAnswer2(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
         return remoteUserStoreServiceAdminClient.getChallengeQuestionAndAnswer2(username);
     }
 
@@ -364,11 +362,11 @@ public class UserProfileManager {
 
     }
 
-    static {
-        authenticate();
-    }
+//    static {
+//        authenticate();
+//    }
 
-    private static void authenticate() {
+    public void init() {
         try {
 
             String adminURL = DataHolder.getInstance().getMobileConnectConfig().getAdminUrl();
