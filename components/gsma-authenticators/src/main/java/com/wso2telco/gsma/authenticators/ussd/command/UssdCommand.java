@@ -21,6 +21,7 @@ import com.google.gson.GsonBuilder;
 import com.wso2telco.Util;
 import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.ussd.USSDRequest;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.logging.Log;
@@ -33,8 +34,10 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Authe
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 
@@ -45,7 +48,12 @@ public abstract class UssdCommand {
     public void execute(String msisdn, String sessionID, String serviceProvider, String operator) throws IOException {
 
         AuthenticationContext ctx = getAuthenticationContext(sessionID);
-        String client_id = "";
+        String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(ctx.getQueryParams(),
+                ctx.getCallerSessionKey(), ctx.getContextIdentifier());
+
+        Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
+
+        String client_id = paramMap.get(Constants.CLIENT_ID);
 
         USSDRequest ussdRequest = getUssdRequest(msisdn, sessionID, serviceProvider, operator, client_id);
 
@@ -120,6 +128,11 @@ public abstract class UssdCommand {
         Util.sendAsyncRequest(postRequest, futureCallback, latch);
     }
 
+    /**
+     * Gets authentication context from session id
+     * @param sessionID Session ID
+     * @return Authentication Context
+     */
     private AuthenticationContext getAuthenticationContext(String sessionID) {
         AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(sessionID);
         Object cacheEntryObj = AuthenticationContextCache.getInstance().getValueFromCache(cacheKey);
