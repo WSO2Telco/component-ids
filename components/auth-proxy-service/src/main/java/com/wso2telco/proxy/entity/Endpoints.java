@@ -319,7 +319,8 @@ public class Endpoints {
 
                     //validate login hint format
                     validateFormatAndMatchLoginHintWithHeaderMsisdn(loginHint, scopeParam.getLoginHintFormat(),
-                                                                    msisdnHeader, scopeParam.getMsisdnMismatchResult());
+                                                                    msisdnHeader, scopeParam.getMsisdnMismatchResult(),
+                                                                    scopeParam.isLoginHintMandatory());
                 }
             }
         }
@@ -330,7 +331,8 @@ public class Endpoints {
                                                                          loginHintAllowedFormatDetailsList,
                                                                  String plainTextMsisdnHeader,
                                                                  ScopeParam.msisdnMismatchResultTypes
-                                                                         headerMismatchResult)
+                                                                         headerMismatchResult,
+                                                                 boolean isLoginHintMandatory)
             throws AuthenticationFailedException {
         boolean isValidFormatType = false; //msisdn/loginhint should be a either of defined formats
         for (LoginHintFormatDetails loginHintFormatDetails : loginHintAllowedFormatDetailsList) {
@@ -405,7 +407,6 @@ public class Endpoints {
                     throw new AuthenticationFailedException(
                             "login hint is malformat");
                 }
-
             }
         }
     }
