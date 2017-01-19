@@ -34,7 +34,9 @@ public class USSDOutboundMessage {
     /** Message type enum */
     public enum MessageType{
         LOGIN,
-        REGISTRATION
+        REGISTRATION,
+        PIN_LOGIN,
+        PIN_REGISTRATION
     }
 
     /** The Configuration service */
@@ -49,10 +51,17 @@ public class USSDOutboundMessage {
     /** Map to store operator specific messages loaded from config file */
     private static HashMap<String, MobileConnectConfig.OperatorSpecificMessage> operatorSpecificMessageMap = new HashMap<>();
 
+    /** Map to store operator specific PIN messages loaded from config file */
+    private static HashMap<String, MobileConnectConfig.OperatorSpecificMessage> operatorSpecificPinMessageMap = new HashMap<>();
+
     static {
         ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
         for(MobileConnectConfig.OperatorSpecificMessage osm : ussdConfig.getOperatorSpecificMessages().getOperatorSpecificMessage()){
             operatorSpecificMessageMap.put(osm.getOperator(), osm);
+        }
+
+        for(MobileConnectConfig.OperatorSpecificMessage osm : ussdConfig.getOperatorSpecificPinMessages().getOperatorSpecificPinMessage()){
+            operatorSpecificPinMessageMap.put(osm.getOperator(), osm);
         }
     }
 
@@ -84,7 +93,14 @@ public class USSDOutboundMessage {
 
         // Load operator specific message from hash map
         if (operator != null) {
-            operatorSpecificMessage = operatorSpecificMessageMap.get(operator);
+            if (messageType == MessageType.LOGIN || messageType == MessageType.REGISTRATION) {
+                operatorSpecificMessage = operatorSpecificMessageMap.get(operator);
+            }
+
+            if (messageType == MessageType.PIN_LOGIN || messageType == MessageType.PIN_REGISTRATION) {
+                operatorSpecificMessage = operatorSpecificPinMessageMap.get(operator);
+            }
+
             data.put("operator", operator);
         }
 
@@ -97,6 +113,14 @@ public class USSDOutboundMessage {
             template = spConfigService.getUSSDRegistrationMessage(clientId);
         }
 
+        if(messageType == MessageType.PIN_LOGIN) {
+            template = spConfigService.getUSSDPinLoginMessage(clientId);
+        }
+
+        if(messageType == MessageType.PIN_REGISTRATION) {
+            template = spConfigService.getUSSDPinRegistrationMessage(clientId);
+        }
+
         if(template == null) {
             // RULE 2 : if message template is not found, try loading them from operator specific config from xml
             if (operatorSpecificMessage != null) {
@@ -107,6 +131,14 @@ public class USSDOutboundMessage {
                 if (messageType == MessageType.REGISTRATION) {
                     template = operatorSpecificMessage.getRegistrationMessage();
                 }
+
+                if (messageType == MessageType.PIN_LOGIN) {
+                    template = operatorSpecificMessage.getLoginMessage();
+                }
+
+                if (messageType == MessageType.PIN_REGISTRATION) {
+                    template = operatorSpecificMessage.getRegistrationMessage();
+                }
             } else {
                 // RULE 3 : if no operator specific message is found, try loading from common messages
                 if (messageType == MessageType.LOGIN) {
@@ -115,6 +147,14 @@ public class USSDOutboundMessage {
 
                 if (messageType == MessageType.REGISTRATION) {
                     template = ussdConfig.getUssdRegistrationMessage();
+                }
+
+                if (messageType == MessageType.PIN_LOGIN) {
+                    template = ussdConfig.getPinLoginMessage();
+                }
+
+                if (messageType == MessageType.PIN_REGISTRATION) {
+                    template = ussdConfig.getPinRegistrationMessage();
                 }
             }
         }
