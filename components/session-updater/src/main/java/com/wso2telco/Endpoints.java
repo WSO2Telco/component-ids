@@ -200,9 +200,6 @@ public class Endpoints {
         String responseString = null;
 
         String status = null;
-        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
-        PinConfig pinConfig = PinConfigUtil.getPinConfig(authenticationContext);
-        pinConfig.setConfirmedPin(getHashedPin(message));
 
         String ussdSessionID = null;
         if (jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID") && !jsonObj.getJSONObject("inboundUSSDMessageRequest").isNull("sessionID")) {
