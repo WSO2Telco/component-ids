@@ -307,68 +307,14 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	        }
 			
 			//scope validation			
-			 if (!paramMap.containsKey(Params.SCOPE.toString())) {
-				
-				redirectUri = paramMap.get(Params.REDIRECT_URI.toString())[0];
-				String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=no+scope&state=" + state ;
-	            log.debug("scope not found. client_id : "+client_id);
+			redirectUri = validateScope(response, paramMap, redirectUri, state, client_id);
 
-	            try {
-	            	response.sendRedirect(invalidRedirectUrl);
-	            } catch (IOException ex) {
-	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
-	            }
-			 }else{
-				 
-				 scope = paramMap.get(Params.SCOPE.toString())[0];
-				 log.debug("Scope:" + scope);
-			 }
-			
-	        //responseType validation
-	        if (!paramMap.containsKey(Params.RESPONSE_TYPE.toString())  ) {
-	        	
-	        	
-	            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=no+response_type" ;
-	            log.debug("response_type not found. client_id : "+client_id);
+			//responseType validation
+			validateResponseType(response, paramMap, redirectUri, client_id);
 
-	            try {
-	                response.sendRedirect(invalidRedirectUrl);
-	            } catch (IOException ex) {
-	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
-	            }
-	        }
-	        else {
-
-	        	responseType = paramMap.get(Params.RESPONSE_TYPE.toString())[0];
-	        	log.debug("response_type : " + responseType);
-
-	        	if(!responseType.equals(Params.CODE.toString())){
-	        		String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=response_type_should_be_code" ;
-	 	            log.debug("invalid redirect URI = " + invalidRedirectUrl);
-	 	            
-	 	            
-	 	           try {
-	 	        	  response.sendRedirect(invalidRedirectUrl);					
-	 	           } catch (IOException ex) {
-		                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
-	 	           }
-	 	           
-	        	}
-	        }
-		
 			//nonce validation
-			if (!paramMap.containsKey(Params.NONCE.toString())  ) {
+			validateNonce(response, paramMap, redirectUri, client_id);
 
-	            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=nonce_required";
-	            log.debug("nonce not found. client_id : "+client_id);
-
-	            try {
-	                response.sendRedirect(invalidRedirectUrl);	
-	            } catch (IOException ex) {
-	                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
-	            }
-	        }
-			
 			if (log.isDebugEnabled()) {
 				log.debug(authenticator.getName() + " returned: " + status.toString());
 			}
@@ -455,6 +401,75 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 		}
 
 		stepConfig.setCompleted(true);
+	}
+
+	private void validateNonce(HttpServletResponse response, Map<String, String[]> paramMap, String redirectUri, String client_id) {
+		if (!paramMap.containsKey(Params.NONCE.toString())  ) {
+
+            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=nonce_required";
+            log.debug("nonce not found. client_id : "+client_id);
+
+            try {
+                response.sendRedirect(invalidRedirectUrl);
+            } catch (IOException ex) {
+                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+	}
+
+	private void validateResponseType(HttpServletResponse response, Map<String, String[]> paramMap, String redirectUri, String client_id) {
+		String responseType;
+		if (!paramMap.containsKey(Params.RESPONSE_TYPE.toString())  ) {
+
+
+            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=no+response_type" ;
+            log.debug("response_type not found. client_id : "+client_id);
+
+            try {
+                response.sendRedirect(invalidRedirectUrl);
+            } catch (IOException ex) {
+                Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        else {
+
+            responseType = paramMap.get(Params.RESPONSE_TYPE.toString())[0];
+            log.debug("response_type : " + responseType);
+
+            if(!responseType.equals(Params.CODE.toString())){
+                String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=response_type_should_be_code" ;
+                 log.debug("invalid redirect URI = " + invalidRedirectUrl);
+
+
+                try {
+                   response.sendRedirect(invalidRedirectUrl);
+                } catch (IOException ex) {
+                    Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+                }
+
+            }
+        }
+	}
+
+	private String validateScope(HttpServletResponse response, Map<String, String[]> paramMap, String redirectUri, String state, String client_id) {
+		String scope;
+		if (!paramMap.containsKey(Params.SCOPE.toString())) {
+
+           redirectUri = paramMap.get(Params.REDIRECT_URI.toString())[0];
+           String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=no+scope&state=" + state ;
+           log.debug("scope not found. client_id : "+client_id);
+
+           try {
+               response.sendRedirect(invalidRedirectUrl);
+           } catch (IOException ex) {
+               Logger.getLogger(MIFEAuthenticationStepHandler.class.getName()).log(Level.SEVERE, null, ex);
+           }
+        }else{
+
+            scope = paramMap.get(Params.SCOPE.toString())[0];
+            log.debug("Scope:" + scope);
+        }
+		return redirectUri;
 	}
 
 	/**
