@@ -364,18 +364,22 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
             String profilePin = userStoreManager.getUserClaimValue(msisdn, PIN_CLAIM, null);
 
-            validatePin(pinConfig);
+            validatePin(pinConfig, context);
 
         } else {
+            StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
+            stepConfig.setMultiOption(true);
             throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: " + tenantId);
         }
     }
 
-    private void validatePin(PinConfig pinConfig) throws AuthenticationFailedException {
+    private void validatePin(PinConfig pinConfig, AuthenticationContext context) throws AuthenticationFailedException {
 
         if (pinConfig.isPinsMatched()) {
             log.info("User entered a correct pin. Authentication Success");
         } else {
+            StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
+            stepConfig.setMultiOption(true);
             log.error("Authentication failed. User entered an incorrect pin");
             throw new AuthenticationFailedException("Authentication failed due to incorrect pin");
         }
