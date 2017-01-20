@@ -353,18 +353,19 @@ public class Endpoints {
                         if (loginHint.startsWith(LOGIN_HINT_ENCRYPTED_PREFIX)) {
                             String decrypted = null;
                             try {
+                                //decrypt msisdn using given algorithm
                                 decrypted = Decrypt.decryptData(loginHint.replace(LOGIN_HINT_ENCRYPTED_PREFIX, ""),
                                                                 decryptAlgorithm);
+                                log.debug("Decrypted login hint: " + decrypted);
+                                msisdn = decrypted.substring(0, decrypted.indexOf(LOGIN_HINT_SEPARATOR));
+                                if (log.isDebugEnabled()) {
+                                    log.debug("MSISDN by encrypted login hint: " + msisdn);
+                                }
+                                isValidFormatType = true;
+                                break;
                             } catch (Exception e) {
                                 log.error("Error while decrypting login hint - " + loginHint);
                             }
-                            log.debug("Decrypted login hint: " + decrypted);
-                            msisdn = decrypted.substring(0, decrypted.indexOf(LOGIN_HINT_SEPARATOR));
-                            if (log.isDebugEnabled()) {
-                                log.debug("MSISDN by encrypted login hint: " + msisdn);
-                            }
-                            isValidFormatType = true;
-                            break;
                         }
                     } else {
                         isValidFormatType = true;
