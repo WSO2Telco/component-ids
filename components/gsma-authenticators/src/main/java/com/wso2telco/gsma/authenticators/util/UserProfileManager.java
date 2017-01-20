@@ -49,9 +49,7 @@ public class UserProfileManager {
     private static RemoteUserStoreServiceAdminClient remoteUserStoreServiceAdminClient;
 
     public UserProfileManager() {
-        if(remoteUserStoreServiceAdminClient == null){
-            init();
-        }
+        init();
     }
 
     public boolean createUserProfileLoa2(String username, String operator, String scope) throws UserRegistrationAdminServiceIdentityException, RemoteException {
@@ -122,7 +120,7 @@ public class UserProfileManager {
     }
 
     public boolean createUserProfileLoa3(String username, String operator, String challengeAnswer1,
-                                                String challengeAnswer2, String pin) throws UserRegistrationAdminServiceIdentityException, RemoteException {
+                                         String challengeAnswer2, String pin) throws UserRegistrationAdminServiceIdentityException, RemoteException {
         boolean isNewUser = false;
 
         String adminURL = DataHolder.getInstance().getMobileConnectConfig().getAdminUrl() +
@@ -302,7 +300,7 @@ public class UserProfileManager {
      * @throws RemoteException                                          fieldValues, userName
      */
     public void updateUserProfileForLOA3(String challengeQuestionAnswer1,
-                                                String challengeQuestionAnswer2, String pin, String userName)
+                                         String challengeQuestionAnswer2, String pin, String userName)
             throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException, UnsupportedEncodingException, NoSuchAlgorithmException {
 
 		/* updating loa cliam of the user profile */

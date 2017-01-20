@@ -215,7 +215,7 @@ public final class Constants {
      */
     public static final String CONSENT_JSP = "/mcx-user-registration/auth_consent";
 
-    public static final String REGISTRATION_JSP = "/mcx-user-registration/auth_registration";
+    public static final String REGISTRATION_WAITING_JSP = "/mcx-user-registration/auth_registration";
 
     public static final String PIN_REGISTRATION_WAITING_JSP = "/mcx-user-registration/auth_registration_pin";
 

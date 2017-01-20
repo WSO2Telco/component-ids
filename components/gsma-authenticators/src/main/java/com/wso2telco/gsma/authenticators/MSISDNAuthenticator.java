@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.AbstractApp
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
@@ -231,14 +232,18 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (AuthenticatorException e) {
             log.error("Error occurred while saving request type");
+            throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (SQLException | NamingException e) {
             log.error("Error occurred while saving data", e);
+            throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (RemoteException e) {
             e.printStackTrace();
         } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
             e.printStackTrace();
+            throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (LoginAuthenticationExceptionException e) {
             e.printStackTrace();
+            throw new AuthenticationFailedException(e.getMessage(), e);
         }
     }
 

@@ -31,7 +31,6 @@ import org.wso2.carbon.identity.application.authentication.framework.AbstractApp
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
@@ -172,7 +171,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
         if (isRegistering) {
             context.setProperty(Constants.IS_REGISTERING, true);
-            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.REGISTRATION_JSP;
+            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.REGISTRATION_WAITING_JSP;
         } else {
             loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         }

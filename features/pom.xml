@@ -24,6 +24,7 @@
 		<module>com.wso2telco.ids.dashboard.ui.feature</module>
 		<module>com.wso2telco.ids.portal.ui.feature</module>
 		<module>com.wso2telco.ids.sign.ui.feature</module>
+		<module>com.wso2telco.ids.datapublisher.feature</module>
 	</modules>
 
 </project>
