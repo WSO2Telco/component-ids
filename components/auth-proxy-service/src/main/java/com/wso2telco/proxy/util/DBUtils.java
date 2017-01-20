@@ -17,6 +17,7 @@ package com.wso2telco.proxy.util;
 
 
 import com.wso2telco.core.config.model.LoginHintFormatDetails;
+import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;

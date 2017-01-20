@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
+ * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com)
  *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ import org.wso2.carbon.identity.application.authentication.framework.AbstractApp
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
@@ -186,6 +187,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         } else {
             ussdCommand = new RegistrationUssdCommand();
         }
+
         ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator);
     }
 
@@ -203,7 +205,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         String openator = (String) context.getProperty(Constants.OPERATOR);
 
         try {
-            String responseStatus = getResponseStatus(context, sessionDataKey);
+            String responseStatus = DBUtils.getUserRegistrationResponse(sessionDataKey);
 
             if (responseStatus != null && responseStatus.equalsIgnoreCase(UserResponse.APPROVED.toString())) {
 
@@ -233,19 +235,6 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         if (rememberMe != null && "on".equals(rememberMe)) {
             context.setRememberMe(true);
         }
-    }
-
-
-    private String getResponseStatus(AuthenticationContext context, String sessionDataKey) throws AuthenticatorException {
-        String responseStatus;
-
-        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-        if (isRegistering) {
-            responseStatus = DBUtils.getUserRegistrationResponse(sessionDataKey);
-        } else {
-            responseStatus = DBUtils.getUserLoginResponse(sessionDataKey);
-        }
-        return responseStatus;
     }
 
 

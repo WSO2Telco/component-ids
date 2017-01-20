@@ -33,6 +33,7 @@ import org.wso2.carbon.identity.application.authentication.framework.AbstractApp
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
@@ -248,6 +249,8 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             log.info("UssdPinAuthenticator successfully completed");
 
         } catch (UserRegistrationAdminServiceIdentityException | RemoteException e) {
+//            StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
+//            stepConfig.setMultiOption(true);
             log.error("Error occurred while creating user profile", e);
 //            throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
