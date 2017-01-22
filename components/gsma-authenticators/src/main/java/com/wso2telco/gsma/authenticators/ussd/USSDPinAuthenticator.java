@@ -26,12 +26,12 @@ import com.wso2telco.gsma.authenticators.ussd.command.PinLoginUssdCommand;
 import com.wso2telco.gsma.authenticators.ussd.command.PinRegistrationUssdCommand;
 import com.wso2telco.gsma.authenticators.ussd.command.UssdCommand;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
 import com.wso2telco.gsma.authenticators.util.UserProfileManager;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
-import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.*;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 import org.wso2.carbon.identity.oauth.common.exception.InvalidOAuthClientException;
 import org.wso2.carbon.identity.oauth.dao.OAuthAppDAO;
@@ -57,6 +58,9 @@ import java.rmi.RemoteException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 
 // TODO: Auto-generated Javadoc
@@ -109,7 +113,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
         } else {
-            return super.process(request, response, context);
+            return processRequest(request, response, context);
         }
     }
 
@@ -227,8 +231,14 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
         boolean isPinReset = isPinReset(pinConfig);
         boolean isPinResetConfirmation = isPinResetConfirmation(pinConfig);
+        String isTerminated = request.getParameter(Constants.IS_TERMINATED);
 
         log.info("Processing authentication request [ msisdn : " + msisdn + " ] ");
+
+        if(isTerminated != null && Boolean.parseBoolean(isTerminated)){
+            throw new AuthenticationFailedException("Authenticator is terminated");
+        }
+
         try {
             if (isRegistering) {
                 handleUserRegistration(context);
@@ -263,6 +273,96 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             log.error("Error occurred while hashing the pin", e);
 //            throw new AuthenticationFailedException(e.getMessage(), e);
         }
+    }
+
+    public AuthenticatorFlowStatus processRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
+
+        if (context.isLogoutRequest()) {
+            try {
+                if (!canHandle(request)) {
+                    context.setCurrentAuthenticator(getName());
+                    initiateLogoutRequest(request, response, context);
+                    return AuthenticatorFlowStatus.INCOMPLETE;
+                } else {
+                    processLogoutResponse(request, response, context);
+                    return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+                }
+            } catch (UnsupportedOperationException var8) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Ignoring UnsupportedOperationException.", var8);
+                }
+
+                return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+            }
+        } else if (canHandle(request) && (request.getAttribute("commonAuthHandled") == null || !(Boolean) request.getAttribute("commonAuthHandled"))) {
+            try {
+                processAuthenticationResponse(request, response, context);
+                if (this instanceof LocalApplicationAuthenticator && !context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
+                    String e = context.getSubject().getTenantDomain();
+                    String stepMap1 = context.getTenantDomain();
+                    if (!StringUtils.equals(e, stepMap1)) {
+                        context.setProperty("UserTenantDomainMismatch", Boolean.valueOf(true));
+                        throw new AuthenticationFailedException("Service Provider tenant domain must be equal to user tenant domain for non-SaaS applications");
+                    }
+                }
+
+                request.setAttribute("commonAuthHandled", Boolean.TRUE);
+                publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
+                return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+            } catch (AuthenticationFailedException e) {
+                String isTerminated = request.getParameter(Constants.IS_TERMINATED);
+
+                Map stepMap = context.getSequenceConfig().getStepMap();
+                boolean stepHasMultiOption = false;
+                publishAuthenticationStepAttempt(request, context, e.getUser(), false);
+                if (stepMap != null && !stepMap.isEmpty()) {
+                    StepConfig stepConfig = (StepConfig) stepMap.get(Integer.valueOf(context.getCurrentStep()));
+                    if (stepConfig != null) {
+                        stepHasMultiOption = stepConfig.isMultiOption();
+                    }
+                }
+
+                if(isTerminated != null && Boolean.parseBoolean(isTerminated)){
+                    throw new AuthenticationFailedException("Authenticator is terminated");
+                }
+                if (retryAuthenticationEnabled() && !stepHasMultiOption) {
+                    context.setRetrying(true);
+                    context.setCurrentAuthenticator(getName());
+                    initiateAuthenticationRequest(request, response, context);
+                    return AuthenticatorFlowStatus.INCOMPLETE;
+                } else {
+                    throw e;
+                }
+            }
+        } else {
+            initiateAuthenticationRequest(request, response, context);
+            context.setCurrentAuthenticator(getName());
+            return AuthenticatorFlowStatus.INCOMPLETE;
+        }
+    }
+
+    private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context, User user, boolean success) {
+        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy();
+        if(authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
+            boolean isFederated = this instanceof FederatedApplicationAuthenticator;
+            HashMap paramMap = new HashMap();
+            paramMap.put("user", user);
+            if(isFederated) {
+                context.setProperty("hasFederatedStep", Boolean.valueOf(true));
+                paramMap.put("isFederated", Boolean.valueOf(true));
+            } else {
+                context.setProperty("hasLocalStep", Boolean.valueOf(true));
+                paramMap.put("isFederated", Boolean.valueOf(false));
+            }
+
+            Map unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+            if(success) {
+                authnDataPublisherProxy.publishAuthenticationStepSuccess(request, context, unmodifiableParamMap);
+            } else {
+                authnDataPublisherProxy.publishAuthenticationStepFailure(request, context, unmodifiableParamMap);
+            }
+        }
+
     }
 
     private void handlePinResetConfirmation(String msisdn, PinConfig pinConfig) throws RemoteException, NoSuchAlgorithmException,

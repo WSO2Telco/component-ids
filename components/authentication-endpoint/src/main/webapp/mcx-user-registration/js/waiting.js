@@ -129,7 +129,7 @@ console.log("Inside selfAuthorize-----------------------------------------------
  	//+ acr+"&tokenid="+token+"&msisdn="+username+"&state="+state+"&nonce="+nonce + "&operator="+values["operator"];
 	 var commonAuthURL = "/commonauth/?sessionDataKey=" + tokenVal
 		 + "&msisdn=" + msisdn
-		 + "&operator=" + values["operator"];
+		 + "&operator=" + values["operator"] + "&isTerminated=true";
 
  	window.location = commonAuthURL;
  }
