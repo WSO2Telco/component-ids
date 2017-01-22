@@ -280,6 +280,16 @@ public class Endpoints {
     }
 
 
+    /**
+     * Validate and set scope related parameters to RedirectUrlInfo
+     *
+     * @param loginHint
+     * @param msisdnHeader
+     * @param scope
+     * @param redirectUrlInfo
+     * @throws AuthenticationFailedException
+     * @throws ConfigurationException
+     */
     private void validateAndSetScopeParameters(String loginHint, String msisdnHeader, String scope,
                                                RedirectUrlInfo redirectUrlInfo)
             throws AuthenticationFailedException, ConfigurationException {
@@ -288,11 +298,12 @@ public class Endpoints {
         try {
             scopeDetail = DBUtils.getScopeParams(scope);
         } catch (AuthenticatorException e) {
-            throw new AuthenticationFailedException("Error occurred while getting scope parameters from the database",
-                                                    e);
+            throw new AuthenticationFailedException(
+                    "Error occurred while getting scope parameters from the database for the scope - " + scope, e);
         }
         if (scopeDetail == null || scopeDetail.isEmpty()) {
-            throw new ConfigurationException("PLease configure Scope related Parameters");
+            throw new ConfigurationException(
+                    "Please configure Scope related Parameters properly in scope_parameter table");
         }
 
         //set the scope specific params
@@ -305,7 +316,7 @@ public class Endpoints {
             //check login hit existance validation
             if (scopeParam.isLoginHintMandatory()) {
                 if (StringUtils.isEmpty(loginHint)) {
-                    throw new AuthenticationFailedException("login hint cannot be empty");
+                    throw new AuthenticationFailedException("Login Hint parameter cannot be empty");
                 }
             } else {
                 if (StringUtils.isNotEmpty(msisdnHeader)) {
@@ -325,6 +336,15 @@ public class Endpoints {
         }
     }
 
+    /**
+     * Validate msisdn format and matches with the login hint
+     *
+     * @param loginHint
+     * @param loginHintAllowedFormatDetailsList
+     * @param plainTextMsisdnHeader
+     * @param headerMismatchResult
+     * @throws AuthenticationFailedException
+     */
     private void validateFormatAndMatchLoginHintWithHeaderMsisdn(String loginHint,
                                                                  List<LoginHintFormatDetails>
                                                                          loginHintAllowedFormatDetailsList,
@@ -351,18 +371,19 @@ public class Endpoints {
                         if (loginHint.startsWith(LOGIN_HINT_ENCRYPTED_PREFIX)) {
                             String decrypted = null;
                             try {
+                                //decrypt msisdn using given algorithm
                                 decrypted = Decrypt.decryptData(loginHint.replace(LOGIN_HINT_ENCRYPTED_PREFIX, ""),
                                                                 decryptAlgorithm);
+                                log.debug("Decrypted login hint: " + decrypted);
+                                msisdn = decrypted.substring(0, decrypted.indexOf(LOGIN_HINT_SEPARATOR));
+                                if (log.isDebugEnabled()) {
+                                    log.debug("MSISDN by encrypted login hint: " + msisdn);
+                                }
+                                isValidFormatType = true;
+                                break;
                             } catch (Exception e) {
                                 log.error("Error while decrypting login hint - " + loginHint);
                             }
-                            log.debug("Decrypted login hint: " + decrypted);
-                            msisdn = decrypted.substring(0, decrypted.indexOf(LOGIN_HINT_SEPARATOR));
-                            if (log.isDebugEnabled()) {
-                                log.debug("MSISDN by encrypted login hint: " + msisdn);
-                            }
-                            isValidFormatType = true;
-                            break;
                         }
                     } else {
                         isValidFormatType = true;
@@ -383,7 +404,7 @@ public class Endpoints {
                         break;
                     }
                 default:
-                    log.error("Invalid Login Hint format - " + loginHintFormatDetails.getFormatType());
+                    log.warn("Invalid Login Hint format - " + loginHintFormatDetails.getFormatType());
             }
 
             //msisdn/loginhint should be a either of defined formats
@@ -405,12 +426,17 @@ public class Endpoints {
                     throw new AuthenticationFailedException(
                             "login hint is malformat");
                 }
-
             }
         }
     }
 
 
+    /**
+     * Check if the msisdn is in correct format. Validate the format with prefedeined/configurable regex
+     *
+     * @param msisdn
+     * @return
+     */
     private boolean validateMsisdnFormat(String msisdn) {
         if (StringUtils.isNotEmpty(msisdn)) {
             String plaintextMsisdnRegex =

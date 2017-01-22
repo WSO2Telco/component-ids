@@ -117,12 +117,12 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         String msisdnHeader = request.getParameter(Constants.MSISDN_HEADER);
 
         String tokenId = request.getParameter(Constants.TOKEN_ID);
-        boolean isLoginhintMandatory = Boolean.parseBoolean(request.getParameter(Constants.IS_LOGIN_HINT_MANDATORY));
+        boolean isLoginHintMandatory = Boolean.parseBoolean(request.getParameter(Constants.IS_LOGIN_HINT_MANDATORY));
         boolean isShowTnc = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = ScopeParam.msisdnMismatchResultTypes.valueOf(
                 request.getParameter(Constants.HEADER_MISMATCH_RESULT));
 
-        context.setProperty(Constants.IS_LOGIN_HINT_MANDATORY, isLoginhintMandatory);
+        context.setProperty(Constants.IS_LOGIN_HINT_MANDATORY, isLoginHintMandatory);
         context.setProperty(Constants.IS_SHOW_TNC, isShowTnc);
         context.setProperty(Constants.HEADER_MISMATCH_RESULT, headerMismatchResult);
 

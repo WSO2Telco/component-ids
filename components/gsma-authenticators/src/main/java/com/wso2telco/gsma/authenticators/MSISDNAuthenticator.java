@@ -108,12 +108,19 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         if (log.isDebugEnabled()) {
             log.debug("MSISDN Authenticator canHandle invoked");
         }
-
+/*
         if ((request.getParameter("msisdn") != null) || (getLoginHintValues(request) != null)
                 || (StringUtils.isNotEmpty(request.getParameter("msisdn_header")))) {
             log.info("msisdn forwarding ");
             return true;
         }
+        */
+
+        if ((request.getParameter("msisdn") != null) || (getLoginHintValues(request) != null)) {
+            log.info("msisdn forwarding ");
+            return true;
+        }
+
         return false;
     }
 
@@ -207,7 +214,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
         try {
             boolean isUserExists = AdminServiceUtil.isUserExists(msisdn);
-            int currentLoa = (int) context.getProperty(Constants.ACR);
+            int currentLoa = getAcr(request, context);//(int) context.getProperty(Constants.ACR);
             boolean isProfileUpgrade = isProfileUpgrade(msisdn, currentLoa, isUserExists);
 
             setPropertiesToContext(context, msisdn, operator, isUserExists, currentLoa, isProfileUpgrade);
@@ -378,7 +385,11 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         if (msisdn != null && !StringUtils.isEmpty(msisdn)) {
             return msisdn;
         } else {
-            return (String) context.getProperty(Constants.MSISDN);
+            if (context.getProperty(Constants.MSISDN) != null) {
+                return (String) context.getProperty(Constants.MSISDN);
+            } else {
+                return getLoginHintValues(request);
+            }
         }
     }
 
