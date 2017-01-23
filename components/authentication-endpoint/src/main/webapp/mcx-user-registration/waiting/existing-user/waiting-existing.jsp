@@ -59,7 +59,7 @@
 		%>
 		<p class="page__copy flush">{{ussd-sent-resend-sms-prompt}}
 			<br>
-			<a onclick="sendSMS('<%=fallbackPrefix%>');" style="cursor:pointer"><u>
+			<a onclick="sendSMS('<%=request.getParameter("sessionDataKey")%>','<%=request.getRemoteHost()%>','<%=request.getLocalPort()%>');" style="cursor:pointer"><u>
 				{{ussd-sent-resend-sms-button}}
 			</u></a>
 		</p>
