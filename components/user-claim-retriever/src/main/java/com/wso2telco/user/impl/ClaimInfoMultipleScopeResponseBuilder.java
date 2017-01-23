@@ -35,6 +35,8 @@ import org.wso2.carbon.identity.oauth.user.UserInfoEndpointException;
 import org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 // TODO: Auto-generated Javadoc
@@ -46,8 +48,12 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
     /** The log. */
     private static Log log = LogFactory.getLog(ClaimInfoMultipleScopeResponseBuilder.class);
 
+    private final String hashPhoneScope = "mc_identity_phonenumber_hashed";
+
+    private final String phone_number_claim = "phone_number";
+
     /** The openid scopes. */
-    List<String> openidScopes = Arrays.asList("profile", "email", "address", "phone", "openid");
+    List<String> openidScopes = Arrays.asList("profile", "email", "address", "phone", "openid", "mc_identity_phonenumber_hashed");
 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder#getResponseString(org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO)
@@ -91,7 +97,12 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
             //oauth2/userinfo requests should serve scopes in openid connect onl
             requestedScopes = getValidScopes(requestedScopes);
         }
-        Map<String, Object> requestedClaims = getRequestedClaims(requestedScopes, scopeConfigs, claims);
+        Map<String, Object> requestedClaims = null;
+        try {
+            requestedClaims = getRequestedClaims(requestedScopes, scopeConfigs, claims);
+        } catch (NoSuchAlgorithmException e) {
+            throw new UserInfoEndpointException("Error while generating hashed claim values.");
+        }
 
         try {
             return JSONUtils.buildJSON(requestedClaims);
@@ -125,7 +136,7 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
      * @param totalClaims the total claims
      * @return the requested claims
      */
-    private Map<String, Object> getRequestedClaims(String[] scopes, ScopeConfigs scopeConfigs, Map<String, Object> totalClaims) {
+    private Map<String, Object> getRequestedClaims(String[] scopes, ScopeConfigs scopeConfigs, Map<String, Object> totalClaims) throws NoSuchAlgorithmException {
         Map<String, Object> requestedClaims = new HashMap<String, Object>();
         String[] attributes;
         if (scopeConfigs != null) {
@@ -136,6 +147,10 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
                     if (scopeName.equals(scope.getName())) {
                         attributes = new String[scope.getClaims().getClaimValues().size()];
                         requestedClaims = addClaims(totalClaims, requestedClaims, scope.getClaims().getClaimValues().toArray(attributes));
+                        if(scopeName.equals(hashPhoneScope)){
+                            String hashed_msisdn = getHashedClaimValue((String) requestedClaims.get(phone_number_claim));
+                            requestedClaims.put(phone_number_claim, hashed_msisdn);
+                        }
                         log.info("added claim ");
                         break;
                     }
@@ -184,5 +199,21 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
             validScopes.add(scope);
         }
         return validScopes.toArray(new String[validScopes.size()]);
+    }
+
+    private String getHashedClaimValue(String claimValue) throws NoSuchAlgorithmException{
+
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        md.update(claimValue.getBytes());
+
+        byte byteData[] = md.digest();
+
+        //convert the byte to hex format
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < byteData.length; i++) {
+            sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
+        }
+
+        return sb.toString();
     }
 }
