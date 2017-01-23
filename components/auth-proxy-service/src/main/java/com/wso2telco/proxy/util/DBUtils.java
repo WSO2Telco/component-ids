@@ -17,7 +17,6 @@ package com.wso2telco.proxy.util;
 
 
 import com.wso2telco.core.config.model.LoginHintFormatDetails;
-import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
@@ -48,6 +47,11 @@ public class DBUtils {
     private static final Log log = LogFactory.getLog(DBUtils.class);
     private static DataSource dataSource = null;
 
+    /**
+     * The m connect datasource.
+     */
+    private static volatile DataSource mConnectDatasource = null;
+
     /** The Configuration service */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
@@ -72,12 +76,45 @@ public class DBUtils {
         }
     }
 
+    private static void initializeConnectDatasource() throws NamingException {
+        if (mConnectDatasource != null) {
+            return;
+        }
+
+        String dataSourceName = null;
+        try {
+            Context ctx = new InitialContext();
+            ConfigurationService configurationService = new ConfigurationServiceImpl();
+            dataSourceName = configurationService.getDataHolder().getMobileConnectConfig().getDataSourceName();
+            mConnectDatasource = (DataSource) ctx.lookup(dataSourceName);
+        } catch (NamingException e) {
+            throw new NamingException("Error while looking up the data source : " + dataSourceName);
+        }
+    }
+
     private static Connection getConnection() throws SQLException, NamingException {
         initializeDatasource();
         if (dataSource != null) {
             return dataSource.getConnection();
         }
         throw new SQLException("Sessions Datasource not initialized properly");
+    }
+
+
+    /**
+     * Gets the connect db connection.
+     *
+     * @return the connect db connection
+     * @throws SQLException           the SQL exception
+     * @throws AuthenticatorException the authenticator exception
+     */
+    private static Connection getConnectDBConnection() throws SQLException, NamingException {
+        initializeConnectDatasource();
+
+        if (mConnectDatasource != null) {
+            return mConnectDatasource.getConnection();
+        }
+        throw new SQLException("Connect Datasource not initialized properly");
     }
 
     /**
@@ -281,6 +318,42 @@ public class DBUtils {
         }
         return loginHintFormatDetails;
     }
+
+
+    public static boolean isSPAllowedScope(String scopeName, String clientId)
+            throws ConfigurationException, AuthenticatorException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        String queryToGetOperatorProperty =
+                "SELECT COUNT(*) AS record_count FROM `sp_configuration` WHERE `client_id`=? AND `config_key`=? AND " +
+                        "`config_value`=?";
+        boolean isSPAllowedScope = false;
+
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
+            preparedStatement.setString(1, clientId);
+            preparedStatement.setString(2, "scope");
+            preparedStatement.setString(3, scopeName);
+
+            resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                isSPAllowedScope = resultSet.getInt("record_count") > 0 ? true : false;
+            }
+        } catch (SQLException e) {
+            handleException(
+                    "Error occurred while SP Configurations for ClientId - " + clientId + " and Scope - " + scopeName,
+                    e);
+        } catch (NamingException e) {
+            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+        } finally {
+            closeAllConnections(preparedStatement, connection, resultSet);
+        }
+        return isSPAllowedScope;
+    }
+
+
 
     private static void closeAllConnections(PreparedStatement preparedStatement,
                                            Connection connection, ResultSet resultSet) {
