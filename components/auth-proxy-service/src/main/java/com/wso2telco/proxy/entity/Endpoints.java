@@ -159,8 +159,17 @@ public class Endpoints {
         ipAddress = getIpAddress(httpHeaders, operatorName);
         queryParams.putSingle(AuthProxyConstants.PROMPT, AuthProxyConstants.LOGIN);
 
+        String clientId = queryParams.getFirst("client_id");
+        String scopeName = queryParams.get(AuthProxyConstants.SCOPE).get(0);
 
-        validateAndSetScopeParameters(loginHint, msisdn, queryParams.get(AuthProxyConstants.SCOPE).get(0), redirectUrlInfo);
+        //validate if the scope is allowed by the SP
+        if (!validateScopeWithSP(scopeName, clientId)) {
+            throw new ConfigurationException(
+                    "Scope - " + scopeName + " is not allowed by ClientId - " + clientId);
+        }
+
+        //Validate with Scope wise parameters
+        validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo);
 
         Boolean isScopeExists = queryParams.containsKey(AuthProxyConstants.SCOPE);
         String operatorScopeWithClaims;
@@ -277,6 +286,19 @@ public class Endpoints {
             log.debug("redirectURL : " + redirectURL);
         }
         httpServletResponse.sendRedirect(redirectURL);
+    }
+
+
+    /**
+     * Check if the Scope is allowed for SP
+     *
+     * @param scopeName
+     * @param clientId
+     * @return true if scope is allowed, else false
+     */
+    private boolean validateScopeWithSP(String scopeName, String clientId)
+            throws AuthenticatorException, ConfigurationException {
+       return DBUtils.isSPAllowedScope(scopeName,clientId);
     }
 
 
