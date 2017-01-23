@@ -93,44 +93,17 @@ console.log("waiting");
  * Invoke the endpoint for self authenticate.
  */
  function selfAuthorize(){
- 	var callbackURL;
- 	var acr;
- 	var authendpoint;
- 	var token;
- 	var scope;
- 	var id=tokenVal;
- 	var state;
- 	var nonce;
- 	var username=msisdn;
- 	var url = "/user-registration/webresources/endpoint/user/authenticate/get?tokenid="+ id;
+	 var commonAuthURL;
 
-	 //delete old code after refactor complete
- 	//$.ajax({
- 	//	type: "GET",
- 	//	url:url,
- 	//	async: false,
- 	//	dataType: 'json',
- 	//	success:function(result){
- 	//		if(result != null) {
- 	//			scope = result.scope;
- 	//			callbackURL = result.redirectUri;
- 	//			state= result.state;
- 	//			nonce=result.nonce;
- 	//			clientkey = result.clientId;
- 	//			acr = result.acrValues;
- 	//			authendpoint = "/oauth2/authorize";
- 	//			token = result.tokenID;
- 	//		}
- 	//	}});
-console.log("Inside selfAuthorize------------------------------------------------");
-
- 	//var url = authendpoint + "?scope="+encodeURIComponent(scope)+"&response_type=code&redirect_uri="
- 	//+ encodeURIComponent(callbackURL) + "&client_id=" + clientkey + "&acr_values="
- 	//+ acr+"&tokenid="+token+"&msisdn="+username+"&state="+state+"&nonce="+nonce + "&operator="+values["operator"];
-	 var commonAuthURL = "/commonauth/?sessionDataKey=" + tokenVal
-		 + "&msisdn=" + msisdn
-		 + "&operator=" + values["operator"] + "&isTerminated=true";
-
+	 if(hasResponse){
+		 commonAuthURL = "/commonauth/?sessionDataKey=" + tokenVal
+			 + "&msisdn=" + msisdn
+			 + "&operator=" + values["operator"] + "&isTerminated=false";
+	 }else {
+		 commonAuthURL = "/commonauth/?sessionDataKey=" + tokenVal
+			 + "&msisdn=" + msisdn
+			 + "&operator=" + values["operator"] + "&isTerminated=true";
+	 }
  	window.location = commonAuthURL;
  }
 

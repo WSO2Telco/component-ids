@@ -76,7 +76,7 @@ var acr = '';
 var operator = '';
 if (!smsClick) {
     acr = getParameterByName('acr_values');
-    if(acr == null || acr == ""){
+    if (acr == null || acr == "") {
         acr = getParameterByName('acr')
     }
     sessionDataKey = getParameterByName('sessionDataKey');
@@ -120,10 +120,10 @@ function registration() {
     var msisdn_header_str = getParameterByName('msisdn_header_str');
     var isUserExists = getParameterByName('isUserExists');
     var acr_code;
-    var selectQ1 ="";
+    var selectQ1 = "";
     var challengeQ1 = "";
     var selectQ2 = "";
-    var challengeQ2 ="";
+    var challengeQ2 = "";
     var challengeA1 = "";
     var challengeA2 = "";
 
@@ -151,118 +151,35 @@ function registration() {
 
     }
 
+    var data = {};
+    data.challengeQuestion1 = challengeQ1;
+    data.challengeQuestion2 = challengeQ2;
+    data.challengeAnswer1 = challengeA1;
+    data.challengeAnswer2 = challengeA2;
+    data.sessionId = sessionDataKey;
 
-    var values = {};
-    values["msisdn"] = msisdn_header_str;
-    values["sessionDataKey"] = sessionDataKey;
-    values["acr_code"] = acr_code;
-    values["authenticator"] = authenticator;
-    values["domain"] = domain;
-    values["pwd"] = pwd;
-    values["http://wso2.org/claims/mobile"] = msisdn_header_str;
-    values["http://wso2.org/claims/challengeQuestion1"] = challengeQ1 + "!" + challengeA1;
-    values["http://wso2.org/claims/challengeQuestion2"] = challengeQ2 + "!" + challengeA2;
-    values["smsClick"] = smsClick;
-    values["updateProfile"] = updateProfile;
-    values["operator"] = operator;
-    values["http://wso2.org/claims/loa"] = acr;
-    values["isHERegistration"] = msisdn_header;
-    values["isUserExists"] = isUserExists;
+    var json = JSON.stringify(data);
 
-    console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
-    console.log("/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
-        + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true&domain=" + domain
-        + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str + "&pwd=" + pwd
-        + "&challengeQuestion1=" + challengeQ1 + "&challengeQuestion2=" + challengeQ2 + "&challengeAnswer1=" + challengeA1
-        + "&challengeAnswer2=" + challengeA2);
+    $.ajax({
+        type: "post",
+        url: "/sessionupdater/tnspoints/endpoint/save/userChallenges",
+        async: false,
+        data: json,
+        contentType: "application/json",
+        success: function (result) {
+            if (result.status == "S1000") {
 
-    window.location = "/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
-        + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true&domain=" + domain
-        + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str + "&pwd=" + pwd
-        + "&challengeQuestion1=" + challengeQ1 + "&challengeQuestion2=" + challengeQ2 + "&challengeAnswer1=" + challengeA1
-        + "&challengeAnswer2=" + challengeA2;
+                console.log('xxxxxxxxxxxxxxxxxxxxxxxx');
+                console.log("/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
+                    + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true&domain=" + domain
+                    + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str + "&isTerminated=false");
+                window.location = "/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
+                    + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true&domain=" + domain
+                    + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str + "&isTerminated=false";
 
-    // var f = document.createElement('form');
-    // f.action = '/authenticationendpoint/mcx-user-registration/waiting.jsp';
-    // f.method = 'POST';
-    // var i;
-    //
-    // for (var key in values) {
-    //     console.log(key + " : " + values[key]);
-    //     /*alert(key +" : "+values[key]);*/
-    //     i = document.createElement('input');
-    //     i.type = 'hidden';
-    //     i.name = key;
-    //     i.value = values[key];
-    //     f.appendChild(i);
-    // }
-    //
-    // document.body.appendChild(f);
-    // f.submit();
-
-/*    window.location = "/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
-        + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true&domain=" + domain
-        + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str + "&pwd=" + pwd
-        + "&token=" + tokenVal;*/
-
-    // var commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
-    //     + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true"
-    //     + "&acr_code=" + acr_code + "&authenticator=" + authenticator + "&domain=";
-
-    // window.location = commonAuthURL;
-
-    // $.ajax({
-    //     type: "GET",
-    //     url: strBack,
-    //     data: values,
-    //     dataType: "text",
-    //     async: false
-    // }).done(function (data) {
-    //
-    //     if (data && data.toString() == 'true') {
-    //
-    //         var msg = "User Name is already exist";
-    //
-    //         return true;
-    //
-    //     } else {
-    //         if (callbackUrl) {
-    //             window.location = callbackUrl + "&operator=" + operator;
-    //         } else if (msisdn_header && msisdn_header == "true" && acr_code == "USSDAuthenticator") {
-    //             console.log("HE Registration selfautherizing.....");
-    //             selfAuthorize(sessionDataKey, msisdn_header_enc_str, operator);
-    //         } else {
-    //             //Delete previous code after refactoring
-    //             //var f = document.createElement('form');
-    //             //f.action='/authenticationendpoint/mcx-user-registration/waiting.jsp';
-    //             //f.method='POST';
-    //             //var i;
-    //             //
-    //             //for (var key in values) {
-    //             //    console.log(key +" : "+values[key]);
-    //             //    /*alert(key +" : "+values[key]);*/
-    //             //    i=document.createElement('input');
-    //             //    i.type='hidden';
-    //             //    i.name=key;
-    //             //    i.value=values[key];
-    //             //    f.appendChild(i);
-    //             //}
-    //             //
-    //             //document.body.appendChild(f);
-    //             //f.submit();
-    //             var commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
-    //                 + "&msisdn=" + msisdn_header_str
-    //                 + "&msisdn_header=" + msisdn_header_enc_str
-    //                 + "&operator=" + operator
-    //                 + "&isRegistration=true";
-    //
-    //             window.location = commonAuthURL;
-    //
-    //         }
-    //     }
-    // });
-
-
+            }
+        }
+    });
 }
 
 /*
