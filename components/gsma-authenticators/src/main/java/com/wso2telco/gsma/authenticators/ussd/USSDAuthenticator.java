@@ -31,7 +31,6 @@ import org.wso2.carbon.identity.application.authentication.framework.AbstractApp
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
@@ -198,6 +197,19 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
     protected void processAuthenticationResponse(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
+
+        if ("true".equals(request.getParameter("smsrequested"))) {
+            //This logic would get hit if the user hits the link to get an SMS so in that case
+            //We need to fallback. Therefore we through AuthenticationFailedException
+            throw new AuthenticationFailedException("USSD Authentication is skipped and moving forward to SMSAuthenticator");
+        } else {
+            //This logic would get hit whenever normal USSD Authentication flow is happening and in that case
+            //we don't need the SMSAuthenticator to be hit. Therefore, we set this property so that in the
+            //MIFEAuthenticationStepHandler, the steps following USSDAuthenticator will be removed.
+            //But please note that, this cause ANY step following USSDAuthenticator to be removed.
+            //Therefore, when redesigning, need to take this into consideration!
+            context.setProperty("removeFollowingSteps","true");
+        }
 
         String sessionDataKey = request.getParameter("sessionDataKey");
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);

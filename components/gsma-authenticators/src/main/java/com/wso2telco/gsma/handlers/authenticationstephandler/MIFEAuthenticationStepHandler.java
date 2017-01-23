@@ -281,6 +281,14 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			context.setAuthenticatorProperties(FrameworkUtils.getAuthenticatorPropertyMapFromIdP(
 					context.getExternalIdP(), authenticator.getName()));
 			AuthenticatorFlowStatus status = authenticator.process(request, response, context);
+
+			//The following if block is a part of implementing the functionality of SMSAuthenticator
+			//getting hit ONLY when the link to get a text message is clicked in the USSD waiting page.
+			//This ensures that after USSDAuthenticator is executed, SMS authenticator doesn't get hit.
+			if ("true".equals(context.getProperty("removeFollowingSteps"))) {
+				removeAllFollowingSteps(context,currentStep);
+				context.setProperty("removeFollowingSteps", null);
+			}
 			request.setAttribute(FrameworkConstants.RequestParams.FLOW_STATUS, status);
 			
 			//state validation
@@ -356,7 +364,13 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			}
 
 		} catch (AuthenticationFailedException e) {
-
+			//The following if block is a part of implementing the functionality of SMSAuthenticator
+			//getting hit ONLY when the link to get a text message is clicked in the USSD waiting page.
+			//This ensures when USSDAuthenticator is failed, SMS authenticator doesn't get hit.
+			if ("true".equals(context.getProperty("removeFollowingSteps"))) {
+				removeAllFollowingSteps(context,currentStep);
+				context.setProperty("removeFollowingSteps", null);
+			}
 			if (e instanceof InvalidCredentialsException) {
 				log.warn("A login attempt was failed due to invalid credentials");
 			} else {
