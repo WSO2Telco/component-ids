@@ -19,17 +19,14 @@ package com.wso2telco;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.wso2telco.core.config.MIFEAuthentication;
+import com.wso2telco.core.config.model.Authentication;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.PinConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.config.util.PinConfigUtil;
 import com.wso2telco.cryptosystem.AESencrp;
-import com.wso2telco.entity.LoginHistory;
-import com.wso2telco.entity.SaaResponse;
-import com.wso2telco.entity.SaaStatusRequest;
-import com.wso2telco.entity.StatusCode;
-import com.wso2telco.entity.ValidationResponse;
+import com.wso2telco.entity.*;
 import com.wso2telco.exception.AuthenticatorException;
 import com.wso2telco.util.Constants;
 import com.wso2telco.util.DbUtil;
@@ -71,10 +68,7 @@ import java.sql.Date;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -261,7 +255,7 @@ public class Endpoints {
         String acceptInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getAcceptUserInputs();
         String rejectInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getRejectUserInputs();
 
-        if (validateUserInputs(acceptInputs, message)){
+        if (validateUserInputs(acceptInputs, message)) {
             log.info("Updating registration status as success");
 
             status = "Approved";

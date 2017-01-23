@@ -149,7 +149,6 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             savePinConfigToContext(context, isRegistering, msisdn, isPinReset);
 
             if (!isPinReset) {
-                saveLoa3PropertiesToContext(request, context);
                 sendUssd(context, isRegistering, msisdn, serviceProviderName, operator);
             }
 
@@ -467,8 +466,6 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             validatePin(pinConfig, context);
 
         } else {
-            StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
-            stepConfig.setMultiOption(true);
             throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: " + tenantId);
         }
     }

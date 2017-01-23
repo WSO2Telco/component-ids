@@ -31,4 +31,8 @@ public class Constants {
     public static final String MTINIT = "mtinit";
     public static final String MSISDN = "msisdn";
     public static final String OPERATOR = "operator";
+    public static final String CHALLENGE_QUESTION_1 = "challengeQuestion1";
+    public static final String CHALLENGE_QUESTION_2 = "challengeQuestion2";
+    public static final String CHALLENGE_ANSWER_1 = "challengeAnswer1";
+    public static final String CHALLENGE_ANSWER_2 = "challengeAnswer2";
 }
