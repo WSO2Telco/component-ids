@@ -66,18 +66,21 @@ function pollForStatus() {
 function handleTermination() {
 	window.clearInterval(pollingVar);
 
-	if(status == STATUS_PIN_FAIL){
-		//var name = 'msisdn';
-		var msisdn = document.getElementById('msisdn').value;
-		if(msisdn){
-			window.location = pinResetUrl+"&msisdn="+msisdn;
-		}else{
-			window.location = pinResetUrl+"&msisdn=not_found";
-		}
 
+
+	var sessionDataKey = qs('sessionDataKey');
+	var commonAuthURL;
+
+	if(hasResponse){
+		commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
+			+ "&msisdn=" + msisdn
+			+ "&isTerminated=false";
 	}else {
-		document.getElementById('loginForm').submit();
+		commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
+			+ "&msisdn=" + msisdn
+			+ "&isTerminated=true";
 	}
+	window.location = commonAuthURL;
 	//}, 5000);
 }
 

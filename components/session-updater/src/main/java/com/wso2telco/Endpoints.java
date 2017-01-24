@@ -436,6 +436,27 @@ public class Endpoints {
 
     }
 
+    @POST
+    @Path("/save/userChallenges")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Response saveUserChallenges(String request){
+        log.info("Saving user challenges");
+
+        AuthenticationDetails authenticationDetails = new Gson().fromJson(request, AuthenticationDetails.class);
+        String sessionId = authenticationDetails.getSessionId();
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionId);
+
+        authenticationContext.setProperty(Constants.CHALLENGE_QUESTION_1, authenticationDetails.getChallengeQuestion1());
+        authenticationContext.setProperty(Constants.CHALLENGE_QUESTION_2, authenticationDetails.getChallengeQuestion1());
+        authenticationContext.setProperty(Constants.CHALLENGE_ANSWER_1, authenticationDetails.getChallengeAnswer1());
+        authenticationContext.setProperty(Constants.CHALLENGE_ANSWER_2, authenticationDetails.getChallengeAnswer2());
+
+        SaveChallengesResponse saveChallengesResponse = new SaveChallengesResponse(sessionId, StatusCode.SUCCESS.getCode());
+        return Response.status(Response.Status.OK).entity(new Gson().toJson(saveChallengesResponse)).build();
+
+    }
+
     protected String getUssdEndpoint(String msisdn) {
 
         MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
@@ -506,13 +527,16 @@ public class Endpoints {
         USSDRequest ussdRequest;
         String response;
 
-        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts())) {
+        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(configurationService.getDataHolder()
+                .getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts()) - 1) {
+
             String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchMessage();
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
             response = gson.toJson(ussdRequest);
 
             log.info("Pin mismatch detected. Sending retry pin message [ " + ussdMessage + " ]");
-        } else if (pinConfig.getPinMismatchAttempts() == Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts()) - 1) {
+        } else if (pinConfig.getPinMismatchAttempts() == Integer.parseInt(configurationService.getDataHolder()
+                .getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts()) - 1) {
 
             String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchMessage();
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
@@ -523,7 +547,8 @@ public class Endpoints {
 
             log.info("Pin mismatch detected for the last attempt. Terminating ussd session to move user to pin reset flow");
         } else {
-            String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchAttemptsExceedMessage();
+            String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig()
+                    .getPinMismatchAttemptsExceedMessage();
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
             response = gson.toJson(ussdRequest);
 
@@ -543,7 +568,9 @@ public class Endpoints {
         USSDRequest ussdRequest;
         String response;
 
-        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts())) {
+        if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(configurationService.getDataHolder()
+                .getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts()) - 1) {
+
             String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinMismatchMessage();
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
             response = gson.toJson(ussdRequest);
