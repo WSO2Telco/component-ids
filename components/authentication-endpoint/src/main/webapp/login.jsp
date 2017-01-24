@@ -461,7 +461,7 @@
 				} else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains("SMSAuthenticator")) {
 					hasLocalLoginOptions = true;
 				%>
-
+				<input type="hidden" name="canHandleSMS" id="canHandleSMS" value='true'/>
 				<div class="row">
 					<div class="span12">
 

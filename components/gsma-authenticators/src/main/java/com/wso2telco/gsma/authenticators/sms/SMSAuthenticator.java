@@ -71,7 +71,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 //        if (request.getParameter("msisdn") != null) {
 //            return true;
 //        }
-        return true;
+        return "true".equals(request.getParameter("canHandleSMS"));
     }
 
     /* (non-Javadoc)
