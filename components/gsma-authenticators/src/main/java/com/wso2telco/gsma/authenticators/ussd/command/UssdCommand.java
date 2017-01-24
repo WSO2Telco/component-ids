@@ -23,12 +23,10 @@ import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.ussd.USSDRequest;
-import org.apache.commons.httpclient.HttpStatus;
+import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.entity.StringEntity;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
@@ -37,8 +35,9 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
 
 public abstract class UssdCommand {
@@ -78,8 +77,14 @@ public abstract class UssdCommand {
      */
     private void postRequest(String url, String requestStr, String operator) throws IOException {
         MobileConnectConfig.USSDConfig ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
+        BasicFutureCallback futureCallback = new BasicFutureCallback();
+        final HttpPost postRequest = futureCallback.getPostRequest();
+        try {
+            postRequest.setURI(new URI(url));
+        } catch (URISyntaxException ex) {
+            log.debug("Malformed URL - " + url + ex);
+        }
 
-        final HttpPost postRequest = new HttpPost(url);
         postRequest.addHeader("accept", "application/json");
         postRequest.addHeader("Authorization", "Bearer " + ussdConfig.getAuthToken());
 
@@ -91,41 +96,10 @@ public abstract class UssdCommand {
         input.setContentType("application/json");
 
         postRequest.setEntity(input);
-        final CountDownLatch latch = new CountDownLatch(1);
 
         log.info("Posting data  [ " + requestStr + " ] to url [ " + url + " ]");
 
-        FutureCallback<HttpResponse> futureCallback = new FutureCallback<HttpResponse>() {
-            @Override
-            public void completed(final HttpResponse response) {
-                latch.countDown();
-                if (response.getStatusLine().getStatusCode() != HttpStatus.SC_CREATED
-                        || response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                    log.error("Error occurred while calling end point - " + response.getStatusLine().getStatusCode() +
-                            "; Error - " +
-                            response.getStatusLine().getReasonPhrase());
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Success Request - " + postRequest.getURI().getSchemeSpecificPart());
-                    }
-                }
-            }
-
-            @Override
-            public void failed(final Exception ex) {
-                latch.countDown();
-                log.error("Error occurred while calling end point - " + postRequest.getURI().getSchemeSpecificPart() +
-                        "; Error - " + ex);
-            }
-
-            @Override
-            public void cancelled() {
-                latch.countDown();
-                log.warn("Operation cancelled while calling end point - " +
-                        postRequest.getURI().getSchemeSpecificPart());
-            }
-        };
-        Util.sendAsyncRequest(postRequest, futureCallback, latch);
+        Util.sendAsyncRequest(postRequest, futureCallback);
     }
 
     /**

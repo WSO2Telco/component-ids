@@ -1,7 +1,10 @@
 package com.wso2telco;
 
+import com.wso2telco.core.config.ReadMobileConnectConfig;
+import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
@@ -21,20 +24,38 @@ public class Util {
      *
      * @param postRequest    Request
      * @param futureCallback Call back function
-     * @param latch          CountDownLatch
      * @throws java.io.IOException
      */
-    public static void sendAsyncRequest(final HttpPost postRequest, FutureCallback futureCallback, CountDownLatch latch)
+    public static void sendAsyncRequest(final HttpPost postRequest, BasicFutureCallback futureCallback)
             throws IOException {
-        CloseableHttpAsyncClient client;
-        client = HttpAsyncClients.createDefault();
+        ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
+
+        int socketTimeout = 60000;
+        int connectTimeout = 60000;
+        int connectionRequestTimeout = 30000;
+
+        try {
+            Map<String, String> timeoutConfigMap = readMobileConnectConfig
+                    .query("TimeoutConfig");
+            socketTimeout = Integer.parseInt(timeoutConfigMap.get("SocketTimeout")) * 1000;
+            connectTimeout = Integer.parseInt(timeoutConfigMap.get("ConnectTimeout")) * 1000;
+            connectionRequestTimeout = Integer.parseInt(timeoutConfigMap.get("ConnectionRequestTimeout")) * 1000;
+
+        } catch (Exception e) {
+
+            log.debug("Error in reading TimeoutConfig:using default timeouts:"
+                              + e);
+        }
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setSocketTimeout(socketTimeout).setConnectTimeout(connectTimeout)
+                .setConnectionRequestTimeout(connectionRequestTimeout).build();
+
+        CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+                .setDefaultRequestConfig(requestConfig).build();
+        futureCallback.setClient(client);
         client.start();
         client.execute(postRequest, futureCallback);
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            log.error("Error occurred while calling end points - " + e);
-        }
     }
 
     /**
