@@ -26,16 +26,16 @@ import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.OutboundUSSDMessageRequest;
 import com.wso2telco.gsma.authenticators.model.ResponseRequest;
 import com.wso2telco.gsma.authenticators.util.Application;
+import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.entity.StringEntity;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -224,49 +224,23 @@ public class SendUSSD {
      * @throws IOException Signals that an I/O exception has occurred.
      */
     private void postRequest(String url, String requestStr, String operator) throws IOException {
-        final HttpPost postRequest = new HttpPost(url);
+        BasicFutureCallback futureCallback = new BasicFutureCallback();
+        final HttpPost postRequest = futureCallback.getPostRequest();
+        try {
+            postRequest.setURI(new URI(url));
+        } catch (URISyntaxException ex) {
+            log.debug("Malformed URL - " + url + ex);
+        }
+
         postRequest.addHeader("accept", "application/json");
         postRequest.addHeader("Authorization", "Bearer " + ussdConfig.getAuthToken());
-
         if (operator != null) {
             postRequest.addHeader("operator", operator);
         }
-
         StringEntity input = new StringEntity(requestStr);
         input.setContentType("application/json");
-
         postRequest.setEntity(input);
-        final CountDownLatch latch = new CountDownLatch(1);
-        FutureCallback<HttpResponse> futureCallback = new FutureCallback<HttpResponse>() {
-            @Override
-            public void completed(final HttpResponse response) {
-                latch.countDown();
-                if ((response.getStatusLine().getStatusCode() != 201)) {
-                    log.error("Error occurred while calling end point - " + response.getStatusLine().getStatusCode() +
-                                      "; Error - " +
-                                      response.getStatusLine().getReasonPhrase());
-                } else {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Success Request - " + postRequest.getURI().getSchemeSpecificPart());
-                    }
-                }
-            }
-
-            @Override
-            public void failed(final Exception ex) {
-                latch.countDown();
-                log.error("Error occurred while calling end point - " + postRequest.getURI().getSchemeSpecificPart() +
-                                  "; Error - " + ex);
-            }
-
-            @Override
-            public void cancelled() {
-                latch.countDown();
-                log.warn("Operation cancelled while calling end point - " +
-                                 postRequest.getURI().getSchemeSpecificPart());
-            }
-        };
-        Util.sendAsyncRequest(postRequest, futureCallback, latch);
+        Util.sendAsyncRequest(postRequest, futureCallback);
     }
 
 }
