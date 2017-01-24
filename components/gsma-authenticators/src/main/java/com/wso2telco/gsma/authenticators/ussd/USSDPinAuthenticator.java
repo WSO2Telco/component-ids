@@ -234,8 +234,8 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
         log.info("Processing authentication request [ msisdn : " + msisdn + " ] ");
 
-        if(isTerminated != null && Boolean.parseBoolean(isTerminated)){
-            throw new AuthenticationFailedException("Authenticator is terminated");
+        if (isTerminated != null && Boolean.parseBoolean(isTerminated)) {
+            terminateAuthentication(context);
         }
 
         try {
@@ -258,20 +258,23 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             log.info("UssdPinAuthenticator successfully completed");
 
         } catch (UserRegistrationAdminServiceIdentityException | RemoteException e) {
-//            StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
-//            stepConfig.setMultiOption(true);
             log.error("Error occurred while creating user profile", e);
-//            throw new AuthenticationFailedException(e.getMessage(), e);
+            terminateAuthentication(context);
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             log.error("Error occurred while accessing admin services", e);
-//            throw new AuthenticationFailedException(e.getMessage(), e);
+            terminateAuthentication(context);
         } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
             log.error("Error occurred while updating user profile", e);
-//            throw new AuthenticationFailedException(e.getMessage(), e);
+            terminateAuthentication(context);
         } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
             log.error("Error occurred while hashing the pin", e);
-//            throw new AuthenticationFailedException(e.getMessage(), e);
+            terminateAuthentication(context);
         }
+    }
+
+    private void terminateAuthentication(AuthenticationContext context) throws AuthenticationFailedException {
+        context.setProperty(Constants.IS_TERMINATED, true);
+        throw new AuthenticationFailedException("Authenticator is terminated");
     }
 
     public AuthenticatorFlowStatus processRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
@@ -309,7 +312,11 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
                 publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
                 return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
             } catch (AuthenticationFailedException e) {
-                String isTerminated = request.getParameter(Constants.IS_TERMINATED);
+                Object property = context.getProperty(Constants.IS_TERMINATED);
+                boolean isTerminated = false;
+                if (property != null) {
+                    isTerminated = (boolean) property;
+                }
 
                 Map stepMap = context.getSequenceConfig().getStepMap();
                 boolean stepHasMultiOption = false;
@@ -321,7 +328,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
                     }
                 }
 
-                if(isTerminated != null && Boolean.parseBoolean(isTerminated)){
+                if (isTerminated) {
                     throw new AuthenticationFailedException("Authenticator is terminated");
                 }
                 if (retryAuthenticationEnabled() && !stepHasMultiOption) {
@@ -342,11 +349,11 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
     private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context, User user, boolean success) {
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy();
-        if(authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
+        if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
             boolean isFederated = this instanceof FederatedApplicationAuthenticator;
             HashMap paramMap = new HashMap();
             paramMap.put("user", user);
-            if(isFederated) {
+            if (isFederated) {
                 context.setProperty("hasFederatedStep", Boolean.valueOf(true));
                 paramMap.put("isFederated", Boolean.valueOf(true));
             } else {
@@ -355,7 +362,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             }
 
             Map unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-            if(success) {
+            if (success) {
                 authnDataPublisherProxy.publishAuthenticationStepSuccess(request, context, unmodifiableParamMap);
             } else {
                 authnDataPublisherProxy.publishAuthenticationStepFailure(request, context, unmodifiableParamMap);

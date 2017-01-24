@@ -193,8 +193,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     private int getAcr(HttpServletRequest request, AuthenticationContext context) {
         int acr;
 
-        if (!context.isRetrying()) {
-            acr = Integer.parseInt(request.getParameter(Constants.PARAM_ACR));
+        String acrParameter = request.getParameter(Constants.PARAM_ACR);
+        if (acrParameter != null && !StringUtils.isEmpty(acrParameter)) {
+            acr = Integer.parseInt(acrParameter);
         } else {
             acr = (int) context.getProperty(Constants.ACR);
         }
