@@ -140,7 +140,7 @@ System.out.println("waiting.jsp-----------------------------------------");
       Your mobile session is about to&nbsp;timeout.
       <br>Check your&nbsp;device.
     </div>
-    <a onclick="cancelProcessToRegister('<%=sessionDataKey%>')" class="btn btn--outline btn--full btn--large">
+    <a onclick="cancelProcessToRegister()" class="btn btn--outline btn--full btn--large">
       Cancel
     </a>
   </main>

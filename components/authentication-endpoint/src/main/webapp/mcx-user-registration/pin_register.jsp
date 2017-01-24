@@ -267,7 +267,7 @@
 
             <div class="grid">
                 <div class="grid__item one-half">
-                    <a onclick="cancelProcessToRegister('<%=token%>')" class="btn btn--outline btn--full btn--large">
+                    <a onclick="cancelProcessToRegister()" class="btn btn--outline btn--full btn--large">
                         No thanks
                     </a>
                 </div>
