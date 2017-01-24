@@ -19,6 +19,7 @@ import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
 import com.wso2telco.gsma.manager.client.ClaimManagementClient;
 import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
 import org.apache.commons.codec.binary.Base64;
@@ -26,15 +27,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
-import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
-import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.*;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.oauth.cache.CacheKey;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
@@ -55,6 +55,9 @@ import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 // TODO: Auto-generated Javadoc
 
@@ -105,6 +108,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
      */
     @Override
     public boolean canHandle(HttpServletRequest request) {
+        String isTerminated = request.getParameter(Constants.IS_TERMINATED);
+
         if (log.isDebugEnabled()) {
             log.debug("MSISDN Authenticator canHandle invoked");
         }
@@ -116,7 +121,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         }
         */
 
-        if ((request.getParameter("msisdn") != null) || (getLoginHintValues(request) != null)) {
+        if ((request.getParameter("msisdn") != null) || (getLoginHintValues(request) != null)
+                || (isTerminated != null && Boolean.parseBoolean(isTerminated))) {
             log.info("msisdn forwarding ");
             return true;
         }
@@ -135,7 +141,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
         } else {
-            return super.process(request, response, context);
+            return processRequest(request, response, context);
         }
     }
 
@@ -147,6 +153,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
+        log.info("Initiating authentication request [ sessionId : " + context.getContextIdentifier() + " ] ");
 
         boolean isProfileUpgrade = false;
         String loginPage;
@@ -212,6 +219,11 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
         String msisdn = getMsisdn(request, context);
         String operator = request.getParameter(Constants.OPERATOR);
+        String isTerminated = request.getParameter(Constants.IS_TERMINATED);
+
+        if (isTerminated != null && Boolean.parseBoolean(isTerminated)) {
+            terminateAuthentication(context);
+        }
 
         try {
             boolean isUserExists = AdminServiceUtil.isUserExists(msisdn);
@@ -230,21 +242,15 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             }
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             log.error("MSISDN Authentication failed while trying to authenticate", e);
-            throw new AuthenticationFailedException(e.getMessage(), e);
+            terminateAuthentication(context);
         } catch (AuthenticatorException e) {
             log.error("Error occurred while saving request type");
             throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (SQLException | NamingException e) {
             log.error("Error occurred while saving data", e);
-            throw new AuthenticationFailedException(e.getMessage(), e);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
-            e.printStackTrace();
-            throw new AuthenticationFailedException(e.getMessage(), e);
-        } catch (LoginAuthenticationExceptionException e) {
-            e.printStackTrace();
-            throw new AuthenticationFailedException(e.getMessage(), e);
+            terminateAuthentication(context);
+        } catch (RemoteException | RemoteUserStoreManagerServiceUserStoreExceptionException | LoginAuthenticationExceptionException e) {
+            terminateAuthentication(context);
         }
     }
 
@@ -270,9 +276,110 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         }
     }
 
+    public AuthenticatorFlowStatus processRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
+
+        if (context.isLogoutRequest()) {
+            try {
+                if (!canHandle(request)) {
+                    context.setCurrentAuthenticator(getName());
+                    initiateLogoutRequest(request, response, context);
+                    return AuthenticatorFlowStatus.INCOMPLETE;
+                } else {
+                    processLogoutResponse(request, response, context);
+                    return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+                }
+            } catch (UnsupportedOperationException var8) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Ignoring UnsupportedOperationException.", var8);
+                }
+
+                return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+            }
+        } else if (canHandle(request) && (request.getAttribute("commonAuthHandled") == null || !(Boolean) request.getAttribute("commonAuthHandled"))) {
+            try {
+                processAuthenticationResponse(request, response, context);
+                if (this instanceof LocalApplicationAuthenticator && !context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
+                    String e = context.getSubject().getTenantDomain();
+                    String stepMap1 = context.getTenantDomain();
+                    if (!StringUtils.equals(e, stepMap1)) {
+                        context.setProperty("UserTenantDomainMismatch", Boolean.valueOf(true));
+                        throw new AuthenticationFailedException("Service Provider tenant domain must be equal to user tenant domain for non-SaaS applications");
+                    }
+                }
+
+                request.setAttribute("commonAuthHandled", Boolean.TRUE);
+                publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
+                return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+            } catch (AuthenticationFailedException e) {
+                Object property = context.getProperty(Constants.IS_TERMINATED);
+                boolean isTerminated = false;
+                if (property != null) {
+                    isTerminated = (boolean) property;
+                }
+
+                Map stepMap = context.getSequenceConfig().getStepMap();
+                boolean stepHasMultiOption = false;
+                publishAuthenticationStepAttempt(request, context, e.getUser(), false);
+                if (stepMap != null && !stepMap.isEmpty()) {
+                    StepConfig stepConfig = (StepConfig) stepMap.get(Integer.valueOf(context.getCurrentStep()));
+                    if (stepConfig != null) {
+                        stepHasMultiOption = stepConfig.isMultiOption();
+                    }
+                }
+
+                if (isTerminated) {
+                    throw new AuthenticationFailedException("Authenticator is terminated");
+                }
+                if (retryAuthenticationEnabled() && !stepHasMultiOption) {
+                    context.setRetrying(true);
+                    context.setCurrentAuthenticator(getName());
+                    initiateAuthenticationRequest(request, response, context);
+                    return AuthenticatorFlowStatus.INCOMPLETE;
+                } else {
+                    throw e;
+                }
+            }
+        } else {
+            initiateAuthenticationRequest(request, response, context);
+            context.setCurrentAuthenticator(getName());
+            return AuthenticatorFlowStatus.INCOMPLETE;
+        }
+    }
+
+    private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context, User user, boolean success) {
+        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy();
+        if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
+            boolean isFederated = this instanceof FederatedApplicationAuthenticator;
+            HashMap paramMap = new HashMap();
+            paramMap.put("user", user);
+            if (isFederated) {
+                context.setProperty("hasFederatedStep", Boolean.valueOf(true));
+                paramMap.put("isFederated", Boolean.valueOf(true));
+            } else {
+                context.setProperty("hasLocalStep", Boolean.valueOf(true));
+                paramMap.put("isFederated", Boolean.valueOf(false));
+            }
+
+            Map unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
+            if (success) {
+                authnDataPublisherProxy.publishAuthenticationStepSuccess(request, context, unmodifiableParamMap);
+            } else {
+                authnDataPublisherProxy.publishAuthenticationStepFailure(request, context, unmodifiableParamMap);
+            }
+        }
+
+    }
+
     private void retryAuthenticatorToUpdateProfile(AuthenticationContext context) throws AuthenticationFailedException {
         context.setProperty(Constants.IS_REGISTERING, false);
         throw new AuthenticationFailedException("User exists. Moving for profile updating");
+    }
+
+    private void terminateAuthentication(AuthenticationContext context) throws AuthenticationFailedException {
+        log.info("User has terminated the authentication flow");
+
+        context.setProperty(Constants.IS_TERMINATED, true);
+        throw new AuthenticationFailedException("Authenticator is terminated");
     }
 
     private void retryAuthenticatorToGetConsent(AuthenticationContext context, String msisdn) throws AuthenticationFailedException {
@@ -351,15 +458,15 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
     private String getAuthEndpointUrl(String msisdn, boolean isProfileUpgrade, boolean isShowTnc,
                                       AuthenticationContext context) throws UserStoreException,
-                                                                            AuthenticationFailedException,
-                                                                            RemoteException,
-                                                                            LoginAuthenticationExceptionException,
-                                                                            RemoteUserStoreManagerServiceUserStoreExceptionException {
+            AuthenticationFailedException,
+            RemoteException,
+            LoginAuthenticationExceptionException,
+            RemoteUserStoreManagerServiceUserStoreExceptionException {
 
         String loginPage;
         if (msisdn != null && !AdminServiceUtil.isUserExists(msisdn) && isShowTnc) {
             context.setProperty(Constants.IS_REGISTERING, true);
-                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.CONSENT_JSP;
+            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.CONSENT_JSP;
         } else {
 
             if (isProfileUpgrade) {

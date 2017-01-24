@@ -16,35 +16,9 @@
 /*
  * Cancel registrations  and redirect to call back url
  */
-function cancelProcessToRegister(token) {
+function cancelProcessToRegister() {
 
-    var url = "/dashboard/landing.jag";
-    var tokenVal = token;
-
-    if (tokenVal != null) {
-        var callbackURL;
-        var id = tokenVal;
-        var username = getMSISDN(tokenVal);
-        var backendurl = "../user-registration/webresources/endpoint/user/authenticate/get?tokenid=" + id;
-
-        $.ajax({
-            type: "GET",
-            url: backendurl,
-            async: false,
-            dataType: 'json',
-            success: function (result) {
-                if (result != null) {
-                    callbackURL = result.redirectUri;
-
-                }
-            }
-        });
-
-        url = callbackURL + "?error=access_denied";
-        console.log("url   " + url);
-    }
-    /*redirect to callback url*/
-    window.location = url;
+    window.location = "/commonauth/?isTerminated=true";
 
 }
 

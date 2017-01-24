@@ -273,6 +273,8 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
     }
 
     private void terminateAuthentication(AuthenticationContext context) throws AuthenticationFailedException {
+        log.info("User has terminated the authentication flow");
+
         context.setProperty(Constants.IS_TERMINATED, true);
         throw new AuthenticationFailedException("Authenticator is terminated");
     }
