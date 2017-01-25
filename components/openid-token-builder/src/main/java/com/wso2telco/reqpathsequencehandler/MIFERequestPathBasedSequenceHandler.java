@@ -146,7 +146,7 @@ public class MIFERequestPathBasedSequenceHandler extends DefaultRequestPathBased
 
 			} catch (AuthenticationFailedException e) {
 				if (e instanceof InvalidCredentialsException) {
-					log.warn("A login attempt was failed due to invalid credentials");
+					log.error("A login attempt was failed due to invalid credentials");
 				} else {
 					log.error(e.getMessage(), e);
 				}

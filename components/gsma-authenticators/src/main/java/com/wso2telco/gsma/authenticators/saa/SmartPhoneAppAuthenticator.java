@@ -95,7 +95,7 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        log.info("Initiating smart phone authentication");
+        log.info("Initiating authentication request");
 
         boolean isErrorOccurred = false;
 
@@ -109,6 +109,12 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
         String msisdn = (String) context.getProperty(MSISDN);
         String clientId = paramMap.get(CLIENT_ID);
         String applicationName = applicationConfig.getApplicationName();
+
+        if(log.isDebugEnabled()) {
+            log.debug("MSISDN : " + msisdn);
+            log.debug("Client ID : " + clientId);
+            log.debug("Application name : " + applicationName);
+        }
 
         String url = ReadMobileConnectConfig.readSaaConfig(Constants.SAA_ENPOINT) + "/services/serverAPI/api/v1/clients/"
                 + msisdn + "/authenticate";

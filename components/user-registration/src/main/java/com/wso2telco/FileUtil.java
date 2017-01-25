@@ -26,11 +26,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * @version $Id: FileUtil.java,v 1.00.000
  */
 public class FileUtil {
+
+    private static Log log = LogFactory.getLog(FileUtil.class);
 
     private static Properties props = new Properties();
 
@@ -76,7 +80,7 @@ public class FileUtil {
                 out = new BufferedWriter(new FileWriter(filePath));
                 out.write(data);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error(e);
             } finally {
                 out.close();
             }
@@ -89,13 +93,13 @@ public class FileUtil {
 			props.load(FileUtil.class.getResourceAsStream("application.properties"));
 		} catch (FileNotFoundException e) {
 			// e.printStackTrace();
-			System.err.println(
+			log.error(
 					"Check your Property file, it should be in application home dir, Error:"
 							+ e.getCause()+ "Cant load APPLICATION.properties");
 
 			//System.exit(-1);
 		} catch (IOException e) {
-			System.err.println(
+			log.error(
 					"Check your Property file, it should be in application home dir, Error:"
 							+ e.getCause()+ "Cant load APPLICATION.properties");
 			//System.exit(-1);
@@ -125,7 +129,7 @@ public class FileUtil {
        in.close ();
        result = new String (b, 0, b.length, "Cp850");
        } catch (Exception e) {
-           e.printStackTrace();
+           log.error(e);
        }
        return result;
   }

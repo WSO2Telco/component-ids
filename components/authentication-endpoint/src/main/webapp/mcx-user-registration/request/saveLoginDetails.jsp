@@ -18,8 +18,7 @@ try{
 	serverWebappsUrl = obj.getJSONObject("server").getString("webapps_url");
 
 }catch(IOException e){
-	System.out.println("**********************8User not authenticated");
-	
+
 }
 	return "http://" + serverWebappsUrl;
 }

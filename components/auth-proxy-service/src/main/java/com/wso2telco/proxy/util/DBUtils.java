@@ -275,7 +275,7 @@ public class DBUtils {
         } catch (SQLException e) {
             handleException("Error occurred while getting scope parameters from the database", e);
         } catch (NamingException e) {
-            e.printStackTrace();
+            log.error("Naming exception ", e);
         } finally {
             closeAllConnections(ps, conn, results);
         }
@@ -291,7 +291,7 @@ public class DBUtils {
                         "`scope_supp_login_hint_format` WHERE `param_id` = ?);";
 
         if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql);
+            log.debug("Executing the query : " + sql);
         }
 
         List<LoginHintFormatDetails> loginHintFormatDetails = new ArrayList<LoginHintFormatDetails>();
@@ -371,7 +371,7 @@ public class DBUtils {
             try {
                 dbConnection.close();
             } catch (SQLException e) {
-                log.warn("Database error. Could not close database connection. Continuing with others. - " + e
+                log.error("Database error. Could not close database connection. Continuing with others. - " + e
                         .getMessage(), e);
             }
         }
@@ -386,7 +386,7 @@ public class DBUtils {
             try {
                 resultSet.close();
             } catch (SQLException e) {
-                log.warn("Database error. Could not close ResultSet  - " + e.getMessage(), e);
+                log.error("Database error. Could not close ResultSet  - " + e.getMessage(), e);
             }
         }
     }
@@ -400,7 +400,7 @@ public class DBUtils {
             try {
                 preparedStatement.close();
             } catch (SQLException e) {
-                log.warn("Database error. Could not close PreparedStatement. Continuing with others. - " + e
+                log.error("Database error. Could not close PreparedStatement. Continuing with others. - " + e
                         .getMessage(), e);
             }
         }

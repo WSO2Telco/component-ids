@@ -142,11 +142,11 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             // Deliberately return false since headers are null
             return false;
         } catch (UserStoreException e) {
-            e.printStackTrace();
+            log.error(e);
         } catch (AuthenticationFailedException e) {
-            e.printStackTrace();
+            log.error(e);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e);
         }
         return false;
     }
@@ -174,17 +174,23 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
+        log.info("Initiating authentication request");
+
         boolean ipValidation = false;
         boolean validOperator = true;
         String operator = request.getParameter(Constants.OPERATOR);
         String msisdn = getMsisdn(request, context); //request.getParameter(Constants.MSISDN_HEADER);
 
-        log.info("Initiating authentication request");
-
         String queryParams = FrameworkUtils
                 .getQueryStringWithFrameworkContextId(context.getQueryParams(),
                         context.getCallerSessionKey(),
                         context.getContextIdentifier());
+
+        if(log.isDebugEnabled()) {
+            log.debug("MSISDN : " + msisdn);
+            log.debug("Operator : " + operator);
+            log.debug("Query parameters : " + queryParams);
+        }
 
         context.setProperty(Constants.ACR, Integer.parseInt(request.getParameter(Constants.PARAM_ACR)));
 
@@ -234,8 +240,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
             context.setProperty(Constants.IP_ADDRESS, ipAddress);
 
-            log.info("MSISDN after decryption=" + msisdn);
-
             if (context.isRetrying()) {
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
@@ -250,7 +254,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         } catch (NullPointerException e) {
             throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (UserStoreException e) {
-            e.printStackTrace();
+            log.error(e);
         }
 
         return;
@@ -265,7 +269,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        log.info("Processing authentication request");
+        log.info("Processing authentication response");
 
         int acr = getAcr(request, context);
         boolean isUserExists = false;
@@ -281,7 +285,9 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             ipValidation = operatorIpValidation.get(operator);
         }
 
-        log.info("HeaderEnrichment redirect URI : " + request.getParameter("redirect_uri"));
+        if(log.isDebugEnabled()) {
+            log.debug("Redirect URI : " + request.getParameter("redirect_uri"));
+        }
         context.setProperty(Constants.OPERATOR, operator);
         context.setProperty("redirectURI", request.getParameter("redirect_uri"));
 
@@ -296,14 +302,10 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             Logger.getLogger(HeaderEnrichmentAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        log.info("msisdn after decryption : " + msisdn);
-
         String ipAddress = (String)context.getProperty(Constants.IP_ADDRESS);
         if(ipAddress == null  || StringUtils.isEmpty(ipAddress)) {
             ipAddress = retriveIPAddress(request);
         }
-
-        log.info("ip address : " + ipAddress);
 
         if (ipAddress == null) {
             if (log.isDebugEnabled()) {
@@ -370,19 +372,19 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     log.error("HeaderEnrichment Authentication failed while trying to authenticate", e);
                     throw new AuthenticationFailedException(e.getMessage(), e);
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    log.error(e);
                     throw new AuthenticationFailedException(e.getMessage(), e);
                 } catch (AuthenticatorException e) {
-                    e.printStackTrace();
+                    log.error(e);
                     throw new AuthenticationFailedException(e.getMessage(), e);
                 } catch (RemoteException e) {
-                    e.printStackTrace();
+                    log.error(e);
                     throw new AuthenticationFailedException(e.getMessage(), e);
                 } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
-                    e.printStackTrace();
+                    log.error(e);
                     throw new AuthenticationFailedException(e.getMessage(), e);
                 } catch (LoginAuthenticationExceptionException e) {
-                    e.printStackTrace();
+                    log.error(e);
                     throw new AuthenticationFailedException(e.getMessage(), e);
                 }catch (UserRegistrationAdminServiceIdentityException e) {
                     throw new AuthenticationFailedException("Error occurred while creating user profile", e);
@@ -399,7 +401,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         if (rememberMe != null && "on".equals(rememberMe)) {
             context.setRememberMe(true);
         }
-        log.info("HeaderEnrichment Authenticator authentication success for MSISDN : " + msisdn);
+        log.info("Authentication success");
     }
 
     /**
@@ -464,7 +466,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         try {
             ipAddress = request.getParameter(Constants.IP_ADDRESS);
         } catch (Exception e) {
-            log.error("Error occured Retriving ip address " + e);
+            log.error("Error occurred Retrieving ip address " + e);
         }
 
         return ipAddress;
@@ -543,8 +545,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
      */
     protected boolean validateOperator(String operator, String strip) {
         boolean isvalid = false;
-
-        log.info("Operator name  " + operator);
 
         operators = configurationService.getDataHolder().getMobileConnectConfig().getHEADERENRICH().getOperators();
 

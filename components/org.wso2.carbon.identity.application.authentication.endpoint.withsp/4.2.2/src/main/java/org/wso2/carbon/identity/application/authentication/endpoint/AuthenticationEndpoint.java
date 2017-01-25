@@ -29,6 +29,8 @@ import javax.servlet.http.HttpServletResponse;
 
 public class AuthenticationEndpoint extends HttpServlet {
 
+    private static Log log = LogFactory.getLog(AuthenticationEndpoint.class);
+
     private static final long serialVersionUID = 1L;
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
@@ -81,7 +83,7 @@ public class AuthenticationEndpoint extends HttpServlet {
             }
             request.getRequestDispatcher(loadPage).forward(request, response);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e);
             throw new AuthenticationException(e);
         }
 
