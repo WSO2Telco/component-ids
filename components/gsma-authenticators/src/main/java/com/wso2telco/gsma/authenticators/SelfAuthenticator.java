@@ -63,9 +63,14 @@ public class SelfAuthenticator extends AbstractApplicationAuthenticator
      */
     @Override
     protected void processAuthenticationResponse(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationContext context) throws AuthenticationFailedException {
-        log.info("Self Authenticator authentication Start ");
+
+        log.info("Processing authentication response");
         String msisdn = (String) context.getProperty("msisdn");
         context.setProperty("msisdn", msisdn);
+
+        if(log.isDebugEnabled()) {
+            log.debug("MSISDN : " + msisdn);
+        }
         //AuthenticatedUser user=new AuthenticatedUser();
         
         AuthenticationContextHelper.setSubject(context, msisdn);

@@ -84,7 +84,6 @@ public class UserIdentityManagementClient {
      * @throws UserIdentityManagementAdminServiceIdentityMgtServiceExceptionException the user identity management admin service identity mgt service exception exception
      */
     public void lockUser(String username) throws RemoteException, UserIdentityManagementAdminServiceIdentityMgtServiceExceptionException {
-        System.out.println("Remote User lockUserAccount................" + username);
         remoteUser.lockUserAccount(username);
     }
 }

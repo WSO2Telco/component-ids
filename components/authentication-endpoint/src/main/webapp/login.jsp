@@ -240,7 +240,6 @@
 		}
 
 		for(String names : localAuthenticatorNames){
-			System.out.println("string name xxxxxxx : " + names);
 		}
 	%>
 	<input type="hidden" id="msisdn" value='<%=msisdn%>'>

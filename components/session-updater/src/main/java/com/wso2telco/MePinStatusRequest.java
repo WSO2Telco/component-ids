@@ -65,8 +65,9 @@ public class MePinStatusRequest implements Callable<String> {
         String clientId = configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig().getMePinClientId();
         String url = configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig().getMePinUrl();
         url = url + "?transaction_id=" + transactionId + "&client_id=" + clientId + "";
-        log.info("MePIN Status URL: " + url);
-
+        if(log.isDebugEnabled()) {
+            log.info("MePIN Status URL : " + url);
+        }
         String authHeader = "Basic " + configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig().getMePinAccessToken();
 
         try {
@@ -92,8 +93,10 @@ public class MePinStatusRequest implements Callable<String> {
             }
             br.close();
 
-            log.info("MePIN Status Response Code: " + statusCode + " " + connection.getResponseMessage());
-            log.info("MePIN Status Response: " + resp);
+            if(log.isDebugEnabled()) {
+                log.debug("MePIN Status Response Code : " + statusCode + " " + connection.getResponseMessage());
+                log.debug("MePIN Status Response : " + resp);
+            }
 
             JsonObject responseJson = new JsonParser().parse(resp).getAsJsonObject();
             String respTransactionId = responseJson.getAsJsonPrimitive("transaction_id").getAsString();

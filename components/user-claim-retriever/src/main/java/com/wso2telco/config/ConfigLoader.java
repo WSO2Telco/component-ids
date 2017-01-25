@@ -15,6 +15,8 @@
  ******************************************************************************/
 package com.wso2telco.config;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.utils.CarbonUtils;
 import java.io.File;
 
@@ -29,6 +31,8 @@ import java.io.File;
  * The Class ConfigLoader.
  */
 public class ConfigLoader {
+
+    Log log = LogFactory.getLog(ConfigLoader.class);
     
     /** The scope configs. */
     private ScopeConfigs scopeConfigs;
@@ -43,7 +47,7 @@ public class ConfigLoader {
         try {
             this.scopeConfigs = initClaimsConfig();
         } catch (JAXBException e) {
-            e.printStackTrace();
+            log.error(e);
         }
     }
 

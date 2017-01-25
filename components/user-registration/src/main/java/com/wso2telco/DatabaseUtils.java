@@ -90,16 +90,13 @@ public class DatabaseUtils {
             ps.setInt(2, 1);
 
             ps.setString(3, ussdSessionID);
-
-
-            log.info(ps.toString());
             ps.execute();
 
 
 
         } catch (SQLException e) {
 
-            System.out.print(e.getMessage());
+            log.error("Error while inserting multiple password pin");
 
         } finally {
 
@@ -122,19 +119,17 @@ public class DatabaseUtils {
                 ps.setString(1, sessionID);
                 ps.setString(2, status);
 
-                log.info(ps.toString());
                 ps.execute();
-                        
-		} catch (NamingException ex) {
-                 //Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-             } 
-            catch (SQLException e) {
-                    System.out.print(e.getMessage());
-		} finally {
-                        connection.close();			
-		}
-            
-    }
+
+            } catch (NamingException ex) {
+                //Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SQLException e) {
+                log.error("Error while updating user status", e);
+            } finally {
+                connection.close();
+            }
+
+     }
      
     public static void updateStatus(String sessionID, String status) throws SQLException{
         Connection connection = null;
@@ -152,15 +147,13 @@ public class DatabaseUtils {
 
                 ps.setString(1, status);
                 ps.setString(2, sessionID);
-                log.info(ps.toString());
                 ps.execute();
              
                         
             } catch (NamingException ex) {
                 // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-             } 
-            catch (SQLException e) {
-                System.out.print(e.getMessage());
+            } catch (SQLException e) {
+                log.error("Error while updating status", e);
             } finally {
                 connection.close();			
             }
@@ -189,19 +182,17 @@ public class DatabaseUtils {
                 ps.setString(2, status);
                 ps.setString(3, pin);
                 
-                log.info(ps.toString());
                 ps.execute();
                         
 		} catch (NamingException ex) {
-                 //Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-			System.out.println("Error found: "+ex);
-             } 
-            catch (SQLException e) {
-                    System.out.print(e.getMessage());
-		} finally {
-                        connection.close();			
-		}
-            
+                //Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+                log.error(ex.getMessage());
+            } catch (SQLException e) {
+                log.error("Error while inserting pin reset request");
+            } finally {
+                connection.close();
+            }
+
     }
     
     public static String getUSerPIN(String sessionID) throws SQLException{
@@ -228,17 +219,17 @@ public class DatabaseUtils {
                 }
                         
 		} catch (NamingException ex) {
-                   // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-                } 
-                catch (SQLException e) {
-                    System.out.print(e.getMessage());
-		} finally {
-                        connection.close();
-                        
-		}
-            
-            return pin;
-     }
+                // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            catch (SQLException e) {
+                log.error("Error while getting user pin", e);
+            } finally {
+                connection.close();
+
+            }
+
+        return pin;
+    }
     
     //insert initial Entry
     public static void insertMultiplePasswordPIN(String username) throws SQLException{
@@ -259,12 +250,11 @@ public class DatabaseUtils {
 			
 			ps.setString(1, username);
                         ps.setInt(2, 1);
-            log.info(ps.toString());
 			ps.execute();
                         
 		} catch (SQLException e) {
-			System.out.print(e.getMessage());
-		} finally {
+            log.error("Error while inserting multiple password pin", e);
+        } finally {
 			connection.close();
 		}
     }
@@ -288,15 +278,13 @@ public class DatabaseUtils {
 
                 ps.setInt(1, pin);
                 ps.setString(2, username);
-                log.info(ps.toString());
                 ps.execute();
              
                         
             } catch (NamingException ex) {
                 // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-             } 
-            catch (SQLException e) {
-                System.out.print(e.getMessage());
+            } catch (SQLException e) {
+                log.error("Error while updating password pin", e);
             } finally {
                 connection.close();			
             }
@@ -320,15 +308,13 @@ public class DatabaseUtils {
 
                 ps.setInt(1, attempts);
                 ps.setString(2, username);
-                log.info(ps.toString());
                 ps.execute();
              
                         
             } catch (NamingException ex) {
                 // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-             } 
-            catch (SQLException e) {
-                System.out.print(e.getMessage());
+            } catch (SQLException e) {
+                log.error("Error while updating password attempts", e);
             } finally {
                 connection.close();			
             }
@@ -360,16 +346,15 @@ public class DatabaseUtils {
                 }
                         
 		} catch (NamingException ex) {
-                   // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-                } 
-                catch (SQLException e) {
-                    System.out.print(e.getMessage());
-		} finally {
-                        connection.close();
-                        
-		}
-            
-            return pin;
+            log.error(ex.getMessage());
+        }
+        catch (SQLException e) {
+            log.error("Error while reading multiple password pin", e);
+        } finally {
+            connection.close();
+        }
+
+      return pin;
     }
     
     //Read Attempts
@@ -399,16 +384,15 @@ public class DatabaseUtils {
                 }
                         
 		} catch (NamingException ex) {
-                   // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-                } 
-                catch (SQLException e) {
-                    System.out.print(e.getMessage());
-		} finally {
-                        connection.close();
-                        
-		}
-            
-            return noOfAttempts;
+                // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            catch (SQLException e) {
+                log.error("Error while reading multiple password attempts", e);
+            } finally {
+                connection.close();
+            }
+
+        return noOfAttempts;
     }
     
     public static boolean isExistingUser(String username) throws SQLException{
@@ -438,14 +422,14 @@ public class DatabaseUtils {
                 }
                         
 		} catch (NamingException ex) {
-                   // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-                } 
-                catch (SQLException e) {
-                    System.out.print(e.getMessage());
-		} finally {
-                        connection.close();
-                        
-		}
+                // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            catch (SQLException e) {
+                log.error("Error while checking for existing user", e);
+            } finally {
+                connection.close();
+
+            }
             
             if (usernameDB.equals(username) ){
                 
@@ -475,18 +459,17 @@ public class DatabaseUtils {
                 ps = connection.prepareStatement(sql);
             
                 ps.setString(1, username);
-                log.info(ps.toString());
                 ps.execute();
                         
 		} catch (NamingException ex) {
-                   // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-                } 
-                catch (SQLException e) {
-                    System.out.print(e.getMessage());
-		} finally {
-                        connection.close();
-                        
-		}
+                // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            catch (SQLException e) {
+                log.error("Error while deleting user ", e);
+            } finally {
+                connection.close();
+
+            }
     }
     
     public static String getUSerStatus(String username) throws SQLException{
@@ -547,11 +530,10 @@ public class DatabaseUtils {
             ps.setString(1, uuid);
             ps.setString(2, username);
             ps.setString(3, status);
-            log.info(ps.toString());
             ps.execute();
 
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while inserting user status", e);
         } finally {
             connection.close();
         }
@@ -587,14 +569,14 @@ public class DatabaseUtils {
                 }
                         
 		} catch (NamingException ex) {
-                   // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-                } 
-                catch (SQLException e) {
-                    System.out.print(e.getMessage());
-		} finally {
-                        connection.close();
-                        
-		}
+                // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            catch (SQLException e) {
+                log.error("Error while checking user status", e);
+            } finally {
+                connection.close();
+
+            }
             
             if (usernameDB.equals(username) ){
                 
@@ -624,7 +606,6 @@ public class DatabaseUtils {
                 ps = connection.prepareStatement(sql);
             
                 ps.setString(1, username);
-                log.info(ps.toString());
                 ps.execute();
                         
 		} catch (NamingException ex) {
@@ -654,15 +635,13 @@ public class DatabaseUtils {
 
                 ps.setString(1, status);
                 ps.setString(2, username);
-                log.info(ps.toString());
                 ps.execute();
              
                         
             } catch (NamingException ex) {
                 // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-             } 
-            catch (SQLException e) {
-                System.out.print(e.getMessage());
+            } catch (SQLException e) {
+                log.error("Error while updating reg status");
             } finally {
                 connection.close();			
             }
@@ -689,7 +668,7 @@ public class DatabaseUtils {
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while getting pending USSD request type ", e);
         } finally {
             if(connection != null) {
                 connection.close();
@@ -716,7 +695,7 @@ public class DatabaseUtils {
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while saving request type", e);
         } finally {
             if(connection != null) {
                 connection.close();
@@ -771,9 +750,9 @@ public class DatabaseUtils {
             ps.executeUpdate();
             return 1;
         } catch (NamingException ex) {
-           ex.printStackTrace();
+            log.error(ex);
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            log.error(ex);
         } finally {
             if(connection != null) {
                 connection.close();
@@ -810,9 +789,9 @@ public class DatabaseUtils {
                 authenticationData.setNonce(rs.getString("nonce"));
             }
         } catch (NamingException ex) {
-            ex.printStackTrace();
+            log.error(ex);
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            log.error(ex);
         } finally {
             if (connection != null) {
                 connection.close();
@@ -837,13 +816,12 @@ public class DatabaseUtils {
             ps = connection.prepareStatement(sql);
             ps.setString(1, status);
             ps.setString(2, msisdn);
-            log.info(ps.toString());
             ps.execute();
-            } catch (NamingException ex) {
-            ex.printStackTrace();
+        } catch (NamingException ex) {
+            log.error(ex);
         }
         catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while updating authenticate data", e);
         } finally {
             connection.close();
         }
@@ -863,13 +841,11 @@ public class DatabaseUtils {
             ps = connection.prepareStatement(sql);
             ps.setString(1, msisdn);
             ps.setString(2, tokenId);
-            log.info(ps.toString());
             ps.execute();
         } catch (NamingException ex) {
-            ex.printStackTrace();
-        }
-        catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error(ex.getMessage());
+        } catch (SQLException e) {
+            log.error("Error while updating data msisdn");
         } finally {
             connection.close();
         }
@@ -905,7 +881,7 @@ public class DatabaseUtils {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
         catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while getting username by id");
         } finally {
             connection.close();
 

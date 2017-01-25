@@ -37,13 +37,11 @@ public class UserIdentityManagementClient {
     }
     
     public void unlockUser(String username) throws RemoteException, UserIdentityManagementAdminServiceIdentityMgtServiceExceptionException {
-        System.out.println("Remote User unlockUserAccount................" + username);
         remoteUser.unlockUserAccount(username, "");
     }
     
     
     public void lockUser(String username) throws RemoteException, UserIdentityManagementAdminServiceIdentityMgtServiceExceptionException {
-        System.out.println("Remote User lockUserAccount................" + username);
         remoteUser.lockUserAccount(username);
     }
 }

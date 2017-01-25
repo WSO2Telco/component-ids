@@ -76,6 +76,7 @@ public class MSSPinAuthenticator extends AbstractApplicationAuthenticator
     protected void initiateAuthenticationRequest(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
+        log.info("Initiating authentication request");
 
         String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
 
@@ -83,6 +84,10 @@ public class MSSPinAuthenticator extends AbstractApplicationAuthenticator
                 .getQueryStringWithFrameworkContextId(context.getQueryParams(),
                         context.getCallerSessionKey(),
                         context.getContextIdentifier());
+
+        if(log.isDebugEnabled()) {
+            log.debug("Query parameters : " + queryParams);
+        }
 
         try {
 
@@ -113,8 +118,6 @@ public class MSSPinAuthenticator extends AbstractApplicationAuthenticator
         }catch (AuthenticatorException e) {
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
-
-
     }
 
 
@@ -125,10 +128,15 @@ public class MSSPinAuthenticator extends AbstractApplicationAuthenticator
     protected void processAuthenticationResponse(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationContext context) throws AuthenticationFailedException {
 
         // String msisdn = httpServletRequest.getParameter("msisdn");
-        log.info("MSS PIN Authenticator authentication Start ");
+        log.info("Processing authentication response");
         String sessionDataKey = httpServletRequest.getParameter("sessionDataKey");
         String msisdn = (String) context.getProperty("msisdn");
         boolean isAuthenticated = false;
+
+        if(log.isDebugEnabled()) {
+            log.debug("MSISDN : " + msisdn);
+            log.debug("SessionDataKey : " + sessionDataKey);
+        }
 
         try {
             String responseStatus = DBUtils.getUserResponse(sessionDataKey);
@@ -143,15 +151,11 @@ public class MSSPinAuthenticator extends AbstractApplicationAuthenticator
         }
 
         if (!isAuthenticated) {
-            log.info("MSS PIN Authenticator authentication failed ");
+            log.info("Authentication failed. MSISDN doesn't exist.");
             context.setProperty("faileduser", msisdn);
-            if (log.isDebugEnabled()) {
-                log.debug("User authentication failed due to not existing user MSISDN.");
-            }
-
             throw new AuthenticationFailedException("Authentication Failed");
         }
-        log.info("MSS PIN Authenticator authentication success for MSISDN - " + msisdn);
+        log.info("Authentication success for MSISDN - " + msisdn);
 
         context.setProperty("msisdn", msisdn);
 //        AuthenticatedUser user=new AuthenticatedUser();

@@ -153,7 +153,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        log.info("Initiating authentication request [ sessionId : " + context.getContextIdentifier() + " ] ");
+        log.info("Initiating authentication request");
 
         boolean isProfileUpgrade = false;
         String loginPage;
@@ -179,15 +179,20 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                             context.getContextIdentifier());
             String retryParam = "";
 
+            if(log.isDebugEnabled()) {
+                log.debug("MSISDN : " + msisdn);
+                log.debug("Query parameters : " + queryParams);
+                log.debug("Current LOA : " + currentLoa);
+            }
+
             if (context.isRetrying()) {
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
-            log.info("Query params: " + queryParams);
 
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" + request.getParameter("redirect_uri") + "&authenticators="
                     + getName() + ":" + "LOCAL" + retryParam);
         } catch (UserStoreException e) {
-            e.printStackTrace();
+            log.error("Userstore exception", e);
         } catch (IOException e) {
             log.error("Error occurred while redirecting request", e);
             throw new AuthenticationFailedException(e.getMessage(), e);
@@ -216,10 +221,17 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     protected void processAuthenticationResponse(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
+        log.info("Processing authentication response");
 
         String msisdn = getMsisdn(request, context);
         String operator = request.getParameter(Constants.OPERATOR);
         String isTerminated = request.getParameter(Constants.IS_TERMINATED);
+
+        if(log.isDebugEnabled()) {
+            log.debug("MSISDN : " + msisdn);
+            log.debug("Operator : " + operator);
+            log.debug("Terminated : " + isTerminated);
+        }
 
         if (isTerminated != null && Boolean.parseBoolean(isTerminated)) {
             terminateAuthentication(context);
@@ -240,6 +252,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             if (rememberMe != null && "eon".equals(rememberMe)) {
                 context.setRememberMe(true);
             }
+            log.info("Authentication success");
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             log.error("MSISDN Authentication failed while trying to authenticate", e);
             terminateAuthentication(context);
@@ -386,7 +399,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         context.setProperty("faileduser", msisdn);
         context.setProperty(Constants.IS_REGISTERING, true);
         if (log.isDebugEnabled()) {
-            log.debug("User authentication failed due to not existing user MSISDN.");
+            log.debug("User authentication failed. MSISDN doesn't exist.");
         }
         throw new AuthenticationFailedException("User does not exist. Moving for registration");
     }

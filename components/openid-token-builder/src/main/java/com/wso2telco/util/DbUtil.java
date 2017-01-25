@@ -118,7 +118,7 @@ private static final Log log = LogFactory.getLog(DbUtil.class);
             try {
                 dbConnection.close();
             } catch (SQLException e) {
-                log.warn("Database error. Could not close database connection. Continuing with " +
+                log.error("Database error. Could not close database connection. Continuing with " +
                         "others. - " + e.getMessage(), e);
             }
         }
@@ -135,7 +135,7 @@ private static final Log log = LogFactory.getLog(DbUtil.class);
             try {
                 resultSet.close();
             } catch (SQLException e) {
-                log.warn("Database error. Could not close ResultSet  - " + e.getMessage(), e);
+                log.error("Database error. Could not close ResultSet  - " + e.getMessage(), e);
             }
         }
 
@@ -152,7 +152,7 @@ private static final Log log = LogFactory.getLog(DbUtil.class);
             try {
                 preparedStatement.close();
             } catch (SQLException e) {
-                log.warn("Database error. Could not close PreparedStatement. Continuing with" +
+                log.error("Database error. Could not close PreparedStatement. Continuing with" +
                         " others. - " + e.getMessage(), e);
             }
         }

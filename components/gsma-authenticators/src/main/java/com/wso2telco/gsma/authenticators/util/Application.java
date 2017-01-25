@@ -38,7 +38,7 @@ public class Application {
         try {
             applicationName = applicationName.substring(applicationName.indexOf("_") + 1);
         }catch(Exception ex){
-            log.error("application name not converting " +ex);
+            log.error("application name not converting ", ex);
         }
         return applicationName;
     }

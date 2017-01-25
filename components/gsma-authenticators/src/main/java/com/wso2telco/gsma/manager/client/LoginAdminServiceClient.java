@@ -6,6 +6,8 @@ import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.context.ServiceContext;
 import org.apache.axis2.transport.http.HTTPConstants;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.authenticator.stub.AuthenticationAdminStub;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.authenticator.stub.LogoutAuthenticationExceptionException;
@@ -21,6 +23,8 @@ public class LoginAdminServiceClient {
 	private final String serviceName = "AuthenticationAdmin";
     private AuthenticationAdminStub authenticationAdminStub;
     private String endPoint;
+
+    private static final Log log = LogFactory.getLog(LoginAdminServiceClient.class);
 
     public LoginAdminServiceClient(String backEndUrl) throws AxisFault {
         //String path = "D:/currLife/is/wso2is-5.0.0/repository/resources/security/"
@@ -40,14 +44,16 @@ public class LoginAdminServiceClient {
         String sessionCookie = null;
 
         if (authenticationAdminStub.login(userName, password, "localhost")) {
-            System.out.println("Login Successful");
+            log.info("Login Successful");
 
             ServiceContext serviceContext = authenticationAdminStub
                     ._getServiceClient().getLastOperationContext()
                     .getServiceContext();
             sessionCookie = (String) serviceContext
                     .getProperty(HTTPConstants.COOKIE_STRING);
-            System.out.println(sessionCookie);
+            if(log.isDebugEnabled()) {
+                log.debug(sessionCookie);
+            }
         }
 
         return sessionCookie;
@@ -91,7 +97,6 @@ public class LoginAdminServiceClient {
         
         //String username = claimAdmin.getUserName();
         
-        System.out.println("Username is = " + claimAdmin.getUserName());
        // Options option
         //claimAdmin.setClaims(param);
     }

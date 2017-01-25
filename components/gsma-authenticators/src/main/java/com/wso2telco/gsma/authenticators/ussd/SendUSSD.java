@@ -77,7 +77,6 @@ public class SendUSSD {
         outboundUSSDMessageRequest.setAddress("tel:+" + msisdn);
         outboundUSSDMessageRequest.setShortCode(ussdConfig.getShortCode());
         outboundUSSDMessageRequest.setKeyword(ussdConfig.getKeyword());
-        log.info("massage:" + ussdConfig.getMessage() + serviceProvider);
         outboundUSSDMessageRequest.setOutboundUSSDMessage(ussdConfig.getMessage() + application.changeApplicationName(serviceProvider) + "\n1. Yes\n2. No");
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
@@ -102,10 +101,9 @@ public class SendUSSD {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("endpoint :"+endpoint);
-            log.debug("reqstr :"+reqString);
+            log.debug("Endpoint : " + endpoint);
+            log.debug("Request : " + reqString);
         }
-        log.info("[sendUSSD][reqString] : " + reqString);
         postRequest(endpoint, reqString,operator);
     }
     
@@ -126,7 +124,7 @@ public class SendUSSD {
         try {
             readMobileConnectConfigResult = ReadMobileConnectConfig.query("USSD");
         }catch (Exception ex){
-            log.error("Exception :"+ex);
+            log.error("Exception" ,ex);
         }
         USSDRequest req = new USSDRequest();
 
@@ -134,7 +132,6 @@ public class SendUSSD {
         outboundUSSDMessageRequest.setAddress("tel:+" + msisdn);
         outboundUSSDMessageRequest.setShortCode(ussdConfig.getShortCode());
         outboundUSSDMessageRequest.setKeyword(ussdConfig.getKeyword());
-        log.info("massage:" + readMobileConnectConfigResult.get("MessageContentPin")+serviceProvider);
         outboundUSSDMessageRequest.setOutboundUSSDMessage(readMobileConnectConfigResult.get("MessageContentPin")+application.changeApplicationName(serviceProvider)+"\n\nPIN");
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
@@ -159,11 +156,10 @@ public class SendUSSD {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("endpoint :"+endpoint);
-            log.debug("reqstr :"+reqString);
+            log.debug("Endpoint : " + endpoint);
+            log.debug("Request : " + reqString);
         }
         
-        log.info("[sendUSSDPIN][reqString] : " + reqString);
         postRequest(endpoint, reqString,operator);
     }
     
@@ -229,7 +225,7 @@ public class SendUSSD {
         try {
             postRequest.setURI(new URI(url));
         } catch (URISyntaxException ex) {
-            log.debug("Malformed URL - " + url + ex);
+            log.error("Malformed URL - " + url, ex);
         }
 
         postRequest.addHeader("accept", "application/json");

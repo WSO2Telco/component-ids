@@ -60,7 +60,7 @@ public class MePinQuery {
 public JsonObject createTransaction(String mepinID, String sessionID, String serviceProvider, String confirmation_policy) throws IOException, XPathExpressionException, SAXException, ParserConfigurationException {
 //        mePinConfig = DataHolder.getInstance().getMobileConnectConfig().getMePinConfig();
 
-        log.debug("Started handling transaction creation");
+        log.info("Started handling transaction creation");
 
         String charset = "UTF-8";
         ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
@@ -68,7 +68,9 @@ public JsonObject createTransaction(String mepinID, String sessionID, String ser
         readMobileConnectConfigResult = readMobileConnectConfig.query("MePIN");
         String url = readMobileConnectConfigResult.get("Endpoint");//mePinConfig.getEndpoint();
 
-        log.debug("MePIN URL: " + url);
+        if(log.isDebugEnabled()) {
+            log.debug("MePIN URL: " + url);
+        }
 
         String identifier = sessionID;
         String short_message = readMobileConnectConfigResult.get("ShortMessageText");//"Confirm Authentication";//mePinConfig.getShortMessageText();
@@ -102,14 +104,14 @@ public JsonObject createTransaction(String mepinID, String sessionID, String ser
         );
         
         if (log.isDebugEnabled()) {
-        log.debug("MePin query: " + query);
+            log.debug("MePin query: " + query);
         }
         String response = postRequest(url, query, charset);
 
         JsonObject responseJson = new JsonParser().parse(response).getAsJsonObject();
         
         if (log.isDebugEnabled()) {
-        log.debug("MePin JSON Response: " + responseJson);
+            log.debug("MePin JSON Response: " + responseJson);
         }
         
         return responseJson;

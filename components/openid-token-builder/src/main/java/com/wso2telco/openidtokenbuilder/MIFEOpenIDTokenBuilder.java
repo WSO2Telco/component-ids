@@ -153,11 +153,9 @@ public class MIFEOpenIDTokenBuilder implements
 		try {
 			subject = createLocalACR(msisdn,applicationName);
 		} catch (InvalidKeyException e) {
-			 log.error("Error : " + e.getMessage());
-			 e.printStackTrace();
+			 log.error("Error", e);
 		} catch (NoSuchAlgorithmException e) {
-			 log.error("Error : " + e.getMessage());
-			 e.printStackTrace();
+			 log.error("Error", e);
 		}
 
 		// Get access token issued time
@@ -175,17 +173,17 @@ public class MIFEOpenIDTokenBuilder implements
         } catch (IdentityOAuth2Exception e) {
 
             if (DEBUG) {
-                log.error("Error : " + e.getMessage());
+                log.error("Error", e);
             }
 
         }
 
 		if (DEBUG) {
-			log.debug("Using issuer " + issuer); //$NON-NLS-1$
-			log.debug("Subject " + subject); //$NON-NLS-1$
-			log.debug("ID Token expiration seconds" + lifetime); //$NON-NLS-1$
-			log.debug("Current time " + curTime); //$NON-NLS-1$
-			log.debug("nonce  " + nonce); //$NON-NLS-1$
+			log.debug("Using issuer : " + issuer); //$NON-NLS-1$
+			log.debug("Subject : " + subject); //$NON-NLS-1$
+			log.debug("ID Token expiration seconds : " + lifetime); //$NON-NLS-1$
+			log.debug("Current time : " + curTime); //$NON-NLS-1$
+			log.debug("nonce : " + nonce); //$NON-NLS-1$
 		}
 
 		try {
@@ -357,9 +355,9 @@ public class MIFEOpenIDTokenBuilder implements
 
 			if (DEBUG) {
 				log.debug("Connecting to ACR engine @ " + ACR_HOST_URI); //$NON-NLS-1$
-				log.debug("Service name = " + APP_PROV_SERVICE); //$NON-NLS-1$
-				log.debug("Service provider = " + SERVICE_PROVIDER); //$NON-NLS-1$
-				log.debug("Request - ACR app = " + requestEntity.getContent()); //$NON-NLS-1$
+				log.debug("Service name : " + APP_PROV_SERVICE); //$NON-NLS-1$
+				log.debug("Service provider : " + SERVICE_PROVIDER); //$NON-NLS-1$
+				log.debug("Request - ACR app : " + requestEntity.getContent()); //$NON-NLS-1$
 			}
 
 			httpClient = new HttpClient();
@@ -370,7 +368,7 @@ public class MIFEOpenIDTokenBuilder implements
 			if (null != responseACRApp && !"".equals(responseACRApp)) { //$NON-NLS-1$
 				try {
 					if (DEBUG) {
-						log.debug("Response - ACR app = " + responseACRApp); //$NON-NLS-1$
+						log.debug("Response - ACR app : " + responseACRApp); //$NON-NLS-1$
 					}
 					strACR = JsonPath.read(responseACRApp, "$.provisionAppResponse.appID"); //$NON-NLS-1$
 				} catch (Exception e) {
@@ -480,7 +478,7 @@ public class MIFEOpenIDTokenBuilder implements
 		if (null != responseACR && !"".equals(responseACR)) { //$NON-NLS-1$
 			try {
 				if (DEBUG) {
-					log.debug("Response - retrieve ACR = " + responseACR); //$NON-NLS-1$
+					log.debug("Response - retrieve ACR : " + responseACR); //$NON-NLS-1$
 				}
 				strACR = JsonPath.read(responseACR, "$.retriveAcrResponse.acr"); //$NON-NLS-1$
 				isRetrievedACR = true;
@@ -495,7 +493,7 @@ public class MIFEOpenIDTokenBuilder implements
 			if (null != responseNewACR && !"".equals(responseNewACR)) { //$NON-NLS-1$
 				try {
 					if (DEBUG) {
-						log.debug("Response - create ACR = " + responseNewACR); //$NON-NLS-1$
+						log.debug("Response - create ACR : " + responseNewACR); //$NON-NLS-1$
 					}
 					strACR = JsonPath.read(responseNewACR, "$.createAcrResponse.acrInfo[0].acr"); //$NON-NLS-1$
 				} catch (Exception e) {
@@ -542,8 +540,9 @@ public class MIFEOpenIDTokenBuilder implements
             ///nop
         }
 
-        log.info("Encrypted Text:" + encryptedText);
-
+        if(log.isDebugEnabled()) {
+            log.info("Encrypted Text : " + encryptedText);
+        }
         String encryptedPcr = encryptedText.replaceAll("\r", "").replaceAll("\n", "");
 
         return encryptedPcr;
@@ -587,10 +586,10 @@ public class MIFEOpenIDTokenBuilder implements
 
 			if (DEBUG) {
 				log.debug("Connecting to ACR engine @ " + ACR_HOST_URI); //$NON-NLS-1$
-				log.debug("Service name = " + RETRIEVE_SERVICE); //$NON-NLS-1$
-				log.debug("Service provider = " + SERVICE_PROVIDER); //$NON-NLS-1$
-				log.debug("App key = " + acrAppID); //$NON-NLS-1$
-				log.debug("Request - retrieve ACR = " + requestEntity.getContent()); //$NON-NLS-1$
+				log.debug("Service name : " + RETRIEVE_SERVICE); //$NON-NLS-1$
+				log.debug("Service provider : " + SERVICE_PROVIDER); //$NON-NLS-1$
+				log.debug("App key : " + acrAppID); //$NON-NLS-1$
+				log.debug("Request - retrieve ACR : " + requestEntity.getContent()); //$NON-NLS-1$
 			}
 
 			httpClient = new HttpClient();
@@ -648,10 +647,10 @@ public class MIFEOpenIDTokenBuilder implements
 
 			if (DEBUG) {
 				log.debug("Connecting to ACR engine @ " + ACR_HOST_URI); //$NON-NLS-1$
-				log.debug("Service name = " + CREATE_SERVICE); //$NON-NLS-1$
-				log.debug("Service provider = " + SERVICE_PROVIDER); //$NON-NLS-1$
-				log.debug("App key = " + acrAppID); //$NON-NLS-1$
-				log.debug("Request - create ACR = " + requestEntity.getContent()); //$NON-NLS-1$
+				log.debug("Service name : " + CREATE_SERVICE); //$NON-NLS-1$
+				log.debug("Service provider : " + SERVICE_PROVIDER); //$NON-NLS-1$
+				log.debug("App key : " + acrAppID); //$NON-NLS-1$
+				log.debug("Request - create ACR : " + requestEntity.getContent()); //$NON-NLS-1$
 			}
 
 			httpClient = new HttpClient();

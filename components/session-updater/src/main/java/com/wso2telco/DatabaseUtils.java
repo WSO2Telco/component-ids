@@ -102,8 +102,7 @@ public class DatabaseUtils {
             log.error("Naming Error occurred: " + ex);
             //Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            log.error("SQL Error occurred: " + e);
-            System.out.print(e.getMessage());
+            log.error("Error while updating user status", e);
         } finally {
             connection.close();
         }
@@ -141,8 +140,7 @@ public class DatabaseUtils {
             log.error("Naming Error occurred: " + ex);
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            log.error("SQL Error occurred: " + e);
-            System.out.print(e.getMessage());
+            log.error("Error while updating status", e);
         } finally {
             connection.close();
         }
@@ -181,8 +179,7 @@ public class DatabaseUtils {
             log.error("Naming Error occurred: " + ex);
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            log.error("SQL Error occurred: " + e);
-            System.out.print(e.getMessage());
+            log.error("Error while updating registration status", e);
         } finally {
             connection.close();
         }
@@ -221,7 +218,7 @@ public class DatabaseUtils {
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while updating pin status", e);
         } finally {
             connection.close();
         }
@@ -275,7 +272,7 @@ public class DatabaseUtils {
 
         } catch (SQLException e) {
 
-            System.out.print(e.getMessage());
+            log.error("Error while updating pin status", e);
 
         } finally {
 
@@ -317,7 +314,7 @@ public class DatabaseUtils {
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while retrieving user status", e);
         } finally {
             connection.close();
 
@@ -369,7 +366,7 @@ public class DatabaseUtils {
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.info("Error while reading multiple password attempts", e);
         } finally {
             connection.close();
         }
@@ -401,7 +398,7 @@ public class DatabaseUtils {
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while checking for first pin request", e);
         } finally {
             connection.close();
         }
@@ -439,7 +436,7 @@ public class DatabaseUtils {
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while updating multiple password attempts", e);
         } finally {
             connection.close();
         }
@@ -463,7 +460,7 @@ public class DatabaseUtils {
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while deleting user", e);
         } finally {
             connection.close();
         }
@@ -523,7 +520,7 @@ public class DatabaseUtils {
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while retrieving login history", e);
         } finally {
             connection.close();
 
@@ -562,7 +559,7 @@ public class DatabaseUtils {
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while retrieving login apps", e);
         } finally {
             connection.close();
 

@@ -49,7 +49,6 @@ public class ClaimManagementClient {
     }
     
     public void setClaim() throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException{
-        System.out.println("Remote User " + remoteUser.getProfileNames(FileUtil.getApplicationProperty("isadminurl")).toString());
     }
     
 

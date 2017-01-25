@@ -330,7 +330,6 @@
         term_ussd.style.display = 'block';
     }
 
-    <% System.out.println("xxxxxxxxxxxxxxxxxxxx ssssssssssss :" + updateProfile); %>
     if ('<%=updateProfile%>' == "true") {
         flow();
         term_ussd_pin.style.display = 'none';
