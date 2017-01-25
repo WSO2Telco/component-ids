@@ -340,4 +340,7 @@ public final class Constants {
     public static final String CLIENT_ID = "client_id";
 
     public static final String IS_TERMINATED = "isTerminated";
+
+    public static final String IP_ADDRESS = "ipAddress";
+
 }
