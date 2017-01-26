@@ -428,7 +428,7 @@ public class Endpoints {
 	@Produces("application/json")
 	public Response userStatus(@QueryParam("username") String username, String jsonBody) throws SQLException {
 
-        log.isDebugEnabled() {
+        if(log.isDebugEnabled()) {
             log.debug(username + " Json body for ussd status:  " + jsonBody);
         }
 		String userStatus = null;
