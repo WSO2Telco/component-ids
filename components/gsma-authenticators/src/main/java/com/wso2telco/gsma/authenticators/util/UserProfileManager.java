@@ -385,7 +385,7 @@ public class UserProfileManager {
                     DataHolder.getInstance().getMobileConnectConfig().getAdminUrl(), sessionCookie);
 
         } catch (AxisFault axisFault) {
-            axisFault.printStackTrace();
+            log.error(axisFault);
         } catch (RemoteException e) {
             log.error(e);
         } catch (LoginAuthenticationExceptionException e) {

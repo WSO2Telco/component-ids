@@ -166,10 +166,10 @@ public class UserInfoScopeTest {
                 JSONObject obj = new JSONObject(outputString);
                 access_token = obj.getString("access_token");
             }
-        } catch (IOException e1) {
-            e1.printStackTrace();
+        } catch (IOException e) {
+            log.error(e);
         } catch (JSONException e) {
-			e.printStackTrace();
+			log.error(e);
 		}
         return access_token;
 
@@ -199,7 +199,7 @@ public class UserInfoScopeTest {
 
         } catch (Exception ex) {
 
-            ex.printStackTrace();
+            log.error(ex);
         }
         return resp;
     }
@@ -265,7 +265,7 @@ public class UserInfoScopeTest {
 
         }
 		} catch (JSONException e) {
-			e.printStackTrace();
+			log.error(e);
 			return false;
 		}
         return isValid;
