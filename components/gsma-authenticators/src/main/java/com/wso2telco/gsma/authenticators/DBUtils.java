@@ -648,6 +648,7 @@ public class DBUtils {
      * @throws SQLException
      * @throws NamingException
      */
+    @Deprecated
     private static List<MSISDNHeader> getMSISDNPropertiesByOperatorId(int operatorId, String operatorName,
                                                                       Connection connection) throws
                                                                                              SQLException,
