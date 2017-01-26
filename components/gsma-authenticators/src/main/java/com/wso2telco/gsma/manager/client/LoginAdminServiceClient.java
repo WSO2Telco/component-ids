@@ -78,11 +78,11 @@ public class LoginAdminServiceClient {
                 ClaimManagementClient claimManager = new ClaimManagementClient(adminURL,sessionCookie);
 
         } catch (AxisFault e) {
-                e.printStackTrace();
+                log.error(e);
         } catch (RemoteException e) {
-                e.printStackTrace();
+                log.error(e);
         } catch (LoginAuthenticationExceptionException e) {
-                e.printStackTrace();
+                log.error(e);
         } 
         return sessionKey;
         
