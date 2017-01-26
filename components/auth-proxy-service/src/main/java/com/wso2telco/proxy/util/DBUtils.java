@@ -130,7 +130,7 @@ public class DBUtils {
         Map<String, Operator> operatorProperties = new HashMap<String, Operator>();
         String queryToGetOperatorProperties = "SELECT ID, operatorName, requiredIPValidation, ipHeader FROM operators";
         try {
-            connection = getConnection();
+            connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(queryToGetOperatorProperties);
             resultSet = preparedStatement.executeQuery();
 
@@ -172,7 +172,7 @@ public class DBUtils {
         String queryToGetOperatorProperty = "SELECT DISTINCT operatorId, LOWER(operatorName) AS operatorName FROM " +
                 "operators_msisdn_headers_properties prop LEFT JOIN operators op ON op.ID=prop.operatorId";
         try {
-            connection = getConnection();
+            connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
@@ -212,7 +212,7 @@ public class DBUtils {
                 "msisdnEncryptionKey, priority FROM operators_msisdn_headers_properties WHERE operatorId = ? ORDER BY" +
                 " priority ASC";
         try {
-            connection = getConnection();
+            connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
             preparedStatement.setInt(1, operatorId);
             resultSet = preparedStatement.executeQuery();
@@ -255,7 +255,7 @@ public class DBUtils {
 
         Map scopeParamsMap = new HashMap();
         try {
-            conn = getConnection();
+            conn = getConnectDBConnection();
             ps = conn.prepareStatement(sql);
             ps.setString(1, scope);
             results = ps.executeQuery();
