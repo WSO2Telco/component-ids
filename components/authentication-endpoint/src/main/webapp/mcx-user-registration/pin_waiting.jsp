@@ -47,7 +47,6 @@
         <![endif]-->
         <script type="text/javascript" src="mcresources/js/vendor/modernizr.js"></script>
         <%
-System.out.println("waiting.jsp-----------------------------------------");
         String acr = request.getParameter("http://wso2.org/claims/loa")!= null ?  request.getParameter("http://wso2.org/claims/loa") : "";
         String sessionDataKey = request.getParameter("sessionDataKey")!= null ?  request.getParameter("sessionDataKey") : "";
         String operator = request.getParameter("operator")!= null ?  request.getParameter("operator") : "";

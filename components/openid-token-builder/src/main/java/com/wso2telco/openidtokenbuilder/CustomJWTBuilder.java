@@ -155,8 +155,8 @@ public class CustomJWTBuilder {
 				payloadJson = CustomJSONUtils.buildJSON(payloadClaims);
 				encodedPayload = JWTUtil.encodeJSON(payloadJson);
 				if (debug) {
-					log.debug("JWT payload :" + payloadJson);
-					log.debug("Encoded JWT payload" + encodedPayload);
+					log.debug("JWT payload : " + payloadJson);
+					log.debug("Encoded JWT payload : " + encodedPayload);
 				}
 			} catch (JSONException e) {
 				log.debug(e);

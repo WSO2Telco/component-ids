@@ -86,37 +86,38 @@ public class Endpoints {
 		int responseCode = 201;
 		int noOfAttempts = 0;
 
-		log.info(" Json body for ussdReceive :  " + jsonBody);
-
+        if(log.isDebugEnabled()) {
+            log.debug("Json body for ussdReceive :  " + jsonBody);
+        }
 		org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
 
-		log.info(" Json body for ussdReceive has sessionID :  "
-				+ jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID"));
 		String ussdSessionID = null;
 		if (jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID")
 				&& !jsonObj.getJSONObject("inboundUSSDMessageRequest").isNull("sessionID")) {
 			ussdSessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("sessionID");
-			log.debug("####### LOGS  ussdSessionID 01 : " + ussdSessionID);
+			if(log.isDebugEnabled()) {
+                log.debug("UssdSessionID 01 : " + ussdSessionID);
+            }
 		}
 
-		log.debug("####### LOGS  ussdSessionID 02 : " + ussdSessionID);
-
+        if(log.isDebugEnabled()) {
+            log.debug("UssdSessionID 02 : " + ussdSessionID);
+        }
 		// Retrive pin and username
 		String message = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("inboundUSSDMessage");
 		String sessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("clientCorrelator");
 
-		log.debug("####### LOGS  message : " + message);
-		log.debug("####### LOGS  sessionID : " + sessionID);
-
 		noOfAttempts = DatabaseUtils.readMultiplePasswordNoOfAttempts(sessionID);
-		log.info("####### LOGS  noOfAttempts : " + noOfAttempts);
 
+        if(log.isDebugEnabled()) {
+            log.debug("Message : " + message);
+            log.debug("SessionID : " + sessionID);
+            log.debug("NoOfAttempts : " + noOfAttempts);
+        }
 		SendUSSD ussdPush = new SendUSSD();
 
 		if (!(message.matches("[0-9]+") && message.length() > 3
 				&& message.length() < Integer.parseInt(FileUtil.getApplicationProperty("maxlength")))) {
-
-			log.debug("####### LOGS  within the if >>>>> ");
 
 			notifyUrl = FileUtil.getApplicationProperty("notifyurl");
 
@@ -136,14 +137,12 @@ public class Endpoints {
 
 		}
 
-		log.debug("####### LOGS  within the else --->>> ");
 		// Mobile Number = Username
 		msisdn = sessionID;
 
 		// First Time PIN Retrival
 		if (noOfAttempts == 1 || noOfAttempts == 3 || noOfAttempts == 5) {
 
-			log.debug("####### LOGS  within the 1 or 3 or 5--->>> ");
 			if (noOfAttempts == 1) {
 				DatabaseUtils.deleteRequestType(msisdn);
 			}
@@ -155,7 +154,6 @@ public class Endpoints {
 			// Send USSD push to user's mobile
 			// Ask User to retype password
 			// ussdPush.sendUSSD(msisdn, sessionID,2,"mtcont");
-			log.debug("####### LOGS  finally  1 or 3 or 5--->>> ");
 			responseString = SendUSSD.getJsonPayload(msisdn, sessionID, 2, "mtcont", notifyUrl, ussdSessionID, true);
 
 		} else if (noOfAttempts == 2 || noOfAttempts == 4 || noOfAttempts == 6) {
@@ -187,16 +185,17 @@ public class Endpoints {
 				/* refactoring finished for USSD PIN profile */
 
 				DatabaseUtils.deleteUser(sessionID);
-				log.debug("####### LOGS  finally  --->>> ");
 
 				// check for PIN_RESET flow
 				if (pinResetRequest.containsKey(msisdn)) {
 					String sessionDK = pinResetRequest.get(msisdn);
 					// Update the client status table, which will be used at the
 					// USSDPINAuthenticator
-					String logTxt = "####____________ found pin reset and inserting to client status. Session_Data_Key: "
+					String logTxt = "Found pin reset and inserting to client status. Session_Data_Key: "
 							+ sessionDK;
-					log.info(logTxt);
+					if(log.isDebugEnabled()) {
+                        log.debug(logTxt);
+                    }
 					
 					DatabaseUtils.insertPinResetRequest(sessionDK, "Approved", message);
 					pinResetRequest.remove(msisdn);
@@ -207,7 +206,6 @@ public class Endpoints {
 					// Session Terminated saying user has entered incorrect pin
 					// three times.
 
-					log.debug("####### LOGS  finally  6 if -->>> ");
 					SendUSSD.getJsonPayload(msisdn, sessionID, 4, "mtfin", notifyUrl, ussdSessionID, true);
 					// Updating reg status to Failed, so the PIN reset flow can
 					// be started.
@@ -215,7 +213,6 @@ public class Endpoints {
 					DatabaseUtils.deleteUser(sessionID);
 				} else {
 
-					log.debug("####### LOGS  finally  6- else -->>> ");
 					notifyUrl = FileUtil.getApplicationProperty("notifyurl");
 					// Start new PIN session
 					responseString = SendUSSD.getJsonPayload(msisdn, sessionID, 3, "mtcont", notifyUrl, ussdSessionID,
@@ -241,7 +238,11 @@ public class Endpoints {
 	@Consumes("application/json")
 	@Produces("application/json")
 	public Response ussdPushReceive(String jsonBody) throws Exception {
-		log.info("USSD Push received:" + jsonBody);
+		log.info("USSD Push received");
+
+        if(log.isDebugEnabled()) {
+            log.debug("Request : " + jsonBody);
+        }
 
 		org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
 		String address = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("address");
@@ -252,10 +253,14 @@ public class Endpoints {
 		if (jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID")
 				&& !jsonObj.getJSONObject("inboundUSSDMessageRequest").isNull("sessionID")) {
 			ussdSessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("sessionID");
-			log.debug("####### LOGS  ussdSessionID 01 : " + ussdSessionID);
+            if(log.isDebugEnabled()) {
+                log.debug("UssdSessionID 01 : " + ussdSessionID);
+            }
 		}
 
-		log.info("Ussd Push received inboundUSSDMessage:" + inboundUSSDMessage + " ,address:" + address);
+        if(log.isDebugEnabled()) {
+            log.debug("Ussd Push received inboundUSSDMessage:" + inboundUSSDMessage + " ,address:" + address);
+        }
 		String msisdn = null;
 		
 		/**
@@ -285,7 +290,7 @@ public class Endpoints {
             //update databse after cancellation of registration of user
             DatabaseUtils.updateRegStatus(msisdn, "Rejected");
             if (log.isDebugEnabled()) {
-            log.debug("User Rejected the USSD Push");
+                log.debug("User Rejected the USSD Push");
             }
             return Response.status(200).entity(responseString).build();
         } else {
@@ -293,12 +298,14 @@ public class Endpoints {
             DatabaseUtils.updateRegStatus(msisdn, "Rejected");
             responseString = SendUSSD.getJsonPayload(msisdn, sessionID, 6, "mtfin", notifyUrl, ussdSessionID, true);
             if (log.isDebugEnabled()) {
-            log.debug("User Rejected the USSD Push");
+                log.debug("User Rejected the USSD Push");
             }
             return Response.status(200).entity(responseString).build();
         }
 
-		log.info("USSD Push received msisdn :" + msisdn);
+        if(log.isDebugEnabled()) {
+            log.debug("USSD Push received msisdn :" + msisdn);
+        }
 		UserRegistrationData userRegistrationData = userMap.get(msisdn);
 		
 		responseString = "Your registration confirm time has expired. Please register again";
@@ -339,13 +346,15 @@ public class Endpoints {
 			@QueryParam("action") String action, @QueryParam("sessionDataKey") String sessionDataKey)
 					throws IOException, SQLException, JSONException {
 
-		log.info(" Json body for ussd pin :  " + jsonBody);
-
+        if(log.isDebugEnabled()) {
+            log.debug(" Json body for ussd pin :  " + jsonBody);
+        }
 		// If PIN_RESET request record the msisdn
 		if (action != null && action.equals("pinreset")) {
-			String logTxt = "####____________ PIN Reset flow started, session_data_key: " + sessionDataKey;
-			log.info(logTxt);
-			
+            if(log.isDebugEnabled()) {
+                String logTxt = "PIN Reset flow started, session_data_key: " + sessionDataKey;
+                log.debug(logTxt);
+            }
 			pinResetRequest.put(msisdn, sessionDataKey);
 		}
 
@@ -362,8 +371,6 @@ public class Endpoints {
 		}
 
 		String ussdSessionID = null;
-
-		log.info("DB data ------>>>>>" + userName + " : ussdSessionID : " + ussdSessionID);
 
 		DatabaseUtils.insertMultiplePasswordPIN(userName, ussdSessionID);
 
@@ -405,11 +412,12 @@ public class Endpoints {
 		userMap.put(msisdn, userRegistrationData);
 
 		SendUSSD ussdPush = new SendUSSD();
-		log.info("Ussd push info usrname:" + userName + " msisdn:" + msisdn);
+
+        if(log.isDebugEnabled()) {
+            log.debug("Ussd push info username:" + userName + " msisdn:" + msisdn);
+        }
 		DatabaseUtils.insertUserStatus(userName, "pending");
-		log.info("DB updated user status PENDING..");
 		ussdPush.sendUSSDPush(msisdn, userName, "mtinit", operator);
-		log.info("Sent ussd push..");
 
 		return Response.status(200).entity(null).build();
 	}
@@ -420,8 +428,9 @@ public class Endpoints {
 	@Produces("application/json")
 	public Response userStatus(@QueryParam("username") String username, String jsonBody) throws SQLException {
 
-		log.info(username + " Json body for ussd status:  " + jsonBody);
-
+        if(log.isDebugEnabled()) {
+            log.debug(username + " Json body for ussd status:  " + jsonBody);
+        }
 		String userStatus = null;
 		String responseString = null;
 
@@ -730,8 +739,6 @@ public class Endpoints {
 			hexString.append(hex);
 		}
 
-		log.info("UserHash");
-
 		String hashString = hexString.toString();
 
 		return hashString;
@@ -770,7 +777,9 @@ public class Endpoints {
 		Gson gson = new GsonBuilder().serializeNulls().create();
 		org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
 
-		log.info(" Json body for ussdPinResend :  " + jsonBody);
+        if(log.isDebugEnabled()) {
+            log.debug(" Json body for ussdPinResend :  " + jsonBody);
+        }
 		String sessionID = null;
 
 		if (!jsonObj.isNull("sessionID")) {
@@ -930,7 +939,9 @@ public class Endpoints {
 		String returnJson = null;
 		int statusCode = 500;
 		try {
-			log.info("Searching default Authenticator for acr: " + acr);
+            if(log.isDebugEnabled()) {
+                log.debug("Searching default Authenticator for acr: " + acr);
+            }
 			Map<String, MIFEAuthentication> authenticationMap = configurationService.getDataHolder().getAuthenticationLevelMap();
 			MIFEAuthentication mifeAuthentication = authenticationMap.get(acr);
 			List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList = mifeAuthentication
@@ -945,8 +956,10 @@ public class Endpoints {
 			} else {
 				returnJson = "{" + "\"acr\":\"" + acr + "\", \"" + "authenticator\":{\"" + "name\":\"" + selected
 						+ "\"}" + "}";
-				log.info("Default authenticator for acr:" + acr + " is \n" + returnJson);
-				log.info("Response: \n" + returnJson);
+				if(log.isDebugEnabled()) {
+                    log.debug("Default authenticator for acr:" + acr + " is \n" + returnJson);
+                    log.debug("Response: \n" + returnJson);
+                }
 				statusCode = 200;
 			}
 		} catch (Exception e) {
@@ -974,14 +987,14 @@ public class Endpoints {
 						|| UserRegistrationConstants.ussdAuthenticator.equalsIgnoreCase(authenticatorName)
 						|| UserRegistrationConstants.ussdPinAuthenticator.equalsIgnoreCase(authenticatorName)) {
 					String msg = "Found valid authenticator: " + authenticatorName;
-					log.debug(msg);
-					log.info(msg);
+					if(log.isDebugEnabled()) {
+                        log.debug(msg);
+                    }
 					return authenticatorName;
 				}
 			}
 		} catch (Exception e) {
-			log.error("Error found: " + e);
-			log.info("Error found: " + e);
+			log.error(e);
 		}
 		return null;
 	}

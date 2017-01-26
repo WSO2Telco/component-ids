@@ -136,7 +136,7 @@ public class SendSMS {
         HttpResponse response = client.execute(postRequest);
         
         if ( (response.getStatusLine().getStatusCode() != 201)){
-            LOG.info("Error occured while calling end points");
+            LOG.error("Error occured while calling end points");
         }
         else{
             LOG.info("Success Request");

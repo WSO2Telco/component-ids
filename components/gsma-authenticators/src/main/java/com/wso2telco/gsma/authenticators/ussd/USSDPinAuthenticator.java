@@ -124,6 +124,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
     protected void initiateAuthenticationRequest(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
+        log.info("Initiating authentication request");
 
         String retryParam = "";
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
@@ -131,7 +132,12 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         String serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
 
-        log.info("Initiating authentication request [ msisdn : " + msisdn + " , service provider : " + serviceProviderName + " ] ");
+        if(log.isDebugEnabled()) {
+            log.debug("Registering : " + isRegistering);
+            log.debug("Pin reset : " + isPinReset);
+            log.debug("MSISDN : " + msisdn);
+            log.debug("Service provider : " + serviceProviderName);
+        }
 
         try {
 
@@ -140,7 +146,6 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
                     context.getCallerSessionKey(), context.getContextIdentifier());
 
-            log.info("Service Provider Name = " + serviceProviderName);
             if (serviceProviderName.equals("wso2_sp_dashboard")) {
                 serviceProviderName = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getDashBoard();
             }
@@ -223,6 +228,8 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
+        log.info("Processing authentication response");
+
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         PinConfig pinConfig = PinConfigUtil.getPinConfig(context);
 
@@ -232,7 +239,14 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         boolean isPinResetConfirmation = isPinResetConfirmation(pinConfig);
         String isTerminated = request.getParameter(Constants.IS_TERMINATED);
 
-        log.info("Processing authentication request [ msisdn : " + msisdn + " ] ");
+        if(log.isDebugEnabled()) {
+            log.debug("MSISDN : " + msisdn);
+            log.debug("Registering : " + isRegistering);
+            log.debug("Profile upgrade : " + isProfileUpgrade);
+            log.debug("Pin reset : " + isPinReset);
+            log.debug("Pin reset confirmation : " + isPinResetConfirmation);
+            log.debug("Terminated : " + isTerminated);
+        }
 
         if (isTerminated != null && Boolean.parseBoolean(isTerminated)) {
             terminateAuthentication(context);
@@ -255,7 +269,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             AuthenticationContextHelper.setSubject(context, msisdn);
 
             context.setRememberMe(false);
-            log.info("UssdPinAuthenticator successfully completed");
+            log.info("Authentication success");
 
         } catch (UserRegistrationAdminServiceIdentityException | RemoteException e) {
             log.error("Error occurred while creating user profile", e);
@@ -420,9 +434,11 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         String operator = (String) context.getProperty(Constants.OPERATOR);
         PinConfig pinConfig = (PinConfig) context.getProperty(com.wso2telco.core.config.util.Constants.PIN_CONFIG_OBJECT);
 
-        log.info("Updating user profile from LOA2 to LOA3 flow [ msisdn : " + msisdn + " , challenge question 1 : " +
-                challengeQuestion1 + " , challenge answer 1 : " + challengeAnswer1 + " , challenge question 2 : " +
-                challengeQuestion2 + " , challenge answer 2 : " + challengeAnswer2 + " ] ");
+        if(log.isDebugEnabled()) {
+            log.debug("Updating user profile from LOA2 to LOA3 flow [ msisdn : " + msisdn + " , challenge question 1 : " +
+                    challengeQuestion1 + " , challenge answer 1 : " + challengeAnswer1 + " , challenge question 2 : " +
+                    challengeQuestion2 + " , challenge answer 2 : " + challengeAnswer2 + " ] ");
+        }
 
         challengeAnswer1 = challengeQuestion1 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer1;
         challengeAnswer2 = challengeQuestion2 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer2;
@@ -440,9 +456,12 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         PinConfig pinConfig = PinConfigUtil.getPinConfig(context);
 
         if (pinConfig.isPinsMatched()) {
-            log.info("Creating user profile for LOA3 flow [ msisdn : " + msisdn + " , challenge question 1 : " +
-                    challengeQuestion1 + " , challenge answer 1 : " + challengeAnswer1 + " , challenge question 2 : " +
-                    challengeQuestion2 + " , challenge answer 2 : " + challengeAnswer2 + " ] ");
+
+            if(log.isDebugEnabled()) {
+                log.debug("Creating user profile for LOA3 flow [ msisdn : " + msisdn + " , challenge question 1 : " +
+                        challengeQuestion1 + " , challenge answer 1 : " + challengeAnswer1 + " , challenge question 2 : " +
+                        challengeQuestion2 + " , challenge answer 2 : " + challengeAnswer2 + " ] ");
+            }
 
             challengeAnswer1 = challengeQuestion1 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer1;
             challengeAnswer2 = challengeQuestion2 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer2;
@@ -460,9 +479,6 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         PinConfig pinConfig = PinConfigUtil.getPinConfig(context);
         String registeredPin = new UserProfileManager().getCurrentPin(msisdn);
         String confirmedPin = pinConfig.getConfirmedPin();
-
-
-        log.info("Handling user login [ msisdn : " + msisdn + "]");
 
         int tenantId = -1234;
         UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService()
@@ -543,9 +559,9 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             hashString = hexString.toString();
 
         } catch (UnsupportedEncodingException ex) {
-            log.error("Error getHashValue" + ex);
+            log.error("Error while generating hash value", ex);
         } catch (NoSuchAlgorithmException ex) {
-            log.error("Error getHashValue" + ex);
+            log.error("Error while generating hash value", ex);
         }
 
         return hashString;

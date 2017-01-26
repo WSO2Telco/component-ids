@@ -67,7 +67,7 @@ public class Activator implements BundleActivator {
 	public void startDeploy(BundleContext bundleContext) throws Exception {
     	
     	if(log.isDebugEnabled()){
-    	log.debug("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH__________0001");
+    	    log.debug("Start deploying...");
     	}
     	
     	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
@@ -106,10 +106,6 @@ public class Activator implements BundleActivator {
         configurationService.getDataHolder().setMobileConnectConfig(ConfigLoader.getInstance().getMobileConnectConfig());
         Map<String, MIFEAuthentication> authenticationMap = loadMIFEAuthenticatorMap(authenticationLevels);
         configurationService.getDataHolder().setAuthenticationLevelMap(authenticationMap);
-         if (log.isDebugEnabled()) {
-         log.debug("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH__________0003");
-         }
-         
          if (log.isDebugEnabled()) {
              log.debug("Custom Application Authenticator bundle is activated");
          }

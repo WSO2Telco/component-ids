@@ -97,11 +97,17 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
+        log.info("Initiating authentication request");
+
         String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         String queryParams = FrameworkUtils
                 .getQueryStringWithFrameworkContextId(context.getQueryParams(),
                         context.getCallerSessionKey(),
                         context.getContextIdentifier());
+
+        if(log.isDebugEnabled()) {
+            log.debug("Query parameters : " + queryParams);
+        }
 
         try {
             String retryParam = "";
@@ -133,14 +139,13 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 
             context.getContextIdentifier();
 
-            log.info("sms message >>>>>> "+messageURL);
-            
             String operator = (String) context.getProperty("operator");
 
-            log.info("operator:" + operator);
-
-            log.info("massage:" + messageText + "\n" + messageURL+readMobileConnectConfigResult.get("MessageContentLast"));
-            
+            if(log.isDebugEnabled()) {
+                log.debug("Message URL : " + messageURL);
+                log.debug("Operator : " + operator);
+                log.debug("Message : " + messageText + "\n" + messageURL + readMobileConnectConfigResult.get("MessageContentLast"));
+            }
             String smsResponse = new SendSMS().sendSMS(msisdn, messageText + "\n" + messageURL+readMobileConnectConfigResult.get("MessageContentLast"),operator);
 
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&authenticators=" +
@@ -162,8 +167,13 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
     protected void processAuthenticationResponse(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
+        log.info("Processing authentication response");
 
         String sessionDataKey = request.getParameter("sessionDataKey");
+
+        if(log.isDebugEnabled()) {
+            log.debug("SessionDataKey : " + sessionDataKey);
+        }
 
         boolean isAuthenticated = false;
 
@@ -181,13 +191,8 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         }
 
         if (!isAuthenticated) {
-            log.info("SMS Authenticator authentication failed ");
+            log.info("Authentication failed. Consent not provided.");
             context.setProperty("faileduser", (String) context.getProperty("msisdn"));
-            
-            if (log.isDebugEnabled()) {
-                log.debug("User authentication failed due to user not providing consent.");
-            }
-
             throw new AuthenticationFailedException("Authentication Failed");
         }
       
@@ -197,7 +202,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 //        context.setSubject(user);
         AuthenticationContextHelper.setSubject(context, msisdn);
         
-        log.info("SMS Authenticator authentication success");
+        log.info("Authentication success");
 
 //        context.setSubject(msisdn);
         String rememberMe = request.getParameter("chkRemember");

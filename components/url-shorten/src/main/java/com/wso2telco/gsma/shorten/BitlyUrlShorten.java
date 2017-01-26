@@ -19,6 +19,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.security.KeyStore;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.client.methods.HttpGet;
@@ -43,6 +45,9 @@ import org.json.simple.parser.JSONParser;
  * The Class BitlyUrlShorten.
  */
 public class BitlyUrlShorten implements UrlShorten {
+
+    private static Log log = LogFactory.getLog(BitlyUrlShorten.class);
+
 
     /* (non-Javadoc)
      * @see com.wso2telco.gsma.shorten.UrlShorten#getShortenURL(java.lang.String, java.lang.String, java.lang.String)
@@ -78,10 +83,9 @@ public class BitlyUrlShorten implements UrlShorten {
             String shortUrlObject = jsonObj.get("data").toString();
             JSONObject urlObject = (JSONObject)new JSONParser().parse(shortUrlObject);
             shortUrl = urlObject.get("url").toString();
-            System.out.println(shortUrl);
 
-        }catch(Exception ex){
-            ex.printStackTrace();
+        } catch(Exception ex){
+            log.error(ex.getMessage());
         }
 
         return shortUrl;

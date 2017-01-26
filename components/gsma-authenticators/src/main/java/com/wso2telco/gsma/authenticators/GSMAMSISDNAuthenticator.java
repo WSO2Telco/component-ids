@@ -103,8 +103,9 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 	protected void initiateAuthenticationRequest(HttpServletRequest request,
 			HttpServletResponse response, AuthenticationContext context)
 			throws AuthenticationFailedException {
+        log.info("Initiating authentication request");
 
-		// Retrieve entry LOA and set to authentication context
+        // Retrieve entry LOA and set to authentication context
 		LinkedHashSet<?> acrs = getACRValues(request);
 		String selectedLOA = (String) acrs.iterator().next();
 		context.setProperty("entryLOA", selectedLOA);
@@ -114,6 +115,10 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 		String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(
 				context.getQueryParams(), context.getCallerSessionKey(),
 				context.getContextIdentifier());
+
+        if(log.isDebugEnabled()) {
+            log.debug("Query parameters : " + queryParams);
+        }
 
 		try {
 
@@ -138,8 +143,13 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 	protected void processAuthenticationResponse(HttpServletRequest request,
 			HttpServletResponse response, AuthenticationContext context)
 			throws AuthenticationFailedException {
+        log.info("Processing authentication response");
 
-		String msisdn = request.getParameter("msisdn");
+        String msisdn = request.getParameter("msisdn");
+
+        if(log.isDebugEnabled()) {
+            log.debug("MSISDN : " + msisdn);
+        }
 
 		boolean isAuthenticated = false;
 
@@ -169,14 +179,10 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 		}
 
 		if (!isAuthenticated) {
-			log.info("GSMA MSISDN Authenticator authentication failed ");
-			if (log.isDebugEnabled()) {
-				log.debug("User authentication failed due to not existing user MSISDN.");
-			}
-
+			log.info("Authentication failed. MSISDN doesn't exist.");
 			throw new AuthenticationFailedException("Authentication Failed");
 		}
-		log.info("GSMA MSISDN Authenticator authentication success for MSISDN - " + msisdn);
+		log.info("Authentication success");
 
 		context.setProperty("msisdn", msisdn);
 		//context.setSubject(msisdn);
@@ -308,7 +314,7 @@ public class GSMAMSISDNAuthenticator extends AbstractApplicationAuthenticator im
 					.getValueFromCache(sessionDataCacheKey);
 			loginHintValues = sdce.getoAuth2Parameters().getLoginHint();
 		} catch (Exception e) {
-			log.error("Error " + e);
+			log.error("Error while getting login_hint values " + e);
 		}
 
 		return loginHintValues;

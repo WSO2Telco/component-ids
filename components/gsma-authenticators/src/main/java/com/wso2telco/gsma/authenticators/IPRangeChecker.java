@@ -64,7 +64,7 @@ public class IPRangeChecker {
 			long ipToTest = ipToLong(InetAddress.getByName(ipToCheck));
 			return (ipToTest >= ipLo && ipToTest <= ipHi);
 		} catch (UnknownHostException e) {
-			log.error("Error " + e);
+			log.error("Error ", e);
 			return false;
 		}
 	}

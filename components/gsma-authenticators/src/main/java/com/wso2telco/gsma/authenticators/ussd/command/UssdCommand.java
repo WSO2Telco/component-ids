@@ -82,7 +82,7 @@ public abstract class UssdCommand {
         try {
             postRequest.setURI(new URI(url));
         } catch (URISyntaxException ex) {
-            log.debug("Malformed URL - " + url + ex);
+            log.error("Malformed URL - " + url, ex);
         }
 
         postRequest.addHeader("accept", "application/json");
@@ -97,8 +97,9 @@ public abstract class UssdCommand {
 
         postRequest.setEntity(input);
 
-        log.info("Posting data  [ " + requestStr + " ] to url [ " + url + " ]");
-
+        if(log.isDebugEnabled()) {
+            log.debug("Posting data  [ " + requestStr + " ] to url [ " + url + " ]");
+        }
         Util.sendAsyncRequest(postRequest, futureCallback);
     }
 

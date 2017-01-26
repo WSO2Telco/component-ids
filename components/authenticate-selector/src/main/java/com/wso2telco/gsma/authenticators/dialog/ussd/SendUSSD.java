@@ -122,10 +122,9 @@ public class SendUSSD implements AuthenticatorSelector {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("endpoint :"+endpoint);
-            log.debug("reqstr :"+reqString);
+            log.debug("Endpoint : "+endpoint);
+            log.debug("Request : "+reqString);
         }
-        log.info("[sendUSSD][reqString] : " + reqString);
         return postRequest(endpoint, reqString);
     }
 
@@ -179,11 +178,10 @@ public class SendUSSD implements AuthenticatorSelector {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("endpoint :"+endpoint);
-            log.debug("reqstr :"+reqString);
+            log.debug("Endpoint : "+endpoint);
+            log.debug("Request : "+reqString);
         }
 
-        log.info("[sendUSSDPIN][reqString] : " + reqString);
         return postRequest(endpoint, reqString);
     }
 

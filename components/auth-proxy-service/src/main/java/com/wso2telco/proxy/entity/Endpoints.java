@@ -122,14 +122,18 @@ public class Endpoints {
         if (loginHintParameter != null) {
             //Read login_hint value from the query params.
             loginHint = loginHintParameter.get(0);
-            log.debug("Login Hint = " + loginHint);
+            if(log.isDebugEnabled()) {
+                log.debug("Login Hint : " + loginHint);
+            }
 
             if (!StringUtils.isEmpty(loginHint)) {
                 if ((loginHint.length() != 12) &&
                         !(loginHint.startsWith(AuthProxyConstants.LOGIN_HINT_NOENCRYPTED_PREFIX)) &&
                         !(loginHint.startsWith(AuthProxyConstants.LOGIN_HINT_ENCRYPTED_PREFIX))) {
                     String[] decryptedFullLoginHint = DecryptAES.decrypt(loginHint).split("\\+");
-                    log.debug("Decrypted login hint = " + decryptedFullLoginHint);
+                    if(log.isDebugEnabled()) {
+                        log.debug("Decrypted login hint : " + decryptedFullLoginHint);
+                    }
                     decryptedLoginHint = decryptedFullLoginHint[1];
                 }
             }
@@ -150,7 +154,9 @@ public class Endpoints {
         if (httpHeaders != null) {
             if (log.isDebugEnabled()) {
                 for (String httpHeader : httpHeaders.getRequestHeaders().keySet()) {
-                    log.debug("Header:" + httpHeader + "Value:" + httpHeaders.getRequestHeader(httpHeader));
+                    if(log.isDebugEnabled()) {
+                        log.debug("Header : " + httpHeader + " Value: " + httpHeaders.getRequestHeader(httpHeader));
+                    }
                 }
             }
         }
@@ -343,8 +349,9 @@ public class Endpoints {
             } else {
                 if (StringUtils.isNotEmpty(msisdnHeader)) {
                     // check if decryption possible
-                    log.debug("Set msisdn from header msisdn_header" + msisdnHeader);
-
+                    if(log.isDebugEnabled()) {
+                        log.debug("Set msisdn from header msisdn_header : " + msisdnHeader);
+                    }
                     if (!validateMsisdnFormat(msisdnHeader)) {
                         throw new AuthenticationFailedException(
                                 "Invalid msisdn format - " + msisdnHeader);
@@ -380,7 +387,7 @@ public class Endpoints {
             switch (loginHintFormatDetails.getFormatType()) {
                 case PLAINTEXT:
                     if (log.isDebugEnabled()) {
-                        log.debug("Plain text login hint: " + msisdn);
+                        log.debug("Plain text login hint : " + msisdn);
                     }
                     if (StringUtils.isNotEmpty(loginHint)) {
                         msisdn = loginHint;
@@ -396,15 +403,17 @@ public class Endpoints {
                                 //decrypt msisdn using given algorithm
                                 decrypted = Decrypt.decryptData(loginHint.replace(LOGIN_HINT_ENCRYPTED_PREFIX, ""),
                                                                 decryptAlgorithm);
-                                log.debug("Decrypted login hint: " + decrypted);
+                                if(log.isDebugEnabled()) {
+                                    log.debug("Decrypted login hint : " + decrypted);
+                                }
                                 msisdn = decrypted.substring(0, decrypted.indexOf(LOGIN_HINT_SEPARATOR));
                                 if (log.isDebugEnabled()) {
-                                    log.debug("MSISDN by encrypted login hint: " + msisdn);
+                                    log.debug("MSISDN by encrypted login hint : " + msisdn);
                                 }
                                 isValidFormatType = true;
                                 break;
                             } catch (Exception e) {
-                                log.error("Error while decrypting login hint - " + loginHint);
+                                log.error("Error while decrypting login hint : " + loginHint, e);
                             }
                         }
                     } else {

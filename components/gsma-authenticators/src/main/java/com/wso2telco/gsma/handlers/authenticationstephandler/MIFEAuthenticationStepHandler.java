@@ -65,6 +65,7 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	@Override
 	public void handle(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationContext context) throws FrameworkException {
+        log.info("Initiated handle");
 
 		StepConfig stepConfig = context.getSequenceConfig().getStepMap()
 				.get(context.getCurrentStep());
@@ -72,6 +73,10 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 		String authenticatorNames = FrameworkUtils.getAuthenticatorIdPMappingString(authConfigList);
 		String redirectURL = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
 		String fidp = request.getParameter(FrameworkConstants.RequestParams.FEDERATED_IDP);
+
+        if(log.isDebugEnabled()) {
+            log.debug("Federated IDP : " + fidp);
+        }
 
 		Map<String, AuthenticatedIdPData> authenticatedIdPs = context
 				.getPreviousAuthenticatedIdPs();
@@ -88,7 +93,7 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			
 			String redirectUri = paramMap.get(Params.REDIRECT_URI.toString())[0];
             String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=acr_values_required";
-            log.info(Params.ACR_VALUES.toString() + "  not found");
+            log.error(Params.ACR_VALUES.toString() + "  not found");
 
             try {
                 response.sendRedirect(invalidRedirectUrl); 
@@ -261,6 +266,8 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			AuthenticationContext context, AuthenticatorConfig authenticatorConfig)
 			throws FrameworkException {
 
+        log.info("Do authentication...");
+
 		SequenceConfig sequenceConfig = context.getSequenceConfig();
 		int currentStep = context.getCurrentStep();
 		StepConfig stepConfig = sequenceConfig.getStepMap().get(currentStep);
@@ -372,7 +379,7 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 				context.setProperty("removeFollowingSteps", null);
 			}
 			if (e instanceof InvalidCredentialsException) {
-				log.warn("A login attempt was failed due to invalid credentials");
+				log.error("A login attempt was failed due to invalid credentials");
 			} else {
 				log.error(e.getMessage(), e);
 			}
@@ -421,8 +428,9 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 		if (!paramMap.containsKey(Params.NONCE.toString())  ) {
 
             String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=nonce_required";
-            log.debug("nonce not found. client_id : "+client_id);
-
+            if(log.isDebugEnabled()) {
+                log.debug("nonce not found. client_id : " + client_id);
+            }
             try {
                 response.sendRedirect(invalidRedirectUrl);
             } catch (IOException ex) {
@@ -437,8 +445,9 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 
 
             String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=no+response_type" ;
-            log.debug("response_type not found. client_id : "+client_id);
-
+            if(log.isDebugEnabled()) {
+                log.debug("response_type not found. client_id : " + client_id);
+            }
             try {
                 response.sendRedirect(invalidRedirectUrl);
             } catch (IOException ex) {
@@ -448,12 +457,14 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
         else {
 
             responseType = paramMap.get(Params.RESPONSE_TYPE.toString())[0];
-            log.debug("response_type : " + responseType);
-
+            if(log.isDebugEnabled()) {
+                log.debug("response_type : " + responseType);
+            }
             if(!responseType.equals(Params.CODE.toString())){
                 String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=response_type_should_be_code" ;
-                 log.debug("invalid redirect URI = " + invalidRedirectUrl);
-
+                if(log.isDebugEnabled()) {
+                    log.debug("invalid redirect URI : " + invalidRedirectUrl);
+                }
 
                 try {
                    response.sendRedirect(invalidRedirectUrl);
@@ -471,8 +482,9 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 
            redirectUri = paramMap.get(Params.REDIRECT_URI.toString())[0];
            String invalidRedirectUrl = redirectUri + "?error=invalid_request&error_description=no+scope&state=" + state ;
-           log.debug("scope not found. client_id : "+client_id);
-
+            if(log.isDebugEnabled()) {
+                log.debug("Scope not found. client_id : " + client_id);
+            }
            try {
                response.sendRedirect(invalidRedirectUrl);
            } catch (IOException ex) {
@@ -481,7 +493,9 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
         }else{
 
             scope = paramMap.get(Params.SCOPE.toString())[0];
-            log.debug("Scope:" + scope);
+            if(log.isDebugEnabled()) {
+                log.debug("Scope:" + scope);
+            }
         }
 		return redirectUri;
 	}
@@ -519,7 +533,6 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			sequenceConfig.setAuthenticatedUser(context.getSubject());
 			context.setSequenceConfig(sequenceConfig);
 		}
-		log.info("===============================================================================setting authenticated user=============");
 		// Set the authenticated user as an object. 5.1.0 onwards
 		stepConfig.setAuthenticatedUser(context.getSubject());
 	}

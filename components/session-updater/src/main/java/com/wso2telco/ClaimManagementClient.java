@@ -26,6 +26,8 @@ import java.util.List;
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.um.ws.api.stub.*;
 import org.wso2.carbon.um.ws.api.stub.SetUserClaimValues;
 import org.wso2.carbon.um.ws.api.stub.ClaimValue;
@@ -39,6 +41,8 @@ import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceStub;
  * The Class ClaimManagementClient.
  */
 public class ClaimManagementClient {
+
+    private static final Log log = LogFactory.getLog(ClaimManagementClient.class);
     
     /** The service name. */
     private final String serviceName = "RemoteUserStoreManagerService";
@@ -85,7 +89,9 @@ public class ClaimManagementClient {
      * @throws RemoteUserStoreManagerServiceUserStoreExceptionException the remote user store manager service user store exception exception
      */
     public void setClaim() throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException {
-        System.out.println("Remote User " + remoteUser.getProfileNames("admin").toString());
+        if(log.isDebugEnabled()) {
+            log.debug("Remote User " + remoteUser.getProfileNames("admin").toString());
+        }
     }
     
     /**

@@ -91,7 +91,7 @@ public class PremiumInfoScopeTest {
 		String scope = "openid+profile";
 		String access_token = getToken(scope);
 		String response = getPremiumInfo(access_token);
-		System.out.println("Response retrieved for scope:profile " + response);
+		log.info("Response retrieved for scope:profile " + response);
 
 		boolean isValid = isScopeValid("profile", response);
 		Assert.assertTrue(isValid);
@@ -105,7 +105,7 @@ public class PremiumInfoScopeTest {
 		String scope = "openid+email";
 		String access_token = getToken(scope);
 		String response = getPremiumInfo(access_token);
-		System.out.println("Response retrieved for scope:email " + response);
+		log.info("Response retrieved for scope:email " + response);
 
 		boolean isValid = isScopeValid("email", response);
 		Assert.assertTrue(isValid);
@@ -119,7 +119,7 @@ public class PremiumInfoScopeTest {
 		String scope = "openid+phone";
 		String access_token = getToken(scope);
 		String response = getPremiumInfo(access_token);
-		System.out.println("Response retrieved for scope:phone " + response);
+		log.info("Response retrieved for scope:phone " + response);
 
 		boolean isValid = isScopeValid("phone", response);
 		Assert.assertTrue(isValid);
@@ -133,7 +133,7 @@ public class PremiumInfoScopeTest {
 		String scope = "openid+address";
 		String access_token = getToken(scope);
 		String response = getPremiumInfo(access_token);
-		System.out.println("Response retrieved for scope:address " + response);
+		log.info("Response retrieved for scope:address " + response);
 
 		boolean isValid = isScopeValid("address", response);
 		Assert.assertTrue(isValid);
@@ -162,10 +162,10 @@ public class PremiumInfoScopeTest {
 				JSONObject obj = new JSONObject(outputString);
 				access_token = obj.getString("access_token");
 			}
-		} catch (IOException e1) {
-			e1.printStackTrace();
+		} catch (IOException e) {
+			log.error(e);
 		} catch (JSONException e) {
-			e.printStackTrace();
+			log.error(e);
 		}
 		return access_token;
 
@@ -195,7 +195,7 @@ public class PremiumInfoScopeTest {
 
 		} catch (Exception ex) {
 
-			ex.printStackTrace();
+			log.error(ex);
 		}
 		return resp;
 	}
@@ -244,7 +244,6 @@ public class PremiumInfoScopeTest {
 			obj = new JSONObject(response);
 
 			if (obj.toString().equals("{}")) {
-				System.out.println("No claims have not null values in the scope : " + scope);
 				return true;
 			}
 
@@ -261,7 +260,7 @@ public class PremiumInfoScopeTest {
 
 			}
 		} catch (JSONException e) {
-			e.printStackTrace();
+			log.error(e);
 			return false;
 		}
 		return isValid;
