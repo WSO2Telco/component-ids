@@ -824,6 +824,11 @@
 				<artifactId>gsma-authenticator</artifactId>
 				<version>${com.wso2telco.ids.version}</version>
 			</dependency>
+            <dependency>
+                <groupId>com.wso2telco.ids</groupId>
+                <artifactId>ids-data-publisher</artifactId>
+                <version>${com.wso2telco.ids.version}</version>
+            </dependency>
 			<dependency>
                                 <groupId>com.wso2telco.ids</groupId>
                                 <artifactId>user-registration</artifactId>

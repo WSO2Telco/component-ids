@@ -16,7 +16,7 @@
 
 package com.wso2telco.ids.datapublisher;
 
-import com.wso2telco.ids.datapublisher.util.FileUtil;
+import com.wso2telco.core.config.DataHolder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.databridge.agent.AgentHolder;
@@ -53,18 +53,31 @@ public class IdsAgent {
     }
 
     private void initPublisher() {
-        setPublisherEnabled(Boolean.parseBoolean(FileUtil.getApplicationProperty("publisher_enable")));
+        setPublisherEnabled(DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled());
+        //setPublisherEnabled(Boolean.parseBoolean(FileUtil.getApplicationProperty("publisher_enable")));
         if (isPublisherEnabled()) {
             AgentHolder.setConfigPath(CarbonUtils.getCarbonConfigDirPath() + File.separator + "data-bridge" +
-                    File.separator + "data-agent-conf.xml");
+                                              File.separator + "data-agent-config.xml");
             System.setProperty("javax.net.ssl.trustStore", System.getProperty("carbon.home") +
                     File.separator + "repository/resources/security/client-truststore.jks");
             System.setProperty("javax.net.ssl.trustStorePassword", "wso2carbon");
             try {
+                /*
                 publisher = new DataPublisher("Thrift", FileUtil.getApplicationProperty("das_url"),
                         FileUtil.getApplicationProperty("das_secure_url"),
                         FileUtil.getApplicationProperty("username"),
                         FileUtil.getApplicationProperty("password"));
+                        */
+
+                publisher = new DataPublisher("Thrift",
+                                              DataHolder.getInstance().getMobileConnectConfig().getDataPublisher()
+                                                      .getDasUrl(),
+                                              DataHolder.getInstance().getMobileConnectConfig().getDataPublisher()
+                                                      .getDasSecureUrl(),
+                                              DataHolder.getInstance().getMobileConnectConfig().getDataPublisher()
+                                                      .getUsername(),
+                                              DataHolder.getInstance().getMobileConnectConfig().getDataPublisher()
+                                                      .getPassword());
             } catch (DataEndpointAgentConfigurationException e) {
                 log.error(e.getMessage());
             } catch (DataEndpointException e) {
@@ -90,11 +103,11 @@ public class IdsAgent {
         }
     }
 
-    public boolean isPublisherEnabled() {
+    private boolean isPublisherEnabled() {
         return isPublisherEnabled;
     }
 
-    public void setPublisherEnabled(boolean publisherEnabled) {
+    private void setPublisherEnabled(boolean publisherEnabled) {
         isPublisherEnabled = publisherEnabled;
     }
 }
