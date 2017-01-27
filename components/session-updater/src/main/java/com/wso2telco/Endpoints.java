@@ -19,7 +19,6 @@ package com.wso2telco;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.wso2telco.core.config.MIFEAuthentication;
-import com.wso2telco.core.config.model.Authentication;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.PinConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
@@ -1070,17 +1069,41 @@ public class Endpoints {
     @Path("/sms/response")
     // @Consumes("application/json")
     @Produces("text/plain")
-    public Response smsConfirm(@QueryParam("sessionID") String sessionID) throws SQLException {
-        log.info("sessionID 01: " + sessionID);
-        String responseString = null;
-        String status = null;
-        try {
-            sessionID = AESencrp.decrypt(sessionID.replaceAll(" ", "+"));
-        } catch (Exception e) {
-            log.error(e);
-            responseString = e.getLocalizedMessage();
-            return Response.status(500).entity(responseString).build();
+    public Response smsConfirm(@QueryParam("id") String sessionID)
+            throws SQLException {
+        String responseString;
+        if ("true"
+                .equals(configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig().getIsShortUrl())) {
+            // If a URL shortening service is enabled, that means, the id query parameter is the encrypted context
+            // identifier. Therefore, to get the actual context identifier, we can decrypt the value of id query param.
+            log.debug("A short URL service is enabled in mobile-connect.xml");
+            try {
+                sessionID = AESencrp.decrypt(sessionID.replaceAll(" ", "+"));
+            } catch (Exception e) {
+                log.error("An error occurred while decrypting session ID", e);
+                responseString = e.getLocalizedMessage();
+                return Response.status(500).entity(responseString).build();
+            }
+        } else {
+            // If a URL shortening service is not enabled, that means, the actual context-identifier was encrypted and
+            // a hash key was generated from the encrypted context identifier and a database entry mapping the hash key
+            // to the context identifier (not encrypted) should have been inserted.
+            // Therefore, to get the context identifier we need to look up the database.
+            log.debug("A short URL service is not enabled in mobile-connect.xml");
+            try {
+                sessionID = DbUtil.getContextIDForHashKey(sessionID);
+                if (sessionID == null) {
+                    log.debug("There is no context identifier corresponding to the hash id: " + sessionID);
+                }
+            } catch (AuthenticatorException | SQLException e) {
+                log.error("An error occurred while retriving context identifier", e);
+                return Response.status(500).entity("").build();
+            }
         }
+        if (log.isDebugEnabled()) {
+            log.debug("Context Identifier: " + sessionID);
+        }
+        String status;
         String userStatus = DatabaseUtils.getUSerStatus(sessionID);
         if (userStatus.equalsIgnoreCase("PENDING")) {
             DatabaseUtils.updateStatus(sessionID, "APPROVED");

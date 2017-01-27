@@ -25,7 +25,17 @@
         <servlet-name>ServletAdaptor</servlet-name>
         <url-pattern>/tnspoints/*</url-pattern>
     </servlet-mapping>
-    
+
+    <filter>
+        <filter-name>SMSApprovalRequestForwardingFilter</filter-name>
+        <filter-class>com.wso2telco.filters.SMSApprovalRequestForwardingFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>SMSApprovalRequestForwardingFilter</filter-name>
+        <url-pattern>/wt/*</url-pattern>
+    </filter-mapping>
+
     <session-config>
         <session-timeout>
             30
