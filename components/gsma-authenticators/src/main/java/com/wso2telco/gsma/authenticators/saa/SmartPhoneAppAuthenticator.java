@@ -18,7 +18,8 @@ package com.wso2telco.gsma.authenticators.saa;
 
 import com.google.gson.Gson;
 import com.wso2telco.Util;
-import com.wso2telco.core.config.ReadMobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.sp.config.utils.service.SpConfigService;
 import com.wso2telco.core.sp.config.utils.service.impl.SpConfigServiceImpl;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
@@ -64,6 +65,7 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
     private static final String CLIENT_ID = "relyingParty";
     private static final String ACR = "acr_values";
     private SpConfigService spConfigService = new SpConfigServiceImpl();
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     @Override
     public boolean canHandle(HttpServletRequest request) {
@@ -110,14 +112,14 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
         String clientId = paramMap.get(CLIENT_ID);
         String applicationName = applicationConfig.getApplicationName();
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("MSISDN : " + msisdn);
             log.debug("Client ID : " + clientId);
             log.debug("Application name : " + applicationName);
         }
 
-        String url = ReadMobileConnectConfig.readSaaConfig(Constants.SAA_ENPOINT) + "/services/serverAPI/api/v1/clients/"
-                + msisdn + "/authenticate";
+        String url = configurationService.getDataHolder().getMobileConnectConfig().getSaaConfig()
+                .getAuthenticationEndpoint().replace("{msisdn}", msisdn);
 
         handleRetry(request, context, msisdn);
         try {
@@ -176,8 +178,8 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
     private void fallbackIfMsisdnNotRegistered(String msisdn) throws IOException, SaaException {
         HttpClient httpClient = new DefaultHttpClient();
 
-        String url = ReadMobileConnectConfig.readSaaConfig(Constants.SAA_ENPOINT) + "/services/serverAPI/api/v1/clients/" +
-                msisdn + "/is_registered";
+        String url = configurationService.getDataHolder().getMobileConnectConfig().getSaaConfig()
+                .getRegistrationEndpoint().replace("{msisdn}", msisdn);
 
         HttpGet httpGet = new HttpGet(url);
 

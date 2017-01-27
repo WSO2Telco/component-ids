@@ -160,8 +160,8 @@ public class DBUtils {
     /**
      * Get operators' MSISDN header properties.
      * @return operators' MSISDN header properties map.
-     * @throws SQLException
-     * @throws NamingException
+     * @throws SQLException on errors
+     * @throws NamingException  on errors
      */
     public static Map<String, List<MSISDNHeader>> getOperatorsMSISDNHeaderProperties() throws SQLException,
                                                                                               NamingException {
@@ -198,8 +198,8 @@ public class DBUtils {
      * @param operatorId operator Id.
      * @param operatorName operator Name.
      * @return MSISDN properties of given operator.
-     * @throws SQLException
-     * @throws NamingException
+     * @throws SQLException  on errors
+     * @throws NamingException on errors
      */
     public static List<MSISDNHeader> getMSISDNPropertiesByOperatorId(int operatorId, String operatorName) throws
                                                                                                      SQLException,
@@ -241,7 +241,7 @@ public class DBUtils {
      * Get a map of parameters mapped to a scope
      *
      * @return map of scope vs parameters
-     * @throws javax.naming.NamingException
+     * @throws AuthenticatorException on errors
      */
     public static Map<String, ScopeParam> getScopeParams(String scope) throws AuthenticatorException {
         Connection conn = null;

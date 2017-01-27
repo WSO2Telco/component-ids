@@ -1,50 +1,50 @@
 package com.wso2telco;
 
-import com.wso2telco.core.config.ReadMobileConnectConfig;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
 public class Util {
     private static Log log = LogFactory.getLog(Util.class);
 
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /**
      * Asynchronously call the REST endpoint
      *
      * @param postRequest    Request
      * @param futureCallback Call back function
-     * @throws java.io.IOException
+     * @throws java.io.IOException io exceptionDBUtils
      */
     public static void sendAsyncRequest(final HttpPost postRequest, BasicFutureCallback futureCallback)
             throws IOException {
-        ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
 
         int socketTimeout = 60000;
         int connectTimeout = 60000;
         int connectionRequestTimeout = 30000;
 
         try {
-            Map<String, String> timeoutConfigMap = readMobileConnectConfig
-                    .query("TimeoutConfig");
-            socketTimeout = Integer.parseInt(timeoutConfigMap.get("SocketTimeout")) * 1000;
-            connectTimeout = Integer.parseInt(timeoutConfigMap.get("ConnectTimeout")) * 1000;
-            connectionRequestTimeout = Integer.parseInt(timeoutConfigMap.get("ConnectionRequestTimeout")) * 1000;
+            MobileConnectConfig.TimeoutConfig timeoutConfig = configurationService.getDataHolder()
+                    .getMobileConnectConfig().getUssdConfig().getTimeoutConfig();
+            socketTimeout = timeoutConfig.getSocketTimeout() * 1000;
+            connectTimeout = timeoutConfig.getConnectionTimeout() * 1000;
+            connectionRequestTimeout = timeoutConfig.getConnectionRequestTimeout() * 1000;
 
         } catch (Exception e) {
 
             log.debug("Error in reading TimeoutConfig:using default timeouts:"
-                              + e);
+                    + e);
         }
 
         RequestConfig requestConfig = RequestConfig.custom()
@@ -60,6 +60,7 @@ public class Util {
 
     /**
      * Converts query params string to a map
+     *
      * @param params query params as a string
      * @return Map of query params
      */

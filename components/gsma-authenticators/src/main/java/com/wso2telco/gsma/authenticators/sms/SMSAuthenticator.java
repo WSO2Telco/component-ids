@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
- * 
+ *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,25 +37,32 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
-import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 
- 
+
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class SMSAuthenticator.
  */
 public class SMSAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 
-    /** The Constant serialVersionUID. */
+    /**
+     * The Constant serialVersionUID.
+     */
     private static final long serialVersionUID = -1189332409518227376L;
-    
-    /** The log. */
+
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(SMSAuthenticator.class);
 
-    /** The Configuration service */
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /* (non-Javadoc)
@@ -104,7 +111,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                         context.getCallerSessionKey(),
                         context.getContextIdentifier());
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Query parameters : " + queryParams);
         }
 
@@ -120,7 +127,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 
             //MSISDN will be saved in the context in the MSISDNAuthenticator
             String msisdn = (String) context.getProperty("msisdn");
-            Application application=new Application();
+            Application application = new Application();
 
             MobileConnectConfig connectConfig = configurationService.getDataHolder().getMobileConnectConfig();
             MobileConnectConfig.SMSConfig smsConfig = connectConfig.getSmsConfig();
@@ -130,7 +137,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             String encryptedContextIdentifier = AESencrp.encrypt(context.getContextIdentifier());
             String messageURL = connectConfig.getListenerWebappHost() + Constants.SESSION_UPDATER_SMS_RESPONSE_CONTEXT;
 
-            if (smsConfig.getIsShortUrl().equalsIgnoreCase("true")) {
+            if (smsConfig.isShortUrl()) {
                 // If a URL shortening service is enabled, then we need to encrypt the context identifier, create the
                 // message URL and shorten it.
                 SelectShortUrl selectShortUrl = new SelectShortUrl();
@@ -180,7 +187,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 
         String sessionDataKey = request.getParameter("sessionDataKey");
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("SessionDataKey : " + sessionDataKey);
         }
 
@@ -204,13 +211,13 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             context.setProperty("faileduser", (String) context.getProperty("msisdn"));
             throw new AuthenticationFailedException("Authentication Failed");
         }
-      
-        
+
+
         String msisdn = (String) context.getProperty("msisdn");
 //        AuthenticatedUser user=new AuthenticatedUser();
 //        context.setSubject(user);
         AuthenticationContextHelper.setSubject(context, msisdn);
-        
+
         log.info("Authentication success");
 
 //        context.setSubject(msisdn);
@@ -257,14 +264,20 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
      * The Enum UserResponse.
      */
     private enum UserResponse {
-        
-        /** The pending. */
+
+        /**
+         * The pending.
+         */
         PENDING,
-        
-        /** The approved. */
+
+        /**
+         * The approved.
+         */
         APPROVED,
-        
-        /** The rejected. */
+
+        /**
+         * The rejected.
+         */
         REJECTED
     }
 

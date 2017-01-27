@@ -177,11 +177,9 @@ public class CustomRequestCoordinator implements RequestCoordinator {
     /**
      * Handles the initial request (from the calling servlet)
      *
-     * @param request
-     * @param response
-     * @throws ServletException
-     * @throws IOException
-     * @throws
+     * @param request request
+     * @param response response
+     * @throws FrameworkException throws when error occurred from framework
      */
     protected AuthenticationContext initializeFlow(HttpServletRequest request,
                                                    HttpServletResponse response) throws FrameworkException {

@@ -296,15 +296,21 @@ public class UserProfileManager {
      * update user profile for PIN (LOA3) registration update loa, challenge
      * questions
      *
-     * @throws RemoteUserStoreManagerServiceUserStoreExceptionException
-     * @throws RemoteException                                          fieldValues, userName
+     * @param challengeQuestionAnswer1 challenge answer1
+     * @param challengeQuestionAnswer2 challenge answer2
+     * @param pin                      pin
+     * @param userName                 username
+     * @throws RemoteUserStoreManagerServiceUserStoreExceptionException remote service exception
+     * @throws RemoteException                                          remote exception
+     * @throws UnsupportedEncodingException                             unsupported encoding exception
+     * @throws NoSuchAlgorithmException                                 no such algorithm exception
      */
     public void updateUserProfileForLOA3(String challengeQuestionAnswer1,
                                          String challengeQuestionAnswer2, String pin, String userName)
             throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException, UnsupportedEncodingException, NoSuchAlgorithmException {
 
 		/* updating loa cliam of the user profile */
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("user profile update for loa " + Constants.LOA3);
         }
         remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.LOA, Constants.LOA3,
@@ -314,7 +320,7 @@ public class UserProfileManager {
 		/*
          * updating challenge question 1 cliam of the user profile
 		 */
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("user profile update for challengeQuestionAnswer1 " + challengeQuestionAnswer1);
         }
         remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.CHALLENGEQUESTION1,
@@ -323,13 +329,13 @@ public class UserProfileManager {
 		/*
          * updating challenge question 2 cliam of the user profile
 		 */
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("user profile update for challengeQuestionAnswer2 " + challengeQuestionAnswer2);
         }
         remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.CHALLENGEQUESTION2,
                 challengeQuestionAnswer2, UserCoreConstants.DEFAULT_PROFILE);
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("user profile update for pin ");
         }
         remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.PIN,
@@ -360,7 +366,7 @@ public class UserProfileManager {
     private void updateUserProfilePIN(String userName, String pinHash)
             throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException {
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("user profile update for pin " + userName);
             log.debug(UserProfileClaimsConstant.PIN + " : " + pinHash);
         }

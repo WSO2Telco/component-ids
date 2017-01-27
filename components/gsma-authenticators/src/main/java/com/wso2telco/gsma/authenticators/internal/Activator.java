@@ -53,7 +53,6 @@ import java.util.Map;
 
 /**
  * This is one of the first bundles that start in Carbon.
- * <p/>
  * ServerConfiguration object is not available to this bundle.
  * Therefore we read properties but do not keep a reference to it.
  */
