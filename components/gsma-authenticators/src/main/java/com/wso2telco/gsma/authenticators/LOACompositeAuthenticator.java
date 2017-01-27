@@ -128,6 +128,13 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
         String flowType = getFlowType(msisdnHeader, headerMismatchResult);
 
+        //Data publishing
+        /*
+        UserStatus userStatus = new UserStatus();
+        DataPublisherUtil.setValueFromRequest(request, context, userStatus);
+        DataPublisherUtil.publishUserStatusData(userStatus);
+*/
+
         //Change authentication flow just after registration
 		if (tokenId != null && msisdn != null) {
 			try {
