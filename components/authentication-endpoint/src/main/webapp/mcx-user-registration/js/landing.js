@@ -142,7 +142,6 @@ function registration() {
         success: function (result) {
             if (result.status == "S1000") {
 
-                console.log('xxxxxxxxxxxxxxxxxxxxxxxx');
                 console.log("/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
                     + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true&domain=" + domain
                     + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str + "&isTerminated=false");
