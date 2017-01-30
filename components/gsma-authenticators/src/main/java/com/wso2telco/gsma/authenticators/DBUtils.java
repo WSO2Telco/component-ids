@@ -108,9 +108,9 @@ public class DBUtils {
         //String sql = "SELECT SessionID, Status FROM clientstatus WHERE SessionID=?";
         StringBuilder sql = new StringBuilder();
 
-        sql.append("SELECT SessionID, Status FROM ");
-        sql.append(TableName.CLIENT_STATUS);
-        sql.append(" WHERE SessionID=?");
+        sql.append("SELECT status FROM ");
+        sql.append(TableName.REG_STATUS);
+        sql.append(" WHERE uuid=?");
 
         String userResponse = null;
         try {
@@ -119,10 +119,11 @@ public class DBUtils {
             ps.setString(1, sessionDataKey);
             results = ps.executeQuery();
             while (results.next()) {
-                userResponse = results.getString("Status");
+                userResponse = results.getString("status");
             }
         } catch (SQLException e) {
-            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " from the database", e);
+            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey
+                    + " from the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
         }
@@ -648,6 +649,7 @@ public class DBUtils {
      * @throws SQLException
      * @throws NamingException
      */
+    @Deprecated
     private static List<MSISDNHeader> getMSISDNPropertiesByOperatorId(int operatorId, String operatorName,
                                                                       Connection connection) throws
                                                                                              SQLException,
@@ -762,5 +764,24 @@ public class DBUtils {
             IdentityDatabaseUtil.closeAllConnections(conn, null, ps);
         }
         return -1;
+    }
+
+    public static void insertHashKeyContextIdentifierMapping(String hashKey, String contextIdentifier)
+            throws AuthenticatorException {
+        String sql = "insert into sms_hashkey_contextid_mapping(hashkey, contextid) values  (?,?);";
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query " + sql + " for hash key " + hashKey + " and context identifier "
+                    + contextIdentifier);
+        }
+
+        try (Connection connection = getConnectDBConnection()) {
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
+            ps.setString(1, hashKey);
+            ps.setString(2, contextIdentifier);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            handleException(e.getMessage(), e);
+        }
     }
 }

@@ -43,8 +43,6 @@ public abstract  class DialogAuthenticatorSelector implements  AuthenticatorSele
     
     /**
      * Gets the SM sand url notifiy url.
-     *
-     * @return the SM sand url notifiy url
      */
     public abstract void getSMSandURLNotifiyURL();
     

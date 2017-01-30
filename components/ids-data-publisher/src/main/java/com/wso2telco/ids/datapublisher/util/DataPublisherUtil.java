@@ -1,33 +1,30 @@
-/*******************************************************************************
- * Copyright (c) 2015-2017, WSO2.Telco Inc. (http://www.wso2telco.com)
- *
- * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
+package com.wso2telco.ids.datapublisher.util;
 
-package com.wso2telco.gsma.authenticators;
-
-import com.wso2telco.gsma.authenticators.model.UserStatus;
 import com.wso2telco.ids.datapublisher.IdsAgent;
+import com.wso2telco.ids.datapublisher.model.UserStatus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
+
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-public class Utility {
+public class DataPublisherUtil {
 
-    private static Log log = LogFactory.getLog(Utility.class);
+    private static Log log = LogFactory.getLog(DataPublisherUtil.class);
+
+    public static final String TRANSACTION_ID = "TransactionId";
+
+    public static final String USER_STATUS_STREAM_NAME = "com.wso2telco.userstatus";
+    public static final String USER_STATUS_STREAM_VERSION = "1.0.0";
+
+    public static final String USER_STATUS_META_STREAM_NAME = "com.wso2telco.userstatus.meta";
+    public static final String USER_STATUS_META_STREAM_VERSION = "1.0.0";
+
 
     public static void setValueFromRequest(HttpServletRequest request,
                                            AuthenticationContext context, UserStatus uStatus) {
@@ -72,10 +69,40 @@ public class Utility {
         } else {
             uStatus.setIsMsisdnHeader(0);
         }
+
     }
+
+    public static String resolveSessionID(HttpServletRequest request,
+                                          AuthenticationContext context) {
+
+        if (request.getParameter("transactionId") != null && !request.getParameter("transactionId").isEmpty()) {
+            return request.getParameter("transactionId");
+        } else if (context.getProperty(TRANSACTION_ID) != null
+                && !((String) context.getProperty(TRANSACTION_ID)).isEmpty()) {
+
+            return (String) context.getProperty(TRANSACTION_ID);
+        } else if (context.getSessionIdentifier() != null) {
+            return context.getSessionIdentifier();
+        } else {
+            return request.getParameter("sessionDataKey");
+        }
+    }
+
+    public static void saveUSSD(UserStatus userStatus) {
+
+        try {
+            DBUtil.saveStatusData(userStatus);
+
+        } catch (Exception e) {
+            log.error("error occurred : " + e.getMessage());
+
+        }
+    }
+
 
     public static void setValueFromContext(HttpServletRequest request,
                                            AuthenticationContext context, UserStatus uStatus) {
+
 
         Map<String, String> paramMap = new LinkedHashMap<String, String>();
         String params = context.getQueryParams();
@@ -88,7 +115,8 @@ public class Utility {
         }
         uStatus.setMsisdn((String) context.getProperty("msisdn"));
         uStatus.setOperator((String) context.getProperty("operator"));
-        uStatus.setSessionId((String) context.getProperty(Constants.TRANSACTION_ID));
+        uStatus.setSessionId((String) context.getProperty(TRANSACTION_ID));
+
 
         if (paramMap.get("nonce") != null) {
             uStatus.setNonce(paramMap.get("nonce"));
@@ -124,19 +152,10 @@ public class Utility {
 
     }
 
-    public static void saveUSSD(UserStatus userStatus) {
-
-        try {
-            DBUtils.saveStatusData(userStatus);
-        } catch (Exception e) {
-            log.error("error occurred : " + e.getMessage());
-        }
-    }
-
     /**
      * construct and publish UserStatusMetaData event
      *
-     * @param userStatus user status
+     * @param userStatus
      */
     public static void publishUserStatusMetaData(UserStatus userStatus) {
         List<Object> userstatusData = new ArrayList<Object>(17);
@@ -243,14 +262,15 @@ public class Utility {
 
         userstatusData.add(System.currentTimeMillis());
 
-        IdsAgent.getInstance().publish(Constants.USER_STATUS_META_STREAM_NAME,
-                Constants.USER_STATUS_META_STREAM_VERSION, System.currentTimeMillis(), userstatusData.toArray());
+
+        IdsAgent.getInstance().publish(USER_STATUS_META_STREAM_NAME, USER_STATUS_META_STREAM_VERSION,
+                                       System.currentTimeMillis(), userstatusData.toArray());
     }
 
     /**
      * construct and publish UserStatusData event
      *
-     * @param userStatus user status
+     * @param userStatus
      */
     public static void publishUserStatusData(UserStatus userStatus) {
         List<Object> userStatusMetaData = new ArrayList<Object>(4);
@@ -281,52 +301,9 @@ public class Utility {
 
         userStatusMetaData.add(System.currentTimeMillis());
 
-        IdsAgent.getInstance().publish(Constants.USER_STATUS_STREAM_NAME,
-                Constants.USER_STATUS_STREAM_VERSION, System.currentTimeMillis(), userStatusMetaData.toArray());
+        IdsAgent.getInstance().publish(USER_STATUS_STREAM_NAME,
+                                       USER_STATUS_STREAM_VERSION, System.currentTimeMillis(),
+                                       userStatusMetaData.toArray());
     }
 
-    public static String resolveSessionID(HttpServletRequest request,
-                                          AuthenticationContext context) {
-
-        if (request.getParameter("transactionId") != null && !request.getParameter("transactionId").isEmpty()) {
-            return request.getParameter("transactionId");
-        } else if (context.getProperty(Constants.TRANSACTION_ID) != null
-                && !((String) context.getProperty(Constants.TRANSACTION_ID)).isEmpty()) {
-
-            return (String) context.getProperty(Constants.TRANSACTION_ID);
-        } else if (context.getSessionIdentifier() != null) {
-            return context.getSessionIdentifier();
-        } else {
-            return request.getParameter("sessionDataKey");
-        }
-    }
-
-    public static String getMultiScopeQueryParam(AuthenticationContext context) {
-        List<String> availableMultiScopes = Arrays.asList("profile", "email",
-                "address", "phone", "mc_identity_phonenumber_hashed");
-
-        String originalScope = ((Map) context.getProperty("authMap")).get(
-                "Scope").toString();
-
-        String[] originalScopesRequested = originalScope.split(" ");
-
-        String multiScopes = "";
-
-        if (originalScopesRequested.length > 1) {
-
-            StringBuilder filteredMultiScopesQuery = new StringBuilder();
-            filteredMultiScopesQuery.append("&multiScopes=");
-
-            for (String requestedScope : originalScopesRequested) {
-                if (availableMultiScopes.contains(requestedScope)) {
-                    filteredMultiScopesQuery.append(requestedScope);
-                    filteredMultiScopesQuery.append(" ");
-                }
-            }
-
-            multiScopes = filteredMultiScopesQuery.toString().trim().replace(" ", "+");
-        }
-
-        return multiScopes;
-    }
 }

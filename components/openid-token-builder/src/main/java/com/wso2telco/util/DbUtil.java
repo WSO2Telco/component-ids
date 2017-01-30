@@ -56,7 +56,6 @@ private static final Log log = LogFactory.getLog(DbUtil.class);
 	/**
 	 * Gets the connect data source.
 	 *
-	 * @return the connect data source
 	 * @throws Exception the exception
 	 */
 	public static void getConnectDataSource() throws Exception {

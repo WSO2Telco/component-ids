@@ -188,6 +188,22 @@ public class DbUtil {
         }
     }
 
+    public static String getContextIDForHashKey(String hashKey) throws AuthenticatorException, SQLException {
+        String sessionDataKey = null;
+
+        String sql = "select contextid from sms_hashkey_contextid_mapping where hashkey=?";
+
+        try (Connection connection = getConnectDBConnection()) {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, hashKey);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                sessionDataKey = rs.getString("contextid");
+            }
+        }
+        return sessionDataKey;
+    }
+
     /**
      * Handle exception.
      *

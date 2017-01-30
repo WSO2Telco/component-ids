@@ -24,7 +24,8 @@ public class Decrypt {
     /**
      * Decrypt data.
      *
-     * @param data the data
+     * @param data                the data
+     * @param encryptionAlgorithm encryption algorithmFileUtil
      * @return the string
      * @throws Exception the exception
      */
@@ -55,8 +56,9 @@ public class Decrypt {
     /**
      * Decrypt.
      *
-     * @param text the text
-     * @param key  the key
+     * @param text                the text
+     * @param key                 the key
+     * @param encryptionAlgorithm encryption algorithm
      * @return the string
      */
     public static String decrypt(byte[] text, PrivateKey key, String encryptionAlgorithm) {
@@ -79,7 +81,8 @@ public class Decrypt {
     /**
      * Gets the private key.
      *
-     * @param filename the filename
+     * @param filename            the filename
+     * @param encryptionAlgorithm encryption algorithm
      * @return the private key
      * @throws Exception the exception
      */

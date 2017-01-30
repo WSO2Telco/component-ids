@@ -130,7 +130,7 @@ public class DBUtils {
         Map<String, Operator> operatorProperties = new HashMap<String, Operator>();
         String queryToGetOperatorProperties = "SELECT ID, operatorName, requiredIPValidation, ipHeader FROM operators";
         try {
-            connection = getConnection();
+            connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(queryToGetOperatorProperties);
             resultSet = preparedStatement.executeQuery();
 
@@ -160,8 +160,8 @@ public class DBUtils {
     /**
      * Get operators' MSISDN header properties.
      * @return operators' MSISDN header properties map.
-     * @throws SQLException
-     * @throws NamingException
+     * @throws SQLException on errors
+     * @throws NamingException  on errors
      */
     public static Map<String, List<MSISDNHeader>> getOperatorsMSISDNHeaderProperties() throws SQLException,
                                                                                               NamingException {
@@ -172,7 +172,7 @@ public class DBUtils {
         String queryToGetOperatorProperty = "SELECT DISTINCT operatorId, LOWER(operatorName) AS operatorName FROM " +
                 "operators_msisdn_headers_properties prop LEFT JOIN operators op ON op.ID=prop.operatorId";
         try {
-            connection = getConnection();
+            connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
@@ -198,8 +198,8 @@ public class DBUtils {
      * @param operatorId operator Id.
      * @param operatorName operator Name.
      * @return MSISDN properties of given operator.
-     * @throws SQLException
-     * @throws NamingException
+     * @throws SQLException  on errors
+     * @throws NamingException on errors
      */
     public static List<MSISDNHeader> getMSISDNPropertiesByOperatorId(int operatorId, String operatorName) throws
                                                                                                      SQLException,
@@ -212,7 +212,7 @@ public class DBUtils {
                 "msisdnEncryptionKey, priority FROM operators_msisdn_headers_properties WHERE operatorId = ? ORDER BY" +
                 " priority ASC";
         try {
-            connection = getConnection();
+            connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
             preparedStatement.setInt(1, operatorId);
             resultSet = preparedStatement.executeQuery();
@@ -241,7 +241,7 @@ public class DBUtils {
      * Get a map of parameters mapped to a scope
      *
      * @return map of scope vs parameters
-     * @throws javax.naming.NamingException
+     * @throws AuthenticatorException on errors
      */
     public static Map<String, ScopeParam> getScopeParams(String scope) throws AuthenticatorException {
         Connection conn = null;
@@ -255,7 +255,7 @@ public class DBUtils {
 
         Map scopeParamsMap = new HashMap();
         try {
-            conn = getConnection();
+            conn = getConnectDBConnection();
             ps = conn.prepareStatement(sql);
             ps.setString(1, scope);
             results = ps.executeQuery();

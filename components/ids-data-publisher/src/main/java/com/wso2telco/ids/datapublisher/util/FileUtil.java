@@ -48,6 +48,7 @@ public class FileUtil {
     /**
      * This method return value from property file of corresponding key passed.
      *
+     * @param key key
      * @return String
      */
     public static String getApplicationProperty(String key) {

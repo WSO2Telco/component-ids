@@ -74,11 +74,11 @@ function handleTermination() {
 	if(hasResponse){
 		commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
 			+ "&msisdn=" + msisdn
-			+ "&isTerminated=false";
+			+ "&isTerminated=false&canHandle=true";
 	}else {
 		commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
 			+ "&msisdn=" + msisdn
-			+ "&isTerminated=true";
+			+ "&isTerminated=true&canHandle=true";
 	}
 	window.location = commonAuthURL;
 	//}, 5000);
