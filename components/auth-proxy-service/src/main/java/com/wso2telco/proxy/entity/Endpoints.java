@@ -69,7 +69,9 @@ public class Endpoints {
     private static Map<String, List<MSISDNHeader>> operatorsMSISDNHeadersMap;
     private static Map<String, Operator> operatorPropertiesMap = null;
 
-    /** The Configuration service */
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /**
@@ -107,85 +109,81 @@ public class Endpoints {
     public void RedirectToAuthorizeEndpoint(@Context HttpServletRequest httpServletRequest, @Context
             HttpServletResponse httpServletResponse, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
                                             @PathParam("operatorName") String operatorName, String jsonBody) throws
-                                                                                                             Exception {
+            Exception {
         operatorName = operatorName.toLowerCase();
         //Read query params from the header.
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        String redirectURL = queryParams.get(AuthProxyConstants.REDIRECT_URI).get(0);
-
-        String loginHint = null;
-        String decryptedLoginHint = null;
-        String ipAddress = null;
-        String msisdn = null;
-        String queryString = "";
-        List<String> loginHintParameter = queryParams.get(AuthProxyConstants.LOGIN_HINT);
-        if (loginHintParameter != null) {
-            //Read login_hint value from the query params.
-            loginHint = loginHintParameter.get(0);
-            if(log.isDebugEnabled()) {
-                log.debug("Login Hint : " + loginHint);
-            }
-
-            if (!StringUtils.isEmpty(loginHint)) {
-                if ((loginHint.length() != 12) &&
-                        !(loginHint.startsWith(AuthProxyConstants.LOGIN_HINT_NOENCRYPTED_PREFIX)) &&
-                        !(loginHint.startsWith(AuthProxyConstants.LOGIN_HINT_ENCRYPTED_PREFIX))) {
-                    String[] decryptedFullLoginHint = DecryptAES.decrypt(loginHint).split("\\+");
-                    if(log.isDebugEnabled()) {
-                        log.debug("Decrypted login hint : " + decryptedFullLoginHint);
-                    }
-                    decryptedLoginHint = decryptedFullLoginHint[1];
-                }
-            }
-        }
-
-        String authorizeUrlProperty = null;
-        //have to check whether mobile-connect.xml exists or not.
-        if (mobileConnectConfigs != null) {
-            authorizeUrlProperty = mobileConnectConfigs.getAuthProxy().getAuthorizeURL();
-        } else {
-            throw new FileNotFoundException("mobile-connect.xml could not be found");
-        }
-
-        RedirectUrlInfo redirectUrlInfo = new RedirectUrlInfo();
-        redirectUrlInfo.setAuthorizeUrl(authorizeUrlProperty);
-        redirectUrlInfo.setOperatorName(operatorName);
-
-        if (httpHeaders != null) {
-            if (log.isDebugEnabled()) {
-                for (String httpHeader : httpHeaders.getRequestHeaders().keySet()) {
-                    if(log.isDebugEnabled()) {
-                        log.debug("Header : " + httpHeader + " Value: " + httpHeaders.getRequestHeader(httpHeader));
-                    }
-                }
-            }
-        }
-
-        msisdn = decryptMSISDN(httpHeaders, operatorName);
-        ipAddress = getIpAddress(httpHeaders, operatorName);
-        queryParams.putSingle(AuthProxyConstants.PROMPT, AuthProxyConstants.LOGIN);
-
         String clientId = queryParams.getFirst("client_id");
+        String redirectURL = queryParams.get(AuthProxyConstants.REDIRECT_URI).get(0);
         String scopeName = queryParams.get(AuthProxyConstants.SCOPE).get(0);
 
-        //validate if the scope is allowed by the SP
         if (!validateScopeWithSP(scopeName, clientId)) {
-            throw new ConfigurationException(
-                    "Scope - " + scopeName + " is not allowed by ClientId - " + clientId);
-        }
+            redirectURL = redirectURL + "?error=access_denied";
+        } else {
+            String loginHint = null;
+            String decryptedLoginHint = null;
+            String ipAddress = null;
+            String msisdn = null;
+            String queryString = "";
+            List<String> loginHintParameter = queryParams.get(AuthProxyConstants.LOGIN_HINT);
+            if (loginHintParameter != null) {
+                //Read login_hint value from the query params.
+                loginHint = loginHintParameter.get(0);
+                if (log.isDebugEnabled()) {
+                    log.debug("Login Hint : " + loginHint);
+                }
 
-        //Validate with Scope wise parameters
-        validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo);
+                if (!StringUtils.isEmpty(loginHint)) {
+                    if ((loginHint.length() != 12) &&
+                            !(loginHint.startsWith(AuthProxyConstants.LOGIN_HINT_NOENCRYPTED_PREFIX)) &&
+                            !(loginHint.startsWith(AuthProxyConstants.LOGIN_HINT_ENCRYPTED_PREFIX))) {
+                        String[] decryptedFullLoginHint = DecryptAES.decrypt(loginHint).split("\\+");
+                        if (log.isDebugEnabled()) {
+                            log.debug("Decrypted login hint : " + decryptedFullLoginHint);
+                        }
+                        decryptedLoginHint = decryptedFullLoginHint[1];
+                    }
+                }
+            }
 
-        Boolean isScopeExists = queryParams.containsKey(AuthProxyConstants.SCOPE);
-        String operatorScopeWithClaims;
+            String authorizeUrlProperty = null;
+            //have to check whether mobile-connect.xml exists or not.
+            if (mobileConnectConfigs != null) {
+                authorizeUrlProperty = mobileConnectConfigs.getAuthProxy().getAuthorizeURL();
+            } else {
+                throw new FileNotFoundException("mobile-connect.xml could not be found");
+            }
 
-        if (isScopeExists) {
-            operatorScopeWithClaims = queryParams.get(AuthProxyConstants.SCOPE).get(0);
-            //split form space or + sign  
-            String[] scopeValues = operatorScopeWithClaims.split("\\s+|\\+");
+            RedirectUrlInfo redirectUrlInfo = new RedirectUrlInfo();
+            redirectUrlInfo.setAuthorizeUrl(authorizeUrlProperty);
+            redirectUrlInfo.setOperatorName(operatorName);
 
-          //  if (Arrays.asList(scopeValues).contains(ScopeConstant.OAUTH20_VALUE_SCOPE)) {
+            if (httpHeaders != null) {
+                if (log.isDebugEnabled()) {
+                    for (String httpHeader : httpHeaders.getRequestHeaders().keySet()) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("Header : " + httpHeader + " Value: " + httpHeaders.getRequestHeader(httpHeader));
+                        }
+                    }
+                }
+            }
+
+            msisdn = decryptMSISDN(httpHeaders, operatorName);
+            ipAddress = getIpAddress(httpHeaders, operatorName);
+            queryParams.putSingle(AuthProxyConstants.PROMPT, AuthProxyConstants.LOGIN);
+
+            //Validate with Scope wise parameters
+            validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo);
+
+            Boolean isScopeExists = queryParams.containsKey(AuthProxyConstants.SCOPE);
+            String operatorScopeWithClaims;
+
+            if (isScopeExists) {
+                operatorScopeWithClaims = queryParams.get(AuthProxyConstants.SCOPE).get(0);
+                //split form space or + sign
+                String[] scopeValues = operatorScopeWithClaims.split("\\s+|\\+");
+
+                //  if (Arrays.asList(scopeValues).contains(ScopeConstant.OAUTH20_VALUE_SCOPE)) {
 
                 queryString = processQueryString(queryParams, queryString);
 
@@ -202,95 +200,13 @@ public class Endpoints {
                 redirectUrlInfo.setIpAddress(ipAddress);
                 redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
                 redirectURL = constructRedirectUrl(redirectUrlInfo);
-           // }
+            }
 
-//            if (operatorScope.equals(AuthProxyConstants.SCOPE_CPI)) {
-//                boolean isUserExists = isUserExists(msisdn);
-//                if (!isUserExists) {
-//                    createUserProfile(msisdn, operatorName, AuthProxyConstants.SCOPE_CPI);
-//                    queryParams.putSingle(AuthProxyConstants.IS_NEW, String.valueOf(true));
-//                }
-//
-//                // Replace query parameters based on the scope.
-//                queryParams.putSingle(AuthProxyConstants.SCOPE, AuthProxyConstants.SCOPE_OPENID);
-//                queryParams.putSingle(AuthProxyConstants.ACR, "6");
-//                queryString = processQueryString(queryParams, queryString);
-//
-//            } else if (operatorScope.equals(AuthProxyConstants.SCOPE_MNV)) {
-//                String acr = queryParams.get(AuthProxyConstants.ACR).get(0);
-//
-//                // Replace query parameters based on the scope.
-//                queryParams.putSingle(AuthProxyConstants.SCOPE, AuthProxyConstants.SCOPE_OPENID);
-//                queryString = processQueryString(queryParams, queryString);
-//                redirectUrlInfo.setQueryString(queryString);
-//                redirectUrlInfo.setIpAddress(ipAddress);
-//
-//                if (authorizeUrlProperty != null) {
-//                    if (!StringUtils.isEmpty(msisdn)) {
-//                        if (msisdn.equals(loginHint)) {
-//                            if (acr.equals("2")) {
-//                                if (!isUserExists(msisdn)) {
-//                                    createUserProfile(msisdn, operatorName, AuthProxyConstants.SCOPE_MNV);
-//                                }
-//                            }
-//                            // Encrypt MSISDN
-//                            //have the opportunity to choose encrypt method.
-//                            msisdn = EncryptAES.encrypt(msisdn);
-//                            // URL encode
-//                            msisdn = URLEncoder.encode(msisdn, AuthProxyConstants.UTF_ENCODER);
-//                            redirectUrlInfo.setMsisdnHeader(msisdn);
-//                            redirectUrlInfo.setTelcoScope("mvn");
-//                            redirectURL = constructRedirectUrl(redirectUrlInfo);
-//                        } else {
-//                            if (acr.equals("2")) {
-//                                redirectUrlInfo.setMsisdnHeader(msisdn);
-//                                redirectUrlInfo.setTelcoScope("invalid");
-//                                redirectURL = constructRedirectUrl(redirectUrlInfo);
-//                            } else if (acr.equals("3")) {
-//                                redirectUrlInfo.setMsisdnHeader(null);
-//                                redirectUrlInfo.setTelcoScope("mvn");
-//                                redirectURL = constructRedirectUrl(redirectUrlInfo);
-//                            } else {
-//                               // do nothing.
-//                            }
-//                        }
-//                    } else {
-//                        redirectUrlInfo.setMsisdnHeader(msisdn);
-//                        redirectUrlInfo.setTelcoScope("mvn");
-//                        redirectUrlInfo.setIpAddress(ipAddress);
-//                        redirectURL = constructRedirectUrl(redirectUrlInfo);
-//                    }
-//                } else {
-//                    throw new ConfigurationException("AuthorizeURL could not be found in mobile-connect.xml");
-//                }
-//            } else {
-//                if (!StringUtils.isEmpty(decryptedLoginHint)) {
-//                    queryParams.putSingle(AuthProxyConstants.LOGIN_HINT, decryptedLoginHint);
-//                }
-//                queryString = processQueryString(queryParams, queryString);
-//            }
+            if (log.isDebugEnabled()) {
+                log.debug("redirectURL : " + redirectURL);
+            }
         }
 
-        //Reconstruct AuthURL
-//        if (!operatorScope.equals(AuthProxyConstants.SCOPE_MNV)) {
-//            // Encrypt MSISDN
-//            msisdn = EncryptAES.encrypt(msisdn);
-//            // URL encode
-//            if (msisdn != null) {
-//                msisdn = URLEncoder.encode(msisdn, AuthProxyConstants.UTF_ENCODER);
-//            } else {
-//                msisdn = "";
-//            }
-//            redirectUrlInfo.setMsisdnHeader(msisdn);
-//            redirectUrlInfo.setQueryString(queryString);
-//            redirectUrlInfo.setIpAddress(ipAddress);
-//            redirectUrlInfo.setTelcoScope(AuthProxyConstants.SCOPE_OPENID);
-//            redirectURL = constructRedirectUrl(redirectUrlInfo);
-//        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("redirectURL : " + redirectURL);
-        }
         httpServletResponse.sendRedirect(redirectURL);
     }
 
@@ -304,7 +220,7 @@ public class Endpoints {
      */
     private boolean validateScopeWithSP(String scopeName, String clientId)
             throws AuthenticatorException, ConfigurationException {
-       return DBUtils.isSPAllowedScope(scopeName,clientId);
+        return DBUtils.isSPAllowedScope(scopeName, clientId);
     }
 
 
@@ -349,7 +265,7 @@ public class Endpoints {
             } else {
                 if (StringUtils.isNotEmpty(msisdnHeader)) {
                     // check if decryption possible
-                    if(log.isDebugEnabled()) {
+                    if (log.isDebugEnabled()) {
                         log.debug("Set msisdn from header msisdn_header : " + msisdnHeader);
                     }
                     if (!validateMsisdnFormat(msisdnHeader)) {
@@ -359,7 +275,7 @@ public class Endpoints {
 
                     //validate login hint format
                     validateFormatAndMatchLoginHintWithHeaderMsisdn(loginHint, scopeParam.getLoginHintFormat(),
-                                                                    msisdnHeader, scopeParam.getMsisdnMismatchResult());
+                            msisdnHeader, scopeParam.getMsisdnMismatchResult());
                 }
             }
         }
@@ -402,8 +318,8 @@ public class Endpoints {
                             try {
                                 //decrypt msisdn using given algorithm
                                 decrypted = Decrypt.decryptData(loginHint.replace(LOGIN_HINT_ENCRYPTED_PREFIX, ""),
-                                                                decryptAlgorithm);
-                                if(log.isDebugEnabled()) {
+                                        decryptAlgorithm);
+                                if (log.isDebugEnabled()) {
                                     log.debug("Decrypted login hint : " + decrypted);
                                 }
                                 msisdn = decrypted.substring(0, decrypted.indexOf(LOGIN_HINT_SEPARATOR));
@@ -476,7 +392,6 @@ public class Endpoints {
         }
         return true;
     }
-
 
 
     private String decryptMSISDN(HttpHeaders httpHeaders, String operatorName)
