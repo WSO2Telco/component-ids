@@ -299,11 +299,8 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 							parameterMap.put("currentLOA", selectedLOA);
 							parameterMap.put("fallBack", (null != fallBack) ? fallBack : "");
 							parameterMap.put("onFail", (null != onFailAction) ? onFailAction : "");
-							//						parameterMap
-							//								.put("isLastAuthenticator",
-							//								     (authenticatorList.indexOf(authenticator) == authenticatorList.size() - 1) ?
-							//										     "true"
-							//										     : "false");
+							parameterMap.put("isLastAuthenticator", (authenticatorList
+									.indexOf(authenticator) == authenticatorList.size() - 1) ? "true" : "false");
 							authenticatorConfig.setParameterMap(parameterMap);
 
 							stepConfig.getAuthenticatorList().add(authenticatorConfig);
@@ -311,11 +308,6 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
 							stepOrder++;
 						} else {
-							//This change is just a revert back to what previously was. Need to check and change
-							if (StringUtils.isEmpty(fallBack)) {
-								selectedLOA = fallBack;
-								mifeAuthentication = authenticationMap.get(selectedLOA);
-							}
 							break;
 						}
 					}
