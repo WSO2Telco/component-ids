@@ -122,6 +122,12 @@ public class MIFEOpenIDTokenBuilder implements
 	public String buildIDToken(OAuthTokenReqMessageContext request,
 			OAuth2AccessTokenRespDTO tokenRespDTO) throws IdentityOAuth2Exception {
 
+        if(log.isDebugEnabled()) {
+            log.debug("MSISDN : " + request.getAuthorizedUser().getUserName());
+            log.debug("Generated access token : [" + tokenRespDTO.getAccessToken() +"]  for Authorization Code :  "
+                    + request.getProperty("AuthorizationCode"));
+        }
+
 		OAuthServerConfiguration config = OAuthServerConfiguration.getInstance();
 		String issuer = config.getOpenIDConnectIDTokenIssuerIdentifier();
 		int lifetime = Integer.parseInt(config.getOpenIDConnectIDTokenExpiration()) * 1000;

@@ -60,6 +60,10 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
      */
     public String getResponseString(OAuth2TokenValidationResponseDTO tokenResponse) throws UserInfoEndpointException, OAuthSystemException {
 
+        if(log.isDebugEnabled()) {
+            log.debug("Generating Claim Info for Access token : " + tokenResponse.getAuthorizationContextToken().getTokenString());
+        }
+
         Map<ClaimMapping, String> userAttributes = getUserAttributesFromCache(tokenResponse);
         Map<String, Object> claims = null;
         //read claimValues per scope from scope-config.xml

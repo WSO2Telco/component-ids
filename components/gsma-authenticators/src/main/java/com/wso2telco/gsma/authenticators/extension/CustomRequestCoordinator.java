@@ -135,6 +135,11 @@ public class CustomRequestCoordinator implements RequestCoordinator {
                 if (!context.isLogoutRequest()) {
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, response,
                             context);
+
+                    if(log.isDebugEnabled()) {
+                        log.debug("Authenticating user : " + context.getParameter("msisdn"));
+                    }
+
                 } else {
                     FrameworkUtils.getLogoutRequestHandler().handle(request, response, context);
                 }
