@@ -39,12 +39,6 @@ public class DBUtil {
 
     private static volatile DataSource mConnectDatasource = null;
     private static final Log log = LogFactory.getLog(DBUtil.class);
-    private final static String ADD_USER_STATUS =
-            " INSERT INTO USER_STATUS (Time, Status, Msisdn, State, Nonce, Scope, AcrValue, SessionId, " +
-                    "IsMsisdnHeader, IpHeader," +
-                    "IsNewUser, LoginHint, Operator, UserAgent, Comment, ConsumerKey) values (?,?,?,?,?,?,?,?,?,?,?," +
-                    "?,?,?,?,?)";
-
 
     private static void initializeDatasources() throws AuthenticatorException {
         if (mConnectDatasource != null) {
@@ -77,7 +71,11 @@ public class DBUtil {
         try {
             conn = getConnectDBConnection();
 
-            ps = conn.prepareStatement(ADD_USER_STATUS);
+            String sql = " INSERT INTO USER_STATUS (Time, Status, Msisdn, State, Nonce, Scope, AcrValue, SessionId, " +
+                    "IsMsisdnHeader, IpHeader," +
+                    "IsNewUser, LoginHint, Operator, UserAgent, Comment, ConsumerKey) values (?,?,?,?,?,?,?,?,?,?,?," +
+                    "?,?,?,?,?)";
+            ps = conn.prepareStatement(sql);
 
             ps.setTimestamp(1, new java.sql.Timestamp(new java.util.Date().getTime()));
             ps.setString(2, userStatus.getStatus());
