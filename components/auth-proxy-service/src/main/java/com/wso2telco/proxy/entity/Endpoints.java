@@ -108,8 +108,10 @@ public class Endpoints {
     @Path("/oauth2/authorize/operator/{operatorName}")
     public void RedirectToAuthorizeEndpoint(@Context HttpServletRequest httpServletRequest, @Context
             HttpServletResponse httpServletResponse, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
-                                            @PathParam("operatorName") String operatorName, String jsonBody) throws
-            Exception {
+                                            @PathParam("operatorName") String operatorName, String jsonBody) throws Exception {
+
+        log.info("Request processing started from proxy");
+
         operatorName = operatorName.toLowerCase();
         //Read query params from the header.
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
@@ -118,6 +120,7 @@ public class Endpoints {
         String scopeName = queryParams.get(AuthProxyConstants.SCOPE).get(0);
 
         if (!validateScopeWithSP(scopeName, clientId)) {
+            log.error("Scope [ " + scopeName + " ] is not allowed for client [ " + clientId + " ]");
             redirectURL = redirectURL + "?error=access_denied";
         } else {
             String loginHint = null;
