@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.ussd;
 
+import com.wso2telco.Util;
 import com.wso2telco.core.config.model.PinConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
@@ -217,7 +218,13 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         } else {
             ussdCommand = new PinLoginUssdCommand();
         }
-        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator);
+
+        String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
+                context.getCallerSessionKey(), context.getContextIdentifier());
+        Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
+        String client_id = paramMap.get(Constants.CLIENT_ID);
+
+        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator, client_id);
     }
 
     /* (non-Javadoc)
