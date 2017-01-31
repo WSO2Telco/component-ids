@@ -343,4 +343,10 @@ public final class Constants {
 
     public static final String IP_ADDRESS = "ipAddress";
 
+    public static final String HE_FAILURE_RESULT = "heFailureResult";
+
+    public static final String INVALIDATE_QUERY_STRING_MSISDN = "InvalidateMSISDN";
+
+    public static final String LOGIN_HINT_MSISDN = "loginhintMsisdn";
+
 }
