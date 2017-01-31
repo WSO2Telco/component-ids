@@ -61,7 +61,6 @@
 		<module>components/openid-token-builder</module>
         <module>components/gsma-authenticators</module>
 		<module>components/auth-proxy-service</module>
-		<module>components/user-registration</module>
 		<module>components/sign</module>
 		<module>components/session-updater</module>
 		<module>components/portal</module>
