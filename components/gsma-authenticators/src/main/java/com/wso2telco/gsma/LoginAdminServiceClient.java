@@ -10,10 +10,8 @@ import org.wso2.carbon.authenticator.stub.LogoutAuthenticationExceptionException
 import java.rmi.RemoteException;
 
 /**
- *
  * This class is used as a client for AuthenticationAdminStub
- *
- * */
+ */
 public class LoginAdminServiceClient {
 
     private static final String serviceName = "AuthenticationAdmin";
@@ -23,11 +21,8 @@ public class LoginAdminServiceClient {
     /**
      * Creates a new LoginAdminServiceClient object and initialising the AuthenticationAdminStub
      *
-     * @param backEndUrl
-     *            https server url
-     *
-     * @throws AxisFault
-     *            Throws this when AuthenticationAdminStub failed to initialize
+     * @param backEndUrl https server url
+     * @throws AxisFault Throws this when AuthenticationAdminStub failed to initialize
      */
     public LoginAdminServiceClient(String backEndUrl) throws AxisFault {
         this.endPoint = backEndUrl + "/services/" + serviceName;
@@ -37,17 +32,14 @@ public class LoginAdminServiceClient {
     /**
      * This method is use to get authentication for accses admin services
      *
-     * @return
-     *         return a session
-     *
-     * @throws RemoteException
-     *         Throws this when failed connect with the AuthenticationAdminService
-     *
-     * @throws LoginAuthenticationExceptionException
-     *         Throws this when failed to authenticate with given username and password
-     * */
+     * @param password password
+     * @param userName username
+     * @return return a session
+     * @throws RemoteException                       Throws this when failed connect with the AuthenticationAdminService
+     * @throws LoginAuthenticationExceptionException Throws this when failed to authenticate with given username and password
+     */
     public String authenticate(String userName, String password) throws RemoteException,
-                                                                        LoginAuthenticationExceptionException {
+            LoginAuthenticationExceptionException {
         String sessionCookie = null;
         if (authenticationAdminStub.login(userName, password, "localhost")) {
             ServiceContext serviceContext = authenticationAdminStub.
@@ -58,6 +50,6 @@ public class LoginAdminServiceClient {
     }
 
     public void logOut() throws RemoteException, LogoutAuthenticationExceptionException {
-            authenticationAdminStub.logout();
+        authenticationAdminStub.logout();
     }
 }

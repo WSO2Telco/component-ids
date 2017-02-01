@@ -23,6 +23,8 @@ import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.context.ServiceContext;
 import org.apache.axis2.transport.http.HTTPConstants;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.authenticator.stub.AuthenticationAdminStub;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.authenticator.stub.LogoutAuthenticationExceptionException;
@@ -40,8 +42,11 @@ import java.rmi.RemoteException;
  * The Class LoginAdminServiceClient.
  */
 public class LoginAdminServiceClient {
-	
-	/** The service name. */
+
+    private static Log log = LogFactory.getLog(LoginAdminServiceClient.class);
+
+
+    /** The service name. */
 	private final String serviceName = "AuthenticationAdmin";
     
     /** The authentication admin stub. */
@@ -86,14 +91,17 @@ public class LoginAdminServiceClient {
         String sessionCookie = null;
 
         if (authenticationAdminStub.login(userName, password, "localhost")) {
-            System.out.println("Login Successful");
-
+            if(log.isDebugEnabled()) {
+                log.debug("Login Successful");
+            }
             ServiceContext serviceContext = authenticationAdminStub
                     ._getServiceClient().getLastOperationContext()
                     .getServiceContext();
             sessionCookie = (String) serviceContext
                     .getProperty(HTTPConstants.COOKIE_STRING);
-            System.out.println(sessionCookie);
+            if(log.isDebugEnabled()) {
+                log.debug(sessionCookie);
+            }
         }
         return sessionCookie;
     }
@@ -124,18 +132,18 @@ public class LoginAdminServiceClient {
 
         //String path = "/home/gayan/Documents/Dev/GSMA/IS_OpenId/testSetup1908/wso2is-5.0.0/repository/resources/security/"
         //        + "wso2carbon.jks";
-        
+
         try {
-                LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(sessionUpdaterConfig.getAdmin_url());
-                String sessionCookie = lAdmin.authenticate(sessionUpdaterConfig.getAdminusername(), sessionUpdaterConfig.getAdminpassword());
-                ClaimManagementClient claimManager = new ClaimManagementClient(sessionUpdaterConfig.getAdmin_url(), sessionCookie);
-                claimManager.setClaim();
+            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(sessionUpdaterConfig.getAdmin_url());
+            String sessionCookie = lAdmin.authenticate(sessionUpdaterConfig.getAdminusername(), sessionUpdaterConfig.getAdminpassword());
+            ClaimManagementClient claimManager = new ClaimManagementClient(sessionUpdaterConfig.getAdmin_url(), sessionCookie);
+            claimManager.setClaim();
         } catch (AxisFault e) {
-                e.printStackTrace();
+            log.error(e);
         } catch (RemoteException e) {
-                e.printStackTrace();
+            log.error(e);
         } catch (LoginAuthenticationExceptionException e) {
-                e.printStackTrace();
+            log.error(e);
         } 
         return sessionKey;
         
@@ -154,9 +162,7 @@ public class LoginAdminServiceClient {
         SetUserClaimValues claimAdmin = new SetUserClaimValues();
         
         //String username = claimAdmin.getUserName();
-        
-        System.out.println("Username is = " + claimAdmin.getUserName());
-       // Options option
+               // Options option
         //claimAdmin.setClaims(param);
     }
 

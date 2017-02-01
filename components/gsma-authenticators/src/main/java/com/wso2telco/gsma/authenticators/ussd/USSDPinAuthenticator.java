@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.ussd;
 
+import com.wso2telco.Util;
 import com.wso2telco.core.config.model.PinConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
@@ -124,6 +125,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
     protected void initiateAuthenticationRequest(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
+        log.info("Initiating authentication request");
 
         String retryParam = "";
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
@@ -131,7 +133,12 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         String serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
 
-        log.info("Initiating authentication request [ msisdn : " + msisdn + " , service provider : " + serviceProviderName + " ] ");
+        if(log.isDebugEnabled()) {
+            log.debug("Registering : " + isRegistering);
+            log.debug("Pin reset : " + isPinReset);
+            log.debug("MSISDN : " + msisdn);
+            log.debug("Service provider : " + serviceProviderName);
+        }
 
         try {
 
@@ -140,7 +147,6 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
                     context.getCallerSessionKey(), context.getContextIdentifier());
 
-            log.info("Service Provider Name = " + serviceProviderName);
             if (serviceProviderName.equals("wso2_sp_dashboard")) {
                 serviceProviderName = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getDashBoard();
             }
@@ -149,7 +155,6 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             savePinConfigToContext(context, isRegistering, msisdn, isPinReset);
 
             if (!isPinReset) {
-                saveLoa3PropertiesToContext(request, context);
                 sendUssd(context, isRegistering, msisdn, serviceProviderName, operator);
             }
 
@@ -213,7 +218,13 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         } else {
             ussdCommand = new PinLoginUssdCommand();
         }
-        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator);
+
+        String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
+                context.getCallerSessionKey(), context.getContextIdentifier());
+        Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
+        String client_id = paramMap.get(Constants.CLIENT_ID);
+
+        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator, client_id);
     }
 
     /* (non-Javadoc)
@@ -224,6 +235,8 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
+        log.info("Processing authentication response");
+
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         PinConfig pinConfig = PinConfigUtil.getPinConfig(context);
 
@@ -233,10 +246,17 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         boolean isPinResetConfirmation = isPinResetConfirmation(pinConfig);
         String isTerminated = request.getParameter(Constants.IS_TERMINATED);
 
-        log.info("Processing authentication request [ msisdn : " + msisdn + " ] ");
+        if(log.isDebugEnabled()) {
+            log.debug("MSISDN : " + msisdn);
+            log.debug("Registering : " + isRegistering);
+            log.debug("Profile upgrade : " + isProfileUpgrade);
+            log.debug("Pin reset : " + isPinReset);
+            log.debug("Pin reset confirmation : " + isPinResetConfirmation);
+            log.debug("Terminated : " + isTerminated);
+        }
 
-        if(isTerminated != null && Boolean.parseBoolean(isTerminated)){
-            throw new AuthenticationFailedException("Authenticator is terminated");
+        if (isTerminated != null && Boolean.parseBoolean(isTerminated)) {
+            terminateAuthentication(context);
         }
 
         try {
@@ -256,23 +276,28 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             AuthenticationContextHelper.setSubject(context, msisdn);
 
             context.setRememberMe(false);
-            log.info("UssdPinAuthenticator successfully completed");
+            log.info("Authentication success");
 
         } catch (UserRegistrationAdminServiceIdentityException | RemoteException e) {
-//            StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
-//            stepConfig.setMultiOption(true);
             log.error("Error occurred while creating user profile", e);
-//            throw new AuthenticationFailedException(e.getMessage(), e);
+            terminateAuthentication(context);
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
             log.error("Error occurred while accessing admin services", e);
-//            throw new AuthenticationFailedException(e.getMessage(), e);
+            terminateAuthentication(context);
         } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
             log.error("Error occurred while updating user profile", e);
-//            throw new AuthenticationFailedException(e.getMessage(), e);
+            terminateAuthentication(context);
         } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
             log.error("Error occurred while hashing the pin", e);
-//            throw new AuthenticationFailedException(e.getMessage(), e);
+            terminateAuthentication(context);
         }
+    }
+
+    private void terminateAuthentication(AuthenticationContext context) throws AuthenticationFailedException {
+        log.info("User has terminated the authentication flow");
+
+        context.setProperty(Constants.IS_TERMINATED, true);
+        throw new AuthenticationFailedException("Authenticator is terminated");
     }
 
     public AuthenticatorFlowStatus processRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
@@ -310,7 +335,11 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
                 publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
                 return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
             } catch (AuthenticationFailedException e) {
-                String isTerminated = request.getParameter(Constants.IS_TERMINATED);
+                Object property = context.getProperty(Constants.IS_TERMINATED);
+                boolean isTerminated = false;
+                if (property != null) {
+                    isTerminated = (boolean) property;
+                }
 
                 Map stepMap = context.getSequenceConfig().getStepMap();
                 boolean stepHasMultiOption = false;
@@ -322,7 +351,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
                     }
                 }
 
-                if(isTerminated != null && Boolean.parseBoolean(isTerminated)){
+                if (isTerminated) {
                     throw new AuthenticationFailedException("Authenticator is terminated");
                 }
                 if (retryAuthenticationEnabled() && !stepHasMultiOption) {
@@ -343,11 +372,11 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
     private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context, User user, boolean success) {
         AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy();
-        if(authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
+        if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
             boolean isFederated = this instanceof FederatedApplicationAuthenticator;
             HashMap paramMap = new HashMap();
             paramMap.put("user", user);
-            if(isFederated) {
+            if (isFederated) {
                 context.setProperty("hasFederatedStep", Boolean.valueOf(true));
                 paramMap.put("isFederated", Boolean.valueOf(true));
             } else {
@@ -356,7 +385,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             }
 
             Map unmodifiableParamMap = Collections.unmodifiableMap(paramMap);
-            if(success) {
+            if (success) {
                 authnDataPublisherProxy.publishAuthenticationStepSuccess(request, context, unmodifiableParamMap);
             } else {
                 authnDataPublisherProxy.publishAuthenticationStepFailure(request, context, unmodifiableParamMap);
@@ -412,9 +441,11 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         String operator = (String) context.getProperty(Constants.OPERATOR);
         PinConfig pinConfig = (PinConfig) context.getProperty(com.wso2telco.core.config.util.Constants.PIN_CONFIG_OBJECT);
 
-        log.info("Updating user profile from LOA2 to LOA3 flow [ msisdn : " + msisdn + " , challenge question 1 : " +
-                challengeQuestion1 + " , challenge answer 1 : " + challengeAnswer1 + " , challenge question 2 : " +
-                challengeQuestion2 + " , challenge answer 2 : " + challengeAnswer2 + " ] ");
+        if(log.isDebugEnabled()) {
+            log.debug("Updating user profile from LOA2 to LOA3 flow [ msisdn : " + msisdn + " , challenge question 1 : " +
+                    challengeQuestion1 + " , challenge answer 1 : " + challengeAnswer1 + " , challenge question 2 : " +
+                    challengeQuestion2 + " , challenge answer 2 : " + challengeAnswer2 + " ] ");
+        }
 
         challengeAnswer1 = challengeQuestion1 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer1;
         challengeAnswer2 = challengeQuestion2 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer2;
@@ -432,9 +463,12 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         PinConfig pinConfig = PinConfigUtil.getPinConfig(context);
 
         if (pinConfig.isPinsMatched()) {
-            log.info("Creating user profile for LOA3 flow [ msisdn : " + msisdn + " , challenge question 1 : " +
-                    challengeQuestion1 + " , challenge answer 1 : " + challengeAnswer1 + " , challenge question 2 : " +
-                    challengeQuestion2 + " , challenge answer 2 : " + challengeAnswer2 + " ] ");
+
+            if(log.isDebugEnabled()) {
+                log.debug("Creating user profile for LOA3 flow [ msisdn : " + msisdn + " , challenge question 1 : " +
+                        challengeQuestion1 + " , challenge answer 1 : " + challengeAnswer1 + " , challenge question 2 : " +
+                        challengeQuestion2 + " , challenge answer 2 : " + challengeAnswer2 + " ] ");
+            }
 
             challengeAnswer1 = challengeQuestion1 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer1;
             challengeAnswer2 = challengeQuestion2 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer2;
@@ -453,9 +487,6 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         String registeredPin = new UserProfileManager().getCurrentPin(msisdn);
         String confirmedPin = pinConfig.getConfirmedPin();
 
-
-        log.info("Handling user login [ msisdn : " + msisdn + "]");
-
         int tenantId = -1234;
         UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService()
                 .getTenantUserRealm(tenantId);
@@ -467,8 +498,6 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             validatePin(pinConfig, context);
 
         } else {
-            StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
-            stepConfig.setMultiOption(true);
             throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: " + tenantId);
         }
     }
@@ -537,9 +566,9 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             hashString = hexString.toString();
 
         } catch (UnsupportedEncodingException ex) {
-            log.error("Error getHashValue" + ex);
+            log.error("Error while generating hash value", ex);
         } catch (NoSuchAlgorithmException ex) {
-            log.error("Error getHashValue" + ex);
+            log.error("Error while generating hash value", ex);
         }
 
         return hashString;

@@ -101,7 +101,7 @@ public class MIFEClaimHandler extends DefaultClaimHandler {
             String nonce = sdce.getoAuth2Parameters().getNonce();
 
             if (DEBUG) {
-                log.debug(" nonce values from  getoAuth2Parameters " + nonce);
+                log.debug("nonce values from  getoAuth2Parameters " + nonce);
             }
 
             AuthenticationRequest authRequest = context.getAuthenticationRequest();
@@ -116,10 +116,14 @@ public class MIFEClaimHandler extends DefaultClaimHandler {
                 String state = authRequest.getRequestQueryParams().get("state")[0];
                 
                 localClaims.put("state", state);
-                log.info("state=" + state);
+                if(DEBUG) {
+                    log.debug("state : " + state);
+                }
                 
-            }else{
-                log.info("state is empty..........................");
+            } else {
+                if(DEBUG) {
+                    log.debug("state is empty");
+                }
             }
             
             

@@ -21,7 +21,6 @@ import com.google.gson.GsonBuilder;
 import com.wso2telco.Util;
 import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.model.MobileConnectConfig;
-import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.ussd.USSDRequest;
 import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
 import org.apache.commons.logging.Log;
@@ -32,27 +31,25 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Authe
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Map;
 
 
 public abstract class UssdCommand {
 
     private static Log log = LogFactory.getLog(UssdCommand.class);
 
-    public void execute(String msisdn, String sessionID, String serviceProvider, String operator) throws IOException {
+    public void execute(String msisdn, String sessionID, String serviceProvider, String operator, String client_id) throws IOException {
 
-        AuthenticationContext ctx = getAuthenticationContext(sessionID);
-        String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(ctx.getQueryParams(),
-                ctx.getCallerSessionKey(), ctx.getContextIdentifier());
-
-        Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
-
-        String client_id = paramMap.get(Constants.CLIENT_ID);
+//        AuthenticationContext ctx = getAuthenticationContext(sessionID);
+//        String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(ctx.getQueryParams(),
+//                ctx.getCallerSessionKey(), ctx.getContextIdentifier());
+//
+//        Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
+//
+//        String client_id = paramMap.get(Constants.CLIENT_ID);
 
         USSDRequest ussdRequest = getUssdRequest(msisdn, sessionID, serviceProvider, operator, client_id);
 
@@ -82,7 +79,7 @@ public abstract class UssdCommand {
         try {
             postRequest.setURI(new URI(url));
         } catch (URISyntaxException ex) {
-            log.debug("Malformed URL - " + url + ex);
+            log.error("Malformed URL - " + url, ex);
         }
 
         postRequest.addHeader("accept", "application/json");
@@ -97,8 +94,9 @@ public abstract class UssdCommand {
 
         postRequest.setEntity(input);
 
-        log.info("Posting data  [ " + requestStr + " ] to url [ " + url + " ]");
-
+        if(log.isDebugEnabled()) {
+            log.debug("Posting data  [ " + requestStr + " ] to url [ " + url + " ]");
+        }
         Util.sendAsyncRequest(postRequest, futureCallback);
     }
 

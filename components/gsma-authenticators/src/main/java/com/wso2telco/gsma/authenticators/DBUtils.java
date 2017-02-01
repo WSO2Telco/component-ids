@@ -108,13 +108,9 @@ public class DBUtils {
         //String sql = "SELECT SessionID, Status FROM clientstatus WHERE SessionID=?";
         StringBuilder sql = new StringBuilder();
 
-        sql.append("SELECT SessionID, Status FROM ");
-        sql.append(TableName.CLIENT_STATUS);
-        sql.append(" WHERE SessionID=?");
-
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " for sessionDataKey : " + sessionDataKey);
-        }
+        sql.append("SELECT status FROM ");
+        sql.append(TableName.REG_STATUS);
+        sql.append(" WHERE uuid=?");
 
         String userResponse = null;
         try {
@@ -123,10 +119,11 @@ public class DBUtils {
             ps.setString(1, sessionDataKey);
             results = ps.executeQuery();
             while (results.next()) {
-                userResponse = results.getString("Status");
+                userResponse = results.getString("status");
             }
         } catch (SQLException e) {
-            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " from the database", e);
+            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey
+                    + " from the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
         }
@@ -150,10 +147,6 @@ public class DBUtils {
         sql.append("SELECT SessionID, Status FROM ");
         sql.append(TableName.CLIENT_STATUS);
         sql.append(" WHERE SessionID=?");
-
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " for sessionDataKey : " + sessionDataKey);
-        }
 
         String userResponse = null;
         try {
@@ -191,10 +184,6 @@ public class DBUtils {
         sql.append(TableName.REG_STATUS);
         sql.append(" WHERE uuid=?");
 
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " for sessionDataKey : " + sessionDataKey);
-        }
-
         String userResponse = null;
         try {
             conn = getConnectDBConnection();
@@ -229,10 +218,6 @@ public class DBUtils {
         sql.append("SELECT SessionID, pin, Status FROM ");
         sql.append(TableName.CLIENT_STATUS);
         sql.append(" WHERE SessionID=?");
-
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " for sessionDataKey : " + sessionDataKey);
-        }
 
         Pinresponse pinresponse = new Pinresponse();
 
@@ -272,11 +257,6 @@ public class DBUtils {
         sql.append(TableName.CLIENT_STATUS);
         sql.append(" (SessionID, Status) VALUES (?,?)");
 
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " to Insert sessionDataKey : " + sessionDataKey
-                    + "and responseStatus " + responseStatus);
-        }
-
         String userResponse = null;
         try {
             conn = getConnectDBConnection();
@@ -312,11 +292,6 @@ public class DBUtils {
         sql.append("INSERT INTO ");
         sql.append(TableName.REG_STATUS);
         sql.append(" (uuid, status) VALUES (?,?)");
-
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " to Insert sessionDataKey : " + sessionDataKey
-                    + "and responseStatus " + responseStatus);
-        }
 
         String userResponse = null;
         try {
@@ -366,11 +341,6 @@ public class DBUtils {
         sql.append(TableName.CLIENT_STATUS);
         sql.append(" set Status=? WHERE SessionID=?");
 
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " to Update sessionDataKey : " + sessionDataKey
-                    + "and responseStatus " + responseStatus);
-        }
-
         try {
             conn = getConnectDBConnection();
             ps = conn.prepareStatement(sql.toString());
@@ -409,10 +379,6 @@ public class DBUtils {
         sql.append(" from ");
         sql.append(TableName.AUTHENTICATED_LOGIN);
         sql.append(" where tokenID=?");
-
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " for TokenId " + tokenID);
-        }
 
         try {
             connection = getConnectDBConnection();
@@ -463,10 +429,6 @@ public class DBUtils {
         sql.append(TableName.AUTHENTICATED_LOGIN);
         sql.append(" WHERE tokenID=?");
 
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + "to Delete tokenId " + tokenId);
-        }
-
         try {
             try {
                 connection = getConnectDBConnection();
@@ -496,7 +458,7 @@ public class DBUtils {
             ps.executeUpdate();
             return 1;
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while saving request type ", e);
         } finally {
             if (connection != null) {
                 connection.close();
@@ -687,6 +649,7 @@ public class DBUtils {
      * @throws SQLException
      * @throws NamingException
      */
+    @Deprecated
     private static List<MSISDNHeader> getMSISDNPropertiesByOperatorId(int operatorId, String operatorName,
                                                                       Connection connection) throws
                                                                                              SQLException,
@@ -727,10 +690,6 @@ public class DBUtils {
         sql.append(TableName.ALLOWED_AUTHENTICATORS_MNO);
         sql.append(" where mobile_network_operator=?");
 
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " for mobile network operator " + mobileNetworkOperator);
-        }
-
         Set<String> authenticatorSet = new HashSet<>();
         try (Connection connection = getConnectDBConnection()) {
             PreparedStatement ps = connection.prepareStatement(sql.toString());
@@ -752,10 +711,6 @@ public class DBUtils {
         sql.append(" from ");
         sql.append(TableName.ALLOWED_AUTHENTICATORS_SP);
         sql.append(" where client_id=?");
-
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " for service provider " + serviceProvider);
-        }
 
         Set<String> authenticatorSet = new HashSet<>();
         try (Connection connection = getConnectDBConnection()) {
@@ -809,5 +764,24 @@ public class DBUtils {
             IdentityDatabaseUtil.closeAllConnections(conn, null, ps);
         }
         return -1;
+    }
+
+    public static void insertHashKeyContextIdentifierMapping(String hashKey, String contextIdentifier)
+            throws AuthenticatorException {
+        String sql = "insert into sms_hashkey_contextid_mapping(hashkey, contextid) values  (?,?);";
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query " + sql + " for hash key " + hashKey + " and context identifier "
+                    + contextIdentifier);
+        }
+
+        try (Connection connection = getConnectDBConnection()) {
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
+            ps.setString(1, hashKey);
+            ps.setString(2, contextIdentifier);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            handleException(e.getMessage(), e);
+        }
     }
 }

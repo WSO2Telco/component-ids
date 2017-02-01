@@ -20,9 +20,6 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 
-/**
- * @scr.component name="com.wso2telco.openid.extension.internal.CustomScopeServiceComponent" immediate="true"
- */
 public class CustomScopeServiceComponent {
 
     private static BundleContext bundleContext;

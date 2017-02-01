@@ -116,7 +116,7 @@
 
     <main class="site__main site__wrap section v-distribute v-grow">
         <header class="page__header" id="ussdpin_header" style="display:none">
-            <h1 class="page__heading">Now, let’s make your account&nbsp;secure</h1>
+            <h1 class="page__heading">Now, let&rsquo;s make your account&nbsp;secure</h1>
             <p>Create a PIN for secure log-in and two questions we can ask you in case you ever forget
                 your&nbsp;PIN.</p>
         </header>
@@ -268,7 +268,7 @@
 
             <div class="grid">
                 <div class="grid__item one-half">
-                    <a onclick="cancelProcessToRegister('<%=token%>')" class="btn btn--outline btn--full btn--large">
+                    <a onclick="cancelProcessToRegister()" class="btn btn--outline btn--full btn--large">
                         No thanks
                     </a>
                 </div>
@@ -360,7 +360,6 @@
         term_ussd.style.display = 'block';
     }
 
-    <% System.out.println("xxxxxxxxxxxxxxxxxxxx ssssssssssss :" + updateProfile); %>
     if ('<%=updateProfile%>' == "true") {
         flow();
         term_ussd_pin.style.display = 'none';

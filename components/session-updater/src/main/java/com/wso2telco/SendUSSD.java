@@ -248,7 +248,7 @@ public class SendUSSD {
             log.error("Error occured while calling end points - " + response.getStatusLine().getStatusCode() + "-" + response.getStatusLine().getReasonPhrase());
         } else {
             if(log.isDebugEnabled())
-                log.info("Success Request");
+                log.debug("Success Request");
         }
 
         String responseStr = null;

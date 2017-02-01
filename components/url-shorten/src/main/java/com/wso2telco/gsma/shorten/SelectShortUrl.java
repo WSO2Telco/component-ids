@@ -50,10 +50,8 @@ public class SelectShortUrl {
             log.info("Instantiation Exception when object create "+e);
         } catch (IllegalAccessException e) {
             log.info("Instantiation Exception when object create "+e);
-            e.printStackTrace();
         } catch (ClassNotFoundException e){
             log.info("Instantiation Exception when object create "+e);
-            e.printStackTrace();
         }
 
         return shortUrl;

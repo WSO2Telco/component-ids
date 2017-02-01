@@ -66,18 +66,21 @@ function pollForStatus() {
 function handleTermination() {
 	window.clearInterval(pollingVar);
 
-	if(status == STATUS_PIN_FAIL){
-		//var name = 'msisdn';
-		var msisdn = document.getElementById('msisdn').value;
-		if(msisdn){
-			window.location = pinResetUrl+"&msisdn="+msisdn;
-		}else{
-			window.location = pinResetUrl+"&msisdn=not_found";
-		}
 
+
+	var sessionDataKey = qs('sessionDataKey');
+	var commonAuthURL;
+
+	if(hasResponse){
+		commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
+			+ "&msisdn=" + msisdn
+			+ "&isTerminated=false&canHandle=true";
 	}else {
-		document.getElementById('loginForm').submit();
+		commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
+			+ "&msisdn=" + msisdn
+			+ "&isTerminated=true&canHandle=true";
 	}
+	window.location = commonAuthURL;
 	//}, 5000);
 }
 
@@ -140,18 +143,8 @@ function getCookieAndResend() {
 	});
 }
 
-function sendSMS(prefix){
-
-	var operator = getUrlVars()["operator"];
-	var client_id = getUrlVars()["relyingParty"];
-	var redirect_uri = getUrlVars()["redirect_uri"];
-	var acr_values = getUrlVars()["acr_values"];
-	var state = getUrlVars()["state"];
-	var scope = getUrlVars()["scope"];
-	var msisdn = document.getElementById('msisdn').value;
-	var nonce = getUrlVars()["nonce"];
-	var smsFallbackURL = prefix + "oauth2/authorize?scope=" + scope +"&response_type=code&redirect_uri=" + redirect_uri +"&client_id="+ client_id +"&msisdn="+msisdn +"&acr_values="+ "5" + "&state=" + state+ "&nonce=" + nonce;;
-
+function sendSMS(key,host,port){
+	var smsFallbackURL = "https://"+host+":"+port+"/commonauth?sessionDataKey="+key+"&smsrequested=true";
 	window.location = smsFallbackURL;
 }
 

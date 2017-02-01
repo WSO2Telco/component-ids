@@ -41,8 +41,8 @@ public class CustomJWTBuilder {
 	 * case of duplicate params, the older value will be replaced by the new
 	 * value.
 	 * 
-	 * @param headerParamName
-	 * @param headeParamValue
+	 * @param headerParamName param name
+	 * @param headeParamValue param value
 	 * @return {@link JWTBuilder}
 	 * @throws JWTException
 	 */
@@ -59,11 +59,9 @@ public class CustomJWTBuilder {
 	 * This method is set to add header parameters to the JWT header.
 	 * 
 	 * @param headerParams
-	 * @return
 	 */
-	public CustomJWTBuilder setHeaderParams(Map<String, Object> headerParams) {
+	public void setHeaderParams(Map<String, Object> headerParams) {
 		this.headerParams = headerParams;
-		return this;
 	}
 
 	/**
@@ -71,16 +69,15 @@ public class CustomJWTBuilder {
 	 * claims, the older value will be replaced by the new value. Empty claim
 	 * values are not allowed.
 	 * 
-	 * @param payloadParam
-	 * @return
-	 * @throws JWTException
+	 * @param claimName name of the claim
+	 * @param claimvalue value of the claim
+	 * @throws JWTException JWT exception
 	 */
-	public CustomJWTBuilder setClaim(String claimName, String claimvalue) throws JWTException {
+	public void setClaim(String claimName, String claimvalue) throws JWTException {
 		if (claimvalue == null || claimvalue.equals("")) {
 			throw new JWTException("Empty JWT claims NOT allowed");
 		}
 		payloadClaims.put(claimName, claimvalue);
-		return this;
 	}
 
 	/**
@@ -98,14 +95,12 @@ public class CustomJWTBuilder {
 	 * Sign the JWT headerParams and payloadClaims with the key provided using
 	 * the signature Algorithm provided.
 	 * 
-	 * @param sigKey
-	 * @param sigAlg
-	 * @return {@linkSignedJWTBuilder}
+	 * @param sigKey sign key
+	 * @param sigAlg sign algorithm
 	 */
-	public CustomJWTBuilder signJWT(Key sigKey, String sigAlg) {
+	public void signJWT(Key sigKey, String sigAlg) {
 		this.sigKey = sigKey;
 		this.sigAlg = sigAlg;
-		return this;
 	}
 
 	/**
@@ -113,14 +108,12 @@ public class CustomJWTBuilder {
 	 * using
 	 * the encryption Algorithm provided
 	 * 
-	 * @param encKey
-	 * @param encAlg
-	 * @return {@linkSignedJWTBuilder}
+	 * @param encKey encrypt key
+	 * @param encAlg encrypt algorithm
 	 */
-	public CustomJWTBuilder encryptJWT(Key encKey, String encAlg) {
+	public void encryptJWT(Key encKey, String encAlg) {
 		this.encKey = encKey;
 		this.encAlg = encAlg;
-		return this;
 	}
 
 	public CustomJWTBuilder doSignAndEnctypt(boolean signAndEncrypt) {
@@ -133,7 +126,7 @@ public class CustomJWTBuilder {
 	 * base 64 encoded header JSON, payload JSON and signature with the period
 	 * (".") between them.
 	 * 
-	 * @return
+	 * @return gets the JWT
 	 * @throws JWTException
 	 */
 	public String buildJWT() throws JWTException {
@@ -155,8 +148,8 @@ public class CustomJWTBuilder {
 				payloadJson = CustomJSONUtils.buildJSON(payloadClaims);
 				encodedPayload = JWTUtil.encodeJSON(payloadJson);
 				if (debug) {
-					log.debug("JWT payload :" + payloadJson);
-					log.debug("Encoded JWT payload" + encodedPayload);
+					log.debug("JWT payload : " + payloadJson);
+					log.debug("Encoded JWT payload : " + encodedPayload);
 				}
 			} catch (JSONException e) {
 				log.debug(e);

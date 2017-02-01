@@ -55,7 +55,7 @@ public class UserInfoEndpointConfig {
      * Instantiates a new user info endpoint config.
      */
     private UserInfoEndpointConfig() {
-        log.debug("Initializing the UserInfoEndpointConfig singlton");
+        log.debug("Initializing the UserInfoEndpointConfig");
         initUserInfoEndpointConfig();
     }
 

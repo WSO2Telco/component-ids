@@ -64,17 +64,21 @@ public class SendUSSD {
         
         endpoint = endpoint + "/tel:+" + msisdn;
 
-        log.info("USSD request -->" + reqString);
+        if(log.isDebugEnabled()) {
+            log.debug("USSD request : " + reqString);
+        }
         String returnString = postRequest(endpoint, reqString, operator);
-        log.info("Returned from Backend = " + returnString);
-        
+        if(log.isDebugEnabled()) {
+            log.debug("Response from Backend :" + returnString);
+        }
         return returnString;
     }
 
     protected String sendUSSDPush(String msisdn, String sessionID, String action, String operator) throws IOException {
         // ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
-    	log.info("USSD Push request with tel:"+msisdn);
-         
+    	if (log.isDebugEnabled()) {
+            log.debug("USSD Push request with tel:" + msisdn);
+        }
          USSDRequest req = new USSDRequest();
 
          OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
@@ -105,10 +109,13 @@ public class SendUSSD {
          
          endpoint = endpoint + "/tel:+" + msisdn;
 
-         log.info("USSD Push request -->" + reqString);
+         if(log.isDebugEnabled()) {
+             log.debug("USSD Push request : " + reqString);
+         }
          String returnString = postRequest(endpoint, reqString, operator);
-         log.info("Returned from Backend = " + returnString);
-         
+         if(log.isDebugEnabled()) {
+             log.debug("Response from Backend : " + returnString);
+         }
          return returnString;
      }
     
@@ -158,8 +165,9 @@ public class SendUSSD {
 
 
         String returnString = postRequest(endpoint, reqString, operator);
-        System.out.println("Returned from Backend = " + returnString);
-
+        if(log.isDebugEnabled()) {
+            log.debug("Response : " + returnString);
+        }
         return returnString;
     }
 
@@ -287,11 +295,8 @@ public class SendUSSD {
         HttpPost postRequest = new HttpPost(url);
 
         postRequest.addHeader("accept", "application/json");
-        log.info(" url -->> " +url);
         postRequest.addHeader("Authorization", "Bearer " + FileUtil.getApplicationProperty("accesstoken"));
-        log.info(" token  : " +FileUtil.getApplicationProperty("accesstoken"));
         postRequest.addHeader("operator", operator);
-        log.info(" operator -->> " +operator);
 
         StringEntity input = new StringEntity(requestStr);
         input.setContentType("application/json");
@@ -304,13 +309,17 @@ public class SendUSSD {
             log.error("Error occured while calling end points - " + response.getStatusLine().getStatusCode() + "-" +
                     response.getStatusLine().getReasonPhrase());
         } else {
-        	log.info("Success Request");
+            if(log.isDebugEnabled()) {
+                log.debug("Success Request");
+            }
         }
         String responseStr = null;
         HttpEntity responseEntity = response.getEntity();
         if (responseEntity != null) {
             responseStr = EntityUtils.toString(responseEntity);
-            log.info("Success Response : "+ responseStr);
+            if(log.isDebugEnabled()) {
+                log.debug("Success Response : " + responseStr);
+            }
         }
         return responseStr;
     }
@@ -358,8 +367,10 @@ public class SendUSSD {
 
          
          String returnString = postRequest(endpoint, reqString, operator);
-         System.out.println("Returned from Backend = " + returnString);
-         
+
+         if(log.isDebugEnabled()) {
+             log.debug("Response : " + returnString);
+         }
          return returnString;
      }
 }

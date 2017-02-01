@@ -66,8 +66,8 @@ public class RegistrationUssdCommand extends UssdCommand {
         variableMap.put("application", application.changeApplicationName(serviceProvider));
         String message = USSDOutboundMessage.prepare(client_id, USSDOutboundMessage.MessageType.REGISTRATION, variableMap, operator);
 
-        if(log.isInfoEnabled()){
-            log.info("massage:" + message);
+        if(log.isDebugEnabled()){
+            log.debug("Message : " + message);
         }
 
         OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();

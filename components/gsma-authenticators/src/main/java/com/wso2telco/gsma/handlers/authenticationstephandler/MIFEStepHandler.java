@@ -58,12 +58,18 @@ public class MIFEStepHandler extends DefaultStepHandler {
 	public void handle(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationContext context) throws FrameworkException {
 
+        log.info("Initiating handle...");
+
 		StepConfig stepConfig = context.getSequenceConfig().getStepMap()
 				.get(context.getCurrentStep());
 		List<AuthenticatorConfig> authConfigList = stepConfig.getAuthenticatorList();
 		String authenticatorNames = FrameworkUtils.getAuthenticatorIdPMappingString(authConfigList);
 		String redirectURL = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
 		String fidp = request.getParameter(FrameworkConstants.RequestParams.FEDERATED_IDP);
+
+        if(log.isDebugEnabled()) {
+            log.debug("Federated IDP : " + fidp);
+        }
 
 		Map<String, AuthenticatedIdPData> authenticatedIdPs = context
 				.getPreviousAuthenticatedIdPs();
@@ -277,7 +283,7 @@ public class MIFEStepHandler extends DefaultStepHandler {
 
 			} catch (AuthenticationFailedException e) {
 				if (e instanceof InvalidCredentialsException) {
-					log.warn("A login attempt was failed due to invalid credentials");
+					log.error("A login attempt was failed due to invalid credentials");
 				} else {
 					log.error(e.getMessage(), e);
 				}

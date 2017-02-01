@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.ussd;
 
+import com.wso2telco.Util;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
@@ -47,6 +48,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.rmi.RemoteException;
+import java.util.Map;
 
 // TODO: Auto-generated Javadoc
 //import org.wso2.carbon.identity.core.dao.OAuthAppDAO;
@@ -130,6 +132,8 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
+        log.info("Initiating authentication request");
+
         String loginPage;
         String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
                 context.getCallerSessionKey(), context.getContextIdentifier());
@@ -138,25 +142,30 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         boolean isUserExists = (boolean) context.getProperty(Constants.IS_USER_EXISTS);
         String serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
 
+        if(log.isDebugEnabled()) {
+            log.debug("MSISDN : " + msisdn);
+            log.debug("Service provider : " + serviceProviderName);
+            log.debug("User exist : " + isUserExists);
+            log.debug("Query parameters : " + queryParams);
+        }
+
         try {
             String retryParam = "";
 
             loginPage = getAuthEndpointUrl(context);
 
-            log.info("Service Provider Name = " + serviceProviderName);
             if (serviceProviderName.equals("wso2_sp_dashboard")) {
                 serviceProviderName = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getDashBoard();
 
             }
             String operator = (String) context.getProperty(Constants.OPERATOR);
 
-            log.info("operator:" + operator);
-
             sendUssd(context, msisdn, serviceProviderName, operator, isUserExists);
 
-            log.info("query params: " + queryParams);
-
-            log.info("Context_RedirectURI:" + context.getProperty("redirectURI"));
+            if(log.isDebugEnabled()) {
+                log.debug("Operator : " + operator);
+                log.debug("Redirect URI : " + context.getProperty("redirectURI"));
+            }
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" + (String) context.getProperty("redirectURI") + "&authenticators="
                     + getName() + ":" + "LOCAL" + retryParam);
 
@@ -187,7 +196,12 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             ussdCommand = new RegistrationUssdCommand();
         }
 
-        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator);
+        String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
+                context.getCallerSessionKey(), context.getContextIdentifier());
+        Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
+        String client_id = paramMap.get(Constants.CLIENT_ID);
+
+        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator, client_id);
     }
 
     /* (non-Javadoc)
@@ -197,11 +211,32 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
     protected void processAuthenticationResponse(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
+        log.info("Processing authentication response");
+
+        if ("true".equals(request.getParameter("smsrequested"))) {
+            //This logic would get hit if the user hits the link to get an SMS so in that case
+            //We need to fallback. Therefore we through AuthenticationFailedException
+            throw new AuthenticationFailedException("USSD Authentication is skipped and moving forward to SMSAuthenticator");
+        } else {
+            //This logic would get hit whenever normal USSD Authentication flow is happening and in that case
+            //we don't need the SMSAuthenticator to be hit. Therefore, we set this property so that in the
+            //MIFEAuthenticationStepHandler, the steps following USSDAuthenticator will be removed.
+            //But please note that, this cause ANY step following USSDAuthenticator to be removed.
+            //Therefore, when redesigning, need to take this into consideration!
+            context.setProperty("removeFollowingSteps","true");
+        }
 
         String sessionDataKey = request.getParameter("sessionDataKey");
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         String openator = (String) context.getProperty(Constants.OPERATOR);
+
+        if(log.isDebugEnabled()) {
+            log.debug("SessionDataKey : " + sessionDataKey);
+            log.debug("Registering : " + isRegistering);
+            log.debug("MSISDN : " + msisdn);
+            log.debug("Operator : " + openator);
+        }
 
         try {
             String responseStatus = DBUtils.getUserRegistrationResponse(sessionDataKey);
@@ -212,12 +247,8 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
                     new UserProfileManager().createUserProfileLoa2(msisdn, openator, Constants.SCOPE_MNV);
                 }
             } else {
-                log.info("USSD Authenticator authentication failed ");
+                log.info("Authentication failed. Consent not provided.");
                 context.setProperty("faileduser", (String) context.getProperty("msisdn"));
-
-                if (log.isDebugEnabled()) {
-                    log.debug("User authentication failed due to user not providing consent.");
-                }
                 throw new AuthenticationFailedException("Authentication Failed");
             }
 
@@ -228,7 +259,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         }
         AuthenticationContextHelper.setSubject(context, msisdn);
 
-        log.info("USSD Authenticator authentication success");
+        log.info("Authentication success");
         String rememberMe = request.getParameter("chkRemember");
 
         if (rememberMe != null && "on".equals(rememberMe)) {

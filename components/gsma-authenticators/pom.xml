@@ -124,6 +124,10 @@
             <version>2.0.13</version>
 			<scope>provided</scope>
         </dependency>
+		<dependency>
+			<groupId>org.hashids</groupId>
+			<artifactId>hashids</artifactId>
+		</dependency>
     </dependencies>
 	<build>
 		<plugins>
@@ -159,8 +163,7 @@
                             org.wso2.carbon.user.core.service; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.user.core.util; version="${carbon.kernel.package.import.version.range}",
                             org.wso2.carbon.utils.multitenancy; version="${carbon.kernel.package.import.version.range}",
-							com.wso2telco.core.config.*,
-							com.wso2telco.core.mnc.resolver.*
+							com.wso2telco.core.config.*
 						</Import-Package>
 						<Export-Package>com.wso2telco.gsma*, com.wso2telco.historylog.*</Export-Package>
 						<DynamicImport-Package>*</DynamicImport-Package>

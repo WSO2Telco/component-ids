@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
- * 
+ *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,6 @@
 package com.wso2telco.gsma.authenticators.sms;
 
 import com.wso2telco.core.config.model.MobileConnectConfig;
-import com.wso2telco.core.config.ReadMobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
@@ -28,6 +27,7 @@ import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.shorten.SelectShortUrl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hashids.Hashids;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -39,24 +39,30 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Map;
+import java.util.Date;
 
- 
+
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class SMSAuthenticator.
  */
 public class SMSAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 
-    /** The Constant serialVersionUID. */
+    /**
+     * The Constant serialVersionUID.
+     */
     private static final long serialVersionUID = -1189332409518227376L;
-    
-    /** The log. */
+
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(SMSAuthenticator.class);
 
-    /** The Configuration service */
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /* (non-Javadoc)
@@ -71,7 +77,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 //        if (request.getParameter("msisdn") != null) {
 //            return true;
 //        }
-        return true;
+        return "true".equals(request.getParameter("canHandle"));
     }
 
     /* (non-Javadoc)
@@ -97,11 +103,17 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
+        log.info("Initiating authentication request");
+
         String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         String queryParams = FrameworkUtils
                 .getQueryStringWithFrameworkContextId(context.getQueryParams(),
                         context.getCallerSessionKey(),
                         context.getContextIdentifier());
+
+        if (log.isDebugEnabled()) {
+            log.debug("Query parameters : " + queryParams);
+        }
 
         try {
             String retryParam = "";
@@ -115,44 +127,53 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 
             //MSISDN will be saved in the context in the MSISDNAuthenticator
             String msisdn = (String) context.getProperty("msisdn");
-            ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
-            Application application=new Application();
-            Map<String, String> readMobileConnectConfigResult;
-            readMobileConnectConfigResult = ReadMobileConnectConfig.query("SMS");
+            Application application = new Application();
 
             MobileConnectConfig connectConfig = configurationService.getDataHolder().getMobileConnectConfig();
-            String messageText = readMobileConnectConfigResult.get("MessageContentFirst") + application.changeApplicationName(context.getSequenceConfig()
-                    .getApplicationConfig().getApplicationName())+connectConfig.getSmsConfig().getMessage();
-            String messageURL = connectConfig.getListenerWebappHost() + Constants.LISTNER_WEBAPP_SMS_CONTEXT +
-                    response.encodeURL(AESencrp.encrypt(context.getContextIdentifier()));
-            
-            if(readMobileConnectConfigResult.get("IsShortUrl").equalsIgnoreCase("true")){
-                SelectShortUrl selectShortUrl=new SelectShortUrl();
-                messageURL=selectShortUrl.getShortUrl(readMobileConnectConfigResult.get("ShortUrlClass"),messageURL,readMobileConnectConfigResult.get("AccessToken"),readMobileConnectConfigResult.get("ShortUrlService"));
+            MobileConnectConfig.SMSConfig smsConfig = connectConfig.getSmsConfig();
+            String messageText = smsConfig.getMessageContentFirst() + application
+                    .changeApplicationName(context.getSequenceConfig().getApplicationConfig().getApplicationName())
+                    + smsConfig.getMessage() + "\n" + smsConfig.getMessageContentLast();
+            String encryptedContextIdentifier = AESencrp.encrypt(context.getContextIdentifier());
+            String messageURL = connectConfig.getListenerWebappHost() + Constants.SESSION_UPDATER_SMS_RESPONSE_CONTEXT;
+
+            if (smsConfig.isShortUrl()) {
+                // If a URL shortening service is enabled, then we need to encrypt the context identifier, create the
+                // message URL and shorten it.
+                SelectShortUrl selectShortUrl = new SelectShortUrl();
+                messageURL = selectShortUrl.getShortUrl(smsConfig.getShortUrlClass(),
+                        messageURL + response.encodeURL(encryptedContextIdentifier),
+                        smsConfig.getAccessToken(), smsConfig.getShortUrlService());
+            } else {
+                // If a URL shortening service is not enabled, we need to created a hash key for the encrypted
+                // context identifier and insert a database entry mapping ths hash key to the context identifier.
+                // This is done to shorten the message URL as much as possible.
+                String hashForContextId = getHashForContextId(encryptedContextIdentifier);
+                messageURL += hashForContextId;
+                DBUtils.insertHashKeyContextIdentifierMapping(hashForContextId, context.getContextIdentifier());
             }
-
-            context.getContextIdentifier();
-
-            log.info("sms message >>>>>> "+messageURL);
-            
             String operator = (String) context.getProperty("operator");
 
-            log.info("operator:" + operator);
-
-            log.info("massage:" + messageText + "\n" + messageURL+readMobileConnectConfigResult.get("MessageContentLast"));
-            
-            String smsResponse = new SendSMS().sendSMS(msisdn, messageText + "\n" + messageURL+readMobileConnectConfigResult.get("MessageContentLast"),operator);
-
+            if (log.isDebugEnabled()) {
+                log.debug("Message URL: " + messageURL);
+                log.debug("Message: " + messageText);
+                log.debug("Operator: " + operator);
+            }
+            String smsResponse = new SendSMS().sendSMS(msisdn, messageText, operator);
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&authenticators=" +
                     getName() + ":" + "LOCAL" + retryParam);
 
-        } catch (IOException e) {
-            throw new AuthenticationFailedException(e.getMessage(), e);
-        } catch (AuthenticatorException e) {
-            throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (Exception e) {
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
+    }
+
+    private String getHashForContextId(String contextIdentifier) {
+        int hashLength = 7;
+
+        Hashids hashids = new Hashids(contextIdentifier, hashLength);
+
+        return hashids.encode(new Date().getTime());
     }
 
     /* (non-Javadoc)
@@ -162,8 +183,13 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
     protected void processAuthenticationResponse(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
+        log.info("Processing authentication response");
 
         String sessionDataKey = request.getParameter("sessionDataKey");
+
+        if (log.isDebugEnabled()) {
+            log.debug("SessionDataKey : " + sessionDataKey);
+        }
 
         boolean isAuthenticated = false;
 
@@ -181,23 +207,18 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         }
 
         if (!isAuthenticated) {
-            log.info("SMS Authenticator authentication failed ");
+            log.info("Authentication failed. Consent not provided.");
             context.setProperty("faileduser", (String) context.getProperty("msisdn"));
-            
-            if (log.isDebugEnabled()) {
-                log.debug("User authentication failed due to user not providing consent.");
-            }
-
             throw new AuthenticationFailedException("Authentication Failed");
         }
-      
-        
+
+
         String msisdn = (String) context.getProperty("msisdn");
 //        AuthenticatedUser user=new AuthenticatedUser();
 //        context.setSubject(user);
         AuthenticationContextHelper.setSubject(context, msisdn);
-        
-        log.info("SMS Authenticator authentication success");
+
+        log.info("Authentication success");
 
 //        context.setSubject(msisdn);
         String rememberMe = request.getParameter("chkRemember");
@@ -243,14 +264,20 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
      * The Enum UserResponse.
      */
     private enum UserResponse {
-        
-        /** The pending. */
+
+        /**
+         * The pending.
+         */
         PENDING,
-        
-        /** The approved. */
+
+        /**
+         * The approved.
+         */
         APPROVED,
-        
-        /** The rejected. */
+
+        /**
+         * The rejected.
+         */
         REJECTED
     }
 

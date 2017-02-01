@@ -149,7 +149,8 @@ public class UserProfileManager {
                     userFieldDTOs[count].setFieldValue(challengeAnswer1);
                 } else if (UserProfileClaimsConstant.CHALLENGEQUESTION2.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
                     userFieldDTOs[count].setFieldValue(challengeAnswer2);
-                } else if (UserProfileClaimsConstant.PIN.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
+                } else if (UserProfileClaimsConstant.PIN.equalsIgnoreCase(userFieldDTOs[count].getClaimUri()) ||
+                        UserProfileClaimsConstant.IM.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
                     userFieldDTOs[count].setFieldValue(getHashValue(pin));
                 } else {
                     userFieldDTOs[count].setFieldValue("");
@@ -163,9 +164,9 @@ public class UserProfileManager {
         } catch (RemoteException e) {
             log.error("RemoteException : " + e.getMessage());
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            log.error(e);
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            log.error(e);
         }
         // setting properties of user DTO
         UserDTO userDTO = new UserDTO();
@@ -296,15 +297,23 @@ public class UserProfileManager {
      * update user profile for PIN (LOA3) registration update loa, challenge
      * questions
      *
-     * @throws RemoteUserStoreManagerServiceUserStoreExceptionException
-     * @throws RemoteException                                          fieldValues, userName
+     * @param challengeQuestionAnswer1 challenge answer1
+     * @param challengeQuestionAnswer2 challenge answer2
+     * @param pin                      pin
+     * @param userName                 username
+     * @throws RemoteUserStoreManagerServiceUserStoreExceptionException remote service exception
+     * @throws RemoteException                                          remote exception
+     * @throws UnsupportedEncodingException                             unsupported encoding exception
+     * @throws NoSuchAlgorithmException                                 no such algorithm exception
      */
     public void updateUserProfileForLOA3(String challengeQuestionAnswer1,
                                          String challengeQuestionAnswer2, String pin, String userName)
             throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException, UnsupportedEncodingException, NoSuchAlgorithmException {
 
 		/* updating loa cliam of the user profile */
-        log.info("user profile update for loa " + Constants.LOA3);
+        if (log.isDebugEnabled()) {
+            log.debug("user profile update for loa " + Constants.LOA3);
+        }
         remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.LOA, Constants.LOA3,
                 UserCoreConstants.DEFAULT_PROFILE);
 
@@ -312,18 +321,24 @@ public class UserProfileManager {
 		/*
          * updating challenge question 1 cliam of the user profile
 		 */
-        log.info("user profile update for challengeQuestionAnswer1 " + challengeQuestionAnswer1);
+        if (log.isDebugEnabled()) {
+            log.debug("user profile update for challengeQuestionAnswer1 " + challengeQuestionAnswer1);
+        }
         remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.CHALLENGEQUESTION1,
                 challengeQuestionAnswer1, UserCoreConstants.DEFAULT_PROFILE);
 
 		/*
          * updating challenge question 2 cliam of the user profile
 		 */
-        log.info("user profile update for challengeQuestionAnswer2 " + challengeQuestionAnswer2);
+        if (log.isDebugEnabled()) {
+            log.debug("user profile update for challengeQuestionAnswer2 " + challengeQuestionAnswer2);
+        }
         remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.CHALLENGEQUESTION2,
                 challengeQuestionAnswer2, UserCoreConstants.DEFAULT_PROFILE);
 
-        log.info("user profile update for pin ");
+        if (log.isDebugEnabled()) {
+            log.debug("user profile update for pin ");
+        }
         remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.PIN,
                 getHashValue(pin), UserCoreConstants.DEFAULT_PROFILE);
 
@@ -352,9 +367,11 @@ public class UserProfileManager {
     private void updateUserProfilePIN(String userName, String pinHash)
             throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException {
 
-        log.info("user profile update for pin " + userName);
+        if (log.isDebugEnabled()) {
+            log.debug("user profile update for pin " + userName);
+            log.debug(UserProfileClaimsConstant.PIN + " : " + pinHash);
+        }
         /* updating pin cliam for the loa2 to loa3 registration or pin reset */
-        log.debug(UserProfileClaimsConstant.PIN + " : " + pinHash);
         remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.PIN, pinHash,
                 UserCoreConstants.DEFAULT_PROFILE);
 
@@ -375,11 +392,11 @@ public class UserProfileManager {
                     DataHolder.getInstance().getMobileConnectConfig().getAdminUrl(), sessionCookie);
 
         } catch (AxisFault axisFault) {
-            axisFault.printStackTrace();
+            log.error(axisFault);
         } catch (RemoteException e) {
-            e.printStackTrace();
+            log.error(e);
         } catch (LoginAuthenticationExceptionException e) {
-            e.printStackTrace();
+            log.error(e);
         }
     }
 

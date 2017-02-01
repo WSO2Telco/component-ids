@@ -55,7 +55,7 @@ public class PinAuthenticator extends AbstractApplicationAuthenticator
 	@Override
 	public boolean canHandle(HttpServletRequest request) {
         log.info("Pin Authenticator canhandle invoked");
-        
+
         String pin = request.getParameter("pin");
         if(pin != null) {
         	return true;
@@ -86,6 +86,8 @@ public class PinAuthenticator extends AbstractApplicationAuthenticator
 			HttpServletResponse response, AuthenticationContext context)
 			throws AuthenticationFailedException {
 
+        log.info("Initiating authentication request");
+
         String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         String queryParams = FrameworkUtils
                 .getQueryStringWithFrameworkContextId(context.getQueryParams(),
@@ -93,9 +95,9 @@ public class PinAuthenticator extends AbstractApplicationAuthenticator
                         context.getContextIdentifier());
 
         String pinNo = generatePassword();
-        log.info("=========== Generated PIN# = " + pinNo + " ===========");
         if (log.isDebugEnabled()) {
-            log.debug("=========== Generated PIN# = " + pinNo + " ===========");
+            log.debug("Pin no : " + pinNo);
+            log.debug("Query parameters : " + queryParams);
         }
 
         context.setProperty("pin", pinNo);
@@ -122,8 +124,13 @@ public class PinAuthenticator extends AbstractApplicationAuthenticator
 	protected void processAuthenticationResponse(HttpServletRequest request,
 			HttpServletResponse response, AuthenticationContext context)
 			throws AuthenticationFailedException {
+        log.info("Processing authentication response");
 
         String pin = request.getParameter("pin");
+
+        if(log.isDebugEnabled()) {
+            log.debug("Pin no : " + pin);
+        }
 
         boolean isAuthenticated = false;
 
@@ -131,14 +138,10 @@ public class PinAuthenticator extends AbstractApplicationAuthenticator
         isAuthenticated = context.getProperty("pin").equals(pin);
 
         if (!isAuthenticated) {
-            log.info("Pin Authenticator authentication failed ");
-            if (log.isDebugEnabled()) {
-                log.debug("User authentication failed due to invalid pin.");
-            }
-
+            log.info("Authentication failed. Invalid pin");
             throw new AuthenticationFailedException("Authentication Failed");
         }
-        log.info("Pin Authenticator authentication success");
+        log.info("Authentication success");
         //context.setSubject((String)context.getProperty("BasicAuthSubject"));
 //        AuthenticatedUser user=new AuthenticatedUser();
 //        context.setSubject(user);

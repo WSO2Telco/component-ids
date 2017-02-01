@@ -112,7 +112,7 @@ public class CustomAuthenticatorServiceComponent {
      */
     protected void setRealmService(RealmService realmService) {
     	if (log.isDebugEnabled()) {
-        log.debug("Setting the Realm Service");
+            log.debug("Setting the Realm Service");
     	}
         CustomAuthenticatorServiceComponent.realmService = realmService;
     }
@@ -124,7 +124,7 @@ public class CustomAuthenticatorServiceComponent {
      */
     protected void unsetRealmService(RealmService realmService) {
     	if (log.isDebugEnabled()) {
-        log.debug("UnSetting the Realm Service");
+            log.debug("UnSetting the Realm Service");
     	}
         CustomAuthenticatorServiceComponent.realmService = null;
     }

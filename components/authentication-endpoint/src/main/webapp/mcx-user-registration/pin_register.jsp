@@ -267,7 +267,7 @@
 
             <div class="grid">
                 <div class="grid__item one-half">
-                    <a onclick="cancelProcessToRegister('<%=token%>')" class="btn btn--outline btn--full btn--large">
+                    <a onclick="cancelProcessToRegister()" class="btn btn--outline btn--full btn--large">
                         No thanks
                     </a>
                 </div>
@@ -359,7 +359,6 @@
         term_ussd.style.display = 'block';
     }
 
-    <% System.out.println("xxxxxxxxxxxxxxxxxxxx ssssssssssss :" + updateProfile); %>
     if ('<%=updateProfile%>' == "true") {
         flow();
         term_ussd_pin.style.display = 'none';

@@ -136,7 +136,7 @@ public class Utility {
     /**
      * construct and publish UserStatusMetaData event
      *
-     * @param userStatus
+     * @param userStatus user status
      */
     public static void publishUserStatusMetaData(UserStatus userStatus) {
         List<Object> userstatusData = new ArrayList<Object>(17);
@@ -250,7 +250,7 @@ public class Utility {
     /**
      * construct and publish UserStatusData event
      *
-     * @param userStatus
+     * @param userStatus user status
      */
     public static void publishUserStatusData(UserStatus userStatus) {
         List<Object> userStatusMetaData = new ArrayList<Object>(4);

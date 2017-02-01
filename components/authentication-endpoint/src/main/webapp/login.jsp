@@ -240,7 +240,6 @@
 		}
 
 		for(String names : localAuthenticatorNames){
-			System.out.println("string name xxxxxxx : " + names);
 		}
 	%>
 	<input type="hidden" id="msisdn" value='<%=msisdn%>'>
@@ -461,7 +460,6 @@
 				} else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains("SMSAuthenticator")) {
 					hasLocalLoginOptions = true;
 				%>
-
 				<div class="row">
 					<div class="span12">
 

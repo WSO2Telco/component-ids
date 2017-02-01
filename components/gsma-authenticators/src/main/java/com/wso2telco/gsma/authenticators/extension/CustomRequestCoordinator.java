@@ -135,6 +135,11 @@ public class CustomRequestCoordinator implements RequestCoordinator {
                 if (!context.isLogoutRequest()) {
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, response,
                             context);
+
+                    if(log.isDebugEnabled()) {
+                        log.debug("Authenticating user : " + context.getParameter("msisdn"));
+                    }
+
                 } else {
                     FrameworkUtils.getLogoutRequestHandler().handle(request, response, context);
                 }
@@ -177,11 +182,9 @@ public class CustomRequestCoordinator implements RequestCoordinator {
     /**
      * Handles the initial request (from the calling servlet)
      *
-     * @param request
-     * @param response
-     * @throws ServletException
-     * @throws IOException
-     * @throws
+     * @param request request
+     * @param response response
+     * @throws FrameworkException throws when error occurred from framework
      */
     protected AuthenticationContext initializeFlow(HttpServletRequest request,
                                                    HttpServletResponse response) throws FrameworkException {

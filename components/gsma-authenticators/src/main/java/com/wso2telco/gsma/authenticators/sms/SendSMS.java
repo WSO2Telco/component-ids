@@ -17,7 +17,6 @@ package com.wso2telco.gsma.authenticators.sms;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.wso2telco.core.config.ReadMobileConnectConfig;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
@@ -32,7 +31,6 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -82,11 +80,8 @@ public class SendSMS {
         outbound.setOutboundTextMessage(messageObj);
         outbound.setAddress(address);
 
-        Map<String, String> readMobileConnectConfigResult= null;
 
-        readMobileConnectConfigResult = ReadMobileConnectConfig.query("SMS");
-
-        String senderAddress = readMobileConnectConfigResult.get("SenderAddres");
+        String senderAddress = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig().getSenderAddress();
         senderAddress =senderAddress.trim()==null?"26451":senderAddress.trim();
         
         outbound.setSenderAddress(senderAddress);
@@ -136,7 +131,7 @@ public class SendSMS {
         HttpResponse response = client.execute(postRequest);
         
         if ( (response.getStatusLine().getStatusCode() != 201)){
-            LOG.info("Error occured while calling end points");
+            LOG.error("Error occured while calling end points");
         }
         else{
             LOG.info("Success Request");
