@@ -123,18 +123,13 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         try {
             msisdn = DecryptionAES.decrypt(request.getParameter(Constants.MSISDN_HEADER));
 
+            boolean isShowTnC = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
             /*this validation is used to identify the first request. when context retry happens msisdn_header parameter
             * comes empty. When the user exists, we need to get user to the consent page by executing method initiateAuthenticationRequest.
             * If the user exists, we need to complete the authenticator by executing processAuthenticationResponse
             */
             if (msisdn != null && !StringUtils.isEmpty(msisdn)) {
-                isUserExists = AdminServiceUtil.isUserExists(msisdn);
-
-                if (isUserExists) {
-                    return true;
-                } else {
-                    return false;
-                }
+                return AdminServiceUtil.isUserExists(msisdn) || !isShowTnC;
             } else {
                 return true;
             }
@@ -186,7 +181,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                         context.getCallerSessionKey(),
                         context.getContextIdentifier());
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("MSISDN : " + msisdn);
             log.debug("Operator : " + operator);
             log.debug("Query parameters : " + queryParams);
@@ -196,7 +191,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         try {
             msisdn = DecryptionAES.decrypt(msisdn);
-            if(!validateMsisdnFormat(msisdn)){
+            if (!validateMsisdnFormat(msisdn)) {
                 throw new AuthenticationFailedException("Invalid MSISDN number : " + msisdn);
             }
             context.setProperty(Constants.MSISDN, msisdn);
@@ -222,7 +217,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 }
             }
 
-            if(operatorIpValidation.containsKey(operator)){
+            if (operatorIpValidation.containsKey(operator)) {
                 ipValidation = operatorIpValidation.get(operator);
             }
 
@@ -231,7 +226,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             }
 
             // Throw error when ip validation failure
-            if(ipValidation && !validOperator){
+            if (ipValidation && !validOperator) {
                 log.info("HeaderEnrichment Authentication failed from request");
                 context.setProperty("faileduser", msisdn);
                 throw new AuthenticationFailedException("Authentication Failed");
@@ -407,7 +402,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             if (rememberMe != null && "on".equals(rememberMe)) {
                 context.setRememberMe(true);
             }
-        }catch(AuthenticationFailedException e){
+        } catch (AuthenticationFailedException e) {
             // take action based on scope properties
             actionBasedOnHEFailureResult(context, request);
             throw e;
@@ -418,15 +413,16 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
     /**
      * Take action based on scope properties for HE Failure results
+     *
      * @param context Authentication Context
      * @param request HTTP request
      */
     private void actionBasedOnHEFailureResult(AuthenticationContext context, HttpServletRequest request) {
         String heFailureResult = request.getParameter(Constants.HE_FAILURE_RESULT);
 
-        if(heFailureResult == null || heFailureResult.isEmpty()){
+        if (heFailureResult == null || heFailureResult.isEmpty()) {
             context.setProperty("removeFollowingSteps", "true");
-        }else {
+        } else {
             switch (heFailureResult) {
                 case Constants.UNTRUST_MSISDN:
                     // On HE failure, untrust the header msisdn and forwards to next authenticator
@@ -465,6 +461,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
     /**
      * Retrieves auth endpoint url
+     *
      * @param msisdn msisdn
      * @return auth endpoint url
      * @throws UserStoreException
@@ -482,6 +479,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
     /**
      * Retrieves ACR value from request
+     *
      * @param request HTTP request
      * @param context Authentication request
      * @return ACR value
@@ -498,7 +496,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
     /**
      * Retrieve MSISDN number
-     * @param request the request
+     *
+     * @param request               the request
      * @param authenticationContext the authentication context
      * @return
      */
