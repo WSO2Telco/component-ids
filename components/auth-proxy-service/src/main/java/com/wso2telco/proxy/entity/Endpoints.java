@@ -263,7 +263,7 @@ public class Endpoints {
                 if (StringUtils.isEmpty(loginHint)) {
                     throw new AuthenticationFailedException("Login Hint parameter cannot be empty");
                 }
-            } else {
+
                 if (StringUtils.isNotEmpty(msisdnHeader)) {
                     // check if decryption possible
                     if (log.isDebugEnabled()) {
@@ -276,7 +276,7 @@ public class Endpoints {
 
                     //validate login hint format
                     validateFormatAndMatchLoginHintWithHeaderMsisdn(loginHint, scopeParam.getLoginHintFormat(),
-                                                                    msisdnHeader, scopeParam.getMsisdnMismatchResult());
+                            msisdnHeader, scopeParam.getMsisdnMismatchResult());
                 }
             }
         }

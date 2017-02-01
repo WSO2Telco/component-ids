@@ -285,7 +285,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     }
 
     public AuthenticatorFlowStatus processRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
-
+/*
         // If INVALIDATE_QUERY_STRING_MSISDN flag is set
         if(context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN) != null && (boolean)context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN)){
 
@@ -299,12 +299,21 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 // Else, use the context MSISDN and load the next authenticator
                 processAuthenticationResponse(request, response, context);
 
+                if (this instanceof LocalApplicationAuthenticator && !context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
+                    String e = context.getSubject().getTenantDomain();
+                    String stepMap1 = context.getTenantDomain();
+                    if (!StringUtils.equals(e, stepMap1)) {
+                        context.setProperty("UserTenantDomainMismatch", Boolean.valueOf(true));
+                        throw new AuthenticationFailedException("Service Provider tenant domain must be equal to user tenant domain for non-SaaS applications ");
+                    }
+                }
+
                 request.setAttribute("commonAuthHandled", Boolean.TRUE);
                 publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
                 return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
             }
         }
-
+*/
         if (context.isLogoutRequest()) {
             try {
                 if (!canHandle(request)) {
