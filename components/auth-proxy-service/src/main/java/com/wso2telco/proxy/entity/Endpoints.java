@@ -261,26 +261,29 @@ public class Endpoints {
         redirectUrlInfo.setHeaderMismatchResult(scopeParam.getMsisdnMismatchResult());
         redirectUrlInfo.setHeFailureResult(scopeParam.getHeFailureResult());
 
+        if (StringUtils.isNotEmpty(loginHint)) {
+            if (!validateMsisdnFormat(loginHint)) {
+                throw new AuthenticationFailedException("Invalid login hint msisdn format - " + loginHint);
+            }
+        }
+
+        if (StringUtils.isNotEmpty(msisdnHeader)) {
+            if (!validateMsisdnFormat(msisdnHeader)) {
+                throw new AuthenticationFailedException("Invalid msisdn header format - " + msisdnHeader);
+            }
+        }
+
         if (scopeParam != null) {
             //check login hit existance validation
             if (scopeParam.isLoginHintMandatory()) {
                 if (StringUtils.isEmpty(loginHint)) {
                     throw new AuthenticationFailedException("Login Hint parameter cannot be empty");
-                }else{
-                    if (!validateMsisdnFormat(loginHint)) {
-                        throw new AuthenticationFailedException(
-                                "Invalid msisdn format - " + loginHint);
-                    }
                 }
 
                 if (StringUtils.isNotEmpty(msisdnHeader)) {
                     // check if decryption possible
                     if (log.isDebugEnabled()) {
                         log.debug("Set msisdn from header msisdn_header : " + msisdnHeader);
-                    }
-                    if (!validateMsisdnFormat(msisdnHeader)) {
-                        throw new AuthenticationFailedException(
-                                "Invalid msisdn format - " + msisdnHeader);
                     }
 
                     //validate login hint format
