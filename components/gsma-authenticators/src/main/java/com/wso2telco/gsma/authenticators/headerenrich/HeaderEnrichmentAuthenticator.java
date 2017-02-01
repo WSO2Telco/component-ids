@@ -270,7 +270,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         log.info("Processing authentication response");
 
-
         AuthenticationContextCache.getInstance().addToCache(new AuthenticationContextCacheKey(context.getContextIdentifier()), new AuthenticationContextCacheEntry(context));
 
         try {
@@ -357,6 +356,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                             context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade(msisdn, acr, isUserExists));
                             context.setProperty(Constants.IS_PIN_RESET, false);
 
+                            //TODO: Check if we really need to save the status as pending in HE authenticator
                             DBUtils.insertRegistrationStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
 
                             if (acr == 3) {
@@ -366,8 +366,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
                             if (acr == 2) {
                                 if (!isUserExists) {
-                                    // if acr is 2, do the registration
-                                    // register user if a new msisdn
+                                    // if acr is 2, do the registration. register user if a new msisdn and remove other authenticators from step map
                                     new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
                                 }
 
@@ -411,7 +410,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         }catch(AuthenticationFailedException e){
             // take action based on scope properties
             actionBasedOnHEFailureResult(context, request);
-            context.setRequestAuthenticated(false);
             throw e;
         }
 
@@ -430,7 +428,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             context.setProperty("removeFollowingSteps", "true");
         }else {
             switch (heFailureResult) {
-                case "UNTRUST_MSISDN":
+                case Constants.UNTRUST_MSISDN:
                     // On HE failure, untrust the header msisdn and forwards to next authenticator
                     // setting context MSISDN to null
                     context.setProperty(Constants.MSISDN, null);
@@ -438,12 +436,14 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     context.setProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN, true);
                     break;
 
-                case "TRUST_MSISDN":
+                case Constants.TRUST_MSISDN:
                     // On HE failure, trust the header msisdn and forwards to next authenticator
+                    context.setProperty(Constants.MSISDN_HEADER, context.getProperty(Constants.MSISDN));
+                    context.setProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN, true);
                     break;
 
-                case "TRUST_LOGIN_HINT":
-                    // Force loginhint as msisdn
+                case Constants.TRUST_LOGIN_HINT:
+                    // On HE failure, trust the login hint MSISDN and forwards to next authenticator
                     String loginHintValue = null;
 
                     try {
