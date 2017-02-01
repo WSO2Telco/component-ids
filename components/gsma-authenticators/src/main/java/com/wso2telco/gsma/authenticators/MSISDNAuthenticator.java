@@ -164,7 +164,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             }
             context.setProperty(Constants.ACR, currentLoa);
 
-            loginPage = getAuthEndpointUrl(msisdn, isProfileUpgrade, Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC)), context);
+            loginPage = getAuthEndpointUrl(msisdn, isProfileUpgrade, Boolean.parseBoolean(context.getProperty(Constants.IS_SHOW_TNC).toString()), context);
 
             String queryParams = FrameworkUtils
                     .getQueryStringWithFrameworkContextId(context.getQueryParams(),
