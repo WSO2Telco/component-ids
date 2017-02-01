@@ -143,9 +143,8 @@ function getCookieAndResend() {
 	});
 }
 
-function sendSMS(key,host,port){
-	var smsFallbackURL = "https://"+host+":"+port+"/commonauth?sessionDataKey="+key+"&smsrequested=true";
-	window.location = smsFallbackURL;
+function sendSMS(key){
+	window.location = "/commonauth?sessionDataKey="+key+"&smsrequested=true";
 }
 
 function getUrlVars()
