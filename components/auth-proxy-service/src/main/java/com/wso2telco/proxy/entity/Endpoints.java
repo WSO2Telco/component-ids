@@ -119,7 +119,7 @@ public class Endpoints {
         String redirectURL = queryParams.get(AuthProxyConstants.REDIRECT_URI).get(0);
         String scopeName = queryParams.get(AuthProxyConstants.SCOPE).get(0);
 
-        if (!validateScopeWithSP(scopeName, clientId)) {
+        if (!configurationService.getDataHolder().getMobileConnectConfig().isSpValidationDisabled() && !isValidScope(scopeName, clientId)) {
             log.error("Scope [ " + scopeName + " ] is not allowed for client [ " + clientId + " ]");
             redirectURL = redirectURL + "?error=access_denied";
         } else {
@@ -221,7 +221,7 @@ public class Endpoints {
      * @param clientId
      * @return true if scope is allowed, else false
      */
-    private boolean validateScopeWithSP(String scopeName, String clientId)
+    private boolean isValidScope(String scopeName, String clientId)
             throws AuthenticatorException, ConfigurationException {
         return DBUtils.isSPAllowedScope(scopeName, clientId);
     }
