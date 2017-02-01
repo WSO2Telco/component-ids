@@ -553,13 +553,16 @@ public class Endpoints {
         ScopeParam.heFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
 
         if (authorizeUrl != null) {
-            redirectURL = authorizeUrl + queryString + AuthProxyConstants.MSISDN_HEADER + "=" +
-                    msisdnHeader + "&" + AuthProxyConstants.OPERATOR + "=" +
+            redirectURL = authorizeUrl + queryString  + "&" + AuthProxyConstants.OPERATOR + "=" +
                     operatorName + "&" + AuthProxyConstants.TELCO_SCOPE + "=" + telcoScope + "&" +
                     AuthProxyConstants.LOGIN_HINT_MANDATORY + "=" + isLoginhintMandatory + "&" +
                     AuthProxyConstants.SHOW_TNC + "=" + isShowTnc + "&" + AuthProxyConstants.HEADER_MISMATCH_RESULT +
                     "=" + headerMismatchResult + "&" + AuthProxyConstants.HE_FAILURE_RESULT +
                     "=" + heFailureResult;
+
+            if(msisdnHeader != null && StringUtils.isNotEmpty(msisdnHeader)){
+                redirectURL = redirectURL + "&" + AuthProxyConstants.MSISDN_HEADER + "=" + msisdnHeader;
+            }
 
             if(loginHintMsisdn != null && !StringUtils.isEmpty(loginHintMsisdn)){
                 redirectURL = redirectURL + "&" + AuthProxyConstants.LOGIN_HINT_MSISDN +
