@@ -267,6 +267,8 @@ public class DBUtils {
                 parameters.setLoginHintMandatory(results.getBoolean("is_login_hint_mandatory"));
                 parameters.setMsisdnMismatchResult(ScopeParam.msisdnMismatchResultTypes.valueOf(results.getString(
                         "msisdn_mismatch_result")));
+                parameters.setHeFailureResult(ScopeParam.heFailureResults.valueOf(results.getString(
+                        "he_failure_result")));
                 parameters.setTncVisible(results.getBoolean("is_tnc_visible"));
                 parameters.setLoginHintFormat(getLoginHintFormatTypeDetails(results.getInt("param_id"), conn));
 

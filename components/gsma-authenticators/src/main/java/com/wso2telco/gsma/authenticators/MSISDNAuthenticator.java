@@ -19,6 +19,7 @@ import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.gsma.authenticators.util.DecryptionAES;
 import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
 import com.wso2telco.gsma.manager.client.ClaimManagementClient;
 import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
@@ -35,11 +36,6 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
-import org.wso2.carbon.identity.oauth.cache.CacheKey;
-import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
-import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
-import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
-import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.api.UserStoreException;
 
@@ -113,15 +109,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         if (log.isDebugEnabled()) {
             log.debug("MSISDN Authenticator canHandle invoked");
         }
-/*
-        if ((request.getParameter("msisdn") != null) || (getLoginHintValues(request) != null)
-                || (StringUtils.isNotEmpty(request.getParameter("msisdn_header")))) {
-            log.info("msisdn forwarding ");
-            return true;
-        }
-        */
 
-        if ((request.getParameter("msisdn") != null) || (getLoginHintValues(request) != null)
+        if ((request.getParameter(Constants.MSISDN_HEADER) != null) || (request.getParameter("msisdn") != null) || (getLoginHintValues(request) != null)
                 || (isTerminated != null && Boolean.parseBoolean(isTerminated))) {
             log.info("msisdn forwarding ");
             return true;
@@ -156,15 +145,19 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         log.info("Initiating authentication request");
 
         boolean isProfileUpgrade = false;
+        boolean isInvalidatedMSISDN = false;
         String loginPage;
         try {
 
             String msisdn;// = request.getParameter(Constants.MSISDN);
             int currentLoa = getAcr(request, context);
+            if(context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN) != null){
+                isInvalidatedMSISDN = (boolean)context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN);
+            }
 
-            if (context.isRetrying()) {
-                msisdn = (String) context.getProperty(Constants.MSISDN);
-                isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
+            if (context.isRetrying() || isInvalidatedMSISDN == true) {
+                msisdn = context.getProperty(Constants.MSISDN) == null ? null : (String) context.getProperty(Constants.MSISDN);
+                isProfileUpgrade = context.getProperty(Constants.IS_PROFILE_UPGRADE) == null ? false : (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
             } else {
                 msisdn = request.getParameter(Constants.MSISDN);
                 context.setProperty(Constants.MSISDN, msisdn);
@@ -188,6 +181,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             if (context.isRetrying()) {
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
+
+            context.setProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN, false);
 
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" + request.getParameter("redirect_uri") + "&authenticators="
                     + getName() + ":" + "LOCAL" + retryParam);
@@ -290,7 +285,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     }
 
     public AuthenticatorFlowStatus processRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
-
         if (context.isLogoutRequest()) {
             try {
                 if (!canHandle(request)) {
@@ -502,6 +496,11 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     }
 
     private String getMsisdn(HttpServletRequest request, AuthenticationContext context) {
+        // if invalidate msisdn flag is set, ignore the request parameter and load the msisdn from context
+        if(context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN) != null && (boolean) context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN)){
+            return (String) context.getProperty(Constants.MSISDN);
+        }
+
         String msisdn = request.getParameter(Constants.MSISDN);
         if (msisdn != null && !StringUtils.isEmpty(msisdn)) {
             return msisdn;
@@ -652,20 +651,15 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
      * @return the login hint values
      */
     private String getLoginHintValues(HttpServletRequest request) {
-        String loginHintValues = null;
+        String loginHintValue = null;
 
         try {
-            String sdk = request.getParameter(OAuthConstants.SESSION_DATA_KEY);
-            CacheKey ck = new SessionDataCacheKey(sdk);
-            SessionDataCacheKey sessionDataCacheKey = new SessionDataCacheKey(sdk);
-            SessionDataCacheEntry sdce =
-                    (SessionDataCacheEntry) SessionDataCache.getInstance().getValueFromCache(sessionDataCacheKey);
-            loginHintValues = sdce.getoAuth2Parameters().getLoginHint();
+            loginHintValue = DecryptionAES.decrypt(request.getParameter(Constants.LOGIN_HINT_MSISDN));
         } catch (Exception e) {
             log.error("Exception Getting the login hint values " + e);
         }
 
-        return loginHintValues;
+        return loginHintValue;
     }
 
     /* (non-Javadoc)

@@ -48,11 +48,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Path("/endpoint")
-public class Endpoints {
+public class Endpoints1 {
 
 	@Context
 	private UriInfo context;
-	private static Log log = LogFactory.getLog(Endpoints.class);
+	private static Log log = LogFactory.getLog(Endpoints1.class);
 	private static Map<String, UserRegistrationData> userMap = new HashMap<String, UserRegistrationData>();
 	// Map to keep msisdns of PIN_RESET requested.
 	private static Map<String, String> pinResetRequest = new HashMap<String, String>();
@@ -70,7 +70,7 @@ public class Endpoints {
 	/**
 	 * Creates a new instance of QueriesResource
 	 */
-	public Endpoints() {
+	public Endpoints1() {
 		userProfileManager=UserProfileManager.getInstance();
 	}
 
@@ -500,7 +500,7 @@ public class Endpoints {
 		try {
 			postRequest(FileUtil.getApplicationProperty("smsendpoint"), returnString, operator);
 		} catch (IOException ex) {
-			Logger.getLogger(Endpoints.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(Endpoints1.class.getName()).log(Level.SEVERE, null, ex);
 		}
 
 		if (DatabaseUtils.isExistingUserStatus(userName)) {
@@ -578,7 +578,7 @@ public class Endpoints {
 		try {
 			postRequest(FileUtil.getApplicationProperty("smsendpoint"), returnString, operator);
 		} catch (IOException ex) {
-			Logger.getLogger(Endpoints.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(Endpoints1.class.getName()).log(Level.SEVERE, null, ex);
 		}
 
 		return Response.status(200).entity(returnString).build();
@@ -695,7 +695,7 @@ public class Endpoints {
 			DatabaseUtils.insertMultiplePasswordPIN(msisdn);// set numer of
 															// attempt = 1
 		} catch (Exception ex) {
-			Logger.getLogger(Endpoints.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(Endpoints1.class.getName()).log(Level.SEVERE, null, ex);
 			// responseString = "{\"status\":\"-1\",\"message\":\"error\"}";
 			responseString = "{\"error\":\"404\"}";
 		}
@@ -718,7 +718,7 @@ public class Endpoints {
 			status = DatabaseUtils.saveRequestType(msisdn, requestType);
 			message = "success";
 		} catch (Exception ex) {
-			Logger.getLogger(Endpoints.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(Endpoints1.class.getName()).log(Level.SEVERE, null, ex);
 		}
 		responseString = "{\"status\":\"" + status + "\",\"message\":\"" + message + "\"}";
 		return Response.status(200).entity(responseString).build();
@@ -800,7 +800,7 @@ public class Endpoints {
 			sendUSSD.sendUSSDLogin(msisdn, sessionID, noOfAttempts, action, operator);
 			DatabaseUtils.updateStatus(sessionID, status);
 		} catch (IOException ex) {
-			Logger.getLogger(Endpoints.class.getName()).log(Level.SEVERE, null, ex);
+			Logger.getLogger(Endpoints1.class.getName()).log(Level.SEVERE, null, ex);
 		}
 		return Response.status(200).entity("{message:SUCCESS}").build();
 	}

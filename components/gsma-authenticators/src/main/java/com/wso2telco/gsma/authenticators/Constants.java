@@ -344,4 +344,18 @@ public final class Constants {
     public static final String IP_ADDRESS = "ipAddress";
 
     public static final String SESSION_UPDATER_SMS_RESPONSE_CONTEXT = "/sessionupdater/wt?id=";
+
+    public static final String HE_FAILURE_RESULT = "heFailureResult";
+
+    public static final String INVALIDATE_QUERY_STRING_MSISDN = "InvalidateMSISDN";
+
+    public static final String LOGIN_HINT_MSISDN = "loginhintMsisdn";
+
+    public static final String UNTRUST_MSISDN = "UNTRUST_MSISDN";
+
+    public static final String TRUST_MSISDN = "TRUST_MSISDN";
+
+    public static final String TRUST_LOGIN_HINT = "TRUST_LOGIN_HINT";
+
+    public static final String BREAK = "BREAK";
 }
