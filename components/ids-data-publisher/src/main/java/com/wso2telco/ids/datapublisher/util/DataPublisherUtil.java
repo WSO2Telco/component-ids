@@ -94,17 +94,6 @@ public class DataPublisherUtil {
         }
     }
 
-    public static void saveUSSD(UserStatus userStatus) {
-
-        try {
-            DBUtil.saveStatusData(userStatus);
-
-        } catch (Exception e) {
-            log.error("error occurred : " + e.getMessage());
-
-        }
-    }
-
 
     public static void setValueFromContext(HttpServletRequest request,
                                            AuthenticationContext context, UserStatus uStatus) {
@@ -469,7 +458,7 @@ public class DataPublisherUtil {
             //start publishing to meta
             publishUserStatusMetaData(uStatus);
             //end publishing
-            saveUSSD(uStatus);
+            //saveUSSD(uStatus);
             publishUserStatusData(uStatus);
         } else {
             uStatus.setStatus(UserState.HE_AUTH_PROCESSING_FAIL.name());
@@ -478,11 +467,11 @@ public class DataPublisherUtil {
             publishUserStatusMetaData(uStatus);
             //end publishing
 
-            saveUSSD(uStatus);
+            //saveUSSD(uStatus);
             publishUserStatusData(uStatus);
 
             uStatus.setStatus(UserState.MSISDN_AUTH_PROCESSING_FAIL.name());
-            saveUSSD(uStatus);
+            //saveUSSD(uStatus);
             publishUserStatusData(uStatus);
         }
     }
@@ -500,7 +489,7 @@ public class DataPublisherUtil {
         //start publishing to meta
         publishUserStatusMetaData(uStatus);
         //end publishing
-        saveUSSD(uStatus);
+        //saveUSSD(uStatus);
         publishUserStatusData(uStatus);
     }
 
