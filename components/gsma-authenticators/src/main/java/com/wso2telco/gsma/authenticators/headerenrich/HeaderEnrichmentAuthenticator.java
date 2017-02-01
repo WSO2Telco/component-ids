@@ -234,7 +234,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             if(ipValidation && !validOperator){
                 log.info("HeaderEnrichment Authentication failed from request");
                 context.setProperty("faileduser", msisdn);
-                context.setRequestAuthenticated(false);
                 throw new AuthenticationFailedException("Authentication Failed");
             }
 
@@ -271,137 +270,197 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         log.info("Processing authentication response");
 
-        int acr = getAcr(request, context);
-        boolean isUserExists = false;
-        String msisdn = null;
-        String operator = null;
-        boolean ipValidation = false;
-        String trimmedMsisdn = null;
-
-        operator = request.getParameter(Constants.OPERATOR);
-        msisdn = getMsisdn(request, context);
-
-        if(operatorIpValidation.containsKey(operator)){
-            ipValidation = operatorIpValidation.get(operator);
-        }
-
-        if(log.isDebugEnabled()) {
-            log.debug("Redirect URI : " + request.getParameter("redirect_uri"));
-        }
-        context.setProperty(Constants.OPERATOR, operator);
-        context.setProperty("redirectURI", request.getParameter("redirect_uri"));
+        AuthenticationContextCache.getInstance().addToCache(new AuthenticationContextCacheKey(context.getContextIdentifier()), new AuthenticationContextCacheEntry(context));
 
         try {
-            msisdn = DecryptionAES.decrypt(msisdn);
-            if(!validateMsisdnFormat(msisdn)){
-                throw new AuthenticationFailedException("Invalid MSISDN number : " + msisdn);
+            int acr = getAcr(request, context);
+            boolean isUserExists = false;
+            String msisdn = null;
+            String operator = null;
+            boolean ipValidation = false;
+            String trimmedMsisdn = null;
+
+            operator = request.getParameter(Constants.OPERATOR);
+            msisdn = getMsisdn(request, context);
+
+            if (operatorIpValidation.containsKey(operator)) {
+                ipValidation = operatorIpValidation.get(operator);
             }
-        } catch (AuthenticationFailedException e) {
-            throw e;
-        } catch (Exception ex) {
-            Logger.getLogger(HeaderEnrichmentAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
-        }
 
-        String ipAddress = (String)context.getProperty(Constants.IP_ADDRESS);
-        if(ipAddress == null  || StringUtils.isEmpty(ipAddress)) {
-            ipAddress = retriveIPAddress(request);
-        }
-
-        if (ipAddress == null) {
             if (log.isDebugEnabled()) {
-                log.debug("Header ip address not found.");
+                log.debug("Redirect URI : " + request.getParameter("redirect_uri"));
+            }
+            context.setProperty(Constants.OPERATOR, operator);
+            context.setProperty("redirectURI", request.getParameter("redirect_uri"));
+
+            try {
+                msisdn = DecryptionAES.decrypt(msisdn);
+                if (!validateMsisdnFormat(msisdn)) {
+                    throw new AuthenticationFailedException("Invalid MSISDN number : " + msisdn);
+                }
+
+                context.setProperty(Constants.MSISDN, msisdn);
+            } catch (AuthenticationFailedException e) {
+                throw e;
+            } catch (Exception ex) {
+                Logger.getLogger(HeaderEnrichmentAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            // RULE : if operator ip validation is enabled and ip address is blank, break the flow
-            if (ipValidation) {
-                log.info("HeaderEnrichment Authentication failed due to not having ip address");
+            String ipAddress = (String) context.getProperty(Constants.IP_ADDRESS);
+            if (ipAddress == null || StringUtils.isEmpty(ipAddress)) {
+                ipAddress = retriveIPAddress(request);
+            }
+
+            if (ipAddress == null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("Header ip address not found.");
+                }
+
+                // RULE : if operator ip validation is enabled and ip address is blank, break the flow
+                if (ipValidation) {
+                    log.info("HeaderEnrichment Authentication failed due to not having ip address");
+                    context.setProperty("faileduser", msisdn);
+                    throw new AuthenticationFailedException("Authentication Failed");
+                }
+            }
+
+            boolean validOperator = true;
+
+            if (ipAddress != null && ipValidation) {
+                validOperator = validateOperator(operator, ipAddress);
+            }
+
+            // RULE : if operator ip validation is enabled and ip validation failed, break the flow
+            if (ipValidation && !validOperator) {
+                log.info("HeaderEnrichment Authentication failed");
                 context.setProperty("faileduser", msisdn);
-                context.setRequestAuthenticated(false);
                 throw new AuthenticationFailedException("Authentication Failed");
             }
-        }
 
-        boolean validOperator = true;
+            if (validOperator) {
+                if (msisdn != null && msisdn.length() > 1 && (!msisdn.isEmpty())) {
+                    // Check the authentication by checking if username exists
+                    log.info("Check whether user account exists");
+                    try {
+                        int tenantId = -1234;
+                        UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService()
+                                .getTenantUserRealm(tenantId);
 
-        if (ipAddress != null && ipValidation) {
-            validOperator = validateOperator(operator, ipAddress);
-        }
+                        if (userRealm != null) {
+                            UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
+                            trimmedMsisdn = msisdn.replace("+", "").trim();
+                            isUserExists = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(trimmedMsisdn));
 
-        // RULE : if operator ip validation is enabled and ip validation failed, break the flow
-        if(ipValidation && !validOperator){
-            log.info("HeaderEnrichment Authentication failed");
-            context.setProperty("faileduser", msisdn);
-            context.setRequestAuthenticated(false);
-            throw new AuthenticationFailedException("Authentication Failed");
-        }
-
-        if (validOperator) {
-            if (msisdn != null && msisdn.length() > 1 && (!msisdn.isEmpty())) {
-                // Check the authentication by checking if username exists
-                log.info("Check whether user account exists");
-                try {
-                    int tenantId = -1234;
-                    UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService()
-                            .getTenantUserRealm(tenantId);
-
-                    if (userRealm != null) {
-                        UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
-                        trimmedMsisdn = msisdn.replace("+", "").trim();
-                        isUserExists = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(trimmedMsisdn));
-
-                        if(acr == 3) {
-                            // if acr is 3, pass the user to next authenticator
+                            context.setProperty(Constants.IS_USER_EXISTS, isUserExists);
                             context.setProperty(Constants.IS_REGISTERING, !isUserExists);
                             context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade(msisdn, acr, isUserExists));
                             context.setProperty(Constants.IS_PIN_RESET, false);
 
+                            //TODO: Check if we really need to save the status as pending in HE authenticator
                             DBUtils.insertRegistrationStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
-                        }
 
-                        if (!isUserExists && acr == 2) {
-                            // if acr is 2, do the registration
-                            // register user if a new msisdn
-                            new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
+                            if (acr == 3) {
+                                // if acr is 3, pass the user to next authenticator
+
+                            }
+
+                            if (acr == 2) {
+                                if (!isUserExists) {
+                                    // if acr is 2, do the registration. register user if a new msisdn and remove other authenticators from step map
+                                    new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
+                                }
+
+                                // explicitly remove all other authenticators and mark as a success
+                                context.setProperty("removeFollowingSteps", "true");
+                            }
+                        } else {
+                            throw new AuthenticationFailedException("Cannot find the user realm for the given tenant : " + tenantId);
                         }
-                    } else {
-                        throw new AuthenticationFailedException("Cannot find the user realm for the given tenant : " + tenantId);
+                    } catch (org.wso2.carbon.user.api.UserStoreException e) {
+                        log.error("HeaderEnrichment Authentication failed while trying to authenticate", e);
+                        throw new AuthenticationFailedException(e.getMessage(), e);
+                    } catch (SQLException e) {
+                        log.error(e);
+                        throw new AuthenticationFailedException(e.getMessage(), e);
+                    } catch (AuthenticatorException e) {
+                        log.error(e);
+                        throw new AuthenticationFailedException(e.getMessage(), e);
+                    } catch (RemoteException e) {
+                        log.error(e);
+                        throw new AuthenticationFailedException(e.getMessage(), e);
+                    } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+                        log.error(e);
+                        throw new AuthenticationFailedException(e.getMessage(), e);
+                    } catch (LoginAuthenticationExceptionException e) {
+                        log.error(e);
+                        throw new AuthenticationFailedException(e.getMessage(), e);
+                    } catch (UserRegistrationAdminServiceIdentityException e) {
+                        throw new AuthenticationFailedException("Error occurred while creating user profile", e);
                     }
 
-                    context.setProperty(Constants.MSISDN, msisdn);
-                } catch (org.wso2.carbon.user.api.UserStoreException e) {
-                    log.error("HeaderEnrichment Authentication failed while trying to authenticate", e);
-                    throw new AuthenticationFailedException(e.getMessage(), e);
-                } catch (SQLException e) {
-                    log.error(e);
-                    throw new AuthenticationFailedException(e.getMessage(), e);
-                } catch (AuthenticatorException e) {
-                    log.error(e);
-                    throw new AuthenticationFailedException(e.getMessage(), e);
-                } catch (RemoteException e) {
-                    log.error(e);
-                    throw new AuthenticationFailedException(e.getMessage(), e);
-                } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
-                    log.error(e);
-                    throw new AuthenticationFailedException(e.getMessage(), e);
-                } catch (LoginAuthenticationExceptionException e) {
-                    log.error(e);
-                    throw new AuthenticationFailedException(e.getMessage(), e);
-                }catch (UserRegistrationAdminServiceIdentityException e) {
-                    throw new AuthenticationFailedException("Error occurred while creating user profile", e);
+                    AuthenticationContextHelper.setSubject(context, msisdn);
                 }
+            }
 
-                AuthenticationContextHelper.setSubject(context, msisdn);
+            String rememberMe = request.getParameter("chkRemember");
+
+            if (rememberMe != null && "on".equals(rememberMe)) {
+                context.setRememberMe(true);
+            }
+        }catch(AuthenticationFailedException e){
+            // take action based on scope properties
+            actionBasedOnHEFailureResult(context, request);
+            throw e;
+        }
+
+        log.info("Authentication success");
+    }
+
+    /**
+     * Take action based on scope properties for HE Failure results
+     * @param context Authentication Context
+     * @param request HTTP request
+     */
+    private void actionBasedOnHEFailureResult(AuthenticationContext context, HttpServletRequest request) {
+        String heFailureResult = request.getParameter(Constants.HE_FAILURE_RESULT);
+
+        if(heFailureResult == null || heFailureResult.isEmpty()){
+            context.setProperty("removeFollowingSteps", "true");
+        }else {
+            switch (heFailureResult) {
+                case Constants.UNTRUST_MSISDN:
+                    // On HE failure, untrust the header msisdn and forwards to next authenticator
+                    // setting context MSISDN to null
+                    context.setProperty(Constants.MSISDN, null);
+                    context.setProperty(Constants.MSISDN_HEADER, null);
+                    context.setProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN, true);
+                    break;
+
+                case Constants.TRUST_MSISDN:
+                    // On HE failure, trust the header msisdn and forwards to next authenticator
+                    context.setProperty(Constants.MSISDN_HEADER, context.getProperty(Constants.MSISDN));
+                    context.setProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN, true);
+                    break;
+
+                case Constants.TRUST_LOGIN_HINT:
+                    // On HE failure, trust the login hint MSISDN and forwards to next authenticator
+                    String loginHintValue = null;
+
+                    try {
+                        loginHintValue = DecryptionAES.decrypt(request.getParameter(Constants.LOGIN_HINT_MSISDN));
+                    } catch (Exception e) {
+                        log.error("Exception Getting the login hint values " + e);
+                    }
+
+                    context.setProperty(Constants.MSISDN, loginHintValue);
+                    context.setProperty(Constants.MSISDN_HEADER, loginHintValue);
+                    context.setProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN, true);
+                    break;
+
+                default:
+                    context.setProperty("removeFollowingSteps", "true");
             }
         }
-
-        AuthenticationContextCache.getInstance().addToCache(new AuthenticationContextCacheKey(context.getContextIdentifier()),
-                new AuthenticationContextCacheEntry(context));
-        String rememberMe = request.getParameter("chkRemember");
-
-        if (rememberMe != null && "on".equals(rememberMe)) {
-            context.setRememberMe(true);
-        }
-        log.info("Authentication success");
     }
 
     /**

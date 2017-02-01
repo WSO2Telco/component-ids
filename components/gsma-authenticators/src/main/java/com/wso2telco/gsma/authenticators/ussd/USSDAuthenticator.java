@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.ussd;
 
+import com.wso2telco.Util;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
@@ -47,6 +48,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.rmi.RemoteException;
+import java.util.Map;
 
 // TODO: Auto-generated Javadoc
 //import org.wso2.carbon.identity.core.dao.OAuthAppDAO;
@@ -194,7 +196,12 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             ussdCommand = new RegistrationUssdCommand();
         }
 
-        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator);
+        String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
+                context.getCallerSessionKey(), context.getContextIdentifier());
+        Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
+        String client_id = paramMap.get(Constants.CLIENT_ID);
+
+        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator, client_id);
     }
 
     /* (non-Javadoc)
