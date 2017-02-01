@@ -247,7 +247,12 @@ public class DBUtils {
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet results = null;
-        String sql = "SELECT * FROM `scope_parameter` WHERE scope = ?";
+        String[] scopeValues = scope.split("\\s+|\\+");
+        StringBuilder params = new StringBuilder("?");
+        for(int i=1; i< scopeValues.length; i++) {
+            params.append(",?");
+        }
+        String sql = "SELECT * FROM `scope_parameter` WHERE scope in (" + params + ")";
 
         if (log.isDebugEnabled()) {
             log.debug("Executing the query " + sql);
@@ -257,11 +262,13 @@ public class DBUtils {
         try {
             conn = getConnectDBConnection();
             ps = conn.prepareStatement(sql);
-            ps.setString(1, scope);
+            for(int i=0; i<scopeValues.length; i++) {
+                ps.setString(i+1, scopeValues[i]);
+            }
             results = ps.executeQuery();
 
             while (results.next()) {
-                scopeParamsMap.put("scope", scope);
+                scopeParamsMap.put("scope", results.getString("scope"));
 
                 ScopeParam parameters = new ScopeParam();
                 parameters.setLoginHintMandatory(results.getBoolean("is_login_hint_mandatory"));
