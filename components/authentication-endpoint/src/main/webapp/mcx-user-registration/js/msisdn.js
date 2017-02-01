@@ -79,7 +79,6 @@ function saveRequestDetails(msisdn) {
 function submitLoginForm() {
 	if (true === $('#loginForm').parsley().isValid()) {
 		var msisdnParam=document.getElementById('msisdn').value;
-		saveRequestDetails(msisdnParam);
 		setCookie("msisdn", 1);
 		document.getElementById('loginForm').submit();
 	}
