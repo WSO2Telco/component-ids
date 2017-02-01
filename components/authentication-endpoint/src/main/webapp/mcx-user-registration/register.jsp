@@ -116,7 +116,7 @@
 
     <main class="site__main site__wrap section v-distribute v-grow">
         <header class="page__header" id="ussdpin_header" style="display:none">
-            <h1 class="page__heading">Now, let’s make your account&nbsp;secure</h1>
+            <h1 class="page__heading">Now, let&rsquo;s make your account&nbsp;secure</h1>
             <p>Create a PIN for secure log-in and two questions we can ask you in case you ever forget
                 your&nbsp;PIN.</p>
         </header>
