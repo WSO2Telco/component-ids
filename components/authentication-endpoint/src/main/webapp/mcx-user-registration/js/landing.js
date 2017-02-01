@@ -18,7 +18,8 @@
  */
 function cancelProcessToRegister() {
 
-    window.location = "/commonauth/?isTerminated=true";
+    var sessionDataKey = getParameterByName('sessionDataKey');
+    window.location = "/commonauth/?isTerminated=true&sessionDataKey=" + sessionDataKey;
 }
 
 /*
