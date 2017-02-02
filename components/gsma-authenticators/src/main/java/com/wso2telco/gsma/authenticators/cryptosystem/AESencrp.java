@@ -101,8 +101,6 @@ public class AESencrp {
      * @throws Exception the exception
      */
     private static Key generateKey() throws Exception {
-        Map<String, String> readMobileConnectConfigResult = null;
-        key = readMobileConnectConfigResult.get("AesKey");
         key = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig().getAesKey();
         keyValue = key.getBytes(Charset.forName("UTF-8"));
         Key key = new SecretKeySpec(keyValue, ALGO);
