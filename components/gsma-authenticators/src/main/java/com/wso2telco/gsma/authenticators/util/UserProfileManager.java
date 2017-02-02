@@ -149,8 +149,7 @@ public class UserProfileManager {
                     userFieldDTOs[count].setFieldValue(challengeAnswer1);
                 } else if (UserProfileClaimsConstant.CHALLENGEQUESTION2.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
                     userFieldDTOs[count].setFieldValue(challengeAnswer2);
-                } else if (UserProfileClaimsConstant.PIN.equalsIgnoreCase(userFieldDTOs[count].getClaimUri()) ||
-                        UserProfileClaimsConstant.IM.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
+                } else if (UserProfileClaimsConstant.PIN.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
                     userFieldDTOs[count].setFieldValue(getHashValue(pin));
                 } else {
                     userFieldDTOs[count].setFieldValue("");
