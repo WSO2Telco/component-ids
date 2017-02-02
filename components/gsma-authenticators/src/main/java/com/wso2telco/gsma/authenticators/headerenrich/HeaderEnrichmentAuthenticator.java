@@ -119,6 +119,12 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             log.debug("Header Enrich Authenticator canHandle invoked");
         }
         String msisdn = null;
+        int currentLoa = 0;
+        String acr = request.getParameter(Constants.PARAM_ACR);
+        if (acr != null && !StringUtils.isEmpty(acr)) {
+            currentLoa = Integer.parseInt(acr);
+        }
+
         boolean isUserExists;
         try {
             msisdn = DecryptionAES.decrypt(request.getParameter(Constants.MSISDN_HEADER));
@@ -129,7 +135,13 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             * If the user exists, we need to complete the authenticator by executing processAuthenticationResponse
             */
             if (msisdn != null && !StringUtils.isEmpty(msisdn)) {
-                return AdminServiceUtil.isUserExists(msisdn) || !isShowTnC;
+                isUserExists = AdminServiceUtil.isUserExists(msisdn);
+
+                if ((isUserExists && !isProfileUpgrade(msisdn, currentLoa, isUserExists)) || !isShowTnC) {
+                    return true;
+                } else {
+                    return false;
+                }
             } else {
                 return true;
             }
@@ -173,6 +185,10 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         boolean ipValidation = false;
         boolean validOperator = true;
+        boolean isProfileUpgrade = false;
+        int acr = getAcr(request, context);
+        boolean isUserExists = false;
+
         String operator = request.getParameter(Constants.OPERATOR);
         String msisdn = getMsisdn(request, context); //request.getParameter(Constants.MSISDN_HEADER);
 
@@ -202,14 +218,28 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         }
 
         try {
-            String loginPage = getAuthEndpointUrl(msisdn);
+            int tenantId = -1234;
+            UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService()
+                    .getTenantUserRealm(tenantId);
+
+            if (userRealm != null) {
+                UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
+                isUserExists = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(msisdn));
+                isProfileUpgrade = isProfileUpgrade(msisdn, acr, isUserExists);
+
+                context.setProperty(Constants.IS_USER_EXISTS, isUserExists);
+                context.setProperty(Constants.IS_REGISTERING, !isUserExists);
+                context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade);
+            }
+
+            String loginPage = getAuthEndpointUrl(msisdn, isProfileUpgrade, Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC)), context);
             String retryParam = "";
 
             if (context.isRetrying()) {
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
 
-            String ipAddress = request.getParameter(Constants.IP_ADDRESS);
+            String ipAddress = context.getProperty(Constants.IP_ADDRESS) != null ? (String) context.getProperty(Constants.IP_ADDRESS) : null;
 
             if (ipAddress == null) {
                 if (log.isDebugEnabled()) {
@@ -232,8 +262,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 throw new AuthenticationFailedException("Authentication Failed");
             }
 
-            context.setProperty(Constants.IP_ADDRESS, ipAddress);
-
             if (context.isRetrying()) {
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
@@ -247,7 +275,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (NullPointerException e) {
             throw new AuthenticationFailedException(e.getMessage(), e);
-        } catch (UserStoreException e) {
+        } catch (Exception e) {
             log.error(e);
         }
 
@@ -461,18 +489,36 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
     /**
      * Retrieves auth endpoint url
-     *
-     * @param msisdn msisdn
-     * @return auth endpoint url
+     * @param msisdn MSISDN
+     * @param isProfileUpgrade True if profile upgrade request
+     * @param isShowTnc True if T&C visible
+     * @param context Auth Context
+     * @return Endpoint
      * @throws UserStoreException
      * @throws AuthenticationFailedException
+     * @throws RemoteException
+     * @throws LoginAuthenticationExceptionException
+     * @throws RemoteUserStoreManagerServiceUserStoreExceptionException
      */
-    private String getAuthEndpointUrl(String msisdn) throws UserStoreException, AuthenticationFailedException {
+    private String getAuthEndpointUrl(String msisdn, boolean isProfileUpgrade, boolean isShowTnc,
+                                      AuthenticationContext context) throws UserStoreException,
+            AuthenticationFailedException,
+            RemoteException,
+            LoginAuthenticationExceptionException,
+            RemoteUserStoreManagerServiceUserStoreExceptionException {
+
         String loginPage;
-        if (msisdn != null && !AdminServiceUtil.isUserExists(msisdn)) {
+        if (msisdn != null && !AdminServiceUtil.isUserExists(msisdn) && isShowTnc) {
+            context.setProperty(Constants.IS_REGISTERING, true);
             loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.CONSENT_JSP;
         } else {
-            loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
+
+            if (isProfileUpgrade) {
+                loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl()
+                        + Constants.PROFILE_UPGRADE_JSP;
+            } else {
+                loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
+            }
         }
         return loginPage;
     }
