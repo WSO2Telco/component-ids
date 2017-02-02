@@ -227,7 +227,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 isUserExists = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(msisdn));
                 isProfileUpgrade = isProfileUpgrade(msisdn, acr, isUserExists);
 
-                context.setProperty(Constants.IS_USER_EXISTS, isUserExists);
                 context.setProperty(Constants.IS_REGISTERING, !isUserExists);
                 context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade);
             }
@@ -374,7 +373,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                             trimmedMsisdn = msisdn.replace("+", "").trim();
                             isUserExists = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(trimmedMsisdn));
 
-                            context.setProperty(Constants.IS_USER_EXISTS, isUserExists);
                             context.setProperty(Constants.IS_REGISTERING, !isUserExists);
                             context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade(msisdn, acr, isUserExists));
                             context.setProperty(Constants.IS_PIN_RESET, false);
