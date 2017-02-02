@@ -477,7 +477,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         } else {
 
             if (isProfileUpgrade) {
-
+                StringBuilder queryParams = new StringBuilder(context.getQueryParams());
+                queryParams.append("&").append(Constants.IS_PROFILE_UPGRADE).append("=true");
+                context.setQueryParams(queryParams.toString());
                 loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl()
                         + Constants.PROFILE_UPGRADE_JSP;
             } else {
