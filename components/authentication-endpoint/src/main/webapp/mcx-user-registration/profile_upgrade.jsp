@@ -73,8 +73,8 @@
         log.info( "operator :"+operator );
         String token = request.getParameter("token") != null ? request.getParameter("token") : "";
         log.info( "token :"+token );
-        String updateProfile = request.getParameter("updateProfile") != null ? request.getParameter("updateProfile") : "";
-        log.info( "updateProfile :"+updateProfile );
+        String updateProfile = request.getParameter("isLoaUpgrade") != null ? request.getParameter("isLoaUpgrade") : "";
+        log.info( "isLoaUpgrade :"+updateProfile );
         String imgPath = "";
         if (operator != "") {
             imgPath = "images/branding/" + operator + "_logo.svg";
@@ -297,15 +297,15 @@
     var auth;
     var acr_code = getAcrValue();
 
-    var term_ussd = document.getElementById("term_ussd");
-    var term_ussd_pin = document.getElementById("term_ussd_pin");
+//    var term_ussd = document.getElementById("term_ussd");
+//    var term_ussd_pin = document.getElementById("term_ussd_pin");
     var slider = document.getElementById("slider");
     var header = document.getElementById("ussdpin_header");
     var header_update = document.getElementById("ussdpin_update_header");
     var questions = document.getElementById("questions");
-    var msg = document.getElementById("msg");
+//    var msg = document.getElementById("msg");
     var btn1 = document.getElementById("validate-btn1");
-    var btn2 = document.getElementById("validate-btn2");
+//    var btn2 = document.getElementById("validate-btn2");
 
     /*
      * USSD Pin Registration page 1
@@ -315,8 +315,6 @@
 
     console.log('xxxxxxxxxxxxx uoioiuoiuoiuoi :' + acr_code)
     if (acr_code == "USSDPinAuthenticator") {
-        term_ussd_pin.style.display = 'none';
-        term_ussd.style.display = 'none';
         auth = "LoA3";
     }
 
@@ -326,14 +324,10 @@
      */
     if (acr_code == "USSDAuthenticator") {
 
-        term_ussd_pin.style.display = 'none';
-        term_ussd.style.display = 'block';
     }
 
     if ('<%=updateProfile%>' == "true") {
         flow();
-        term_ussd_pin.style.display = 'none';
-        term_ussd.style.display = 'none';
         header.style.display = 'none';
         header_update.style.display = 'block';
     }
@@ -350,13 +344,9 @@
          */
         if (acr_code == "USSDPinAuthenticator") {
             header.style.display = 'block';
-            term_ussd_pin.style.display = 'block';
-            term_ussd.style.display = 'none';
             slider.style.display = 'none';
             questions.style.display = 'block';
-            msg.style.display = 'none';
             btn1.style.display = 'none';
-            btn2.style.display = 'block';
 
         } else {
             registration();
