@@ -201,11 +201,6 @@ public final class Constants {
     public static final String USER_PROFILE_UPDATE_REQUIRED = "userProfileUpdateRequired";
 
     /**
-     * The Constant to hold the user existence flag in authentication context
-     */
-    public static final String IS_USER_EXISTS = "isUserExists";
-
-    /**
      * The Constant to hold the msisdn
      */
     public static final String MSISDN = "msisdn";

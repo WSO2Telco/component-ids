@@ -404,7 +404,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     }
 
     private void setPropertiesToContext(AuthenticationContext context, String msisdn, String operator, boolean isUserExists, int currentLoa, boolean isProfileUpgrade) {
-        context.setProperty(Constants.IS_USER_EXISTS, isUserExists);
         context.setProperty(Constants.MSISDN, msisdn);
         context.setProperty(Constants.OPERATOR, operator);
         context.setProperty(Constants.ACR, currentLoa);
