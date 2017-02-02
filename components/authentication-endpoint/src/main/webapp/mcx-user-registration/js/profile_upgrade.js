@@ -125,36 +125,32 @@ function registration() {
 
     }
 
+    var data = {};
+    data.challengeQuestion1 = challengeQ1;
+    data.challengeQuestion2 = challengeQ2;
+    data.challengeAnswer1 = challengeA1;
+    data.challengeAnswer2 = challengeA2;
+    data.sessionId = sessionDataKey;
 
-    var values = {};
-    values["msisdn"] = msisdn_header_str;
-    values["sessionDataKey"] = sessionDataKey;
-    values["acr_code"] = acr_code;
-    values["authenticator"] = authenticator;
-    values["domain"] = domain;
-    values["pwd"] = pwd;
-    values["http://wso2.org/claims/mobile"] = msisdn_header_str;
-    values["http://wso2.org/claims/challengeQuestion1"] = challengeQ1 + "!" + challengeA1;
-    values["http://wso2.org/claims/challengeQuestion2"] = challengeQ2 + "!" + challengeA2;
-    values["smsClick"] = smsClick;
-    values["updateProfile"] = updateProfile;
-    values["operator"] = operator;
-    values["http://wso2.org/claims/loa"] = acr;
-    values["isHERegistration"] = msisdn_header;
-    values["isUserExists"] = isUserExists;
+    var json = JSON.stringify(data);
 
-    console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
-    console.log("/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
-        + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true&domain=" + domain
-        + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str + "&pwd=" + pwd
-        + "&challengeQuestion1=" + challengeQ1 + "&challengeQuestion2=" + challengeQ2 + "&challengeAnswer1=" + challengeA1
-        + "&challengeAnswer2=" + challengeA2);
+    $.ajax({
+        type: "post",
+        url: "/sessionupdater/tnspoints/endpoint/save/userChallenges",
+        async: false,
+        data: json,
+        contentType: "application/json",
+        success: function (result) {
+            if (result.status == "S1000") {
 
-    window.location = "/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
-        + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true&domain=" + domain
-        + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str + "&pwd=" + pwd
-        + "&challengeQuestion1=" + challengeQ1 + "&challengeQuestion2=" + challengeQ2 + "&challengeAnswer1=" + challengeA1
-        + "&challengeAnswer2=" + challengeA2;
+                window.location = "/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
+                    + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true&domain=" + domain
+                    + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str
+                    + "&isTerminated=false&isRegistrationProceeding=true";
+
+            }
+        }
+    });
 
     // var f = document.createElement('form');
     // f.action = '/authenticationendpoint/mcx-user-registration/waiting.jsp';
@@ -284,7 +280,7 @@ function getAcrValue() {
 
 
     var acrReturn = "";
-    var url = "/user-registration/webresources/endpoint/loa/authenticator?acr=" + acr;
+    var url = "/sessionupdater/tnspoints/endpoint/loa/authenticator?acr=" + acr;
 
     $.ajax({
         type: "GET",
