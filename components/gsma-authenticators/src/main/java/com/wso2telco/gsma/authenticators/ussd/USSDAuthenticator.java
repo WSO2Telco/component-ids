@@ -139,7 +139,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
                 context.getCallerSessionKey(), context.getContextIdentifier());
 
         String msisdn = (String) context.getProperty(Constants.MSISDN);
-        boolean isUserExists = (boolean) context.getProperty(Constants.IS_USER_EXISTS);
+        boolean isUserExists = !(boolean) context.getProperty(Constants.IS_REGISTERING);
         String serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
 
         if(log.isDebugEnabled()) {
@@ -156,7 +156,6 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
             if (serviceProviderName.equals("wso2_sp_dashboard")) {
                 serviceProviderName = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getDashBoard();
-
             }
             String operator = (String) context.getProperty(Constants.OPERATOR);
 

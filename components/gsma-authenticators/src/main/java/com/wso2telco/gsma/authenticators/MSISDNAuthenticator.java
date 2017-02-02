@@ -164,7 +164,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             }
             context.setProperty(Constants.ACR, currentLoa);
 
-            loginPage = getAuthEndpointUrl(msisdn, isProfileUpgrade, Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC)), context);
+            loginPage = getAuthEndpointUrl(msisdn, isProfileUpgrade, Boolean.parseBoolean(context.getProperty(Constants.IS_SHOW_TNC).toString()), context);
 
             String queryParams = FrameworkUtils
                     .getQueryStringWithFrameworkContextId(context.getQueryParams(),
@@ -404,7 +404,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     }
 
     private void setPropertiesToContext(AuthenticationContext context, String msisdn, String operator, boolean isUserExists, int currentLoa, boolean isProfileUpgrade) {
-        context.setProperty(Constants.IS_USER_EXISTS, isUserExists);
         context.setProperty(Constants.MSISDN, msisdn);
         context.setProperty(Constants.OPERATOR, operator);
         context.setProperty(Constants.ACR, currentLoa);
@@ -477,7 +476,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         } else {
 
             if (isProfileUpgrade) {
-
+                StringBuilder queryParams = new StringBuilder(context.getQueryParams());
+                queryParams.append("&").append(Constants.IS_PROFILE_UPGRADE).append("=true");
+                context.setQueryParams(queryParams.toString());
                 loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl()
                         + Constants.PROFILE_UPGRADE_JSP;
             } else {

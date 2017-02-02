@@ -77,8 +77,10 @@
         log.info( "updateProfile :"+updateProfile );
         String authenticators = request.getParameter("authenticators");
         String imgPath = "";
+        String termsConditionsPath = "";
         if (operator != "") {
             imgPath = "images/branding/" + operator + "_logo.svg";
+            termsConditionsPath = "html/terms-conditions/" + operator + "-terms-conditions.html";
     %>
     <link href="css/branding/<%=operator%>-style.css" rel="stylesheet">
     <%
@@ -248,20 +250,20 @@
             </div>
             <div id="term_ussd" style="display:none" class="page_term">
                 <p style="font-size:13px; margin:0px; padding:0px;" align="center">By setting up an account, you are
-                    agreeing to the <a href="https://india.mconnect.wso2telco.com/dashboard/termsConditions.html"
+                    agreeing to the <a href="/authenticationendpoint/terms_and_conditions"
                                        target="_blank">Terms and Conditions.</a></p>
-                <p style="font-size:13px;margin-top:5px;" align="center">The <a href="/no-page" target="_blank">Mobile
+                <p style="font-size:13px;margin-top:5px;" align="center">The <a href="/authenticationendpoint/privacy_promise" target="_blank">Mobile
                     Connect Privacy Promise</a> means that your mobile number won’t be shared and no personal
-                    information will be disclosed without your consent. See our full <a href="/no-page" target="_blank">privacy
+                    information will be disclosed without your consent. See our full <a href="/authenticationendpoint/privacy_policy" target="_blank">privacy
                         policy&nbsp;here</a>.</p>
             </div>
             <div id="term_ussd_pin" style="display:none" class="page_term">
                 <p style="font-size:11px; margin:0px; padding:0px;" align="center">By setting up an account, you are
-                    agreeing to the <a href="https://india.mconnect.wso2telco.com/dashboard/termsConditions.html"
+                    agreeing to the <a href="/authenticationendpoint/terms_and_conditions"
                                        target="_blank">Terms and Conditions.</a></p>
-                <p style="font-size:11px;" align="center">The <a href="/no-page" target="_blank">Mobile Connect Privacy
+                <p style="font-size:11px;" align="center">The <a href="/authenticationendpoint/privacy_promise" target="_blank">Mobile Connect Privacy
                     Promise</a> means that your mobile number won’t be shared and no personal information will be
-                    disclosed without your consent. See our full <a href="/no-page" target="_blank">privacy policy&nbsp;here</a>.
+                    disclosed without your consent. See our full <a href="/authenticationendpoint/privacy_policy" target="_blank">privacy policy&nbsp;here</a>.
                 </p>
             </div>
 

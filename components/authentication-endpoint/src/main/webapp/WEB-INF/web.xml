@@ -141,6 +141,21 @@
     </servlet>
 
     <servlet>
+        <servlet-name>terms_and_conditions</servlet-name>
+        <jsp-file>/mcx-user-registration/terms_and_conditions.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>privacy_promise</servlet-name>
+        <jsp-file>/mcx-user-registration/privacy_promise.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>privacy_policy</servlet-name>
+        <jsp-file>/mcx-user-registration/privacy_policy.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>oauth2_error.do</servlet-name>
         <jsp-file>/oauth2_error.jsp</jsp-file>
     </servlet>
@@ -189,6 +204,21 @@
         <servlet-name>registration.do</servlet-name>
         <jsp-file>/registration.jsp</jsp-file>
     </servlet>
+
+    <servlet-mapping>
+        <servlet-name>terms_and_conditions</servlet-name>
+        <url-pattern>/terms_and_conditions</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>privacy_policy</servlet-name>
+        <url-pattern>/privacy_policy</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>privacy_promise</servlet-name>
+        <url-pattern>/privacy_promise</url-pattern>
+    </servlet-mapping>
 
     <servlet-mapping>
         <servlet-name>retry.do</servlet-name>

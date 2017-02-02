@@ -215,6 +215,7 @@ public class Endpoints {
                     redirectURL = constructRedirectUrl(redirectUrlInfo);
                 }
             } catch(Exception e){
+                log.error(e.getMessage());
                 redirectURL = redirectURL + "?error=access_denied&error_description=" + e.getMessage();
             }
 
