@@ -64,7 +64,7 @@
     <![endif]-->
 
     <!-- load main script early asyncronously -->
-    <script type="text/javascript" src="mcresources/js/main.min.js" async></script>
+    <script type="text/javascript" src="mcresources/js/main.js" async></script>
     <script type="text/javascript" src="mcresources/js/vendor/modernizr.js"></script>
 
     <%
@@ -253,7 +253,7 @@
                     agreeing to the <a href="/authenticationendpoint/terms_and_conditions"
                                        target="_blank">Terms and Conditions.</a></p>
                 <p style="font-size:13px;margin-top:5px;" align="center">The <a href="/authenticationendpoint/privacy_promise" target="_blank">Mobile
-                    Connect Privacy Promise</a> means that your mobile number won’t be shared and no personal
+                    Connect Privacy Promise</a> means that your mobile number won't be shared and no personal
                     information will be disclosed without your consent. See our full <a href="/authenticationendpoint/privacy_policy" target="_blank">privacy
                         policy&nbsp;here</a>.</p>
             </div>
@@ -262,7 +262,7 @@
                     agreeing to the <a href="/authenticationendpoint/terms_and_conditions"
                                        target="_blank">Terms and Conditions.</a></p>
                 <p style="font-size:11px;" align="center">The <a href="/authenticationendpoint/privacy_promise" target="_blank">Mobile Connect Privacy
-                    Promise</a> means that your mobile number won’t be shared and no personal information will be
+                    Promise</a> means that your mobile number won't be shared and no personal information will be
                     disclosed without your consent. See our full <a href="/authenticationendpoint/privacy_policy" target="_blank">privacy policy&nbsp;here</a>.
                 </p>
             </div>
