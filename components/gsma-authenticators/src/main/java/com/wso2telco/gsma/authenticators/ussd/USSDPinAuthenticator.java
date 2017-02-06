@@ -130,10 +130,11 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         String retryParam = "";
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
         boolean isPinReset = (boolean) context.getProperty(Constants.IS_PIN_RESET);
+        boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         String serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Registering : " + isRegistering);
             log.debug("Pin reset : " + isPinReset);
             log.debug("MSISDN : " + msisdn);
@@ -152,7 +153,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             }
             String operator = (String) context.getProperty("operator");
 
-            savePinConfigToContext(context, isRegistering, msisdn, isPinReset);
+            savePinConfigToContext(context, isRegistering, msisdn, isPinReset, isProfileUpgrade);
 
             if (!isPinReset) {
                 sendUssd(context, isRegistering, msisdn, serviceProviderName, operator);
@@ -175,32 +176,35 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
     }
 
     private void savePinConfigToContext(AuthenticationContext context, boolean isRegistering, String msisdn,
-                                        boolean isPinReset)
+                                        boolean isPinReset, boolean isProfileUpgrade)
             throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
 
 
         PinConfig pinConfig;
-        if (isRegistering) {
+        if (isRegistering || isProfileUpgrade) {
 
             pinConfig = new PinConfig();
             pinConfig.setInvalidFormatAttempts(0);
             pinConfig.setCurrentStep(PinConfig.CurrentStep.REGISTRATION);
-        } else if (isPinReset) {
-            pinConfig = PinConfigUtil.getPinConfig(context);
-
-            String challengeQuestionAndAnswer1 = new UserProfileManager().getChallengeQuestionAndAnswer1(msisdn);
-            String challengeQuestionAndAnswer2 = new UserProfileManager().getChallengeQuestionAndAnswer2(msisdn);
-
-            pinConfig.setChallengeQuestion1(challengeQuestionAndAnswer1.split("!")[0]);
-            pinConfig.setChallengeQuestion2(challengeQuestionAndAnswer2.split("!")[0]);
-            pinConfig.setChallengeAnswer1(challengeQuestionAndAnswer1.split("!")[1]);
-            pinConfig.setChallengeAnswer2(challengeQuestionAndAnswer2.split("!")[1]);
-
         } else {
-            pinConfig = new PinConfig();
-            String registeredPin = new UserProfileManager().getCurrentPin(msisdn);
-            pinConfig.setRegisteredPin(registeredPin);
-            pinConfig.setCurrentStep(PinConfig.CurrentStep.LOGIN);
+            UserProfileManager userProfileManager = new UserProfileManager();
+            if (isPinReset) {
+                pinConfig = PinConfigUtil.getPinConfig(context);
+
+                String challengeQuestionAndAnswer1 = new UserProfileManager().getChallengeQuestionAndAnswer1(msisdn);
+                String challengeQuestionAndAnswer2 = userProfileManager.getChallengeQuestionAndAnswer2(msisdn);
+
+                pinConfig.setChallengeQuestion1(challengeQuestionAndAnswer1.split("!")[0]);
+                pinConfig.setChallengeQuestion2(challengeQuestionAndAnswer2.split("!")[0]);
+                pinConfig.setChallengeAnswer1(challengeQuestionAndAnswer1.split("!")[1]);
+                pinConfig.setChallengeAnswer2(challengeQuestionAndAnswer2.split("!")[1]);
+
+            } else {
+                pinConfig = new PinConfig();
+                String registeredPin = userProfileManager.getCurrentPin(msisdn);
+                pinConfig.setRegisteredPin(registeredPin);
+                pinConfig.setCurrentStep(PinConfig.CurrentStep.LOGIN);
+            }
         }
         pinConfig.setMsisdn(msisdn);
         pinConfig.setPinMismatchAttempts(0);
@@ -246,7 +250,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         boolean isPinResetConfirmation = isPinResetConfirmation(pinConfig);
         boolean isTerminated = Boolean.parseBoolean(request.getParameter(Constants.IS_TERMINATED));
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("MSISDN : " + msisdn);
             log.debug("Registering : " + isRegistering);
             log.debug("Profile upgrade : " + isProfileUpgrade);
@@ -441,7 +445,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         String operator = (String) context.getProperty(Constants.OPERATOR);
         PinConfig pinConfig = (PinConfig) context.getProperty(com.wso2telco.core.config.util.Constants.PIN_CONFIG_OBJECT);
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Updating user profile from LOA2 to LOA3 flow [ msisdn : " + msisdn + " , challenge question 1 : " +
                     challengeQuestion1 + " , challenge answer 1 : " + challengeAnswer1 + " , challenge question 2 : " +
                     challengeQuestion2 + " , challenge answer 2 : " + challengeAnswer2 + " ] ");
@@ -464,7 +468,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
         if (pinConfig.isPinsMatched()) {
 
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Creating user profile for LOA3 flow [ msisdn : " + msisdn + " , challenge question 1 : " +
                         challengeQuestion1 + " , challenge answer 1 : " + challengeAnswer1 + " , challenge question 2 : " +
                         challengeQuestion2 + " , challenge answer 2 : " + challengeAnswer2 + " ] ");

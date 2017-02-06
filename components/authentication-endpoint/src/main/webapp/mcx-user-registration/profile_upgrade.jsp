@@ -68,13 +68,13 @@
     <script type="text/javascript" src="mcresources/js/vendor/modernizr.js"></script>
 
     <%
-	Logger log=Logger.getLogger(this.getClass().getName());
+        Logger log=Logger.getLogger(this.getClass().getName());
         String operator = request.getParameter("operator") != null ? request.getParameter("operator") : "";
         log.info( "operator :"+operator );
         String token = request.getParameter("token") != null ? request.getParameter("token") : "";
         log.info( "token :"+token );
-        String updateProfile = request.getParameter("isLoaUpgrade") != null ? request.getParameter("isLoaUpgrade") : "";
-        log.info( "isLoaUpgrade :"+updateProfile );
+        String updateProfile = request.getParameter("updateProfile") != null ? request.getParameter("updateProfile") : "";
+        log.info( "updateProfile :"+updateProfile );
         String imgPath = "";
         if (operator != "") {
             imgPath = "images/branding/" + operator + "_logo.svg";
@@ -114,64 +114,12 @@
 
 
     <main class="site__main site__wrap section v-distribute v-grow">
-        <header class="page__header" id="ussdpin_header" style="display:none">
-            <h1 class="page__heading">Now, let’s make your account&nbsp;secure</h1>
-            <p>Create a PIN for secure log-in and two questions we can ask you in case you ever forget
-                your&nbsp;PIN.</p>
-        </header>
-        <header class="page__header" id="ussdpin_update_header" style="display:none">
-            <h1 class="page__heading">Looks like you have to update your account, let’s make your
+        <header class="page__header" style="display:block">
+            <h1 class="page__heading">Looks like you have to update your account, let's make your
                 account&nbsp;secure</h1>
             <p>Create a PIN for secure log-in and two questions we can ask you in case you ever forget
                 your&nbsp;PIN.</p>
         </header>
-        <div class="slider slider--all slick v-grow" id="slider">
-            <section class="slider__slide">
-                <div class="slider__slide-inner v-distribute">
-                    <header class="page__header">
-                        <h1 class="page__heading">Secure</h1>
-                        <p>A safer, more secure way to&nbsp;log-in.</p>
-                        <a href="https://mobileconnect.io/" class="cta">Learn more</a>
-                    </header>
-                    <div class="page__illustration v-grow v-align-content">
-                        <div>
-                            <img src="mcresources/img/svg/secure.svg" alt="Secure" width="106" height="126">
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="slider__slide">
-                <div class="slider__slide-inner v-distribute">
-                    <header class="page__header">
-                        <h1 class="page__heading">Private</h1>
-                        <p>Your personal data is never shared without your&nbsp;permission.</p>
-                        <a href="https://mobileconnect.io/" class="cta">Learn more</a>
-                    </header>
-                    <div class="page__illustration v-grow v-align-content">
-                        <div>
-                            <img src="mcresources/img/svg/private.svg" alt="Private" width="160" height="107">
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="slider__slide">
-                <div class="slider__slide-inner v-distribute">
-                    <header class="page__header">
-                        <h1 class="page__heading">Convenient</h1>
-                        <p>No need for multiple passwords or&nbsp;usernames.</p>
-                        <a href="https://mobileconnect.io/" class="cta">Learn more</a>
-                    </header>
-                    <div class="page__illustration v-grow v-align-content">
-                        <div>
-                            <img src="mcresources/img/svg/convenient.svg" alt="Convenient" width="106" height="127">
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
-
 
         <form class="form-horizontal" id="selfReg" name="selfReg" data-parsley-validate>
             <input type="hidden" name="regExp_PRIMARY" value="^[\S]{5,30}$">
@@ -273,7 +221,7 @@
      * Display message for new account
      * Display button validate-btn1
      * Yes = call flow
-     *   Hide slider 
+     *   Hide slider
      *   Hide message for new account
      *   Hide button validate-btn1
      *   Display Header ussdpin_header
@@ -297,15 +245,15 @@
     var auth;
     var acr_code = getAcrValue();
 
-//    var term_ussd = document.getElementById("term_ussd");
-//    var term_ussd_pin = document.getElementById("term_ussd_pin");
+    var term_ussd = document.getElementById("term_ussd");
+    var term_ussd_pin = document.getElementById("term_ussd_pin");
     var slider = document.getElementById("slider");
     var header = document.getElementById("ussdpin_header");
     var header_update = document.getElementById("ussdpin_update_header");
     var questions = document.getElementById("questions");
-//    var msg = document.getElementById("msg");
+    var msg = document.getElementById("msg");
     var btn1 = document.getElementById("validate-btn1");
-//    var btn2 = document.getElementById("validate-btn2");
+    var btn2 = document.getElementById("validate-btn2");
 
     /*
      * USSD Pin Registration page 1
@@ -315,6 +263,8 @@
 
     console.log('xxxxxxxxxxxxx uoioiuoiuoiuoi :' + acr_code)
     if (acr_code == "USSDPinAuthenticator") {
+        term_ussd_pin.style.display = 'none';
+        term_ussd.style.display = 'none';
         auth = "LoA3";
     }
 
@@ -324,12 +274,14 @@
      */
     if (acr_code == "USSDAuthenticator") {
 
+        term_ussd_pin.style.display = 'none';
+        term_ussd.style.display = 'block';
     }
 
     if ('<%=updateProfile%>' == "true") {
         flow();
-        header.style.display = 'none';
-        header_update.style.display = 'block';
+        term_ussd_pin.style.display = 'none';
+        term_ussd.style.display = 'none';
     }
 
     /*
@@ -343,10 +295,13 @@
          * click on YES button
          */
         if (acr_code == "USSDPinAuthenticator") {
-            header.style.display = 'block';
+            term_ussd_pin.style.display = 'block';
+            term_ussd.style.display = 'none';
             slider.style.display = 'none';
             questions.style.display = 'block';
+            msg.style.display = 'none';
             btn1.style.display = 'none';
+            btn2.style.display = 'block';
 
         } else {
             registration();

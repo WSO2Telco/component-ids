@@ -384,7 +384,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     }
 
     private void retryAuthenticatorToUpdateProfile(AuthenticationContext context) throws AuthenticationFailedException {
-        context.setProperty(Constants.IS_REGISTERING, false);
+        context.setProperty(Constants.IS_REGISTERING, true);
         throw new AuthenticationFailedException("User exists. Moving for profile updating");
     }
 
@@ -507,7 +507,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         }
 
         String msisdn = request.getParameter(Constants.MSISDN);
-        if (StringUtils.isEmpty(msisdn)) {
+        if (StringUtils.isNotEmpty(msisdn)) {
             return msisdn;
         } else {
             if (context.getProperty(Constants.MSISDN) != null) {
