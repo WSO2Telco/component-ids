@@ -104,14 +104,14 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
      */
     @Override
     public boolean canHandle(HttpServletRequest request) {
-        String isTerminated = request.getParameter(Constants.IS_TERMINATED);
+        boolean isTerminated = Boolean.parseBoolean(request.getParameter(Constants.IS_TERMINATED));
 
         if (log.isDebugEnabled()) {
             log.debug("MSISDN Authenticator canHandle invoked");
         }
 
         if ((request.getParameter(Constants.MSISDN_HEADER) != null) || (request.getParameter("msisdn") != null) || (getLoginHintValues(request) != null)
-                || (isTerminated != null && Boolean.parseBoolean(isTerminated))) {
+                || (isTerminated)) {
             log.info("msisdn forwarding ");
             return true;
         }
@@ -220,15 +220,15 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
         String msisdn = getMsisdn(request, context);
         String operator = request.getParameter(Constants.OPERATOR);
-        String isTerminated = request.getParameter(Constants.IS_TERMINATED);
+        boolean isTerminated = Boolean.parseBoolean(request.getParameter(Constants.IS_TERMINATED));
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("MSISDN : " + msisdn);
             log.debug("Operator : " + operator);
             log.debug("Terminated : " + isTerminated);
         }
 
-        if (isTerminated != null && Boolean.parseBoolean(isTerminated)) {
+        if (isTerminated) {
             terminateAuthentication(context);
         }
 
@@ -374,7 +374,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 authnDataPublisherProxy.publishAuthenticationStepFailure(request, context, unmodifiableParamMap);
             }
         }
-
     }
 
     private void retryAuthenticatorToUpdateProfile(AuthenticationContext context) throws AuthenticationFailedException {
@@ -503,7 +502,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         }
 
         String msisdn = request.getParameter(Constants.MSISDN);
-        if (msisdn != null && !StringUtils.isEmpty(msisdn)) {
+        if (StringUtils.isEmpty(msisdn)) {
             return msisdn;
         } else {
             if (context.getProperty(Constants.MSISDN) != null) {

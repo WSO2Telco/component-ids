@@ -244,7 +244,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
         boolean isPinReset = isPinReset(pinConfig);
         boolean isPinResetConfirmation = isPinResetConfirmation(pinConfig);
-        String isTerminated = request.getParameter(Constants.IS_TERMINATED);
+        boolean isTerminated = Boolean.parseBoolean(request.getParameter(Constants.IS_TERMINATED));
 
         if(log.isDebugEnabled()) {
             log.debug("MSISDN : " + msisdn);
@@ -255,7 +255,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             log.debug("Terminated : " + isTerminated);
         }
 
-        if (isTerminated != null && Boolean.parseBoolean(isTerminated)) {
+        if (isTerminated) {
             terminateAuthentication(context);
         }
 
