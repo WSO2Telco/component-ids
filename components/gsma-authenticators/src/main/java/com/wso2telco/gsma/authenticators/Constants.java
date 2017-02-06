@@ -348,9 +348,9 @@ public final class Constants {
 
     public static final String UNTRUST_MSISDN = "UNTRUST_MSISDN";
 
-    public static final String TRUST_MSISDN = "TRUST_MSISDN";
+    public static final String TRUST_HEADER_MSISDN = "TRUST_HEADER_MSISDN";
 
-    public static final String TRUST_LOGIN_HINT = "TRUST_LOGIN_HINT";
+    public static final String TRUST_LOGINHINT_MSISDN = "TRUST_LOGINHINT_MSISDN";
 
     public static final String BREAK = "BREAK";
 }
