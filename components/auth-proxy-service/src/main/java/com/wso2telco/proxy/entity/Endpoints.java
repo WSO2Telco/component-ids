@@ -124,7 +124,6 @@ public class Endpoints {
             redirectURL = redirectURL + "?error=access_denied";
         } else {
             String loginHint = null;
-            String decryptedLoginHint = null;
             String ipAddress = null;
             String msisdn = null;
             String queryString = "";
@@ -165,7 +164,7 @@ public class Endpoints {
                 ipAddress = getIpAddress(httpHeaders, operatorName);
                 queryParams.putSingle(AuthProxyConstants.PROMPT, AuthProxyConstants.LOGIN);
 
-                //Validate with Scope wise parameters
+                //Validate with Scope wise parameters and throw exceptions
                 validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo);
 
                 String loginhint_msisdn = null;
@@ -180,10 +179,6 @@ public class Endpoints {
 
                 if (isScopeExists) {
                     operatorScopeWithClaims = queryParams.get(AuthProxyConstants.SCOPE).get(0);
-                    //split form space or + sign
-                    String[] scopeValues = operatorScopeWithClaims.split("\\s+|\\+");
-
-                    //  if (Arrays.asList(scopeValues).contains(ScopeConstant.OAUTH20_VALUE_SCOPE)) {
 
                     queryString = processQueryString(queryParams, queryString);
 
@@ -215,7 +210,8 @@ public class Endpoints {
                     redirectURL = constructRedirectUrl(redirectUrlInfo);
                 }
             } catch(Exception e){
-                log.error(e.getMessage());
+                log.error("Exception : " + e.getMessage());
+                //todo: dynamically set error description depending on scope parameters
                 redirectURL = redirectURL + "?error=access_denied&error_description=" + e.getMessage();
             }
 
@@ -257,7 +253,7 @@ public class Endpoints {
             throws AuthenticationFailedException, ConfigurationException {
         //TODO: get all scope related params. This should be move to a initialization method or add to cache later
         ScopeParam scopeParam = getScopeParam(scope);
-        redirectUrlInfo.setLoginhintMandatory(scopeParam.isLoginHintMandatory());
+        // show t&c page on authenticators depending on this scope specific variable
         redirectUrlInfo.setShowTnc(scopeParam.isTncVisible());
         redirectUrlInfo.setHeaderMismatchResult(scopeParam.getMsisdnMismatchResult());
         redirectUrlInfo.setHeFailureResult(scopeParam.getHeFailureResult());
@@ -275,10 +271,10 @@ public class Endpoints {
         }
 
         if (scopeParam != null) {
-            //check login hit existance validation
+            //check login hit existence validation
             if (scopeParam.isLoginHintMandatory()) {
                 if (StringUtils.isEmpty(loginHint)) {
-                    throw new AuthenticationFailedException("Login Hint parameter cannot be empty");
+                    throw new AuthenticationFailedException("Login Hint parameter cannot be empty for scope : " + scope);
                 }
 
                 if (StringUtils.isNotEmpty(msisdnHeader)) {
@@ -291,6 +287,11 @@ public class Endpoints {
                     validateFormatAndMatchLoginHintWithHeaderMsisdn(loginHint, scopeParam.getLoginHintFormat(),
                             msisdnHeader, scopeParam.getMsisdnMismatchResult());
                 }
+            }
+
+            //check if header msisdn is required
+            if (scopeParam.isHeaderMsisdnMandatory() && StringUtils.isEmpty(msisdnHeader)) {
+                throw new AuthenticationFailedException("MSISDN header not found for scope : " + scope);
             }
         }
     }
@@ -548,7 +549,6 @@ public class Endpoints {
         String operatorName = redirectUrlInfo.getOperatorName();
         String telcoScope = redirectUrlInfo.getTelcoScope();
         String ipAddress = redirectUrlInfo.getIpAddress();
-        boolean isLoginhintMandatory = redirectUrlInfo.isLoginhintMandatory();
         boolean isShowTnc = redirectUrlInfo.isShowTnc();
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
         ScopeParam.heFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
@@ -556,7 +556,6 @@ public class Endpoints {
         if (authorizeUrl != null) {
             redirectURL = authorizeUrl + queryString  + "&" + AuthProxyConstants.OPERATOR + "=" +
                     operatorName + "&" + AuthProxyConstants.TELCO_SCOPE + "=" + telcoScope + "&" +
-                    AuthProxyConstants.LOGIN_HINT_MANDATORY + "=" + isLoginhintMandatory + "&" +
                     AuthProxyConstants.SHOW_TNC + "=" + isShowTnc + "&" + AuthProxyConstants.HEADER_MISMATCH_RESULT +
                     "=" + headerMismatchResult + "&" + AuthProxyConstants.HE_FAILURE_RESULT +
                     "=" + heFailureResult;

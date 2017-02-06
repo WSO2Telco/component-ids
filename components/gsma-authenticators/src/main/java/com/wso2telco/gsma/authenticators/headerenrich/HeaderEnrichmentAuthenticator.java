@@ -458,13 +458,13 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     context.setProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN, true);
                     break;
 
-                case Constants.TRUST_MSISDN:
+                case Constants.TRUST_HEADER_MSISDN:
                     // On HE failure, trust the header msisdn and forwards to next authenticator
                     context.setProperty(Constants.MSISDN_HEADER, context.getProperty(Constants.MSISDN));
                     context.setProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN, true);
                     break;
 
-                case Constants.TRUST_LOGIN_HINT:
+                case Constants.TRUST_LOGINHINT_MSISDN:
                     // On HE failure, trust the login hint MSISDN and forwards to next authenticator
                     String loginHintValue = null;
 

@@ -272,6 +272,7 @@ public class DBUtils {
 
                 ScopeParam parameters = new ScopeParam();
                 parameters.setLoginHintMandatory(results.getBoolean("is_login_hint_mandatory"));
+                parameters.setHeaderMsisdnMandatory(results.getBoolean("is_header_msisdn_mandatory"));
                 parameters.setMsisdnMismatchResult(ScopeParam.msisdnMismatchResultTypes.valueOf(results.getString(
                         "msisdn_mismatch_result")));
                 parameters.setHeFailureResult(ScopeParam.heFailureResults.valueOf(results.getString(
