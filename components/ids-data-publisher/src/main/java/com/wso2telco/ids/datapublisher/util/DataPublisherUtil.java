@@ -25,6 +25,12 @@ public class DataPublisherUtil {
     public static final String USER_STATUS_META_STREAM_NAME = "com.wso2telco.userstatus.meta";
     public static final String USER_STATUS_META_STREAM_VERSION = "1.0.0";
 
+    public static final String AUTH_ENDPOINT_STREAM_NAME = "com.wso2telco.authorization.endpoint";
+    public static final String AUTH_ENDPOINT_STREAM_VERSION = "1.0.0";
+
+    public static final String TOKEN_ENDPOINT_STREAM_NAME = "com.wso2telco.token.endpoint";
+    public static final String TOKEN_ENDPOINT_STREAM_VERSION = "1.0.0";
+
 
     public static void setValueFromRequest(HttpServletRequest request,
                                            AuthenticationContext context, UserStatus uStatus) {
@@ -85,17 +91,6 @@ public class DataPublisherUtil {
             return context.getSessionIdentifier();
         } else {
             return request.getParameter("sessionDataKey");
-        }
-    }
-
-    public static void saveUSSD(UserStatus userStatus) {
-
-        try {
-            DBUtil.saveStatusData(userStatus);
-
-        } catch (Exception e) {
-            log.error("error occurred : " + e.getMessage());
-
         }
     }
 
@@ -306,4 +301,223 @@ public class DataPublisherUtil {
                                        userStatusMetaData.toArray());
     }
 
+
+    private static void setMSISDNHeader(UserStatus uStatus, HttpServletRequest request) {
+        log.info("request MSISDN header "+request.getParameter("msisdn_header"));
+
+        if (request.getParameter("msisdn_header")!= null && !request.getParameter("msisdn_header").isEmpty()){
+            uStatus.setIsMsisdnHeader(1);
+        }
+        else {
+            uStatus.setIsMsisdnHeader(0);
+        }
+    }
+
+    /**
+     * construct and publish TokenEndpointData event
+     * @param tokenMap
+     */
+    public static void publishTokenEndpointData(Map<String, String> tokenMap){
+        List<Object> tokenEndpointData = new ArrayList<Object>(17);
+
+        if (tokenMap.get("AuthenticatedUser") != null && !tokenMap.get("AuthenticatedUser").isEmpty() ) {
+            tokenEndpointData.add(tokenMap.get("AuthenticatedUser"));
+        }
+        else {tokenEndpointData.add(null);
+        }
+
+
+        if (tokenMap.get("State") != null && !tokenMap.get("State").isEmpty() ) {
+            tokenEndpointData.add(tokenMap.get("State"));
+        }
+        else {tokenEndpointData.add(null);
+        }
+
+        if (tokenMap.get("Nonce") != null && !tokenMap.get("Nonce").isEmpty() ) {
+            tokenEndpointData.add(tokenMap.get("Nonce"));
+        }
+        else {tokenEndpointData.add(null);
+        }
+
+        if (tokenMap.get("Amr") != null && !tokenMap.get("Amr").isEmpty() ) {
+            tokenEndpointData.add(tokenMap.get("Amr"));
+        }
+        else {tokenEndpointData.add(null);
+        }
+
+        if (tokenMap.get("AuthenticationCode") != null && !tokenMap.get("AuthenticationCode").isEmpty() ) {
+            tokenEndpointData.add(tokenMap.get("AuthenticationCode"));
+        }
+        else {tokenEndpointData.add(null);
+        }
+
+        if (tokenMap.get("AccessToken") != null && !tokenMap.get("AccessToken").isEmpty() ) {
+            tokenEndpointData.add(tokenMap.get("AccessToken"));
+        }
+        else {tokenEndpointData.add(null);
+        }
+
+        if (tokenMap.get("SourceIP") != null && !tokenMap.get("SourceIP").isEmpty() ) {
+            tokenEndpointData.add(tokenMap.get("SourceIP"));
+        }
+        else {tokenEndpointData.add(null);
+        }
+
+        if (tokenMap.get("ContentType") != null && !tokenMap.get("ContentType").isEmpty() ) {
+            tokenEndpointData.add(tokenMap.get("ContentType"));
+        }
+        else {tokenEndpointData.add(null);
+        }
+        if (tokenMap.get("ClientId") != null && !tokenMap.get("ClientId").isEmpty() ) {
+            tokenEndpointData.add(tokenMap.get("ClientId"));
+        }
+        else {tokenEndpointData.add(null);
+        }
+
+        if (tokenMap.get("Payload") != null && !tokenMap.get("Payload").isEmpty() ) {
+            tokenEndpointData.add(tokenMap.get("Payload"));
+        }
+        else {tokenEndpointData.add(null);
+        }
+
+        if (tokenMap.get("RefreshToken") != null && !tokenMap.get("RefreshToken").isEmpty() ) {
+            tokenEndpointData.add(tokenMap.get("RefreshToken"));
+        }
+        else {tokenEndpointData.add(null);
+        }
+
+        if (tokenMap.get("TokenClaims") != null && !tokenMap.get("TokenClaims").isEmpty() ) {
+            tokenEndpointData.add(tokenMap.get("TokenClaims"));
+        }
+        else {tokenEndpointData.add(null);
+        }
+        if (tokenMap.get("RequestStatus") != null && !tokenMap.get("RequestStatus").isEmpty() ) {
+            tokenEndpointData.add(tokenMap.get("RequestStatus"));
+        }
+        else {tokenEndpointData.add(null);
+        }
+
+        if (tokenMap.get("ReturnedResult") != null && !tokenMap.get("ReturnedResult").isEmpty() ) {
+            tokenEndpointData.add(tokenMap.get("ReturnedResult"));
+        }
+        else {tokenEndpointData.add(null);
+        }
+
+
+        if (tokenMap.get("StatusCode") != null && !tokenMap.get("StatusCode").isEmpty() ) {
+            tokenEndpointData.add(tokenMap.get("StatusCode"));
+        }
+        else {tokenEndpointData.add(null);
+        }
+
+
+        if (tokenMap.get("sessionId") != null && !tokenMap.get("sessionId").isEmpty() ) {
+            tokenEndpointData.add(tokenMap.get("sessionId"));
+        }
+        else {tokenEndpointData.add(null);
+        }
+
+
+        tokenEndpointData.add(System.currentTimeMillis());
+
+        IdsAgent.getInstance().publish(TOKEN_ENDPOINT_STREAM_NAME,
+                                       TOKEN_ENDPOINT_STREAM_VERSION, System.currentTimeMillis(), tokenEndpointData.toArray());
+    }
+
+    public static void setContextData(AuthenticationContext context, HttpServletRequest request) {
+
+
+        if(request.getParameter("telco_scope")!=null){
+            context.setProperty("telco_scope",request.getParameter("telco_scope") );
+        }
+        else {
+            context.setProperty("telco_scope","openid" );
+        }
+
+        if(request.getParameter("operator")!=null){
+            context.setProperty("operator",request.getParameter("operator") );
+        }
+        if(request.getParameter("msisdn")!=null){
+            context.setProperty("msisdn",request.getParameter("msisdn") );
+        }
+        String sessionId = resolveSessionID(request, context);
+        context.setProperty(TRANSACTION_ID, sessionId);
+
+    }
+
+
+    public static void publishDataForHESkipFlow(HttpServletRequest request,
+                                                AuthenticationContext context) {
+        UserStatus uStatus = new UserStatus();
+        setValueFromRequest(request, context, uStatus);
+        setMSISDNHeader(uStatus, request);
+        uStatus.setIsNewUser(1);
+
+        if (uStatus.getIsMsisdnHeader() == 1) {
+            uStatus.setStatus(UserState.HE_AUTH_SUCCESS.name());
+            //start publishing to meta
+            publishUserStatusMetaData(uStatus);
+            //end publishing
+            //saveUSSD(uStatus);
+            publishUserStatusData(uStatus);
+        } else {
+            uStatus.setStatus(UserState.HE_AUTH_PROCESSING_FAIL.name());
+
+            //start publishing to meta
+            publishUserStatusMetaData(uStatus);
+            //end publishing
+
+            //saveUSSD(uStatus);
+            publishUserStatusData(uStatus);
+
+            uStatus.setStatus(UserState.MSISDN_AUTH_PROCESSING_FAIL.name());
+            //saveUSSD(uStatus);
+            publishUserStatusData(uStatus);
+        }
+    }
+
+    public static void publishInvalidRequest(HttpServletRequest request,
+                                             AuthenticationContext context) {
+
+        UserStatus uStatus = new UserStatus();
+        setValueFromRequest(request, context, uStatus);
+        uStatus.setStatus(UserState.INVALID_REQUEST.name());
+
+        uStatus.setComment("Invalid Request");
+
+
+        //start publishing to meta
+        publishUserStatusMetaData(uStatus);
+        //end publishing
+        //saveUSSD(uStatus);
+        publishUserStatusData(uStatus);
+    }
+
+    public enum UserState {
+
+        HE_AUTH_PROCESSING_FAIL, HE_AUTH_PROCESSING, HE_AUTH_SUCCESS,
+        MSISDN_AUTH_SUCCESS,
+        MSISDN_AUTH_PROCESSING_FAIL, MSISDN_AUTH_PROCESSING,
+
+        USSD_AUTH_PROCESSING_FAIL, USSD_AUTH_SUCCESS,
+
+        SMS_AUTH_PROCESSING_FAIL, SMS_AUTH_SUCCESS,
+
+        SEND_USSD_PUSH, SEND_USSD_PUSH_FAIL,
+
+        SEND_USSD_PIN, SEND_USSD_PIN_FAIL,
+        SEND_SMS, SEND_SMS_FAIL,
+
+        RECEIVE_USSD_PUSH_APPROVED, RECEIVE_USSD_PUSH_FAIL, RECEIVE_USSD_PIN_APPROVED, RECEIVE_SMS_RESPONSE_SUCCESS,
+        RECEIVE_USSD_PUSH_REJECTED, RECEIVE_USSD_PIN_REJECTED,
+        RECEIVE_SMS_RESPONSE_FAIL,
+
+        LOGIN_SUCCESS,
+        INVALID_MNV_REQUEST,
+        INVALID_REQUEST,
+
+        REG_USER_TOKEN_FAIL, AUTH_INITIAL_STEP;
+
+
+    }
 }

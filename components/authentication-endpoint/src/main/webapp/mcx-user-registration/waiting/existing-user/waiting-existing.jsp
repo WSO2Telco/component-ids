@@ -34,7 +34,14 @@
 				{{continue-on-device-intro-default}}
 				<%}%>
 
-			</p>
+                <%
+                    String acr = request.getParameter("acr_values");
+                    if (acr.equals("3")) {
+                        showSMSLink = false;
+                    }
+                %>
+
+            </p>
 		</header>
 
 		<div class="page__illustration v-grow v-align-content">
