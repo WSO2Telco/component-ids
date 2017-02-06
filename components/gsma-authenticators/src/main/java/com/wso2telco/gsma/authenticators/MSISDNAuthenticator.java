@@ -267,15 +267,14 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             AuthenticatorException {
 
         if (isUserRegistration(context, isUserExists)) {
+            boolean isShowTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
+            context.setProperty(Constants.IS_REGISTERING, true);
 
-            if (request.getParameter(Constants.IS_SHOW_TNC) != null
-                    && !Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC))) {
-
-                context.setProperty(Constants.IS_REGISTERING, true);
+            if (!isShowTnC) {
                 DBUtils.insertRegistrationStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
 
             } else {
-                retryAuthenticatorToGetConsent(context, msisdn);
+                retryAuthenticatorToGetConsent();
             }
 
         } else if (isProfileUpgrade(context, isUserExists, isProfileUpgrade)) {
@@ -397,9 +396,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         throw new AuthenticationFailedException("Authenticator is terminated");
     }
 
-    private void retryAuthenticatorToGetConsent(AuthenticationContext context, String msisdn) throws AuthenticationFailedException {
-        context.setProperty("faileduser", msisdn);
-        context.setProperty(Constants.IS_REGISTERING, true);
+    private void retryAuthenticatorToGetConsent() throws AuthenticationFailedException {
         if (log.isDebugEnabled()) {
             log.debug("User authentication failed. MSISDN doesn't exist.");
         }
