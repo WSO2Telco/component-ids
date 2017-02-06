@@ -48,9 +48,13 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
     /** The log. */
     private static Log log = LogFactory.getLog(ClaimInfoMultipleScopeResponseBuilder.class);
 
+    private final String openidScope = "openid";
+
     private final String hashPhoneScope = "mc_identity_phonenumber_hashed";
 
     private final String phone_number_claim = "phone_number";
+
+    private final String msisdnKeyValue = "msisdn";
 
     /** The openid scopes. */
     List<String> openidScopes = Arrays.asList("profile", "email", "address", "phone", "openid", "mc_identity_phonenumber_hashed");
@@ -148,10 +152,20 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
                 for (Scope scope : scopeConfigs.getScopes().getScopeList()) {
                     if (scopeName.equals(scope.getName())) {
                         attributes = new String[scope.getClaims().getClaimValues().size()];
-                        requestedClaims = addClaims(totalClaims, requestedClaims, scope.getClaims().getClaimValues().toArray(attributes));
+                        if (scopeName.equals(openidScope)) {
+                            if(scopes.length == 1) {
+                                requestedClaims = addClaims(totalClaims, requestedClaims, scope.getClaims().getClaimValues().toArray(attributes));
+                                String msisdn = (String) requestedClaims.remove(phone_number_claim);
+                                requestedClaims.put(msisdnKeyValue, msisdn);
+                                break;
+                            }
+                        } else {
+                            requestedClaims = addClaims(totalClaims, requestedClaims, scope.getClaims().getClaimValues().toArray(attributes));
+                        }
                         if(scopeName.equals(hashPhoneScope)){
                             String hashed_msisdn = getHashedClaimValue((String) requestedClaims.get(phone_number_claim));
                             requestedClaims.put(phone_number_claim, hashed_msisdn);
+                            break;
                         }
                         break;
                     }
