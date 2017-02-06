@@ -142,7 +142,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         boolean isUserExists = !(boolean) context.getProperty(Constants.IS_REGISTERING);
         String serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("MSISDN : " + msisdn);
             log.debug("Service provider : " + serviceProviderName);
             log.debug("User exist : " + isUserExists);
@@ -161,7 +161,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
             sendUssd(context, msisdn, serviceProviderName, operator, isUserExists);
 
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Operator : " + operator);
                 log.debug("Redirect URI : " + context.getProperty("redirectURI"));
             }
@@ -222,7 +222,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             //MIFEAuthenticationStepHandler, the steps following USSDAuthenticator will be removed.
             //But please note that, this cause ANY step following USSDAuthenticator to be removed.
             //Therefore, when redesigning, need to take this into consideration!
-            context.setProperty("removeFollowingSteps","true");
+            context.setProperty("removeFollowingSteps", "true");
         }
 
         String sessionDataKey = request.getParameter("sessionDataKey");
@@ -230,7 +230,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         String openator = (String) context.getProperty(Constants.OPERATOR);
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("SessionDataKey : " + sessionDataKey);
             log.debug("Registering : " + isRegistering);
             log.debug("MSISDN : " + msisdn);

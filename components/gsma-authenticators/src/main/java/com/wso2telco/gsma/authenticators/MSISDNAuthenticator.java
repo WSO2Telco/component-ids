@@ -151,8 +151,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
             String msisdn;// = request.getParameter(Constants.MSISDN);
             int currentLoa = getAcr(request, context);
-            if(context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN) != null){
-                isInvalidatedMSISDN = (boolean)context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN);
+            if (context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN) != null) {
+                isInvalidatedMSISDN = (boolean) context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN);
             }
 
             if (context.isRetrying() || isInvalidatedMSISDN == true) {
@@ -172,7 +172,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                             context.getContextIdentifier());
             String retryParam = "";
 
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("MSISDN : " + msisdn);
                 log.debug("Query parameters : " + queryParams);
                 log.debug("Current LOA : " + currentLoa);
@@ -222,7 +222,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         String operator = request.getParameter(Constants.OPERATOR);
         String isTerminated = request.getParameter(Constants.IS_TERMINATED);
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("MSISDN : " + msisdn);
             log.debug("Operator : " + operator);
             log.debug("Terminated : " + isTerminated);
@@ -268,7 +268,15 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
         if (isUserRegistration(context, isUserExists)) {
 
-            retryAuthenticatorToGetConsent(context, msisdn);
+            if (request.getParameter(Constants.IS_SHOW_TNC) != null
+                    && !Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC))) {
+
+                context.setProperty(Constants.IS_REGISTERING, true);
+                DBUtils.insertRegistrationStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
+
+            } else {
+                retryAuthenticatorToGetConsent(context, msisdn);
+            }
 
         } else if (isProfileUpgrade(context, isUserExists, isProfileUpgrade)) {
 
@@ -498,7 +506,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
     private String getMsisdn(HttpServletRequest request, AuthenticationContext context) {
         // if invalidate msisdn flag is set, ignore the request parameter and load the msisdn from context
-        if(context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN) != null && (boolean) context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN)){
+        if (context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN) != null && (boolean) context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN)) {
             return (String) context.getProperty(Constants.MSISDN);
         }
 
