@@ -375,12 +375,14 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			}
 
 		} catch (AuthenticationFailedException e) {
+			boolean followingStepsRemoved = false;
 			//The following if block is a part of implementing the functionality of SMSAuthenticator
 			//getting hit ONLY when the link to get a text message is clicked in the USSD waiting page.
 			//This ensures when USSDAuthenticator is failed, SMS authenticator doesn't get hit.
 			if ("true".equals(context.getProperty("removeFollowingSteps"))) {
 				removeAllFollowingSteps(context,currentStep);
 				context.setProperty("removeFollowingSteps", null);
+				followingStepsRemoved = true;
 			}
 			if (e instanceof InvalidCredentialsException) {
 				log.error("A login attempt was failed due to invalid credentials");
@@ -407,7 +409,7 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 				if (!"".equals(onFailProperty) && !onFailProperty.equals("continue")) {
 					// Should fail the whole LOA and continue to next if defined
 					String fallBacklevel = authenticatorConfig.getParameterMap().get("fallBack");
-					if (onFailProperty.equals("fallback") && StringUtils.isNotBlank(fallBacklevel)) {
+					if (onFailProperty.equals("fallback") && StringUtils.isNotBlank(fallBacklevel) && !followingStepsRemoved) {
 						removeFollowingStepsOfCurrentLOA(context, authenticatorConfig
 								.getParameterMap().get("currentLOA"), currentStep);
 					} else {
