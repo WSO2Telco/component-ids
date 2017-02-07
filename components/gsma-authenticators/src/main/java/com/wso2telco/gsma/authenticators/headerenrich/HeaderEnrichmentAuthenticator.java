@@ -456,12 +456,14 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     context.setProperty(Constants.MSISDN, null);
                     context.setProperty(Constants.MSISDN_HEADER, null);
                     context.setProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN, true);
+                    log.info("HE FAILED : UNTRUST_MSISDN");
                     break;
 
                 case Constants.TRUST_HEADER_MSISDN:
                     // On HE failure, trust the header msisdn and forwards to next authenticator
                     context.setProperty(Constants.MSISDN_HEADER, context.getProperty(Constants.MSISDN));
                     context.setProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN, true);
+                    log.info("HE FAILED : TRUST_HEADER_MSISDN");
                     break;
 
                 case Constants.TRUST_LOGINHINT_MSISDN:
@@ -474,13 +476,18 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                         log.error("Exception Getting the login hint values " + e);
                     }
 
-                    context.setProperty(Constants.MSISDN, loginHintValue);
-                    context.setProperty(Constants.MSISDN_HEADER, loginHintValue);
-                    context.setProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN, true);
+                    if(loginHintValue != null) {
+                        context.setProperty(Constants.MSISDN, loginHintValue);
+                        context.setProperty(Constants.MSISDN_HEADER, loginHintValue);
+                        context.setProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN, true);
+                    }
+
+                    log.info("HE FAILED : TRUST_LOGINHINT_MSISDN");
                     break;
 
                 default:
                     context.setProperty("removeFollowingSteps", "true");
+                    log.info("HE FAILED : BREAK THE FLOW");
             }
         }
     }

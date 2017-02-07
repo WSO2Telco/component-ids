@@ -110,9 +110,21 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             log.debug("MSISDN Authenticator canHandle invoked");
         }
 
-        if ((request.getParameter(Constants.MSISDN_HEADER) != null) || (request.getParameter("msisdn") != null) || (getLoginHintValues(request) != null)
-                || (isTerminated)) {
+        if (request.getParameter("msisdn") != null || isTerminated) {
             log.info("msisdn forwarding ");
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if it is ok to complete the authentication by checking authentication context properties
+     * @param context Authentication context
+     * @return true if ok to complete
+     */
+    private boolean isOkToComplete(AuthenticationContext context) {
+        if(context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN) != null && (boolean)context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN) && context.getProperty(Constants.MSISDN) != null ){
             return true;
         }
 
@@ -155,7 +167,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 isInvalidatedMSISDN = (boolean) context.getProperty(Constants.INVALIDATE_QUERY_STRING_MSISDN);
             }
 
-            if (context.isRetrying() || isInvalidatedMSISDN == true) {
+            if (context.isRetrying() || isInvalidatedMSISDN) {
                 msisdn = context.getProperty(Constants.MSISDN) == null ? null : (String) context.getProperty(Constants.MSISDN);
                 isProfileUpgrade = context.getProperty(Constants.IS_PROFILE_UPGRADE) == null ? false : (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
             } else {
@@ -309,7 +321,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
                 return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
             }
-        } else if (canHandle(request) && (request.getAttribute("commonAuthHandled") == null || !(Boolean) request.getAttribute("commonAuthHandled"))) {
+        } else if ((canHandle(request) || isOkToComplete(context)) && (request.getAttribute("commonAuthHandled") == null || !(Boolean) request.getAttribute("commonAuthHandled"))) {
             try {
                 processAuthenticationResponse(request, response, context);
                 if (this instanceof LocalApplicationAuthenticator && !context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {

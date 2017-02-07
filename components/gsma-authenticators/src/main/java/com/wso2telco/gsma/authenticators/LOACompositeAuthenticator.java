@@ -47,13 +47,7 @@ import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 // TODO: Auto-generated Javadoc
@@ -115,18 +109,17 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		//Unregister Customer Token
 		String msisdn = request.getParameter(Constants.MSISDN_AUTHENTICATOR_FRIENDLY_NAME);
         String msisdnHeader = request.getParameter(Constants.MSISDN_HEADER);
+		String loginHintMsisdn = request.getParameter(Constants.LOGIN_HINT_MSISDN);
 
         String tokenId = request.getParameter(Constants.TOKEN_ID);
-        boolean isLoginHintMandatory = Boolean.parseBoolean(request.getParameter(Constants.IS_LOGIN_HINT_MANDATORY));
         boolean isShowTnc = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = ScopeParam.msisdnMismatchResultTypes.valueOf(
                 request.getParameter(Constants.HEADER_MISMATCH_RESULT));
 
-        context.setProperty(Constants.IS_LOGIN_HINT_MANDATORY, isLoginHintMandatory);
         context.setProperty(Constants.IS_SHOW_TNC, isShowTnc);
         context.setProperty(Constants.HEADER_MISMATCH_RESULT, headerMismatchResult);
 
-        String flowType = getFlowType(msisdnHeader, headerMismatchResult);
+        String flowType = getFlowType(msisdnHeader, loginHintMsisdn, headerMismatchResult);
 
         //Data publishing
         /*
@@ -377,42 +370,34 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		return acrValues;
 	}
 
-    private String getFlowType(String msisdn, ScopeParam.msisdnMismatchResultTypes headerMismatchResult) {
-        if (!ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK.equals(headerMismatchResult)) {
-            if (!StringUtils.isEmpty(msisdn)) {
-                return "onnet";
-            }
-        }
-        return "offnet";
-    }
+	/**
+	 * Get flow type depending on the header msisdn, login hint msisdn and header mismatch result scope parameter
+	 * @param headerMsisdn MSISDN provided in header
+	 * @param loginHintMsisdn MSISDN provided in login hint
+	 * @param headerMismatchResult Header mismatch result scope parameter
+     * @return
+     */
+	private String getFlowType(String headerMsisdn, String loginHintMsisdn, ScopeParam.msisdnMismatchResultTypes headerMismatchResult) {
 
-//    private boolean isUserProfileUpdateRequired(HttpServletRequest request, String msisdnHeader, String selectedLOA) {
-//        boolean userProfileUpdateRequired = false;
-//        String requestURL = request.getRequestURL().toString();
-//        String requestURI = request.getRequestURI();
-//        String baseURL = requestURL.substring(0, requestURL.indexOf(requestURI));
-//        LoginAdminServiceClient lAdmin = null;
-//        try {
-//            lAdmin = new LoginAdminServiceClient(baseURL);
-//            String sessionCookie = lAdmin.authenticate(isAdminUserName, isAdminPassword);
-//            ClaimManagementClient claimManager = new ClaimManagementClient(baseURL, sessionCookie);
-//            if (msisdnHeader != null) {
-//                String registeredLOA = claimManager.getRegisteredLOA(msisdnHeader);
-//                if (Integer.parseInt(registeredLOA) < Integer.parseInt(selectedLOA)) {
-//                    userProfileUpdateRequired = true;
-//                }
-//            }
-//        } catch (AxisFault axisFault) {
-//            axisFault.printStackTrace();
-//        } catch (RemoteException e) {
-//            e.printStackTrace();
-//        } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
-//            e.printStackTrace();
-//        } catch (LoginAuthenticationExceptionException e) {
-//            e.printStackTrace();
-//        }
-//        return userProfileUpdateRequired;
-//    }
+		//RULE 1: check if LOA is offnet fallback
+		if (ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK.equals(headerMismatchResult)) {
+			//RULE 1.1: if header MSISDN is not empty and LOGIN HINT is empty OR header MSISDN and LOGIN HINT is equal, [onnet]
+			if (StringUtils.isNotEmpty(headerMsisdn) && (StringUtils.isEmpty(loginHintMsisdn) || headerMsisdn.equals(loginHintMsisdn))) {
+				return "onnet";
+			}else{
+				//RULE 1.3: if header MSISDN is empty or LOGIN HINT is not empty and not equal, [offnet]
+				return "offnet";
+			}
+		}
+
+		//RULE 2: if header MSISDN is not empty, [onnet]
+		if(StringUtils.isNotEmpty(headerMsisdn)){
+			return "onnet";
+		}
+
+		//RULE 3: otherwise, [offnet]
+		return "offnet";
+	}
 
 	private boolean isAuthenticatorAllowedForMNOAndSP(
 			boolean isAuthenticatorSelectionEnabledForMNO, boolean isAuthenticatorSelectionEnabledForSP,
