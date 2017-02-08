@@ -379,8 +379,10 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
      */
 	private String getFlowType(String headerMsisdn, String loginHintMsisdn, ScopeParam.msisdnMismatchResultTypes headerMismatchResult) {
 
-		//RULE 1: check if LOA is offnet fallback
-		if (ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK.equals(headerMismatchResult)) {
+		//RULE 1: check if LOA is in any form of offnet fallback
+		if (ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK.equals(headerMismatchResult) ||
+				ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK_TRUST_HEADER.equals(headerMismatchResult) ||
+				ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK_TRUST_LOGINHINT.equals(headerMismatchResult)) {
 			//RULE 1.1: if header MSISDN is not empty and LOGIN HINT is empty OR header MSISDN and LOGIN HINT is equal, [onnet]
 			if (StringUtils.isNotEmpty(headerMsisdn) && (StringUtils.isEmpty(loginHintMsisdn) || headerMsisdn.equals(loginHintMsisdn))) {
 				return "onnet";

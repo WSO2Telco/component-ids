@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
+import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
@@ -104,10 +105,24 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
      */
     @Override
     public boolean canHandle(HttpServletRequest request) {
-        boolean isTerminated = Boolean.parseBoolean(request.getParameter(Constants.IS_TERMINATED));
-
         if (log.isDebugEnabled()) {
             log.debug("MSISDN Authenticator canHandle invoked");
+        }
+
+        ScopeParam.msisdnMismatchResultTypes headerMismatchResult = null;
+        if(request.getParameter(Constants.HEADER_MISMATCH_RESULT) != null) {
+            headerMismatchResult = ScopeParam.msisdnMismatchResultTypes.valueOf(request.getParameter(Constants.HEADER_MISMATCH_RESULT));
+        }
+
+        boolean isTerminated = Boolean.parseBoolean(request.getParameter(Constants.IS_TERMINATED));
+        boolean isLoginHintAvailable = StringUtils.isNotEmpty(request.getParameter(Constants.LOGIN_HINT_MSISDN));
+        boolean isHeaderMsisdnAvailable = StringUtils.isNotEmpty(request.getParameter(Constants.MSISDN_HEADER));
+        boolean isOffnetFallbackWithLoginhintTrust = headerMismatchResult != null && headerMismatchResult.equals(ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK_TRUST_LOGINHINT);
+        boolean isOffnetFallbackWithHeaderTrust = headerMismatchResult != null && headerMismatchResult.equals(ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK_TRUST_HEADER);
+
+        // if fallback with either trusted login hint or header msisdn, forward to the next authenticator
+        if((isOffnetFallbackWithLoginhintTrust && isLoginHintAvailable) || (isOffnetFallbackWithHeaderTrust && isHeaderMsisdnAvailable)){
+            return true;
         }
 
         if (request.getParameter("msisdn") != null || isTerminated) {
@@ -518,6 +533,23 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             return (String) context.getProperty(Constants.MSISDN);
         }
 
+        ScopeParam.msisdnMismatchResultTypes headerMismatchResult = null;
+        if(request.getParameter(Constants.HEADER_MISMATCH_RESULT) != null) {
+            headerMismatchResult = ScopeParam.msisdnMismatchResultTypes.valueOf(request.getParameter(Constants.HEADER_MISMATCH_RESULT));
+        }
+        boolean isLoginHintAvailable = StringUtils.isNotEmpty(request.getParameter(Constants.LOGIN_HINT_MSISDN));
+        boolean isHeaderMsisdnAvailable = StringUtils.isNotEmpty(request.getParameter(Constants.MSISDN_HEADER));
+        boolean isOffnetFallbackWithLoginhintTrust = headerMismatchResult != null && headerMismatchResult.equals(ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK_TRUST_LOGINHINT);
+        boolean isOffnetFallbackWithHeaderTrust = headerMismatchResult != null && headerMismatchResult.equals(ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK_TRUST_HEADER);
+
+        if(isLoginHintAvailable && isOffnetFallbackWithLoginhintTrust){
+            return getLoginHintValues(request);
+        }
+
+        if(isHeaderMsisdnAvailable && isOffnetFallbackWithHeaderTrust){
+            return getHeaderMsisdnValue(request);
+        }
+
         String msisdn = request.getParameter(Constants.MSISDN);
         if (StringUtils.isNotEmpty(msisdn)) {
             return msisdn;
@@ -677,6 +709,24 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         }
 
         return loginHintValue;
+    }
+
+    /**
+     * Gets the header msisdn value.
+     *
+     * @param request the request
+     * @return the header msisdn
+     */
+    private String getHeaderMsisdnValue(HttpServletRequest request) {
+        String headerMsisdn = null;
+
+        try {
+            headerMsisdn = DecryptionAES.decrypt(request.getParameter(Constants.MSISDN_HEADER));
+        } catch (Exception e) {
+            log.error("Exception Getting the header msisdn " + e);
+        }
+
+        return headerMsisdn;
     }
 
     /* (non-Javadoc)
