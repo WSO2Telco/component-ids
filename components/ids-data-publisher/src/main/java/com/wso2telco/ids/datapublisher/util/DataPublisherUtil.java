@@ -32,50 +32,50 @@ public class DataPublisherUtil {
     public static final String TOKEN_ENDPOINT_STREAM_VERSION = "1.0.0";
 
 
-    public static void setValueFromRequest(HttpServletRequest request,
-                                           AuthenticationContext context, UserStatus uStatus) {
+    private static UserStatus buildUserStatusFromRequest(HttpServletRequest request, AuthenticationContext context) {
+        UserStatus.UserStatusBuilder userStatusBuilder = new UserStatus
+                .UserStatusBuilder(resolveSessionID(request, context));
 
-        if (request.getParameter("msisdn_header") != null) {
-            uStatus.setMsisdn(request.getParameter("msisdn_header"));
-        }
-        if (request.getParameter("operator") != null) {
-            uStatus.setOperator(request.getParameter("operator"));
-        }
-        if (request.getParameter("nonce") != null) {
-            uStatus.setNonce(request.getParameter("nonce"));
-        }
-        ;
-        if (request.getParameter("state") != null) {
-            uStatus.setState(request.getParameter("state"));
-        }
-        if (request.getParameter("scope") != null) {
-            uStatus.setScope(request.getParameter("scope"));
-        }
-        if (request.getParameter("telco_scope") != null) {
-            uStatus.setTelcoScope(request.getParameter("telco_scope"));
-        }
-        if (request.getParameter("acr_values") != null) {
-            uStatus.setAcrValue(request.getParameter("acr_values"));
-        }
-        if (request.getParameter("ipAddress") != null) {
-            uStatus.setIpHeader(request.getParameter("ipAddress"));
-        }
-        if (request.getParameter("login_hint") != null) {
-            uStatus.setLoginHint(request.getParameter("login_hint"));
-        }
-        if (request.getHeader("User-Agent") != null) {
-            uStatus.setUserAgent(request.getHeader("User-Agent"));
+        return userStatusBuilder
+                .msisdn(request.getParameter("msisdn_header"))
+                .operator(request.getParameter("operator"))
+                .nonce(request.getParameter("operator"))
+                .state(request.getParameter("state"))
+                .scope(request.getParameter("scope"))
+                .telcoScope(request.getParameter("telco_scope"))
+                .acrValue(request.getParameter("acr_values"))
+                .ipHeader(request.getParameter("ipAddress"))
+                .loginHint(request.getParameter("login_hint"))
+                .userAgent(request.getHeader("User-Agent"))
+                .build();
+    }
+
+    public static UserStatus buildUserStatusFromContext(HttpServletRequest request,
+            AuthenticationContext context) {
+
+        UserStatus.UserStatusBuilder userStatusBuilder = new UserStatus
+                .UserStatusBuilder((String) context.getProperty(TRANSACTION_ID));
+        Map<String, String> paramMap = new LinkedHashMap<String, String>();
+        String params = context.getQueryParams();
+        String[] pairs = params.split("&");
+
+        for (String pair : pairs) {
+            int idx = pair.indexOf("=");
+
+            paramMap.put(pair.substring(0, idx), pair.substring(idx + 1));
         }
 
-        uStatus.setSessionId(resolveSessionID(request, context));
-
-        String msisdnHeader = request.getParameter("msisdn_header");
-        if (msisdnHeader != null && !msisdnHeader.isEmpty()) {
-            uStatus.setIsMsisdnHeader(1);
-        } else {
-            uStatus.setIsMsisdnHeader(0);
-        }
-
+        return userStatusBuilder
+                .msisdn((String) context.getProperty("msisdn"))
+                .operator((String) context.getProperty("operator"))
+                .nonce(paramMap.get("nonce") != null ? paramMap.get("nonce") : request.getParameter("nonce"))
+                .state(paramMap.get("state") != null ? paramMap.get("state") : request.getParameter("state"))
+                .scope(paramMap.get("scope") != null ? paramMap.get("scope") : request.getParameter("scope"))
+                .acrValue(paramMap.get("acr_values") != null ? paramMap.get("acr_values")
+                        : request.getParameter("acr_values"))
+                .telcoScope(paramMap.get("telco_scope") != null ? paramMap.get("telco_scope")
+                        : request.getParameter("telco_scope"))
+                .build();
     }
 
     public static String resolveSessionID(HttpServletRequest request,
@@ -92,59 +92,6 @@ public class DataPublisherUtil {
         } else {
             return request.getParameter("sessionDataKey");
         }
-    }
-
-
-    public static void setValueFromContext(HttpServletRequest request,
-                                           AuthenticationContext context, UserStatus uStatus) {
-
-
-        Map<String, String> paramMap = new LinkedHashMap<String, String>();
-        String params = context.getQueryParams();
-        String[] pairs = params.split("&");
-
-        for (String pair : pairs) {
-            int idx = pair.indexOf("=");
-
-            paramMap.put(pair.substring(0, idx), pair.substring(idx + 1));
-        }
-        uStatus.setMsisdn((String) context.getProperty("msisdn"));
-        uStatus.setOperator((String) context.getProperty("operator"));
-        uStatus.setSessionId((String) context.getProperty(TRANSACTION_ID));
-
-
-        if (paramMap.get("nonce") != null) {
-            uStatus.setNonce(paramMap.get("nonce"));
-        } else {
-
-            uStatus.setNonce(request.getParameter("nonce"));
-        }
-
-        if (paramMap.get("state") != null) {
-
-            uStatus.setState(paramMap.get("state"));
-        } else {
-
-            uStatus.setState(request.getParameter("state"));
-        }
-
-        if (paramMap.get("scope") != null) {
-            uStatus.setScope(paramMap.get("scope"));
-        } else {
-            uStatus.setScope(request.getParameter("scope"));
-        }
-
-        if (paramMap.get("acr_values") != null) {
-            uStatus.setAcrValue(paramMap.get("acr_values"));
-        } else {
-            uStatus.setAcrValue(request.getParameter("acr_values"));
-        }
-        if (paramMap.get("telco_scope") != null) {
-            uStatus.setTelcoScope(paramMap.get("telco_scope"));
-        } else {
-            uStatus.setTelcoScope(request.getParameter("telco_scope"));
-        }
-
     }
 
     /**
@@ -301,18 +248,6 @@ public class DataPublisherUtil {
                                        userStatusMetaData.toArray());
     }
 
-
-    private static void setMSISDNHeader(UserStatus uStatus, HttpServletRequest request) {
-        log.info("request MSISDN header "+request.getParameter("msisdn_header"));
-
-        if (request.getParameter("msisdn_header")!= null && !request.getParameter("msisdn_header").isEmpty()){
-            uStatus.setIsMsisdnHeader(1);
-        }
-        else {
-            uStatus.setIsMsisdnHeader(0);
-        }
-    }
-
     /**
      * construct and publish TokenEndpointData event
      * @param tokenMap
@@ -448,9 +383,7 @@ public class DataPublisherUtil {
 
     public static void publishDataForHESkipFlow(HttpServletRequest request,
                                                 AuthenticationContext context) {
-        UserStatus uStatus = new UserStatus();
-        setValueFromRequest(request, context, uStatus);
-        setMSISDNHeader(uStatus, request);
+        UserStatus uStatus = buildUserStatusFromRequest(request,context);
         uStatus.setIsNewUser(1);
 
         if (uStatus.getIsMsisdnHeader() == 1) {
@@ -479,8 +412,7 @@ public class DataPublisherUtil {
     public static void publishInvalidRequest(HttpServletRequest request,
                                              AuthenticationContext context) {
 
-        UserStatus uStatus = new UserStatus();
-        setValueFromRequest(request, context, uStatus);
+        UserStatus uStatus = buildUserStatusFromRequest(request, context);
         uStatus.setStatus(UserState.INVALID_REQUEST.name());
 
         uStatus.setComment("Invalid Request");
