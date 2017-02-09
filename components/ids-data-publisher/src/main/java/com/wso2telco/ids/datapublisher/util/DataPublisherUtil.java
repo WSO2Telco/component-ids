@@ -1,17 +1,18 @@
 package com.wso2telco.ids.datapublisher.util;
 
+import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.ids.datapublisher.IdsAgent;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
-
-import javax.servlet.http.HttpServletRequest;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
 public class DataPublisherUtil {
 
@@ -37,6 +38,7 @@ public class DataPublisherUtil {
                 .UserStatusBuilder(resolveSessionID(request, context));
 
         return userStatusBuilder
+                .appId(context.getSequenceConfig().getApplicationId())
                 .msisdn(request.getParameter("msisdn_header"))
                 .operator(request.getParameter("operator"))
                 .nonce(request.getParameter("operator"))
@@ -48,6 +50,10 @@ public class DataPublisherUtil {
                 .loginHint(request.getParameter("login_hint"))
                 .userAgent(request.getHeader("User-Agent"))
                 .build();
+    }
+
+    public static UserStatus getInitialUserStatusObject(HttpServletRequest request, AuthenticationContext context) {
+        return buildUserStatusFromRequest(request, context);
     }
 
     public static UserStatus buildUserStatusFromContext(HttpServletRequest request,
@@ -214,34 +220,28 @@ public class DataPublisherUtil {
      *
      * @param userStatus
      */
-    public static void publishUserStatusData(UserStatus userStatus) {
+    private static void publishUserStatusData(UserStatus userStatus) {
         List<Object> userStatusMetaData = new ArrayList<Object>(4);
+        String sessionId = userStatus.getSessionId();
+        String status = userStatus.getStatus();
+        Timestamp timestamp = userStatus.getTime();
 
-        if (userStatus.getSessionId() != null && !userStatus.getSessionId().isEmpty()) {
+        if (sessionId != null && !sessionId.isEmpty()) {
 
-            userStatusMetaData.add(userStatus.getSessionId());
+            userStatusMetaData.add(sessionId);
         } else {
             userStatusMetaData.add(null);
         }
 
-        if (userStatus.getStatus() != null && !userStatus.getStatus().isEmpty()) {
-            userStatusMetaData.add(userStatus.getStatus());
-        } else {
-            userStatusMetaData.add(null);
-        }
-        if (userStatus.getIpHeader() != null && !userStatus.getIpHeader().isEmpty()) {
-            userStatusMetaData.add(userStatus.getIpHeader());
+        if (status != null && !status.isEmpty()) {
+            userStatusMetaData.add(status);
         } else {
             userStatusMetaData.add(null);
         }
 
-        if (userStatus.getxForwardIP() != null && !userStatus.getxForwardIP().isEmpty()) {
-            userStatusMetaData.add(userStatus.getxForwardIP());
-        } else {
-            userStatusMetaData.add(null);
+        if (timestamp != null) {
+            userStatusMetaData.add(timestamp);
         }
-
-        userStatusMetaData.add(System.currentTimeMillis());
 
         IdsAgent.getInstance().publish(USER_STATUS_STREAM_NAME,
                                        USER_STATUS_STREAM_VERSION, System.currentTimeMillis(),
@@ -383,7 +383,7 @@ public class DataPublisherUtil {
 
     public static void publishDataForHESkipFlow(HttpServletRequest request,
                                                 AuthenticationContext context) {
-        UserStatus uStatus = buildUserStatusFromRequest(request,context);
+        UserStatus uStatus = buildUserStatusFromRequest(request, context);
         uStatus.setIsNewUser(1);
 
         if (uStatus.getIsMsisdnHeader() == 1) {
@@ -425,15 +425,29 @@ public class DataPublisherUtil {
         publishUserStatusData(uStatus);
     }
 
+    public static void updateAndPublishUserStatus(UserStatus userStatus, UserState userState, String comment) {
+        boolean dataPublishingEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher()
+                .isEnabled();
+        if (dataPublishingEnabled) {
+            if (userState != null) {
+                userStatus.setState(userState.name());
+                userStatus.setComment(comment);
+            }
+            publishUserStatusData(userStatus);
+        }
+    }
+
     public enum UserState {
 
         HE_AUTH_PROCESSING_FAIL, HE_AUTH_PROCESSING, HE_AUTH_SUCCESS,
         MSISDN_AUTH_SUCCESS,
         MSISDN_AUTH_PROCESSING_FAIL, MSISDN_AUTH_PROCESSING,
 
-        USSD_AUTH_PROCESSING_FAIL, USSD_AUTH_SUCCESS,
+        USSD_AUTH_PROCESSING, USSD_AUTH_PROCESSING_FAIL, USSD_AUTH_SUCCESS,
 
-        SMS_AUTH_PROCESSING_FAIL, SMS_AUTH_SUCCESS,
+        SMS_AUTH_PROCESSING, SMS_AUTH_PROCESSING_FAIL, SMS_AUTH_SUCCESS,
+
+        USSDPIN_AUTH_PROCESSING, USSDPIN_AUTH_PROCESSING_FAIL, USSDPIN_AUTH_SUCCESS,
 
         SEND_USSD_PUSH, SEND_USSD_PUSH_FAIL,
 
