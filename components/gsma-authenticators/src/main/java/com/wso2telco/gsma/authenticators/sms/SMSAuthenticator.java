@@ -25,6 +25,8 @@ import com.wso2telco.gsma.authenticators.cryptosystem.AESencrp;
 import com.wso2telco.gsma.authenticators.util.Application;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.shorten.SelectShortUrl;
+import com.wso2telco.ids.datapublisher.model.UserStatus;
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hashids.Hashids;
@@ -87,7 +89,9 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
     public AuthenticatorFlowStatus process(HttpServletRequest request,
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
-
+        DataPublisherUtil
+                .updateAndPublishUserStatus((UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.SMS_AUTH_PROCESSING, "SMSAuthenticator processing started");
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
         } else {
@@ -105,6 +109,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 
         log.info("Initiating authentication request");
 
+        UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         String queryParams = FrameworkUtils
                 .getQueryStringWithFrameworkContextId(context.getQueryParams(),
@@ -166,6 +171,9 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                     getName() + ":" + "LOCAL" + retryParam);
 
         } catch (Exception e) {
+            DataPublisherUtil
+                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
+                            e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
     }
@@ -187,6 +195,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
         log.info("Processing authentication response");
 
+        UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         String sessionDataKey = request.getParameter("sessionDataKey");
 
         if (log.isDebugEnabled()) {
@@ -205,12 +214,18 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 
         } catch (AuthenticatorException e) {
             log.error("SMS Authentication failed while trying to authenticate", e);
+            DataPublisherUtil
+                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
+                            e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
 
         if (!isAuthenticated) {
             log.info("Authentication failed. Consent not provided.");
             context.setProperty("faileduser", (String) context.getProperty("msisdn"));
+            DataPublisherUtil
+                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
+                            "User consent not provided");
             throw new AuthenticationFailedException("Authentication Failed");
         }
 
@@ -221,6 +236,9 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         AuthenticationContextHelper.setSubject(context, msisdn);
 
         log.info("Authentication success");
+
+        DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_SUCCESS,
+                "SMS Authentication success");
 
 //        context.setSubject(msisdn);
         String rememberMe = request.getParameter("chkRemember");
