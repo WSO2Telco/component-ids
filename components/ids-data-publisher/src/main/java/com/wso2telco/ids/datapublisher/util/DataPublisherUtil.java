@@ -238,9 +238,25 @@ public class DataPublisherUtil {
             userStatusMetaData.add(null);
         }
 
-        if (timestamp != null) {
-            userStatusMetaData.add(timestamp);
+        //TODO: Following two if blocks are added just for testing with current DAS scripts.
+        //Should be removed when scripts are refactored
+        if (userStatus.getIpHeader() != null && !userStatus.getIpHeader().isEmpty()) {
+            userStatusMetaData.add(userStatus.getIpHeader());
+        } else {
+            userStatusMetaData.add(null);
         }
+
+        if (userStatus.getxForwardIP() != null && !userStatus.getxForwardIP().isEmpty()) {
+            userStatusMetaData.add(userStatus.getxForwardIP());
+        } else {
+            userStatusMetaData.add(null);
+        }
+
+        userStatusMetaData.add(System.currentTimeMillis());
+        //TODO: Once DAS scripts are refactored add the following if block
+        /*if (timestamp != null) {
+            userStatusMetaData.add(timestamp);
+        }*/
 
         IdsAgent.getInstance().publish(USER_STATUS_STREAM_NAME,
                                        USER_STATUS_STREAM_VERSION, System.currentTimeMillis(),
