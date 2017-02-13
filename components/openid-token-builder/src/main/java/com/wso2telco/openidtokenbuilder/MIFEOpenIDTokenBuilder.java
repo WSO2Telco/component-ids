@@ -18,6 +18,7 @@ package com.wso2telco.openidtokenbuilder;
 
 import com.jayway.jsonpath.JsonPath;
 import com.nimbusds.jwt.PlainJWT;
+import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
@@ -237,35 +238,39 @@ public class MIFEOpenIDTokenBuilder implements
 
             String plainIDToken = builder.buildIDToken();
 
-            //Publish event
-            String accessToken = tokenRespDTO.getAccessToken();
-            Map<String, String> tokenMap = new HashMap<String, String>();
-            tokenMap.put("Timestamp", String.valueOf(new java.util.Date().getTime()));
-            tokenMap.put("AuthenticatedUser", msisdn);
-            tokenMap.put("Nonce", nonce);
-            tokenMap.put("Amr", amrArray.toString());
-            tokenMap.put("AuthenticationCode", request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
-            tokenMap.put("AccessToken", accessToken);
-            tokenMap.put("ClientId", request.getOauth2AccessTokenReqDTO().getClientId());
-            tokenMap.put("RefreshToken", tokenRespDTO.getRefreshToken());
-//            tokenMap.put("sessionId", getValuesFromCache(request, "sessionId"));
-            tokenMap.put("State", getValuesFromCache(request, "state"));
-            tokenMap.put("TokenClaims", getClaimValues(request));
-            tokenMap.put("ContentType", "application/x-www-form-urlencoded");
-            tokenMap.put("ReturnedResult" , plainIDToken);
+            boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled();
 
-            if (accessToken != null){
-                tokenMap.put("StatusCode" , "200");
-            }else{
-                tokenMap.put("StatusCode" , "400");
-            }
+            if(dataPublisherEnabled) {
+                //Publish event
+                String accessToken = tokenRespDTO.getAccessToken();
+                Map<String, String> tokenMap = new HashMap<String, String>();
+                tokenMap.put("Timestamp", String.valueOf(new java.util.Date().getTime()));
+                tokenMap.put("AuthenticatedUser", msisdn);
+                tokenMap.put("Nonce", nonce);
+                tokenMap.put("Amr", amrArray.toString());
+                tokenMap.put("AuthenticationCode", request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
+                tokenMap.put("AccessToken", accessToken);
+                tokenMap.put("ClientId", request.getOauth2AccessTokenReqDTO().getClientId());
+                tokenMap.put("RefreshToken", tokenRespDTO.getRefreshToken());
+//              tokenMap.put("sessionId", getValuesFromCache(request, "sessionId"));
+                tokenMap.put("State", getValuesFromCache(request, "state"));
+                tokenMap.put("TokenClaims", getClaimValues(request));
+                tokenMap.put("ContentType", "application/x-www-form-urlencoded");
+                tokenMap.put("ReturnedResult", plainIDToken);
 
-            if(DEBUG) {
-                for (Map.Entry<String, String> entry : tokenMap.entrySet()) {
-                    log.debug(entry.getKey() + " : "  + entry.getValue());
+                if (accessToken != null) {
+                    tokenMap.put("StatusCode", "200");
+                } else {
+                    tokenMap.put("StatusCode", "400");
                 }
+
+                if (DEBUG) {
+                    for (Map.Entry<String, String> entry : tokenMap.entrySet()) {
+                        log.debug(entry.getKey() + " : " + entry.getValue());
+                    }
+                }
+                DataPublisherUtil.publishTokenEndpointData(tokenMap);
             }
-            DataPublisherUtil.publishTokenEndpointData(tokenMap);
 
             return new PlainJWT((com.nimbusds.jwt.JWTClaimsSet) PlainJWT.parse(plainIDToken).getJWTClaimsSet()).serialize();
 

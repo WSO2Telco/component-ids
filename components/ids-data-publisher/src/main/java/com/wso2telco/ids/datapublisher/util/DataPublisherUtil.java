@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 public class DataPublisherUtil {
 
@@ -323,6 +324,191 @@ public class DataPublisherUtil {
 
         IdsAgent.getInstance().publish(TOKEN_ENDPOINT_STREAM_NAME,
                 TOKEN_ENDPOINT_STREAM_VERSION, System.currentTimeMillis(), tokenEndpointData.toArray());
+    }
+
+    public static Map<String, String> getAuthMapWithInitialData(HttpServletRequest request, AuthenticationContext context) {
+
+        Map<String, String> authMap = new HashMap<String, String>();
+        authMap.put("RequestType", "GET");
+        authMap.put("AuthenticatorStartTime", String.valueOf(new java.util.Date().getTime()));
+        authMap.put("Operator", context.getProperty("operator") == null ? null : (String) context.getProperty("operator"));
+        authMap.put("Scope", context.getProperty("scope") == null ? null : (String) context.getProperty("scope"));
+        authMap.put("LoginHint", context.getProperty("login_hint") == null ? null : (String) context.getProperty("login_hint"));
+        authMap.put("AcrValue", context.getProperty("acr_values") == null ? null : (String) context.getProperty("acr_values"));
+        authMap.put("RequestUrl", request.getRequestURI());
+        authMap.put("HTTPMethod","GET");
+        authMap.put("AppID", context.getSequenceConfig() == null ? null : context.getSequenceConfig().getApplicationId());
+        return authMap;
+    }
+
+    /**
+     * construct and publish TokenEndpointData event
+     *
+     * @param authMap
+     */
+    public static void publishAuthEndpointData(Map<String, String> authMap) {
+
+        List<Object> authEndpointData = new ArrayList<Object>(32);
+
+        if (authMap.get("RequestType") != null && !authMap.get("RequestType").isEmpty()) {
+            authEndpointData.add(authMap.get("RequestType"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("AppID") != null && !authMap.get("AppID").isEmpty()) {
+            authEndpointData.add(authMap.get("AppID"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("IsAuthenticted") != null && !authMap.get("IsAuthenticated").isEmpty()) {
+            authEndpointData.add(Boolean.parseBoolean(authMap.get("IsAuthenticated")));
+        } else {
+            authEndpointData.add(false);
+        }
+        if (authMap.get("AuthenticatorMethods") != null && !authMap.get("AuthenticatorMethods").isEmpty()) {
+            authEndpointData.add(authMap.get("AuthenticatorMethods"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("AuthenticatorEndTime") != null && !authMap.get("AuthenticatorEndTime").isEmpty()) {
+            authEndpointData.add(Long.parseLong(authMap.get("AuthenticatorEndTime")));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("AuthenticatorStartTime") != null && !authMap.get("AuthenticatorStartTime").isEmpty()) {
+            authEndpointData.add(Long.parseLong(authMap.get("AuthenticatorStartTime")));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("SessionId") != null && !authMap.get("SessionId").isEmpty()) {
+            authEndpointData.add(authMap.get("SessionId"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("IsNewUser") != null && !authMap.get("IsNewUser").isEmpty()) {
+            authEndpointData.add(Boolean.parseBoolean(authMap.get("IsNewUser")));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("Operator") != null && !authMap.get("Operator").isEmpty()) {
+            authEndpointData.add(authMap.get("Operator"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("UserAgent") != null && !authMap.get("UserAgent").isEmpty()) {
+            authEndpointData.add(authMap.get("UserAgent"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("Msisdn") != null && !authMap.get("Msisdn").isEmpty()) {
+            authEndpointData.add(authMap.get("Msisdn"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("InternalCustomerReference") != null && !authMap.get("AuthenticatorStartTime").isEmpty()) {
+            authEndpointData.add(authMap.get("InternalCustomerReference"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("ServerHost") != null && !authMap.get("ServerHost").isEmpty()) {
+            authEndpointData.add(authMap.get("ServerHost"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("RequestUrl") != null && !authMap.get("RequestUrl").isEmpty()) {
+            authEndpointData.add(authMap.get("RequestUrl"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("HTTPMethod") != null && !authMap.get("HTTPMethod").isEmpty()) {
+            authEndpointData.add(authMap.get("HTTPMethod"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("URLParams") != null && !authMap.get("URLParams").isEmpty()) {
+            authEndpointData.add(authMap.get("URLParams"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("RequestStatus") != null && !authMap.get("RequestStatus").isEmpty()) {
+            authEndpointData.add(authMap.get("RequestStatus"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("ReturnedErorr") != null && !authMap.get("ReturnedErorr").isEmpty()) {
+            authEndpointData.add(authMap.get("ReturnedErorr"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("TransactionId") != null && !authMap.get("TransactionId").isEmpty()) {
+            authEndpointData.add(authMap.get("TransactionId"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("ConsentTimestamp") != null && !authMap.get("ConsentTimestamp").isEmpty()) {
+            authEndpointData.add(Long.parseLong(authMap.get("ConsentTimestamp")));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("ConsentState") != null && !authMap.get("ConsentState").isEmpty()) {
+            authEndpointData.add(authMap.get("ConsentState"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("ConsentType") != null && !authMap.get("ConsentType").isEmpty()) {
+            authEndpointData.add(authMap.get("ConsentType"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("IsAuthCodeIssued") != null && !authMap.get("IsAuthCodeIssued").isEmpty()) {
+            authEndpointData.add(Boolean.parseBoolean(authMap.get("IsAuthCodeIssued")));
+        } else {
+            authEndpointData.add(false);
+        }
+        if (authMap.get("State") != null && !authMap.get("State").isEmpty()) {
+            authEndpointData.add(authMap.get("State"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("Nonce") != null && !authMap.get("Nonce").isEmpty()) {
+            authEndpointData.add(authMap.get("Nonce"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("Scope") != null && !authMap.get("Scope").isEmpty()) {
+            authEndpointData.add(authMap.get("Scope"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("AcrValue") != null && !authMap.get("AcrValue").isEmpty()) {
+            authEndpointData.add(Integer.parseInt(authMap.get("AcrValue")));
+        } else {
+            authEndpointData.add(-1);
+        }
+        if (authMap.get("IsMsisdnHeader") != null && !authMap.get("IsMsisdnHeader").isEmpty()) {
+            authEndpointData.add(Boolean.parseBoolean(authMap.get("IsMsisdnHeader")));
+        } else {
+            authEndpointData.add(false);
+        }
+        if (authMap.get("IpHeader") != null && !authMap.get("IpHeader").isEmpty()) {
+            authEndpointData.add(authMap.get("IpHeader"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("LoginHint") != null && !authMap.get("LoginHint").isEmpty()) {
+            authEndpointData.add(authMap.get("LoginHint"));
+        } else {
+            authEndpointData.add(null);
+        }
+        if (authMap.get("telco_scope") != null && !authMap.get("telco_scope").isEmpty()) {
+            authEndpointData.add(authMap.get("telco_scope"));
+        } else {
+            authEndpointData.add(null);
+        }
+        authEndpointData.add(System.currentTimeMillis());
+
+        IdsAgent.getInstance().publish(AUTH_ENDPOINT_STREAM_NAME,
+                AUTH_ENDPOINT_STREAM_VERSION, System.currentTimeMillis(), authEndpointData.toArray());
     }
 
     public static void setContextData(AuthenticationContext context, HttpServletRequest request) {

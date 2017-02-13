@@ -361,4 +361,6 @@ public final class Constants {
     public static final String BREAK = "BREAK";
 
     public static final String USER_STATUS_DATA_PUBLISHING_PARAM = "UserStatusForDataPublishing";
+
+    public static final String AUTH_ENDPOINT_DATA_PUBLISHING_PARAM = "AuthMapForDataPublishing";
 }
