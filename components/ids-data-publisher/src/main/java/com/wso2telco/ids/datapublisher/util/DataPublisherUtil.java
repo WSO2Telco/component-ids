@@ -38,7 +38,7 @@ public class DataPublisherUtil {
                 .UserStatusBuilder(resolveSessionID(request, context));
 
         return userStatusBuilder
-                .appId(context.getSequenceConfig().getApplicationId())
+                .appId(context.getSequenceConfig() == null ? null : context.getSequenceConfig().getApplicationId())
                 .msisdn(request.getParameter("msisdn_header"))
                 .operator(request.getParameter("operator"))
                 .nonce(request.getParameter("operator"))
