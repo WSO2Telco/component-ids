@@ -338,28 +338,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             }
             context.setProperty("redirectURI", request.getParameter("redirect_uri"));
 
-/*<<<<<<< HEAD
-=======
-            try {
-                msisdn = DecryptionAES.decrypt(msisdn);
-                if (!validateMsisdnFormat(msisdn)) {
-                    DataPublisherUtil
-                            .updateAndPublishUserStatus(userStatus,
-                                    DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL, "Invalid MSISDN number");
-                    throw new AuthenticationFailedException("Invalid MSISDN number : " + msisdn);
-                }
-
-                context.setProperty(Constants.MSISDN, msisdn);
-            } catch (AuthenticationFailedException e) {
-                DataPublisherUtil
-                        .updateAndPublishUserStatus(userStatus,
-                                DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL, e.getMessage());
-                throw e;
-            } catch (Exception ex) {
-                Logger.getLogger(HeaderEnrichmentAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
-            }
-
->>>>>>> Adding data publishing logic for authenticators*/
             String ipAddress = (String) context.getProperty(Constants.IP_ADDRESS);
             if (ipAddress == null || StringUtils.isEmpty(ipAddress)) {
                 ipAddress = retriveIPAddress(request);
@@ -398,8 +376,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             }
 
             if (validOperator) {
-//<<<<<<< HEAD
-            	      
             	 if (requestedLoa == 3) {
                      // if acr is 3, pass the user to next authenticator
 
@@ -423,68 +399,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                  }
             	 
             	 AuthenticationContextHelper.setSubject(context, msisdn);
-//=======
-                /*if (msisdn != null && msisdn.length() > 1 && (!msisdn.isEmpty())) {
-                    // Check the authentication by checking if username exists
-                    log.info("Check whether user account exists");
-                    try {
-                        int tenantId = -1234;
-                        UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService()
-                                .getTenantUserRealm(tenantId);
-
-                        if (userRealm != null) {
-                            UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
-                            trimmedMsisdn = msisdn.replace("+", "").trim();
-                            isUserExists = userStoreManager.isExistingUser(MultitenantUtils.getTenantAwareUsername(trimmedMsisdn));
-
-                            context.setProperty(Constants.IS_REGISTERING, !isUserExists);
-                            context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade(msisdn, acr, isUserExists));
-                            context.setProperty(Constants.IS_PIN_RESET, false);
-
-                            //TODO: Check if we really need to save the status as pending in HE authenticator
-                            DBUtils.insertRegistrationStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
-
-                            if (acr == 3) {
-                                // if acr is 3, pass the user to next authenticator
-
-                            }
-
-                            if (acr == 2) {
-                                if (!isUserExists) {
-                                    // if acr is 2, do the registration. register user if a new msisdn and remove other authenticators from step map
-                                    new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
-                                }
-
-                                // explicitly remove all other authenticators and mark as a success
-                                context.setProperty("removeFollowingSteps", "true");
-                            }
-                        } else {
-                            DataPublisherUtil.updateAndPublishUserStatus(userStatus,
-                                    DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL,
-                                    "Cannot find the user realm for the given tenant : " + tenantId);
-                            throw new AuthenticationFailedException("Cannot find the user realm for the given tenant : " + tenantId);
-                        }
-                    } catch (org.wso2.carbon.user.api.UserStoreException e) {
-                        log.error("HeaderEnrichment Authentication failed while trying to authenticate", e);
-                        DataPublisherUtil.updateAndPublishUserStatus(userStatus,
-                                DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL, e.getMessage());
-                        throw new AuthenticationFailedException(e.getMessage(), e);
-                    } catch (SQLException | AuthenticatorException | RemoteException |
-                            RemoteUserStoreManagerServiceUserStoreExceptionException |
-                            LoginAuthenticationExceptionException e) {
-                        DataPublisherUtil.updateAndPublishUserStatus(userStatus,
-                                DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL, e.getMessage());
-                        log.error(e);
-                        throw new AuthenticationFailedException(e.getMessage(), e);
-                    } catch (UserRegistrationAdminServiceIdentityException e) {
-                        DataPublisherUtil.updateAndPublishUserStatus(userStatus,
-                                DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL, e.getMessage());
-                        throw new AuthenticationFailedException("Error occurred while creating user profile", e);
-                    }
-
-                    AuthenticationContextHelper.setSubject(context, msisdn);
-                }*/
-//>>>>>>> Adding data publishing logic for authenticators
             }
 
             String rememberMe = request.getParameter("chkRemember");
@@ -494,17 +408,10 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             }
         } catch (AuthenticationFailedException e) {
             // take action based on scope properties
-//<<<<<<< HEAD
             DataPublisherUtil
                     .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL,
                             e.getMessage());
             actionBasedOnHEFailureResult(context);
-//=======
-            /*DataPublisherUtil
-                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL,
-                            e.getMessage());*/
-            //actionBasedOnHEFailureResult(context, request);
-//>>>>>>> Adding data publishing logic for authenticators
             throw e;
         }
 
