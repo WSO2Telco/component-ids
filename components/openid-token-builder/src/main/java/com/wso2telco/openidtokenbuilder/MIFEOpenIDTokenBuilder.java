@@ -21,6 +21,7 @@ import com.nimbusds.jwt.PlainJWT;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.util.AuthenticationHealper;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.Header;
@@ -61,9 +62,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Iterator;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -237,9 +236,41 @@ public class MIFEOpenIDTokenBuilder implements
             //claimsCallBackHandler.handleCustomClaims(builder, request);
 
             String plainIDToken = builder.buildIDToken();
+
+            //Publish event
+            String accessToken = tokenRespDTO.getAccessToken();
+            Map<String, String> tokenMap = new HashMap<String, String>();
+            tokenMap.put("Timestamp", String.valueOf(new java.util.Date().getTime()));
+            tokenMap.put("AuthenticatedUser", msisdn);
+            tokenMap.put("Nonce", nonce);
+            tokenMap.put("Amr", amrArray.toString());
+            tokenMap.put("AuthenticationCode", request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
+            tokenMap.put("AccessToken", accessToken);
+            tokenMap.put("ClientId", request.getOauth2AccessTokenReqDTO().getClientId());
+            tokenMap.put("RefreshToken", tokenRespDTO.getRefreshToken());
+//            tokenMap.put("sessionId", getValuesFromCache(request, "sessionId"));
+            tokenMap.put("State", getValuesFromCache(request, "state"));
+            tokenMap.put("TokenClaims", getClaimValues(request));
+            tokenMap.put("ContentType", "application/x-www-form-urlencoded");
+            tokenMap.put("ReturnedResult" , plainIDToken);
+
+            if (accessToken != null){
+                tokenMap.put("StatusCode" , "200");
+            }else{
+                tokenMap.put("StatusCode" , "400");
+            }
+
+            if(DEBUG) {
+                for (Map.Entry<String, String> entry : tokenMap.entrySet()) {
+                    log.debug(entry.getKey() + " : "  + entry.getValue());
+                }
+            }
+            DataPublisherUtil.publishTokenEndpointData(tokenMap);
+
             return new PlainJWT((com.nimbusds.jwt.JWTClaimsSet) PlainJWT.parse(plainIDToken).getJWTClaimsSet()).serialize();
+
         } catch (IDTokenException e) {
-            throw new IdentityOAuth2Exception("Error occured while generating the IDToken", e); //$NON-NLS-1$
+            throw new IdentityOAuth2Exception("Error occurred while generating the IDToken", e);
         } catch (ParseException e) {
             log.error("Error while parsing the IDToken", e);
             throw new IdentityOAuth2Exception("Error while parsing the IDToken", e);
@@ -286,6 +317,23 @@ public class MIFEOpenIDTokenBuilder implements
             throw new IdentityOAuth2Exception("Error occured while retrieving " + key
                     + " from cache");
         }
+    }
+
+    private String getClaimValues(OAuthTokenReqMessageContext request)
+            throws IdentityOAuth2Exception {
+        AuthorizationGrantCacheKey authorizationGrantCacheKey = new AuthorizationGrantCacheKey(
+                request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
+        AuthorizationGrantCacheEntry authorizationGrantCacheEntry = AuthorizationGrantCache
+                .getInstance().getValueFromCache(authorizationGrantCacheKey);
+        Map<ClaimMapping, String> claimMap = authorizationGrantCacheEntry.getUserAttributes();
+        StringBuilder tokenClaims = new StringBuilder("");
+        for (Map.Entry<ClaimMapping, String> entry : claimMap.entrySet()) {
+            if(!tokenClaims.toString().isEmpty()) {
+                tokenClaims.append(", ");
+            }
+            tokenClaims.append(entry.getValue());
+        }
+        return tokenClaims.toString();
     }
 
 
