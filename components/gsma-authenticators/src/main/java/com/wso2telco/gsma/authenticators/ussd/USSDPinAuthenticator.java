@@ -15,18 +15,22 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.ussd;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.rmi.RemoteException;
-import java.security.NoSuchAlgorithmException;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.wso2telco.Util;
+import com.wso2telco.core.config.model.PinConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.config.util.PinConfigUtil;
+import com.wso2telco.gsma.authenticators.AuthenticatorException;
+import com.wso2telco.gsma.authenticators.Constants;
+import com.wso2telco.gsma.authenticators.DBUtils;
+import com.wso2telco.gsma.authenticators.ussd.command.PinLoginUssdCommand;
+import com.wso2telco.gsma.authenticators.ussd.command.PinRegistrationUssdCommand;
+import com.wso2telco.gsma.authenticators.ussd.command.UssdCommand;
+import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
+import com.wso2telco.gsma.authenticators.util.UserProfileManager;
+import com.wso2telco.ids.datapublisher.model.UserStatus;
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,20 +49,16 @@ import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
-import com.wso2telco.Util;
-import com.wso2telco.core.config.model.PinConfig;
-import com.wso2telco.core.config.service.ConfigurationService;
-import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.core.config.util.PinConfigUtil;
-import com.wso2telco.gsma.authenticators.AuthenticatorException;
-import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.authenticators.DBUtils;
-import com.wso2telco.gsma.authenticators.ussd.command.PinLoginUssdCommand;
-import com.wso2telco.gsma.authenticators.ussd.command.PinRegistrationUssdCommand;
-import com.wso2telco.gsma.authenticators.ussd.command.UssdCommand;
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
-import com.wso2telco.gsma.authenticators.util.UserProfileManager;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.rmi.RemoteException;
+import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 
 // TODO: Auto-generated Javadoc
@@ -108,6 +108,12 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
 
+        DataPublisherUtil
+                .updateAndPublishUserStatus((UserStatus) context.getParameter(
+                                                    Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                                            DataPublisherUtil.UserState.USSDPIN_AUTH_PROCESSING,
+                                            "USSDPinAuthenticator processing started");
+
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
         } else {
@@ -124,6 +130,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
         log.info("Initiating authentication request");
 
+        UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         
         if(context.getProperty(Constants.IS_PIN_RESET) == null) {
         	context.setProperty(Constants.IS_PIN_RESET, false);
@@ -158,20 +165,36 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
             if (!isPinReset) {
             	DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
-                sendUssd(context, isRegistering, msisdn, serviceProviderName, operator);
+                sendUssd(context, isRegistering, msisdn, serviceProviderName, operator, userStatus);
             }
 
-            response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams))
+            String redirectUrl = response.encodeRedirectURL(loginPage + ("?" + queryParams))
                     + "&redirect_uri=" + context.getProperty("redirectURI")
-                    + "&authenticators=" + getName() + ":" + "LOCAL" + retryParam + "&sessionDataKey=" + context.getContextIdentifier());
+                    + "&authenticators=" + getName() + ":" + "LOCAL" + retryParam + "&sessionDataKey=" +
+                    context.getContextIdentifier();
+
+            DataPublisherUtil
+                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.USSDPIN_REDIRECT,
+                                                "Redirect URL : " + redirectUrl);
+
+            response.sendRedirect(redirectUrl);
 
         } catch (IOException e) {
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                                         DataPublisherUtil.UserState.USSDPIN_AUTH_PROCESSING_FAIL,
+                                                         e.getMessage());
             log.error("Error occurred while redirecting the request", e);
             throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (SQLException | AuthenticatorException e) {
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                                         DataPublisherUtil.UserState.USSDPIN_AUTH_PROCESSING_FAIL,
+                                                         e.getMessage());
             log.error("Error occurred while inserting registration status", e);
             throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                                         DataPublisherUtil.UserState.USSDPIN_AUTH_PROCESSING_FAIL,
+                                                         e.getMessage());
             log.error("Error occurred while getting user pin", e);
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
@@ -195,8 +218,10 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
                 Map<String, String> challengeQuestionAnswerMap = new UserProfileManager().getChallengeQuestionAndAnswers(msisdn);
                 
-                String challengeQuestionAndAnswer1 = challengeQuestionAnswerMap.get(Constants.CHALLENGE_QUESTION_1_CLAIM);
-                String challengeQuestionAndAnswer2 = challengeQuestionAnswerMap.get(Constants.CHALLENGE_QUESTION_2_CLAIM);
+                String challengeQuestionAndAnswer1 = challengeQuestionAnswerMap.get(
+                        Constants.CHALLENGE_QUESTION_1_CLAIM);
+                String challengeQuestionAndAnswer2 = challengeQuestionAnswerMap.get(
+                        Constants.CHALLENGE_QUESTION_2_CLAIM);
 
                 pinConfig.setChallengeQuestion1(challengeQuestionAndAnswer1.split("!")[0]);
                 pinConfig.setChallengeQuestion2(challengeQuestionAndAnswer2.split("!")[0]);
@@ -218,7 +243,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         PinConfigUtil.savePinConfigToContext(pinConfig, context);
     }
 
-    private void sendUssd(AuthenticationContext context, boolean isRegistering, String msisdn, String serviceProviderName, String operator) throws SQLException, AuthenticatorException, IOException {
+    private void sendUssd(AuthenticationContext context, boolean isRegistering, String msisdn, String serviceProviderName, String operator, UserStatus userStatus) throws SQLException, AuthenticatorException, IOException {
         UssdCommand ussdCommand;
         boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
         if (isRegistering || isProfileUpgrade) {
@@ -232,7 +257,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
         String client_id = paramMap.get(Constants.CLIENT_ID);
 
-        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator, client_id);
+        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator, client_id, userStatus);
     }
 
     /* (non-Javadoc)
@@ -242,6 +267,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
     protected void processAuthenticationResponse(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
+        UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
 
         log.info("Processing authentication response");
 
@@ -269,7 +295,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
         try {
             if (isRegistering) {
-                handleUserRegistration(context);
+                handleUserRegistration(context, userStatus);
             } else {
                 if (isProfileUpgrade) {
                     handleProfileUpgrade(context);
@@ -287,21 +313,37 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             log.info("Authentication success");
 
         } catch (UserRegistrationAdminServiceIdentityException | RemoteException e) {
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                                         DataPublisherUtil.UserState.USSDPIN_AUTH_PROCESSING_FAIL,
+                                                         e.getMessage());
             log.error("Error occurred while creating user profile", e);
             terminateAuthentication(context);
         } catch (org.wso2.carbon.user.api.UserStoreException e) {
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                                         DataPublisherUtil.UserState.USSDPIN_AUTH_PROCESSING_FAIL,
+                                                         e.getMessage());
             log.error("Error occurred while accessing admin services", e);
             terminateAuthentication(context);
         } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                                         DataPublisherUtil.UserState.USSDPIN_AUTH_PROCESSING_FAIL,
+                                                         e.getMessage());
             log.error("Error occurred while updating user profile", e);
             terminateAuthentication(context);
         } catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                                         DataPublisherUtil.UserState.USSDPIN_AUTH_PROCESSING_FAIL,
+                                                         e.getMessage());
             log.error("Error occurred while hashing the pin", e);
             terminateAuthentication(context);
         }
     }
 
     private void terminateAuthentication(AuthenticationContext context) throws AuthenticationFailedException {
+        UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
+        DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                                     DataPublisherUtil.UserState.USSDPIN_AUTH_PROCESSING_FAIL,
+                                                     "User has terminated the authentication flow");
         log.info("User has terminated the authentication flow");
 
         context.setProperty(Constants.IS_TERMINATED, true);
@@ -465,7 +507,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         new UserProfileManager().updateUserProfileForLOA3(challengeAnswer1, challengeAnswer2, pinConfig.getConfirmedPin(), msisdn);
     }
 
-    private void handleUserRegistration(AuthenticationContext context) throws UserRegistrationAdminServiceIdentityException, RemoteException, AuthenticationFailedException {
+    private void handleUserRegistration(AuthenticationContext context, UserStatus userStatus) throws UserRegistrationAdminServiceIdentityException, RemoteException, AuthenticationFailedException {
         String challengeAnswer1 = (String) context.getProperty(Constants.CHALLENGE_ANSWER_1);
         String challengeAnswer2 = (String) context.getProperty(Constants.CHALLENGE_ANSWER_2);
         String challengeQuestion1 = (String) context.getProperty(Constants.CHALLENGE_QUESTION_1);
@@ -488,7 +530,11 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             new UserProfileManager().createUserProfileLoa3(msisdn, operator, challengeAnswer1, challengeAnswer2,
                     pinConfig.getRegisteredPin());
         } else {
-            throw new AuthenticationFailedException("Authentication failed for due to mismatch in entered and confirmed pin");
+            String errMsg = "Authentication failed for due to mismatch in entered and confirmed pin";
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                                         DataPublisherUtil.UserState.USSDPIN_AUTH_PROCESSING_FAIL,
+                                                         errMsg);
+            throw new AuthenticationFailedException(errMsg);
         }
     }
 
@@ -505,12 +551,17 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
     }
 
     private void validatePin(PinConfig pinConfig, AuthenticationContext context) throws AuthenticationFailedException {
+        UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
 
         if (pinConfig.isPinsMatched()) {
             log.info("User entered a correct pin. Authentication Success");
         } else {
             StepConfig stepConfig = context.getSequenceConfig().getStepMap().get(context.getCurrentStep());
             stepConfig.setMultiOption(true);
+
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                                         DataPublisherUtil.UserState.USSDPIN_AUTH_PROCESSING_FAIL,
+                                                         "Authentication failed. User entered an incorrect pin");
             log.error("Authentication failed. User entered an incorrect pin");
             throw new AuthenticationFailedException("Authentication failed due to incorrect pin");
         }

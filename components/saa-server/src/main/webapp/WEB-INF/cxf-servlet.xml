@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?><beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jaxrs="http://cxf.apache.org/jaxrs" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd http://cxf.apache.org/bindings/soap http://cxf.apache.org/schemas/configuration/soap.xsd http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd">
+    <bean  id="ServerAPIBean" class="org.wso2telco.saaserver.ServerAPI"/>
+    <jaxrs:server id="ServerAPI" address="/serverAPI">
+        <jaxrs:serviceBeans>
+            <ref  bean="ServerAPIBean"/>
+        </jaxrs:serviceBeans>
+    </jaxrs:server>
+    <bean  id="PushServiceAPIBean" class="org.wso2telco.pushservice.PushServiceAPI"/>
+    <jaxrs:server id="PushServiceAPI" address="/pushServiceAPI">
+        <jaxrs:serviceBeans>
+            <ref  bean="PushServiceAPIBean"/>
+        </jaxrs:serviceBeans>
+    </jaxrs:server>
+</beans>

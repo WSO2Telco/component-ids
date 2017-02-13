@@ -213,16 +213,18 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
         if (context.isRetrying()) {
             DataPublisherUtil.buildUserStatusFromContext(request, context);
             UserStatus uStatus = DataPublisherUtil.buildUserStatusFromContext(request, context);
-            uStatus.setStatus(DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING_FAIL.name());
+            String comment=null;
             if (msisdn != null && !msisdn.isEmpty()) {
-                uStatus.setComment("Initializing Failed");
+                comment= "Initializing Failed";
                 uStatus.setIsNewUser(1);
                 uStatus.setIsMsisdnHeader(1);
             } else {
                 uStatus.setIsMsisdnHeader(0);
 
             }
-            Utility.publishUserStatusData(uStatus);
+            DataPublisherUtil.updateAndPublishUserStatus(uStatus,
+                                                         DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING_FAIL,
+                                                         comment);
         }
     }
 

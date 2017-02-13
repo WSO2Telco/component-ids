@@ -256,7 +256,6 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 			if (null == fallBack) {
 				break;
 			}
-			//This change is just a revert back to what previously was. Need to check and change
 			selectedLOA = fallBack;
 			mifeAuthentication = authenticationMap.get(selectedLOA);
 		}
