@@ -26,6 +26,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.lang.StringUtils;
@@ -419,6 +420,40 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.HE_AUTH_SUCCESS,
                 "Header Enrichment Authentication success");
+    }
+
+    private void populateAuthEndpointData(HttpServletRequest request, AuthenticationContext context) {
+
+        boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled();
+        if(dataPublisherEnabled) {
+            Map<String, String> authMap = (Map<String, String>) context.getProperty(
+                    Constants.AUTH_ENDPOINT_DATA_PUBLISHING_PARAM);
+            String queryParams = FrameworkUtils
+                    .getQueryStringWithFrameworkContextId(context.getQueryParams(),
+                            context.getCallerSessionKey(),
+                            context.getContextIdentifier());
+            String contextIdentifier = context.getContextIdentifier();
+            String msisdn = request.getHeader("msisdn");
+
+            boolean isMsisdnHeader = false;
+            if (msisdn != null && !msisdn.isEmpty()) {
+                isMsisdnHeader = true;
+            }
+
+            authMap.put("AppID", context.getSequenceConfig() == null ? null : context.getSequenceConfig().getApplicationId());
+            authMap.put("AuthenticatorStartTime", String.valueOf(new java.util.Date().getTime()));
+            authMap.put("sessionId", contextIdentifier);
+            authMap.put("InternalCustomerReference", contextIdentifier);
+            authMap.put("URLParams", queryParams);
+            authMap.put("TransactionId", contextIdentifier);
+            authMap.put("UserAgent", request.getHeader("User-Agent"));
+            authMap.put("IsMsisdnHeader", Boolean.toString(isMsisdnHeader));
+
+            if (request.getParameter("isNew") != null || request.getParameter("isRegistration") != null) {
+                context.setProperty("newReg", true);
+            }
+            context.setProperty(Constants.AUTH_ENDPOINT_DATA_PUBLISHING_PARAM, authMap);
+        }
     }
 
     /**

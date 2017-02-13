@@ -15,8 +15,11 @@
  ******************************************************************************/
 package com.wso2telco.gsma.handlers;
 
+import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.historylog.DbTracelog;
 import com.wso2telco.historylog.LogHistoryException;
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
@@ -30,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The Class MIFEStepBasedSequenceHandler.
@@ -192,6 +196,10 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
         */
         writeLogHistory(request, context);
 
+        boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled();
+        if(dataPublisherEnabled) {
+            publishAuthEndpointData(request, context);
+        }
         // Need to call this deliberately as sequenceConfig gets completed
         // within step handler
 
@@ -239,5 +247,71 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
         } catch (LogHistoryException ex) {
             log.error("Error occured while Login SP LogHistory", ex);
         }
+    }
+
+    private void publishAuthEndpointData(HttpServletRequest request, AuthenticationContext context) {
+
+        Map<String, String> authMap = (Map<String, String>) context.getProperty(
+                Constants.AUTH_ENDPOINT_DATA_PUBLISHING_PARAM);
+
+        boolean isAuthenticated = context.isRequestAuthenticated();
+        String consentStatus = "consent rejected";
+        if (isAuthenticated) {
+            consentStatus = "consent given";
+        }
+
+        boolean isNewuser = false;
+        String authenticatedUser;
+        String authenticators = "";
+        Object amrValue;
+        if (context.isRequestAuthenticated() && context.getSequenceConfig().getAuthenticatedUser() != null) {
+            amrValue = context.getProperty("amr");
+            authenticatedUser = context.getSequenceConfig().getAuthenticatedUser().getUserName();
+        } else {
+            amrValue = context.getProperty("failedamr");
+            authenticatedUser = (String) context.getProperty("faileduser");
+        }
+        if (null != amrValue && amrValue instanceof ArrayList<?>) {
+            @SuppressWarnings("unchecked")
+            List<String> amr = (ArrayList<String>) amrValue;
+            authenticators = amr.toString();
+        }
+
+        String telcoScope = "openid";
+        if (request.getParameter("telco_scope") != null) {
+            telcoScope = request.getParameter("telco_scope");
+        } else if (context.getProperty("telco_scope") != null) {
+            telcoScope = request.getParameter("telco_scope");
+        }
+
+        String systemTime = String.valueOf(new java.util.Date().getTime());
+
+        authMap.put("ConsentTimestamp", systemTime);
+        authMap.put("AuthenticatorEndTime", systemTime);
+        authMap.put("IpHeader", retrieveIPAddress(request));
+        authMap.put("AuthenticatorMethods", authenticators);
+        authMap.put("IsAuthenticated", Boolean.toString(isAuthenticated));
+        authMap.put("IsNewUser", Boolean.toString(isNewuser));
+        authMap.put("Msisdn", authenticatedUser);
+        authMap.put("Timestamp", systemTime);
+        authMap.put("ConsentState", consentStatus);
+        authMap.put("IsAuthCodeIssued", Boolean.toString(isAuthenticated));
+        authMap.put("AppID", context.getSequenceConfig().getApplicationId());
+        authMap.put("telco_scope", telcoScope);
+        authMap.put("State", (String) context.getProperty("state"));
+        authMap.put("Nonce", (String) context.getProperty("nonce"));
+
+        // Handling exception due to data unavailability in user registration scenario
+        try {
+            authMap.put("ServerHost", request.getHeader("X-FORWARDED-FOR"));
+        } catch (NullPointerException e) {
+            log.error("X-FORWARDED-FOR header does not exist", e);
+        }
+
+        if (authMap.get("AcrValue") == null) {
+            authMap.put("AcrValue", request.getParameter("acr_values"));
+        }
+        authMap.put("SessionId", DataPublisherUtil.resolveSessionID(request, context));
+        DataPublisherUtil.publishAuthEndpointData(authMap);
     }
 }
