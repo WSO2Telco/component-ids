@@ -220,7 +220,7 @@ public class DataPublisherUtil {
      *
      * @param userStatus
      */
-    public static void publishUserStatusData(UserStatus userStatus) {
+    private static void publishUserStatusData(UserStatus userStatus) {
         List<Object> userStatusMetaData = new ArrayList<Object>(4);
         String sessionId = userStatus.getSessionId();
         String status = userStatus.getStatus();
@@ -461,8 +461,16 @@ public class DataPublisherUtil {
         INVALID_MNV_REQUEST,
         INVALID_REQUEST,
 
-        REG_USER_TOKEN_FAIL, AUTH_INITIAL_STEP;
+        REG_USER_TOKEN_FAIL, AUTH_INITIAL_STEP,
 
+        USSDPIN_REDIRECT,
+        CONFIGURATION_ERROR,
+        LOGIN_HINT_INVALID,
+        LOGIN_HINT_MISMATCH,
+        MSISDN_INVALID,
+        PROXY_REQUEST_FORWARDED_TO_IS,
+        PROXY_PROCESSING,
+        OTHER;
 
     }
 }

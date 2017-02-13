@@ -23,6 +23,8 @@ import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.gsma.authenticators.ussd.USSDRequest;
 import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
+import com.wso2telco.ids.datapublisher.model.UserStatus;
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.methods.HttpPost;
@@ -41,8 +43,9 @@ public abstract class UssdCommand {
 
     private static Log log = LogFactory.getLog(UssdCommand.class);
 
-    public void execute(String msisdn, String sessionID, String serviceProvider, String operator, String client_id) throws IOException {
-
+    public void execute(String msisdn, String sessionID, String serviceProvider, String operator, String client_id, UserStatus userStatus) throws IOException {
+        DataPublisherUtil
+                .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SEND_USSD_PIN, "");
 //        AuthenticationContext ctx = getAuthenticationContext(sessionID);
 //        String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(ctx.getQueryParams(),
 //                ctx.getCallerSessionKey(), ctx.getContextIdentifier());
