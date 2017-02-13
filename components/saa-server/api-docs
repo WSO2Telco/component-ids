@@ -2,7 +2,7 @@ This document is about the API endpoints ,the json input patterns and the expect
 
 *Register the Clients to the SAA Server Database.
 
-EndPoint = SAA_Authenticator_v1.0/services/serverAPI/api/v1/clients
+EndPoint = saaserver/services/serverAPI/api/v1/clients
 (POST Method)
 Input: 
 
@@ -34,12 +34,12 @@ Expected Output:
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
 To Authenticate the user called by SAA Adapter
-EndPoint : SAA_Authenticator_v1.0/services/serverAPI/api/v1/clients/{msisdn}/authenticate
+EndPoint : saaserver/services/serverAPI/api/v1/clients/{msisdn}/authenticate
 (POST Method)
 Input:
 {
-    "message" : "Login to Dialog Connect",
-    "applicationName" : "Dialog Connect",
+    "message" : "Login to Spark Connect",
+    "applicationName" : "Spark Connect",
     "ref" : "340943904904904343904",
     "acr" : "1",
     "spImgUrl" : "http://www.easy/logo.gif"
@@ -65,7 +65,7 @@ Expected Output:
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
 To Authenticate the user from the SAA Client
-EndPoint : SAA_Authenticator_v1.0/services/serverAPI/api/v1/clients/775908896/auth_response
+EndPoint : saaserver/services/serverAPI/api/v1/clients/918908098908/auth_response
 (POST Method)
 Input:
 {
@@ -85,7 +85,7 @@ Expected Output:
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 To check the client is registered or not in the SAA Server
-EndPoint : SAA_Authenticator_v1.0/services/serverAPI/api/v1/clients/{msisdn}/is_registered
+EndPoint : saaserver/services/serverAPI/api/v1/clients/{msisdn}/is_registered
 (GET Method)
 
 Expected Output:
@@ -94,7 +94,7 @@ Expected Output:
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 To remove/Unregistered the registered client from the database.
-EndPoint : SAA_Authenticator_v1.0/services/serverAPI/api/v1/clients/{msisdn}/unregisterClient
+EndPoint : saaserver/services/serverAPI/api/v1/clients/{msisdn}/unregisterClient
 (DELETE Method)
 
 Expected Output:

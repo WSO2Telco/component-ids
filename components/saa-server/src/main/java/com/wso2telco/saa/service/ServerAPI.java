@@ -13,19 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.wso2telco.saaserver;
+package com.wso2telco.saa.service;
 
+import com.wso2telco.util.DBConnection;
+import com.wso2telco.util.PropertyReader;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONObject;
-import org.wso2telco.propertyreader.PropertyReader;
-import org.wso2telco.saaserver.DBConnection.DBConnection;
 
 import javax.ws.rs.*;
-import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
+@Path("/serverApi/")
 public class ServerAPI {
 
     private Log log = LogFactory.getLog(ServerAPI.class);
@@ -35,7 +44,7 @@ public class ServerAPI {
      * InBound from SAA Client*
      *
      * @param clientData client data
-     * @param msisdn mobile number
+     * @param msisdn     mobile number
      * @return int indicating the transaction is success ,failure or error
      * @throws ClassNotFoundException on error
      */
@@ -123,17 +132,21 @@ public class ServerAPI {
 
             authenticationResponse = dbConnection.authenticateClient(refId, clientDeviceId, messageDetails);
 
-            if (authenticationResponse == true) {
+            if (authenticationResponse) {
 
-                pushNotificationApiResponse = postRequest(msisdn, pushMessageDetails);
+                try {
+                    pushNotificationApiResponse = postRequest(msisdn, pushMessageDetails);
 
-                if (pushNotificationApiResponse.getInt("success") == 1) {
-                    dbConnection.updateMessageTable(refId, 'A');
-                    success = 1;
-                    responseMessage = "Message Pushed";
-                } else {
-                    failure = 1;
-                    responseMessage = "Invalid Registration";
+                    if (pushNotificationApiResponse.getInt("success") == 1) {
+                        dbConnection.updateMessageTable(refId, 'A');
+                        success = 1;
+                        responseMessage = "Message Pushed";
+                    } else {
+                        failure = 1;
+                        responseMessage = "Invalid Registration";
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             } else if (authenticationResponse == false) {
                 failure = 1;
@@ -150,15 +163,28 @@ public class ServerAPI {
         return Response.ok(response, MediaType.APPLICATION_JSON).build();
     }
 
-    private JSONObject postRequest(String msisdn, String pushMessageDetails) {
+    private JSONObject postRequest(String msisdn, String pushMessageDetails) throws IOException {
+
+        String url = PropertyReader.getProperty("saa.server.host") + "pushServiceAPI/client/" + msisdn + "/send";
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost httpPost = new HttpPost(url);
+
+        StringEntity requestEntity = new StringEntity(pushMessageDetails, ContentType.APPLICATION_JSON);
+        httpPost.setEntity(requestEntity);
 
         JSONObject pushNotificationApiResponse;
-        Client client = ClientBuilder.newClient();
-        WebTarget resource = client.target("" + PropertyReader.getProperty("saa.server.host") + "pushServiceAPI/client/" + msisdn + "/send");
-        Invocation.Builder request = resource.request();
-        request.accept(MediaType.APPLICATION_JSON);
-        String pushResponse = request.post(Entity.json(pushMessageDetails), String.class);
-        pushNotificationApiResponse = new JSONObject(pushResponse);
+
+        HttpResponse httpResponse = client.execute(httpPost);
+        BufferedReader br = new BufferedReader(
+                new InputStreamReader((httpResponse.getEntity().getContent())));
+
+        String output;
+        StringBuilder stringBuilder = new StringBuilder();
+
+        while ((output = br.readLine()) != null) {
+            stringBuilder.append(output);
+        }
+        pushNotificationApiResponse = new JSONObject(stringBuilder.toString());
         return pushNotificationApiResponse;
     }
 
