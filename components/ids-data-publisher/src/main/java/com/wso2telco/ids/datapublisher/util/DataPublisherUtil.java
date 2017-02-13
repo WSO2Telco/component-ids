@@ -227,7 +227,6 @@ public class DataPublisherUtil {
         Timestamp timestamp = userStatus.getTime();
 
         if (sessionId != null && !sessionId.isEmpty()) {
-
             userStatusMetaData.add(sessionId);
         } else {
             userStatusMetaData.add(null);
@@ -432,8 +431,8 @@ public class DataPublisherUtil {
             if (userState != null) {
                 userStatus.setState(userState.name());
                 userStatus.setComment(comment);
+                publishUserStatusData(userStatus);
             }
-            publishUserStatusData(userStatus);
         }
     }
 

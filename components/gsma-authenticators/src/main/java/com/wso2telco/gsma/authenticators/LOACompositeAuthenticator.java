@@ -16,6 +16,7 @@
 package com.wso2telco.gsma.authenticators;
 
 import com.wso2telco.Util;
+import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.MIFEAuthentication;
 import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
@@ -25,6 +26,7 @@ import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.DecryptionAES;
 
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -102,8 +104,14 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 	 * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#process(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
 	 */
 	public AuthenticatorFlowStatus process(HttpServletRequest request,
-			HttpServletResponse response, AuthenticationContext context)
-					throws AuthenticationFailedException, LogoutFailedException {
+                HttpServletResponse response, AuthenticationContext context)
+			throws AuthenticationFailedException, LogoutFailedException {
+		boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled();
+
+		if (dataPublisherEnabled) {
+			context.addParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM,
+					DataPublisherUtil.getInitialUserStatusObject(request, context));
+		}
 		if (!canHandle(request)) {
 			return AuthenticatorFlowStatus.INCOMPLETE;
 		}

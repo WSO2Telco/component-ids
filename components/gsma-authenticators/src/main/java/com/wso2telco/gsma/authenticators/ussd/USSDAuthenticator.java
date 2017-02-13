@@ -23,6 +23,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.wso2telco.ids.datapublisher.model.UserStatus;
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
@@ -90,7 +92,9 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
     public AuthenticatorFlowStatus process(HttpServletRequest request,
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
-
+        DataPublisherUtil
+                .updateAndPublishUserStatus((UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.USSD_AUTH_PROCESSING, "USSDAuthenticator processing started");
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
         } else {
@@ -107,7 +111,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
 
         log.info("Initiating authentication request");
-
+        UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         String loginPage;
         String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
                 context.getCallerSessionKey(), context.getContextIdentifier());
@@ -144,6 +148,9 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
                     + getName() + ":" + "LOCAL" + retryParam);
 
         } catch (IOException | SQLException | AuthenticatorException e) {
+            DataPublisherUtil
+                    .updateAndPublishUserStatus(userStatus,
+                            DataPublisherUtil.UserState.USSD_AUTH_PROCESSING_FAIL, e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
     }
@@ -186,6 +193,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
         log.info("Processing authentication response");
 
+        UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         if ("true".equals(request.getParameter("smsrequested"))) {
             //This logic would get hit if the user hits the link to get an SMS so in that case
             //We need to fallback. Therefore we through AuthenticationFailedException
@@ -222,17 +230,30 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             } else {
                 log.info("Authentication failed. Consent not provided.");
                 context.setProperty("faileduser", (String) context.getProperty("msisdn"));
+                DataPublisherUtil
+                        .updateAndPublishUserStatus(userStatus,
+                                DataPublisherUtil.UserState.USSD_AUTH_PROCESSING_FAIL, "User consent not provided");
                 throw new AuthenticationFailedException("Authentication Failed");
             }
 
         } catch (AuthenticatorException e) {
+            DataPublisherUtil
+                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.USSD_AUTH_PROCESSING_FAIL,
+                            e.getMessage());
             throw new AuthenticationFailedException("USSD Authentication failed while trying to authenticate", e);
         } catch (UserRegistrationAdminServiceIdentityException | RemoteException e) {
+            DataPublisherUtil
+                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.USSD_AUTH_PROCESSING_FAIL,
+                            e.getMessage());
             throw new AuthenticationFailedException("Error occurred while creating user profile", e);
         }
         AuthenticationContextHelper.setSubject(context, msisdn);
 
         log.info("Authentication success");
+
+        DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.USSD_AUTH_SUCCESS,
+                "USSD Authentication success");
+
         String rememberMe = request.getParameter("chkRemember");
 
         if (rememberMe != null && "on".equals(rememberMe)) {

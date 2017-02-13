@@ -359,4 +359,6 @@ public final class Constants {
     public static final String TRUST_LOGINHINT_MSISDN = "TRUST_LOGINHINT_MSISDN";
 
     public static final String BREAK = "BREAK";
+
+    public static final String USER_STATUS_DATA_PUBLISHING_PARAM = "UserStatusForDataPublishing";
 }
