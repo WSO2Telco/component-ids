@@ -290,13 +290,6 @@ public class DataPublisherUtil {
         }
         else {tokenEndpointData.add(null);
         }
-
-        if (tokenMap.get("SourceIP") != null && !tokenMap.get("SourceIP").isEmpty() ) {
-            tokenEndpointData.add(tokenMap.get("SourceIP"));
-        }
-        else {tokenEndpointData.add(null);
-        }
-
         if (tokenMap.get("ContentType") != null && !tokenMap.get("ContentType").isEmpty() ) {
             tokenEndpointData.add(tokenMap.get("ContentType"));
         }
@@ -307,13 +300,6 @@ public class DataPublisherUtil {
         }
         else {tokenEndpointData.add(null);
         }
-
-        if (tokenMap.get("Payload") != null && !tokenMap.get("Payload").isEmpty() ) {
-            tokenEndpointData.add(tokenMap.get("Payload"));
-        }
-        else {tokenEndpointData.add(null);
-        }
-
         if (tokenMap.get("RefreshToken") != null && !tokenMap.get("RefreshToken").isEmpty() ) {
             tokenEndpointData.add(tokenMap.get("RefreshToken"));
         }
@@ -325,12 +311,6 @@ public class DataPublisherUtil {
         }
         else {tokenEndpointData.add(null);
         }
-        if (tokenMap.get("RequestStatus") != null && !tokenMap.get("RequestStatus").isEmpty() ) {
-            tokenEndpointData.add(tokenMap.get("RequestStatus"));
-        }
-        else {tokenEndpointData.add(null);
-        }
-
         if (tokenMap.get("ReturnedResult") != null && !tokenMap.get("ReturnedResult").isEmpty() ) {
             tokenEndpointData.add(tokenMap.get("ReturnedResult"));
         }
