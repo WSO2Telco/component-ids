@@ -18,7 +18,7 @@
  */
 function cancelProcessToRegister() {
 
-    window.location = "/commonauth/?action=UpgradeRejected";
+    window.location = "/commonauth/?action=UpgradeRejected&sessionDataKey=" + sessionDataKey;
 
 }
 
