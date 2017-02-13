@@ -136,7 +136,7 @@ public class Endpoints {
         AuthenticationContext authenticationContext = new AuthenticationContext();
         UserStatus userStatus = DataPublisherUtil.buildUserStatusFromRequest(httpServletRequest,
                                                                              authenticationContext);
-        userStatus.setSessionId(UUID.randomUUID().toString());
+        userStatus.setTransactionId(UUID.randomUUID().toString());
         userStatus.setConsumerKey(((ContainerRequest) httpHeaders).getQueryParameters().getFirst(
                 AuthProxyConstants.CLIENT_ID));
 
@@ -236,6 +236,7 @@ public class Endpoints {
                     redirectUrlInfo.setQueryString(queryString);
                     redirectUrlInfo.setIpAddress(ipAddress);
                     redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
+                    redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
                     redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
                 }
             } catch(Exception e){
@@ -621,6 +622,7 @@ public class Endpoints {
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
         ScopeParam.heFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
 
+        String transactionId = redirectUrlInfo.getTransactionId();
         if (authorizeUrl != null) {
             redirectURL = authorizeUrl + queryString  + "&" + AuthProxyConstants.OPERATOR + "=" +
                     operatorName + "&" + AuthProxyConstants.TELCO_SCOPE + "=" + telcoScope + "&" +
@@ -640,6 +642,11 @@ public class Endpoints {
             // Reconstruct Authorize url with ip address.
             if (ipAddress != null) {
                 redirectURL += "&" + AuthProxyConstants.IP_ADDRESS + "=" + ipAddress;
+            }
+
+            if(StringUtils.isNotEmpty(transactionId)){
+                redirectURL = redirectURL + "&" + AuthProxyConstants.TRANSACTION_ID +
+                        "=" + transactionId;
             }
         } else {
             String errMsg = "AuthorizeURL could not be found in mobile-connect.xml";
