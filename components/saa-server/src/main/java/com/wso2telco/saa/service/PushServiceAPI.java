@@ -13,22 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.wso2telco.pushservice;
+package com.wso2telco.saa.service;
 
+import com.google.gson.Gson;
+import com.wso2telco.entity.Data;
+import com.wso2telco.entity.Fcm;
+import com.wso2telco.util.DBConnection;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.json.JSONObject;
-import org.wso2telco.saaserver.DBConnection.DBConnection;
 
 import javax.ws.rs.*;
-import javax.ws.rs.client.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
+@Path("/pushServiceApi/")
 public class PushServiceAPI {
 
     private Log log = LogFactory.getLog(PushServiceAPI.class);
     private DBConnection dbConnection = null;
+    public static final String FCM_URL = "https://fcm.googleapis.com/fcm/send";
 
     /**
      * OutBound to Push Service*
@@ -60,27 +73,39 @@ public class PushServiceAPI {
         String pushMessageResponse;
         String response = null;
 
-        if (platform.equalsIgnoreCase("android")) {
-            Client client = ClientBuilder.newClient();
-            WebTarget resource = client.target("https://fcm.googleapis.com/fcm/send");
-            Invocation.Builder request = resource.request(MediaType.APPLICATION_JSON);
-            request.header("Authorization", "key=AIzaSyCIqO7iVo2djUVRIKh-DUe1kn3zODTzcDg");
-            request.header("Content-Type", MediaType.APPLICATION_JSON);
-            response = request.post(Entity.json("{\"to\": \""+pushToken+"\",\"data\": {\"msg\": \""+message+"\",\"sp\": \""+applicationName+"\",\"ref\":\""+referenceId+"\",\"acr\":\""+acr+"\",\"sp_url\":\""+spImageUrl+"\"}}"), String.class);
+        Data data = new Data();
+        data.setMsg(message);
+        data.setSp(applicationName);
+        data.setRef(referenceId);
+        data.setAcr(acr);
+        data.setSp_url(spImageUrl);
 
-        } else if (platform.equalsIgnoreCase("ios")) {
-            Client client = ClientBuilder.newClient();
-            WebTarget resource = client.target("https://fcm.googleapis.com/fcm/send");
-            Invocation.Builder request = resource.request(MediaType.APPLICATION_JSON);
-            request.header("Authorization", "key=AIzaSyCIqO7iVo2djUVRIKh-DUe1kn3zODTzcDg");
-            request.header("Content-Type", MediaType.APPLICATION_JSON);
-            response = request.post(Entity.json("{\"to\": \""+pushToken+"\",\"data\": {\"msg\": \""+message+"\",\"sp\": \""+applicationName+"\",\"ref\":\""+referenceId+"\",\"acr\":\""+acr+"\",\"sp_url\":\""+spImageUrl+"\"}}"), String.class);
+        Fcm fcm = new Fcm();
+        fcm.setTo(pushToken);
+        fcm.setData(data);
+
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost post = new HttpPost(FCM_URL);
+
+        StringEntity requestEntity = new StringEntity(new Gson().toJson(fcm), ContentType.APPLICATION_JSON);
+        post.setEntity(requestEntity);
+
+        try {
+            HttpResponse httpResponse = client.execute(post);
+            BufferedReader br = new BufferedReader(
+                    new InputStreamReader((httpResponse.getEntity().getContent())));
+
+            String output;
+            StringBuilder stringBuilder = new StringBuilder();
+            while ((output = br.readLine()) != null) {
+                stringBuilder.append(output);
+            }
+            pushMessageResponse = "{\"success\" :\"" + success + "\",\"failure\" :\"" + failure + "\"}";
+            return Response.ok(pushMessageResponse, MediaType.APPLICATION_JSON).build();
+        } catch (IOException e) {
+            e.printStackTrace();
+            pushMessageResponse = "{\"success\" :\"" + 0 + "\",\"failure\" :\"" + 1 + "\"}";
+            return Response.ok(pushMessageResponse, MediaType.APPLICATION_JSON).build();
         }
-
-        fcmMessageObj = new JSONObject(response);
-        success = fcmMessageObj.getInt("success");
-        failure = fcmMessageObj.getInt("failure");
-        pushMessageResponse = "{\"success\" :\"" + success + "\",\"failure\" :\"" + failure + "\"}";
-        return Response.ok(pushMessageResponse, MediaType.APPLICATION_JSON).build();
     }
 }
