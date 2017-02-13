@@ -26,6 +26,7 @@ import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.DecryptionAES;
 
+import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -109,8 +110,9 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled();
 
 		if (dataPublisherEnabled) {
-			context.addParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM,
-					DataPublisherUtil.getInitialUserStatusObject(request, context));
+			UserStatus userStatus = DataPublisherUtil.getInitialUserStatusObject(request, context);
+			context.addParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM, userStatus);
+			DataPublisherUtil.publishUserStatusMetaData(userStatus);
 		}
 		if (!canHandle(request)) {
 			return AuthenticatorFlowStatus.INCOMPLETE;
