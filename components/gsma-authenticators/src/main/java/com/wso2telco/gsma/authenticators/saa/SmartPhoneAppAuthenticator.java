@@ -27,8 +27,8 @@ import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.Utility;
 import com.wso2telco.gsma.authenticators.exception.SaaException;
-import com.wso2telco.gsma.authenticators.model.UserState;
-import com.wso2telco.gsma.authenticators.model.UserStatus;
+import com.wso2telco.ids.datapublisher.model.UserStatus;
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -211,10 +211,9 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
 
     private void handleRetry(HttpServletRequest request, AuthenticationContext context, String msisdn) {
         if (context.isRetrying()) {
-            UserStatus uStatus = new UserStatus();
-
-            Utility.setValueFromContext(request, context, uStatus);
-            uStatus.setStatus(UserState.MSISDN_AUTH_PROCESSING_FAIL.name());
+            DataPublisherUtil.buildUserStatusFromContext(request, context);
+            UserStatus uStatus = DataPublisherUtil.buildUserStatusFromContext(request, context);
+            uStatus.setStatus(DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING_FAIL.name());
             if (msisdn != null && !msisdn.isEmpty()) {
                 uStatus.setComment("Initializing Failed");
                 uStatus.setIsNewUser(1);
@@ -223,7 +222,7 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
                 uStatus.setIsMsisdnHeader(0);
 
             }
-            Utility.saveUSSD(uStatus);
+            Utility.publishUserStatusData(uStatus);
         }
     }
 

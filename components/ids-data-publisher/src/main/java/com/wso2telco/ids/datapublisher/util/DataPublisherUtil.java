@@ -7,12 +7,12 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
+import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 
 public class DataPublisherUtil {
 
@@ -33,7 +33,7 @@ public class DataPublisherUtil {
     public static final String TOKEN_ENDPOINT_STREAM_VERSION = "1.0.0";
 
 
-    private static UserStatus buildUserStatusFromRequest(HttpServletRequest request, AuthenticationContext context) {
+    public static UserStatus buildUserStatusFromRequest(HttpServletRequest request, AuthenticationContext context) {
         UserStatus.UserStatusBuilder userStatusBuilder = new UserStatus
                 .UserStatusBuilder(resolveSessionID(request, context));
 
@@ -220,7 +220,7 @@ public class DataPublisherUtil {
      *
      * @param userStatus
      */
-    private static void publishUserStatusData(UserStatus userStatus) {
+    public static void publishUserStatusData(UserStatus userStatus) {
         List<Object> userStatusMetaData = new ArrayList<Object>(4);
         String sessionId = userStatus.getSessionId();
         String status = userStatus.getStatus();

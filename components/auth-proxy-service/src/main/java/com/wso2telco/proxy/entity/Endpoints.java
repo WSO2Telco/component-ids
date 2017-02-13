@@ -134,9 +134,9 @@ public class Endpoints {
 
 
         //maintain userstatus related to request for data publishing purpose
-        UserStatus userStatus = new UserStatus();
-        AuthenticationContext context = new AuthenticationContext();
-        DataPublisherUtil.setValueFromRequest(httpServletRequest, context, userStatus);
+        AuthenticationContext authenticationContext = new AuthenticationContext();
+        UserStatus userStatus = DataPublisherUtil.buildUserStatusFromRequest(httpServletRequest,
+                                                                             authenticationContext);
         userStatus.setSessionId(UUID.randomUUID().toString());
         userStatus.setConsumerKey(((ContainerRequest) httpHeaders).getQueryParameters().getFirst(
                 AuthProxyConstants.CLIENT_ID));

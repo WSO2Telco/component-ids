@@ -74,6 +74,10 @@ public class UserStatus {
         return acrValue;
     }
 
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
+
     public String getSessionId() {
         return sessionId;
     }
@@ -102,6 +106,10 @@ public class UserStatus {
         this.comment = comment;
     }
 
+    public void setIsMsisdnHeader(int isMsisdnHeader) {
+        this.isMsisdnHeader = isMsisdnHeader;
+    }
+
     public int getIsMsisdnHeader() {
         return isMsisdnHeader;
     }
@@ -112,6 +120,10 @@ public class UserStatus {
 
     public void setIsNewUser(int isNewUser) {
         this.isNewUser = isNewUser;
+    }
+
+    public void setConsumerKey(String consumerKey) {
+        this.consumerKey = consumerKey;
     }
 
     public String getConsumerKey() {
