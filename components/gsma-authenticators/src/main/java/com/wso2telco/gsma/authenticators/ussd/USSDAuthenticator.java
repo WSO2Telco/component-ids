@@ -15,14 +15,17 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.ussd;
 
-import java.io.IOException;
-import java.rmi.RemoteException;
-import java.sql.SQLException;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.wso2telco.Util;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.authenticators.AuthenticatorException;
+import com.wso2telco.gsma.authenticators.Constants;
+import com.wso2telco.gsma.authenticators.DBUtils;
+import com.wso2telco.gsma.authenticators.ussd.command.LoginUssdCommand;
+import com.wso2telco.gsma.authenticators.ussd.command.RegistrationUssdCommand;
+import com.wso2telco.gsma.authenticators.ussd.command.UssdCommand;
+import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.gsma.authenticators.util.UserProfileManager;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.logging.Log;
@@ -37,17 +40,12 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 
-import com.wso2telco.Util;
-import com.wso2telco.core.config.service.ConfigurationService;
-import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.gsma.authenticators.AuthenticatorException;
-import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.authenticators.DBUtils;
-import com.wso2telco.gsma.authenticators.ussd.command.LoginUssdCommand;
-import com.wso2telco.gsma.authenticators.ussd.command.RegistrationUssdCommand;
-import com.wso2telco.gsma.authenticators.ussd.command.UssdCommand;
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import com.wso2telco.gsma.authenticators.util.UserProfileManager;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.rmi.RemoteException;
+import java.sql.SQLException;
+import java.util.Map;
 
 // TODO: Auto-generated Javadoc
 //import org.wso2.carbon.identity.core.dao.OAuthAppDAO;
@@ -181,7 +179,8 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
         String client_id = paramMap.get(Constants.CLIENT_ID);
 
-        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator, client_id);
+        UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
+        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator, client_id, userStatus);
     }
 
     /* (non-Javadoc)

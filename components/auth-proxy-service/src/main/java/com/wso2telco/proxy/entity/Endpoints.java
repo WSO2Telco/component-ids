@@ -22,7 +22,6 @@ import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.ids.datapublisher.model.UserState;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.proxy.MSISDNDecryption;
@@ -141,7 +140,7 @@ public class Endpoints {
         userStatus.setConsumerKey(((ContainerRequest) httpHeaders).getQueryParameters().getFirst(
                 AuthProxyConstants.CLIENT_ID));
 
-        userStatus.setStatus(UserState.PROXY_PROCESSING.name());
+        userStatus.setStatus(DataPublisherUtil.UserState.PROXY_PROCESSING.name());
         DataPublisherUtil.publishUserStatusMetaData(userStatus);
 
 
@@ -173,10 +172,7 @@ public class Endpoints {
                     authorizeUrlProperty = mobileConnectConfigs.getAuthProxy().getAuthorizeURL();
                 } else {
                     String errMsg = "mobile-connect.xml could not be found";
-
-                    userStatus.setStatus(UserState.CONFIGURATION_ERROR.name());
-                    userStatus.setComment(errMsg);
-                    DataPublisherUtil.publishUserStatusData(userStatus);
+                    DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.CONFIGURATION_ERROR,errMsg);
 
                     throw new FileNotFoundException(errMsg);
                 }
@@ -243,9 +239,8 @@ public class Endpoints {
                     redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
                 }
             } catch(Exception e){
-                userStatus.setStatus(UserState.OTHER.name());
-                userStatus.setComment(e.getMessage());
-                DataPublisherUtil.publishUserStatusData(userStatus);
+                DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.OTHER,
+                                                             e.getMessage());
                 log.error("Exception : " + e.getMessage());
                 //todo: dynamically set error description depending on scope parameters
                 redirectURL = redirectURL + "?error=access_denied&error_description=" + e.getMessage();
@@ -255,11 +250,8 @@ public class Endpoints {
                 log.debug("redirectURL : " + redirectURL);
             }
         }
-
-
-        userStatus.setStatus(UserState.PROXY_REQUEST_FORWARDED_TO_IS.name());
-        userStatus.setComment("redirectURL : " + redirectURL);
-        DataPublisherUtil.publishUserStatusData(userStatus);
+        DataPublisherUtil.updateAndPublishUserStatus(
+                userStatus,DataPublisherUtil.UserState.PROXY_REQUEST_FORWARDED_TO_IS, "Redirect URL : " + redirectURL);
 
         httpServletResponse.sendRedirect(redirectURL);
     }
@@ -303,9 +295,8 @@ public class Endpoints {
             if (!validateMsisdnFormat(loginHint)) {
                 String errMsg = "Invalid login hint msisdn format - " + loginHint;
 
-               userStatus.setStatus(UserState.LOGIN_HINT_INVALID.name());
-                userStatus.setComment(errMsg);
-                DataPublisherUtil.publishUserStatusData(userStatus);
+                DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.LOGIN_HINT_INVALID,
+                                                             errMsg);
 
                 throw new AuthenticationFailedException(errMsg);
             }
@@ -315,9 +306,8 @@ public class Endpoints {
             if (!validateMsisdnFormat(msisdnHeader)) {
                 String errMsg = "Invalid msisdn header format - " + msisdnHeader;
 
-               userStatus.setStatus(UserState.MSISDN_INVALID.name());
-                userStatus.setComment(errMsg);
-                DataPublisherUtil.publishUserStatusData(userStatus);
+                DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.MSISDN_INVALID,
+                                                             errMsg);
 
                 throw new AuthenticationFailedException(errMsg);
             }
@@ -328,10 +318,8 @@ public class Endpoints {
             if (scopeParam.isLoginHintMandatory()) {
                 if (StringUtils.isEmpty(loginHint)) {
                     String errMsg = "Login Hint parameter cannot be empty for scope : " + scope;
-
-                   userStatus.setStatus(UserState.LOGIN_HINT_INVALID.name());
-                    userStatus.setComment(errMsg);
-                    DataPublisherUtil.publishUserStatusData(userStatus);
+                    DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                                                 DataPublisherUtil.UserState.LOGIN_HINT_INVALID,errMsg);
 
                     throw new AuthenticationFailedException(errMsg);
                 }
@@ -352,9 +340,8 @@ public class Endpoints {
             if (scopeParam.isHeaderMsisdnMandatory() && StringUtils.isEmpty(msisdnHeader)) {
                 String errMsg = "MSISDN header not found for scope : " + scope;
 
-               userStatus.setStatus(UserState.MSISDN_INVALID.name());
-                userStatus.setComment(errMsg);
-                DataPublisherUtil.publishUserStatusData(userStatus);
+                DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.MSISDN_INVALID,
+                                                             errMsg);
 
                 throw new AuthenticationFailedException(errMsg);
             }
@@ -375,18 +362,14 @@ public class Endpoints {
         } catch (AuthenticatorException e) {
             String errMsg = "Error occurred while getting scope parameters from the database for the scope - " + scope;
 
-           userStatus.setStatus(UserState.OTHER.name());
-            userStatus.setComment(errMsg);
-            DataPublisherUtil.publishUserStatusData(userStatus);
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.OTHER, errMsg);
 
             throw new AuthenticationFailedException(errMsg);
         }
         if (scopeDetail == null || scopeDetail.isEmpty()) {
             String errMsg = "Please configure Scope related Parameters properly in scope_parameter table";
-
-           userStatus.setStatus(UserState.CONFIGURATION_ERROR.name());
-            userStatus.setComment(errMsg);
-            DataPublisherUtil.publishUserStatusData(userStatus);
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.CONFIGURATION_ERROR,
+                                                         errMsg);
 
             throw new ConfigurationException(errMsg);
         }
@@ -472,8 +455,8 @@ public class Endpoints {
 
             //msisdn/loginhint should be a either of defined formats
             if (!isValidFormatType) {
-               userStatus.setStatus(UserState.LOGIN_HINT_INVALID.name());
-                DataPublisherUtil.publishUserStatusData(userStatus);
+                DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.LOGIN_HINT_INVALID,
+                                                             null);
 
                 throw new AuthenticationFailedException(
                         "login hint is malformat");
@@ -484,16 +467,17 @@ public class Endpoints {
                 if (validateMsisdnFormat(msisdn)) {
                     if (ScopeParam.msisdnMismatchResultTypes.ERROR_RETURN.equals(headerMismatchResult)) {
                         if (!plainTextMsisdnHeader.equals(msisdn)) {
-                           userStatus.setStatus(UserState.LOGIN_HINT_MISMATCH.name());
-                            DataPublisherUtil.publishUserStatusData(userStatus);
+                            DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                                                         DataPublisherUtil.UserState.LOGIN_HINT_MISMATCH,
+                                                                         null);
 
                             throw new AuthenticationFailedException(
                                     "login hint is not matching with the header msisdn");
                         }
                     }
                 } else {
-                   userStatus.setStatus(UserState.LOGIN_HINT_INVALID.name());
-                    DataPublisherUtil.publishUserStatusData(userStatus);
+                    DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                                                 DataPublisherUtil.UserState.LOGIN_HINT_INVALID, null);
 
                     throw new AuthenticationFailedException(
                             "login hint is malformat");
@@ -659,10 +643,8 @@ public class Endpoints {
             }
         } else {
             String errMsg = "AuthorizeURL could not be found in mobile-connect.xml";
-
-            userStatus.setStatus(UserState.CONFIGURATION_ERROR.name());
-            userStatus.setComment(errMsg);
-            DataPublisherUtil.publishUserStatusData(userStatus);
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.CONFIGURATION_ERROR,
+                                                         errMsg);
 
             throw new ConfigurationException(errMsg);
         }
