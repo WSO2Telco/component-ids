@@ -6,13 +6,16 @@ import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
 import com.wso2telco.gsma.manager.client.RemoteUserStoreServiceAdminClient;
 import com.wso2telco.gsma.manager.client.UserRegistrationAdminServiceClient;
 import com.wso2telco.gsma.manager.util.UserProfileClaimsConstant;
+
 import org.apache.axis2.AxisFault;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.tools.ant.taskdefs.condition.HasFreeSpace;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 import org.wso2.carbon.identity.user.registration.stub.dto.UserDTO;
 import org.wso2.carbon.identity.user.registration.stub.dto.UserFieldDTO;
+import org.wso2.carbon.um.ws.api.stub.ClaimValue;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
@@ -20,6 +23,8 @@ import java.io.UnsupportedEncodingException;
 import java.rmi.RemoteException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by isuru on 1/3/17.
@@ -354,6 +359,19 @@ public class UserProfileManager {
 
     public String getChallengeQuestionAndAnswer2(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
         return remoteUserStoreServiceAdminClient.getChallengeQuestionAndAnswer2(username);
+    }
+    
+    public Map<String, String> getChallengeQuestionAndAnswers(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+
+    	ClaimValue[] claimValues = remoteUserStoreServiceAdminClient.getChallengeQuestionAndAnswers(username);
+    	
+    	Map<String,String> challengeQuestionMap = new HashMap<String, String>();
+    	if(claimValues != null && claimValues.length > 0) {
+        	for(ClaimValue claimValue:claimValues) {
+        		challengeQuestionMap.put(claimValue.getClaimURI(), claimValue.getValue());
+        	}
+    	}
+        return challengeQuestionMap;
     }
 
     /**

@@ -59,28 +59,18 @@ public class RemoteUserStoreServiceAdminClient {
         return remoteUserStoreManagerServiceStub.getUserClaimValue(username, Constants.CHALLENGE_QUESTION_1_CLAIM,
                 UserCoreConstants.DEFAULT_PROFILE);
     }
-
+    
     public String getChallengeQuestionAndAnswer2(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
 
 
         return remoteUserStoreManagerServiceStub.getUserClaimValue(username, Constants.CHALLENGE_QUESTION_2_CLAIM,
                 UserCoreConstants.DEFAULT_PROFILE);
     }
+    
+    public ClaimValue[]  getChallengeQuestionAndAnswers(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+        
+    	String[] claims = {Constants.CHALLENGE_QUESTION_1_CLAIM, Constants.CHALLENGE_QUESTION_2_CLAIM};       
+        return remoteUserStoreManagerServiceStub.getUserClaimValuesForClaims(username, claims, UserCoreConstants.DEFAULT_PROFILE);
+    }
 
-//    static {
-//        try {
-//            String adminURL = DataHolder.getInstance().getMobileConnectConfig().getAdminUrl();
-//            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
-//            String sessionCookie = lAdmin.authenticate(DataHolder.getInstance().getMobileConnectConfig().getAdminUsername(),
-//                    DataHolder.getInstance().getMobileConnectConfig().getAdminPassword());
-//            claimManagementClient = new ClaimManagementClient(adminURL, sessionCookie);
-//
-//        } catch (AxisFault e) {
-//            e.printStackTrace();
-//        } catch (RemoteException e) {
-//            e.printStackTrace();
-//        } catch (LoginAuthenticationExceptionException e) {
-//            e.printStackTrace();
-//        }
-//    }
 }

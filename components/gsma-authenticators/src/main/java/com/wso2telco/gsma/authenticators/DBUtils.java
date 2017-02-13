@@ -173,7 +173,7 @@ public class DBUtils {
      * @return the user response
      * @throws AuthenticatorException the authenticator exception
      */
-    public static String getUserRegistrationResponse(String sessionDataKey) throws AuthenticatorException {
+    public static String getAuthFlowStatus(String sessionDataKey) throws AuthenticatorException {
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet results = null;
@@ -467,7 +467,7 @@ public class DBUtils {
         return -1;
     }
 
-    public static String insertRegistrationStatus(String username, String status, String uuid) throws SQLException, AuthenticatorException {
+    public static String insertAuthFlowStatus(String username, String status, String uuid) throws SQLException, AuthenticatorException {
 
         Connection connection = null;
         PreparedStatement ps = null;

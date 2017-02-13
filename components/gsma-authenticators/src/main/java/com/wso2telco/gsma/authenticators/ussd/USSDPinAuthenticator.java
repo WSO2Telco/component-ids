@@ -15,6 +15,36 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.ussd;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.rmi.RemoteException;
+import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
+import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
+
 import com.wso2telco.Util;
 import com.wso2telco.core.config.model.PinConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
@@ -22,46 +52,13 @@ import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.config.util.PinConfigUtil;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
+import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.ussd.command.PinLoginUssdCommand;
 import com.wso2telco.gsma.authenticators.ussd.command.PinRegistrationUssdCommand;
 import com.wso2telco.gsma.authenticators.ussd.command.UssdCommand;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
 import com.wso2telco.gsma.authenticators.util.UserProfileManager;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.*;
-import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
-import org.wso2.carbon.identity.application.common.model.User;
-import org.wso2.carbon.identity.oauth.common.OAuthConstants;
-import org.wso2.carbon.identity.oauth.common.exception.InvalidOAuthClientException;
-import org.wso2.carbon.identity.oauth.dao.OAuthAppDAO;
-import org.wso2.carbon.identity.oauth.dao.OAuthAppDO;
-import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
-import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
-import org.wso2.carbon.user.api.UserRealm;
-import org.wso2.carbon.user.core.UserStoreManager;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.rmi.RemoteException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 
 // TODO: Auto-generated Javadoc
@@ -127,9 +124,13 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
         log.info("Initiating authentication request");
 
+        
+        if(context.getProperty(Constants.IS_PIN_RESET) == null) {
+        	context.setProperty(Constants.IS_PIN_RESET, false);
+        }
         String retryParam = "";
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-        boolean isPinReset = (boolean) context.getProperty(Constants.IS_PIN_RESET);
+        boolean isPinReset = (boolean)context.getProperty(Constants.IS_PIN_RESET);
         boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         String serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
@@ -156,6 +157,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             savePinConfigToContext(context, isRegistering, msisdn, isPinReset, isProfileUpgrade);
 
             if (!isPinReset) {
+            	DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
                 sendUssd(context, isRegistering, msisdn, serviceProviderName, operator);
             }
 
@@ -191,8 +193,10 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             if (isPinReset) {
                 pinConfig = PinConfigUtil.getPinConfig(context);
 
-                String challengeQuestionAndAnswer1 = new UserProfileManager().getChallengeQuestionAndAnswer1(msisdn);
-                String challengeQuestionAndAnswer2 = userProfileManager.getChallengeQuestionAndAnswer2(msisdn);
+                Map<String, String> challengeQuestionAnswerMap = new UserProfileManager().getChallengeQuestionAndAnswers(msisdn);
+                
+                String challengeQuestionAndAnswer1 = challengeQuestionAnswerMap.get(Constants.CHALLENGE_QUESTION_1_CLAIM);
+                String challengeQuestionAndAnswer2 = challengeQuestionAnswerMap.get(Constants.CHALLENGE_QUESTION_2_CLAIM);
 
                 pinConfig.setChallengeQuestion1(challengeQuestionAndAnswer1.split("!")[0]);
                 pinConfig.setChallengeQuestion2(challengeQuestionAndAnswer2.split("!")[0]);
@@ -411,8 +415,13 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
     private void retryAuthenticatorForPinReset(AuthenticationContext context) throws AuthenticationFailedException, RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
         log.info("Retrying authenticator for pin reset flow");
         String msisdn = (String) context.getProperty(Constants.MSISDN);
-        String challengeQuestionAndAnswer1 = new UserProfileManager().getChallengeQuestionAndAnswer1(msisdn);
-        String challengeQuestionAndAnswer2 = new UserProfileManager().getChallengeQuestionAndAnswer2(msisdn);
+        
+        
+        Map<String, String> challengeQuestionAnswerMap = new UserProfileManager().getChallengeQuestionAndAnswers(msisdn);
+        
+        String challengeQuestionAndAnswer1 = challengeQuestionAnswerMap.get(Constants.CHALLENGE_QUESTION_1_CLAIM);
+        String challengeQuestionAndAnswer2 = challengeQuestionAnswerMap.get(Constants.CHALLENGE_QUESTION_2_CLAIM);
+        
 
         String challengeQuestion1 = challengeQuestionAndAnswer1.split("!")[0];
         String challengeQuestion2 = challengeQuestionAndAnswer2.split("!")[0];
@@ -442,7 +451,6 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         String challengeQuestion1 = (String) context.getProperty(Constants.CHALLENGE_QUESTION_1);
         String challengeQuestion2 = (String) context.getProperty(Constants.CHALLENGE_QUESTION_2);
         String msisdn = (String) context.getProperty(Constants.MSISDN);
-        String operator = (String) context.getProperty(Constants.OPERATOR);
         PinConfig pinConfig = (PinConfig) context.getProperty(com.wso2telco.core.config.util.Constants.PIN_CONFIG_OBJECT);
 
         if (log.isDebugEnabled()) {
@@ -486,23 +494,13 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
     private void handleUserLogin(AuthenticationContext context) throws org.wso2.carbon.user.api.UserStoreException, AuthenticationFailedException, RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
 
-        String msisdn = (String) context.getProperty(Constants.MSISDN);
         PinConfig pinConfig = PinConfigUtil.getPinConfig(context);
-        String registeredPin = new UserProfileManager().getCurrentPin(msisdn);
-        String confirmedPin = pinConfig.getConfirmedPin();
 
-        int tenantId = -1234;
-        UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService()
-                .getTenantUserRealm(tenantId);
-
-        if (userRealm != null) {
-            UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
-            String profilePin = userStoreManager.getUserClaimValue(msisdn, PIN_CLAIM, null);
-
+        if (pinConfig != null) {
             validatePin(pinConfig, context);
 
         } else {
-            throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: " + tenantId);
+            throw new AuthenticationFailedException("Cannot find pin information ");
         }
     }
 
@@ -518,14 +516,6 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         }
     }
 
-    private void saveLoa3PropertiesToContext(HttpServletRequest request, AuthenticationContext context) {
-
-        context.setProperty(Constants.CHALLENGE_QUESTION_1, request.getParameter(Constants.CHALLENGE_QUESTION_1));
-        context.setProperty(Constants.CHALLENGE_QUESTION_2, request.getParameter(Constants.CHALLENGE_QUESTION_2));
-        context.setProperty(Constants.CHALLENGE_ANSWER_1, request.getParameter(Constants.CHALLENGE_ANSWER_1));
-        context.setProperty(Constants.CHALLENGE_ANSWER_2, request.getParameter(Constants.CHALLENGE_ANSWER_2));
-        context.setProperty(Constants.NO_OF_ATTEMPTS, 0);
-    }
 
     private String getAuthEndpointUrl(AuthenticationContext context) {
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
@@ -545,69 +535,6 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         return loginPage;
     }
 
-    /**
-     * Gets the hashed pin.
-     *
-     * @param pinvalue the pinvalue
-     * @return the hashed pin
-     */
-    private String getHashedPin(String pinvalue) {
-        String hashString = "";
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(pinvalue.getBytes("UTF-8"));
-
-            StringBuilder hexString = new StringBuilder();
-
-            for (int i = 0; i < hash.length; i++) {
-                String hex = Integer.toHexString(0xff & hash[i]);
-                if (hex.length() == 1) {
-                    hexString.append('0');
-                }
-                hexString.append(hex);
-            }
-
-            hashString = hexString.toString();
-
-        } catch (UnsupportedEncodingException ex) {
-            log.error("Error while generating hash value", ex);
-        } catch (NoSuchAlgorithmException ex) {
-            log.error("Error while generating hash value", ex);
-        }
-
-        return hashString;
-
-    }
-
-
-    /**
-     * Gets the app information.
-     *
-     * @param clientID the client id
-     * @return the app information
-     * @throws IdentityOAuth2Exception     the identity o auth2 exception
-     * @throws InvalidOAuthClientException the invalid o auth client exception
-     */
-    private static OAuthAppDO getAppInformation(String clientID)
-            throws IdentityOAuth2Exception, InvalidOAuthClientException {
-        BaseCache<String, OAuthAppDO> appInfoCache = new BaseCache<String, OAuthAppDO>(
-                "AppInfoCache"); //$NON-NLS-1$
-        if (null != appInfoCache) {
-            if (log.isDebugEnabled()) {
-                log.debug("Successfully created AppInfoCache under " //$NON-NLS-1$
-                        + OAuthConstants.OAUTH_CACHE_MANAGER);
-            }
-        }
-
-        OAuthAppDO oAuthAppDO = appInfoCache.getValueFromCache(clientID);
-        if (oAuthAppDO != null) {
-            return oAuthAppDO;
-        } else {
-            oAuthAppDO = new OAuthAppDAO().getAppInformation(clientID);
-            appInfoCache.addToCache(clientID, oAuthAppDO);
-            return oAuthAppDO;
-        }
-    }
 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#retryAuthenticationEnabled()
@@ -641,24 +568,4 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         return Constants.USSDPIN_AUTHENTICATOR_NAME;
     }
 
-    /**
-     * The Enum UserResponse.
-     */
-    private enum UserResponse {
-
-        /**
-         * The pending.
-         */
-        PENDING,
-
-        /**
-         * The approved.
-         */
-        APPROVED,
-
-        /**
-         * The rejected.
-         */
-        REJECTED
-    }
 }
