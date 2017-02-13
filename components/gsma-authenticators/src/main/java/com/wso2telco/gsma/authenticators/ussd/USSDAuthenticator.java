@@ -15,6 +15,26 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.ussd;
 
+import java.io.IOException;
+import java.rmi.RemoteException;
+import java.sql.SQLException;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
+import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
+
 import com.wso2telco.Util;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
@@ -26,29 +46,6 @@ import com.wso2telco.gsma.authenticators.ussd.command.RegistrationUssdCommand;
 import com.wso2telco.gsma.authenticators.ussd.command.UssdCommand;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.UserProfileManager;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
-import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
-import org.wso2.carbon.identity.oauth.common.OAuthConstants;
-import org.wso2.carbon.identity.oauth.common.exception.InvalidOAuthClientException;
-import org.wso2.carbon.identity.oauth.dao.OAuthAppDAO;
-import org.wso2.carbon.identity.oauth.dao.OAuthAppDO;
-import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.rmi.RemoteException;
-import java.util.Map;
 
 // TODO: Auto-generated Javadoc
 //import org.wso2.carbon.identity.core.dao.OAuthAppDAO;
@@ -71,32 +68,9 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
     private static Log log = LogFactory.getLog(USSDAuthenticator.class);
 
     /**
-     * The Constant PIN_CLAIM.
-     */
-    private static final String PIN_CLAIM = "http://wso2.org/claims/pin";
-
-    /**
      * The Configuration service
      */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
-
-    private static final String CLAIM = "http://wso2.org/claims";
-
-    private static final String OPERATOR_CLAIM_NAME = "http://wso2.org/claims/operator";
-
-    private static final String LOA_CLAIM_NAME = "http://wso2.org/claims/loa";
-
-    private static final String SCOPE_MNV = "mnv";
-
-    private static final String LOA_CPI_VALUE = "1";
-
-    private static final String LOA_MNV_VALUE = "2";
-
-    private static final String SCOPE_OPENID = "openid";
-
-    private static final String SCOPE_CPI = "cpi";
-
-    private static final String MOBILE_CLAIM_NAME = "http://wso2.org/claims/mobile";
 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
@@ -159,6 +133,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             }
             String operator = (String) context.getProperty(Constants.OPERATOR);
 
+            DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
             sendUssd(context, msisdn, serviceProviderName, operator, isUserExists);
 
             if (log.isDebugEnabled()) {
@@ -168,7 +143,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" + (String) context.getProperty("redirectURI") + "&authenticators="
                     + getName() + ":" + "LOCAL" + retryParam);
 
-        } catch (IOException e) {
+        } catch (IOException | SQLException | AuthenticatorException e) {
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
     }
@@ -178,7 +153,6 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         String loginPage;
 
         if (isRegistering) {
-            context.setProperty(Constants.IS_REGISTERING, true);
             loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.REGISTRATION_WAITING_JSP;
         } else {
             loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
@@ -238,7 +212,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         }
 
         try {
-            String responseStatus = DBUtils.getUserRegistrationResponse(sessionDataKey);
+            String responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
 
             if (responseStatus != null && responseStatus.equalsIgnoreCase(UserResponse.APPROVED.toString())) {
 
@@ -263,36 +237,6 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
         if (rememberMe != null && "on".equals(rememberMe)) {
             context.setRememberMe(true);
-        }
-    }
-
-
-    /**
-     * Gets the app information.
-     *
-     * @param clientID the client id
-     * @return the app information
-     * @throws IdentityOAuth2Exception     the identity o auth2 exception
-     * @throws InvalidOAuthClientException the invalid o auth client exception
-     */
-    private static OAuthAppDO getAppInformation(String clientID)
-            throws IdentityOAuth2Exception, InvalidOAuthClientException {
-        BaseCache<String, OAuthAppDO> appInfoCache = new BaseCache<String, OAuthAppDO>(
-                "AppInfoCache"); //$NON-NLS-1$
-        if (null != appInfoCache) {
-            if (log.isDebugEnabled()) {
-                log.debug("Successfully created AppInfoCache under " //$NON-NLS-1$
-                        + OAuthConstants.OAUTH_CACHE_MANAGER);
-            }
-        }
-
-        OAuthAppDO oAuthAppDO = appInfoCache.getValueFromCache(clientID);
-        if (oAuthAppDO != null) {
-            return oAuthAppDO;
-        } else {
-            oAuthAppDO = new OAuthAppDAO().getAppInformation(clientID);
-            appInfoCache.addToCache(clientID, oAuthAppDO);
-            return oAuthAppDO;
         }
     }
 

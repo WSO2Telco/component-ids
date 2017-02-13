@@ -126,7 +126,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             }
 
             //MSISDN will be saved in the context in the MSISDNAuthenticator
-            String msisdn = (String) context.getProperty("msisdn");
+            String msisdn = (String) context.getProperty(Constants.MSISDN);
             Application application = new Application();
 
             MobileConnectConfig connectConfig = configurationService.getDataHolder().getMobileConnectConfig();
@@ -159,6 +159,8 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                 log.debug("Message: " + messageText);
                 log.debug("Operator: " + operator);
             }
+            
+            DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
             String smsResponse = new SendSMS().sendSMS(msisdn, messageText, operator);
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&authenticators=" +
                     getName() + ":" + "LOCAL" + retryParam);

@@ -18,7 +18,7 @@
  */
 function cancelProcessToRegister() {
 
-    window.location = "/commonauth/?isTerminated=true";
+    window.location = "/commonauth/?action=UpgradeRejected&sessionDataKey=" + sessionDataKey;
 
 }
 
@@ -143,94 +143,13 @@ function registration() {
         success: function (result) {
             if (result.status == "S1000") {
 
-                window.location = "/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
-                    + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true&domain=" + domain
-                    + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str
-                    + "&isTerminated=false&isRegistrationProceeding=true";
+                window.location = "/commonauth/?sessionDataKey=" + sessionDataKey + "&action=UpgradeConsent";
 
             }
         }
     });
 
-    // var f = document.createElement('form');
-    // f.action = '/authenticationendpoint/mcx-user-registration/waiting.jsp';
-    // f.method = 'POST';
-    // var i;
-    //
-    // for (var key in values) {
-    //     console.log(key + " : " + values[key]);
-    //     /*alert(key +" : "+values[key]);*/
-    //     i = document.createElement('input');
-    //     i.type = 'hidden';
-    //     i.name = key;
-    //     i.value = values[key];
-    //     f.appendChild(i);
-    // }
-    //
-    // document.body.appendChild(f);
-    // f.submit();
 
-/*    window.location = "/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
-        + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true&domain=" + domain
-        + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str + "&pwd=" + pwd
-        + "&token=" + tokenVal;*/
-
-    // var commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
-    //     + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true"
-    //     + "&acr_code=" + acr_code + "&authenticator=" + authenticator + "&domain=";
-
-    // window.location = commonAuthURL;
-
-    // $.ajax({
-    //     type: "GET",
-    //     url: strBack,
-    //     data: values,
-    //     dataType: "text",
-    //     async: false
-    // }).done(function (data) {
-    //
-    //     if (data && data.toString() == 'true') {
-    //
-    //         var msg = "User Name is already exist";
-    //
-    //         return true;
-    //
-    //     } else {
-    //         if (callbackUrl) {
-    //             window.location = callbackUrl + "&operator=" + operator;
-    //         } else if (msisdn_header && msisdn_header == "true" && acr_code == "USSDAuthenticator") {
-    //             console.log("HE Registration selfautherizing.....");
-    //             selfAuthorize(sessionDataKey, msisdn_header_enc_str, operator);
-    //         } else {
-    //             //Delete previous code after refactoring
-    //             //var f = document.createElement('form');
-    //             //f.action='/authenticationendpoint/mcx-user-registration/waiting.jsp';
-    //             //f.method='POST';
-    //             //var i;
-    //             //
-    //             //for (var key in values) {
-    //             //    console.log(key +" : "+values[key]);
-    //             //    /*alert(key +" : "+values[key]);*/
-    //             //    i=document.createElement('input');
-    //             //    i.type='hidden';
-    //             //    i.name=key;
-    //             //    i.value=values[key];
-    //             //    f.appendChild(i);
-    //             //}
-    //             //
-    //             //document.body.appendChild(f);
-    //             //f.submit();
-    //             var commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
-    //                 + "&msisdn=" + msisdn_header_str
-    //                 + "&msisdn_header=" + msisdn_header_enc_str
-    //                 + "&operator=" + operator
-    //                 + "&isRegistration=true";
-    //
-    //             window.location = commonAuthURL;
-    //
-    //         }
-    //     }
-    // });
 
 
 }

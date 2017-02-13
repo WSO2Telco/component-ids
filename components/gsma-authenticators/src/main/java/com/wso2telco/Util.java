@@ -4,14 +4,22 @@ import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
+import com.wso2telco.gsma.manager.client.ClaimManagementClient;
+import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.apache.http.impl.nio.client.HttpAsyncClients;
+import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -79,4 +87,23 @@ public class Util {
         }
         return paramMap;
     }
+    
+    public static boolean isProfileUpgrade(String msisdn, int requestedLoa, boolean isUserExits) throws RemoteException, LoginAuthenticationExceptionException, RemoteUserStoreManagerServiceUserStoreExceptionException, AuthenticationFailedException, UserStoreException {
+
+        if (isUserExits) {
+            String adminURL = configurationService.getDataHolder().getMobileConnectConfig().getAdminUrl();
+            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
+            String sessionCookie = lAdmin.authenticate(configurationService.getDataHolder().getMobileConnectConfig().getAdminUsername(),
+                    configurationService.getDataHolder().getMobileConnectConfig().getAdminPassword());
+            ClaimManagementClient claimManager = new ClaimManagementClient(adminURL, sessionCookie);
+            int registeredLoa = Integer.parseInt(claimManager.getRegisteredLOA(msisdn));
+
+            return requestedLoa > registeredLoa;
+        } else {
+            return false;
+        }
+
+    }
+    
+    
 }
