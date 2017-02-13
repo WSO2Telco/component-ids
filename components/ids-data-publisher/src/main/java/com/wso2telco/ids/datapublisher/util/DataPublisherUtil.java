@@ -251,111 +251,78 @@ public class DataPublisherUtil {
      * construct and publish TokenEndpointData event
      * @param tokenMap
      */
-    public static void publishTokenEndpointData(Map<String, String> tokenMap){
+    public static void publishTokenEndpointData(Map<String, String> tokenMap) {
         List<Object> tokenEndpointData = new ArrayList<Object>(17);
 
-        if (tokenMap.get("AuthenticatedUser") != null && !tokenMap.get("AuthenticatedUser").isEmpty() ) {
+        if (tokenMap.get("AuthenticatedUser") != null && !tokenMap.get("AuthenticatedUser").isEmpty()) {
             tokenEndpointData.add(tokenMap.get("AuthenticatedUser"));
+        } else {
+            tokenEndpointData.add(null);
         }
-        else {tokenEndpointData.add(null);
-        }
-
-
-        if (tokenMap.get("State") != null && !tokenMap.get("State").isEmpty() ) {
+        if (tokenMap.get("State") != null && !tokenMap.get("State").isEmpty()) {
             tokenEndpointData.add(tokenMap.get("State"));
+        } else {
+            tokenEndpointData.add(null);
         }
-        else {tokenEndpointData.add(null);
-        }
-
-        if (tokenMap.get("Nonce") != null && !tokenMap.get("Nonce").isEmpty() ) {
+        if (tokenMap.get("Nonce") != null && !tokenMap.get("Nonce").isEmpty()) {
             tokenEndpointData.add(tokenMap.get("Nonce"));
+        } else {
+            tokenEndpointData.add(null);
         }
-        else {tokenEndpointData.add(null);
-        }
-
-        if (tokenMap.get("Amr") != null && !tokenMap.get("Amr").isEmpty() ) {
+        if (tokenMap.get("Amr") != null && !tokenMap.get("Amr").isEmpty()) {
             tokenEndpointData.add(tokenMap.get("Amr"));
+        } else {
+            tokenEndpointData.add(null);
         }
-        else {tokenEndpointData.add(null);
-        }
-
-        if (tokenMap.get("AuthenticationCode") != null && !tokenMap.get("AuthenticationCode").isEmpty() ) {
+        if (tokenMap.get("AuthenticationCode") != null && !tokenMap.get("AuthenticationCode").isEmpty()) {
             tokenEndpointData.add(tokenMap.get("AuthenticationCode"));
+        } else {
+            tokenEndpointData.add(null);
         }
-        else {tokenEndpointData.add(null);
-        }
-
-        if (tokenMap.get("AccessToken") != null && !tokenMap.get("AccessToken").isEmpty() ) {
+        if (tokenMap.get("AccessToken") != null && !tokenMap.get("AccessToken").isEmpty()) {
             tokenEndpointData.add(tokenMap.get("AccessToken"));
+        } else {
+            tokenEndpointData.add(null);
         }
-        else {tokenEndpointData.add(null);
-        }
-
-        if (tokenMap.get("SourceIP") != null && !tokenMap.get("SourceIP").isEmpty() ) {
-            tokenEndpointData.add(tokenMap.get("SourceIP"));
-        }
-        else {tokenEndpointData.add(null);
-        }
-
-        if (tokenMap.get("ContentType") != null && !tokenMap.get("ContentType").isEmpty() ) {
+        if (tokenMap.get("ContentType") != null && !tokenMap.get("ContentType").isEmpty()) {
             tokenEndpointData.add(tokenMap.get("ContentType"));
+        } else {
+            tokenEndpointData.add(null);
         }
-        else {tokenEndpointData.add(null);
-        }
-        if (tokenMap.get("ClientId") != null && !tokenMap.get("ClientId").isEmpty() ) {
+        if (tokenMap.get("ClientId") != null && !tokenMap.get("ClientId").isEmpty()) {
             tokenEndpointData.add(tokenMap.get("ClientId"));
+        } else {
+            tokenEndpointData.add(null);
         }
-        else {tokenEndpointData.add(null);
-        }
-
-        if (tokenMap.get("Payload") != null && !tokenMap.get("Payload").isEmpty() ) {
-            tokenEndpointData.add(tokenMap.get("Payload"));
-        }
-        else {tokenEndpointData.add(null);
-        }
-
-        if (tokenMap.get("RefreshToken") != null && !tokenMap.get("RefreshToken").isEmpty() ) {
+        if (tokenMap.get("RefreshToken") != null && !tokenMap.get("RefreshToken").isEmpty()) {
             tokenEndpointData.add(tokenMap.get("RefreshToken"));
+        } else {
+            tokenEndpointData.add(null);
         }
-        else {tokenEndpointData.add(null);
-        }
-
-        if (tokenMap.get("TokenClaims") != null && !tokenMap.get("TokenClaims").isEmpty() ) {
+        if (tokenMap.get("TokenClaims") != null && !tokenMap.get("TokenClaims").isEmpty()) {
             tokenEndpointData.add(tokenMap.get("TokenClaims"));
+        } else {
+            tokenEndpointData.add(null);
         }
-        else {tokenEndpointData.add(null);
-        }
-        if (tokenMap.get("RequestStatus") != null && !tokenMap.get("RequestStatus").isEmpty() ) {
-            tokenEndpointData.add(tokenMap.get("RequestStatus"));
-        }
-        else {tokenEndpointData.add(null);
-        }
-
-        if (tokenMap.get("ReturnedResult") != null && !tokenMap.get("ReturnedResult").isEmpty() ) {
+        if (tokenMap.get("ReturnedResult") != null && !tokenMap.get("ReturnedResult").isEmpty()) {
             tokenEndpointData.add(tokenMap.get("ReturnedResult"));
+        } else {
+            tokenEndpointData.add(null);
         }
-        else {tokenEndpointData.add(null);
-        }
-
-
-        if (tokenMap.get("StatusCode") != null && !tokenMap.get("StatusCode").isEmpty() ) {
+        if (tokenMap.get("StatusCode") != null && !tokenMap.get("StatusCode").isEmpty()) {
             tokenEndpointData.add(tokenMap.get("StatusCode"));
+        } else {
+            tokenEndpointData.add(null);
         }
-        else {tokenEndpointData.add(null);
-        }
-
-
-        if (tokenMap.get("sessionId") != null && !tokenMap.get("sessionId").isEmpty() ) {
+        if (tokenMap.get("sessionId") != null && !tokenMap.get("sessionId").isEmpty()) {
             tokenEndpointData.add(tokenMap.get("sessionId"));
+        } else {
+            tokenEndpointData.add(null);
         }
-        else {tokenEndpointData.add(null);
-        }
-
-
         tokenEndpointData.add(System.currentTimeMillis());
 
         IdsAgent.getInstance().publish(TOKEN_ENDPOINT_STREAM_NAME,
-                                       TOKEN_ENDPOINT_STREAM_VERSION, System.currentTimeMillis(), tokenEndpointData.toArray());
+                TOKEN_ENDPOINT_STREAM_VERSION, System.currentTimeMillis(), tokenEndpointData.toArray());
     }
 
     public static void setContextData(AuthenticationContext context, HttpServletRequest request) {
