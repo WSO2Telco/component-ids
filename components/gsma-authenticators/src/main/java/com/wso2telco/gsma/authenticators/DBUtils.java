@@ -18,7 +18,6 @@ package com.wso2telco.gsma.authenticators;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.MSISDNHeader;
-import com.wso2telco.gsma.authenticators.model.UserStatus;
 import com.wso2telco.gsma.authenticators.ussd.Pinresponse;
 import com.wso2telco.gsma.authenticators.util.TableName;
 import org.apache.commons.logging.Log;
@@ -726,6 +725,7 @@ public class DBUtils {
         return authenticatorSet;
     }
 
+    /*
     public static int saveStatusData(UserStatus userStatus) throws SQLException,AuthenticatorException {
         Connection conn = null;
         PreparedStatement ps = null;
@@ -765,6 +765,8 @@ public class DBUtils {
         }
         return -1;
     }
+*/
+
 
     public static void insertHashKeyContextIdentifierMapping(String hashKey, String contextIdentifier)
             throws AuthenticatorException {

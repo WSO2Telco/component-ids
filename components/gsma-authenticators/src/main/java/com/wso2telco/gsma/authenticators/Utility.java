@@ -16,114 +16,24 @@
 
 package com.wso2telco.gsma.authenticators;
 
-import com.wso2telco.gsma.authenticators.model.UserStatus;
 import com.wso2telco.ids.datapublisher.IdsAgent;
+import com.wso2telco.ids.datapublisher.model.UserStatus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 public class Utility {
 
     private static Log log = LogFactory.getLog(Utility.class);
 
-    public static void setValueFromRequest(HttpServletRequest request,
-                                           AuthenticationContext context, UserStatus uStatus) {
 
-        if (request.getParameter("msisdn_header") != null) {
-            uStatus.setMsisdn(request.getParameter("msisdn_header"));
-        }
-        if (request.getParameter("operator") != null) {
-            uStatus.setOperator(request.getParameter("operator"));
-        }
-        if (request.getParameter("nonce") != null) {
-            uStatus.setNonce(request.getParameter("nonce"));
-        }
-        ;
-        if (request.getParameter("state") != null) {
-            uStatus.setState(request.getParameter("state"));
-        }
-        if (request.getParameter("scope") != null) {
-            uStatus.setScope(request.getParameter("scope"));
-        }
-        if (request.getParameter("telco_scope") != null) {
-            uStatus.setTelcoScope(request.getParameter("telco_scope"));
-        }
-        if (request.getParameter("acr_values") != null) {
-            uStatus.setAcrValue(request.getParameter("acr_values"));
-        }
-        if (request.getParameter("ipAddress") != null) {
-            uStatus.setIpHeader(request.getParameter("ipAddress"));
-        }
-        if (request.getParameter("login_hint") != null) {
-            uStatus.setLoginHint(request.getParameter("login_hint"));
-        }
-        if (request.getHeader("User-Agent") != null) {
-            uStatus.setUserAgent(request.getHeader("User-Agent"));
-        }
-
-        uStatus.setSessionId(resolveSessionID(request, context));
-
-        String msisdnHeader = request.getParameter("msisdn_header");
-        if (msisdnHeader != null && !msisdnHeader.isEmpty()) {
-            uStatus.setIsMsisdnHeader(1);
-        } else {
-            uStatus.setIsMsisdnHeader(0);
-        }
-    }
-
-    public static void setValueFromContext(HttpServletRequest request,
-                                           AuthenticationContext context, UserStatus uStatus) {
-
-        Map<String, String> paramMap = new LinkedHashMap<String, String>();
-        String params = context.getQueryParams();
-        String[] pairs = params.split("&");
-
-        for (String pair : pairs) {
-            int idx = pair.indexOf("=");
-
-            paramMap.put(pair.substring(0, idx), pair.substring(idx + 1));
-        }
-        uStatus.setMsisdn((String) context.getProperty("msisdn"));
-        uStatus.setOperator((String) context.getProperty("operator"));
-        uStatus.setSessionId((String) context.getProperty(Constants.TRANSACTION_ID));
-
-        if (paramMap.get("nonce") != null) {
-            uStatus.setNonce(paramMap.get("nonce"));
-        } else {
-
-            uStatus.setNonce(request.getParameter("nonce"));
-        }
-
-        if (paramMap.get("state") != null) {
-
-            uStatus.setState(paramMap.get("state"));
-        } else {
-
-            uStatus.setState(request.getParameter("state"));
-        }
-
-        if (paramMap.get("scope") != null) {
-            uStatus.setScope(paramMap.get("scope"));
-        } else {
-            uStatus.setScope(request.getParameter("scope"));
-        }
-
-        if (paramMap.get("acr_values") != null) {
-            uStatus.setAcrValue(paramMap.get("acr_values"));
-        } else {
-            uStatus.setAcrValue(request.getParameter("acr_values"));
-        }
-        if (paramMap.get("telco_scope") != null) {
-            uStatus.setTelcoScope(paramMap.get("telco_scope"));
-        } else {
-            uStatus.setTelcoScope(request.getParameter("telco_scope"));
-        }
-
-    }
-
+    /*
     public static void saveUSSD(UserStatus userStatus) {
 
         try {
@@ -132,6 +42,7 @@ public class Utility {
             log.error("error occurred : " + e.getMessage());
         }
     }
+    */
 
     /**
      * construct and publish UserStatusMetaData event

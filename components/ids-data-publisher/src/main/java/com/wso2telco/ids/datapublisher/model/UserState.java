@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.wso2telco.gsma.authenticators.model;
+package com.wso2telco.ids.datapublisher.model;
 
 public enum UserState {
 
@@ -38,5 +38,14 @@ public enum UserState {
 
     REG_USER_TOKEN_FAIL,
     IP_HEADER_NOT_IN_RANGE,
-    IP_HEADER_NOT_FOUND;
+    IP_HEADER_NOT_FOUND,
+
+
+    CONFIGURATION_ERROR,
+    LOGIN_HINT_INVALID,
+    LOGIN_HINT_MISMATCH,
+    MSISDN_INVALID,
+    PROXY_REQUEST_FORWARDED_TO_IS,
+    PROXY_PROCESSING,
+    OTHER;
 }

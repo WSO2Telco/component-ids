@@ -59,4 +59,6 @@ public class AuthProxyConstants {
     public static final String HEADER_MISMATCH_RESULT = "headerMismatchResult";
     public static final String HE_FAILURE_RESULT = "heFailureResult";
     public static final String LOGIN_HINT_MSISDN = "loginhintMsisdn";
+    public static final String CLIENT_ID = "client_id";
+
 }
