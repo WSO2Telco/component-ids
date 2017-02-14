@@ -339,6 +339,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             }
             context.setProperty("redirectURI", request.getParameter("redirect_uri"));
 
+            populateAuthEndpointData(request, context);
+
             String ipAddress = (String) context.getProperty(Constants.IP_ADDRESS);
             if (ipAddress == null || StringUtils.isEmpty(ipAddress)) {
                 ipAddress = retriveIPAddress(request);
