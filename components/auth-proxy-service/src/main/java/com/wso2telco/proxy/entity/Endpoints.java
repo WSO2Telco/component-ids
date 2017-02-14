@@ -136,7 +136,14 @@ public class Endpoints {
         AuthenticationContext authenticationContext = new AuthenticationContext();
         UserStatus userStatus = DataPublisherUtil.buildUserStatusFromRequest(httpServletRequest,
                                                                              authenticationContext);
-        userStatus.setInitialRequestUUID(UUID.randomUUID().toString());
+        //check for forwarded trn Id
+        String transactionId = DataPublisherUtil.resolveSessionID(httpServletRequest, authenticationContext);
+        if (StringUtils.isEmpty(transactionId)) {
+            //generate new trn id
+            transactionId = UUID.randomUUID().toString();
+        }
+
+        userStatus.setTransactionId(transactionId);
         userStatus.setConsumerKey(((ContainerRequest) httpHeaders).getQueryParameters().getFirst(
                 AuthProxyConstants.CLIENT_ID));
 
@@ -241,7 +248,7 @@ public class Endpoints {
                     redirectUrlInfo.setQueryString(queryString);
                     redirectUrlInfo.setIpAddress(ipAddress);
                     redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
-                    redirectUrlInfo.setTransactionId(userStatus.getInitialRequestUUID());
+                    redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
                     redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
 
                     DataPublisherUtil.updateAndPublishUserStatus(

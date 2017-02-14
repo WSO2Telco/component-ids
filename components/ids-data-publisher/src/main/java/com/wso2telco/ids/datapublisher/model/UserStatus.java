@@ -25,7 +25,7 @@ public class UserStatus {
     private String appId;
     private String telcoScope;
     private String xForwardIP;
-    private String initialRequestUUID;
+    private String transactionId;
 
     public String getxForwardIP() {
         return xForwardIP;
@@ -135,12 +135,12 @@ public class UserStatus {
         return telcoScope;
     }
 
-    public void setInitialRequestUUID(String initialRequestUUID) {
-        this.initialRequestUUID = initialRequestUUID;
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
     }
 
-    public String getInitialRequestUUID() {
-        return initialRequestUUID;
+    public String getTransactionId() {
+        return transactionId;
     }
 
     private UserStatus(UserStatusBuilder builder) {

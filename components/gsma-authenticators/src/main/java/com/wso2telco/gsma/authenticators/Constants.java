@@ -290,7 +290,7 @@ public final class Constants {
 
     public static final String SAA_ENPOINT = "Endpoint";
 
-    public static final String INITIAL_REQUEST_UUID = "TransactionId";
+    public static final String TRANSACTION_ID = "TransactionId";
 
     public static final String USER_STATUS_STREAM_NAME = "com.wso2telco.userstatus";
 
