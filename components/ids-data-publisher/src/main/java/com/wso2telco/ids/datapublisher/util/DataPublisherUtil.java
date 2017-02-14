@@ -5,15 +5,17 @@ import com.wso2telco.ids.datapublisher.IdsAgent;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 
-import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import javax.servlet.http.HttpServletRequest;
 
 public class DataPublisherUtil {
 
@@ -33,13 +35,30 @@ public class DataPublisherUtil {
     public static final String TOKEN_ENDPOINT_STREAM_NAME = "com.wso2telco.token.endpoint";
     public static final String TOKEN_ENDPOINT_STREAM_VERSION = "1.0.0";
 
+    public static final String OAUTH2_CLIENT_TYPE = "oauth2";
+
+    private static ApplicationManagementService applicationManagementService;
+
+    public static void setApplicationManagementService(ApplicationManagementService applicationMgtService) {
+        applicationManagementService = applicationMgtService;
+    }
 
     public static UserStatus buildUserStatusFromRequest(HttpServletRequest request, AuthenticationContext context) {
         UserStatus.UserStatusBuilder userStatusBuilder = new UserStatus
                 .UserStatusBuilder(resolveSessionID(request, context));
+        String appId = null;
+        try {
+            appId = applicationManagementService != null ?
+                    applicationManagementService
+                            .getServiceProviderNameByClientId(request.getParameter("client_id"), OAUTH2_CLIENT_TYPE,
+                                    CarbonContext.getThreadLocalCarbonContext().getTenantDomain()) :
+                    null;
+        } catch (IdentityApplicationManagementException e) {
+            log.warn("An error occurred while obtaining Service Provider name");
+        }
 
         return userStatusBuilder
-                .appId(context.getSequenceConfig() == null ? null : context.getSequenceConfig().getApplicationId())
+                .appId(appId)
                 .msisdn(request.getParameter("msisdn_header"))
                 .operator(request.getParameter("operator"))
                 .nonce(request.getParameter("operator"))
@@ -47,42 +66,14 @@ public class DataPublisherUtil {
                 .scope(request.getParameter("scope"))
                 .telcoScope(request.getParameter("telco_scope"))
                 .acrValue(request.getParameter("acr_values"))
-                .ipHeader(request.getParameter("ipAddress"))
-                .loginHint(request.getParameter("login_hint"))
+                .ipHeader(request.getParameter("ipAddress")).loginHint(request.getParameter("login_hint"))
                 .userAgent(request.getHeader("User-Agent"))
+                .transactionId(request.getParameter("transactionId"))
                 .build();
     }
 
     public static UserStatus getInitialUserStatusObject(HttpServletRequest request, AuthenticationContext context) {
         return buildUserStatusFromRequest(request, context);
-    }
-
-    public static UserStatus buildUserStatusFromContext(HttpServletRequest request,
-            AuthenticationContext context) {
-
-        UserStatus.UserStatusBuilder userStatusBuilder = new UserStatus
-                .UserStatusBuilder((String) context.getProperty(TRANSACTION_ID));
-        Map<String, String> paramMap = new LinkedHashMap<String, String>();
-        String params = context.getQueryParams();
-        String[] pairs = params.split("&");
-
-        for (String pair : pairs) {
-            int idx = pair.indexOf("=");
-
-            paramMap.put(pair.substring(0, idx), pair.substring(idx + 1));
-        }
-
-        return userStatusBuilder
-                .msisdn((String) context.getProperty("msisdn"))
-                .operator((String) context.getProperty("operator"))
-                .nonce(paramMap.get("nonce") != null ? paramMap.get("nonce") : request.getParameter("nonce"))
-                .state(paramMap.get("state") != null ? paramMap.get("state") : request.getParameter("state"))
-                .scope(paramMap.get("scope") != null ? paramMap.get("scope") : request.getParameter("scope"))
-                .acrValue(paramMap.get("acr_values") != null ? paramMap.get("acr_values")
-                        : request.getParameter("acr_values"))
-                .telcoScope(paramMap.get("telco_scope") != null ? paramMap.get("telco_scope")
-                        : request.getParameter("telco_scope"))
-                .build();
     }
 
     public static String resolveSessionID(HttpServletRequest request,
@@ -542,8 +533,8 @@ public class DataPublisherUtil {
         if(request.getParameter("operator")!=null){
             context.setProperty("operator",request.getParameter("operator") );
         }
-        if(request.getParameter("msisdn")!=null){
-            context.setProperty("msisdn",request.getParameter("msisdn") );
+        if(request.getParameter("msisdn")!=null) {
+            context.setProperty("msisdn",request.getParameter("msisdn"));
         }
         String sessionId = resolveSessionID(request, context);
         context.setProperty(TRANSACTION_ID, sessionId);
@@ -579,8 +570,7 @@ public class DataPublisherUtil {
         }
     }
 
-    public static void publishInvalidRequest(HttpServletRequest request,
-                                             AuthenticationContext context) {
+    public static void publishInvalidRequest(HttpServletRequest request, AuthenticationContext context) {
 
         UserStatus uStatus = buildUserStatusFromRequest(request, context);
         uStatus.setStatus(UserState.INVALID_REQUEST.name());
