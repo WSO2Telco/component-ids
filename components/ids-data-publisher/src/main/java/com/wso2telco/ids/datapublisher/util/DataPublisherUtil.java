@@ -412,7 +412,7 @@ public class DataPublisherUtil {
                 .isEnabled();
         if (dataPublishingEnabled) {
             if (userState != null) {
-                userStatus.setState(userState.name());
+                userStatus.setStatus(userState.name());
                 userStatus.setComment(comment);
                 publishUserStatusData(userStatus);
             }
@@ -453,7 +453,7 @@ public class DataPublisherUtil {
         MSISDN_INVALID,
         PROXY_REQUEST_FORWARDED_TO_IS,
         PROXY_PROCESSING,
-        OTHER;
+        OTHER_ERROR;
 
     }
 }

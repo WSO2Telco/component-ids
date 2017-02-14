@@ -142,10 +142,15 @@ public class Endpoints {
 
         userStatus.setStatus(DataPublisherUtil.UserState.PROXY_PROCESSING.name());
         DataPublisherUtil.publishUserStatusMetaData(userStatus);
+        DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.PROXY_PROCESSING,null);
 
 
         if (!configurationService.getDataHolder().getMobileConnectConfig().isSpValidationDisabled() && !isValidScope(scopeName, clientId)) {
-            log.error("Scope [ " + scopeName + " ] is not allowed for client [ " + clientId + " ]");
+            String errMsg = "Scope [ " + scopeName + " ] is not allowed for client [ " + clientId + " ]";
+            log.error(errMsg);
+            DataPublisherUtil.updateAndPublishUserStatus(
+                    userStatus, DataPublisherUtil.UserState.INVALID_REQUEST, errMsg);
+
             redirectURL = redirectURL + "?error=access_denied";
         } else {
             String loginHint = null;
@@ -238,21 +243,22 @@ public class Endpoints {
                     redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
                     redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
                     redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
+
+                    DataPublisherUtil.updateAndPublishUserStatus(
+                            userStatus,DataPublisherUtil.UserState.PROXY_REQUEST_FORWARDED_TO_IS, "Redirect URL : " + redirectURL);
                 }
             } catch(Exception e){
-                DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.OTHER,
-                                                             e.getMessage());
                 log.error("Exception : " + e.getMessage());
                 //todo: dynamically set error description depending on scope parameters
                 redirectURL = redirectURL + "?error=access_denied&error_description=" + e.getMessage();
+                DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.OTHER_ERROR,
+                                                             e.getMessage());
             }
 
             if (log.isDebugEnabled()) {
                 log.debug("redirectURL : " + redirectURL);
             }
         }
-        DataPublisherUtil.updateAndPublishUserStatus(
-                userStatus,DataPublisherUtil.UserState.PROXY_REQUEST_FORWARDED_TO_IS, "Redirect URL : " + redirectURL);
 
         httpServletResponse.sendRedirect(redirectURL);
     }
@@ -363,7 +369,7 @@ public class Endpoints {
         } catch (AuthenticatorException e) {
             String errMsg = "Error occurred while getting scope parameters from the database for the scope - " + scope;
 
-            DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.OTHER, errMsg);
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.OTHER_ERROR, errMsg);
 
             throw new AuthenticationFailedException(errMsg);
         }
