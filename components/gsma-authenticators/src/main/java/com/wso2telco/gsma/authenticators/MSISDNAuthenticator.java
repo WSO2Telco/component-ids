@@ -15,22 +15,16 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.wso2telco.Util;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
+import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
-import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.*;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -39,12 +33,12 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 
-import com.wso2telco.Util;
-import com.wso2telco.core.config.service.ConfigurationService;
-import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 // TODO: Auto-generated Javadoc
 
@@ -175,22 +169,22 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             	//We already have the MSISDN	
             	String userAction = request.getParameter(Constants.ACTION);
             	if(userAction != null && !userAction.isEmpty()) {
-            		
+                    // Change behaviour depending on user action
             		switch(userAction) {
-            			case "RegConsent":
-            				//User agreed to registration consent
-            			break;
-            			case "RegRejected":
-            				//User rejected to registration consent
-            				 terminateAuthentication(context);
-            			break;
-            			case "UpgradeConsent":
-            				//User rejected to registration consent
-            			break;
-            			case "UpgradeRejected":
-            				//User rejected to registration consent
-            				 terminateAuthentication(context);
-            			break;
+                        case Constants.USER_ACTION_REG_CONSENT:
+                            //User agreed to registration consent
+                            break;
+                        case Constants.USER_ACTION_REG_REJECTED:
+                            //User rejected to registration consent
+                            terminateAuthentication(context);
+                            break;
+                        case Constants.USER_ACTION_UPGRADE_CONSENT:
+                            //User agreed to registration consent
+                            break;
+                        case Constants.USER_ACTION_UPGRADE_REJECTED:
+                            //User rejected to registration consent
+                            terminateAuthentication(context);
+                            break;
             		}
             	} else {
                 	boolean isRegistering = (boolean)context.getProperty(Constants.IS_REGISTERING);
