@@ -32,6 +32,7 @@ public class RedirectUrlInfo {
     private boolean showTnc;
     private ScopeParam.msisdnMismatchResultTypes headerMismatchResult;
     private ScopeParam.heFailureResults heFailureResult;
+    private String transactionId;
 
     public String getQueryString() {
         return queryString;
@@ -119,5 +120,13 @@ public class RedirectUrlInfo {
 
     public ScopeParam.heFailureResults getHeFailureResult() {
         return heFailureResult;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
     }
 }

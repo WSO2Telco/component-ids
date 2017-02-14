@@ -23,7 +23,6 @@ import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.DecryptionAES;
-
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.lang.StringUtils;
@@ -48,8 +47,13 @@ import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 // TODO: Auto-generated Javadoc
@@ -104,10 +108,11 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled();
 
 		if (dataPublisherEnabled) {
-			UserStatus userStatus = DataPublisherUtil.getInitialUserStatusObject(request, context);
-			context.addParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM, userStatus);
-			DataPublisherUtil.publishUserStatusMetaData(userStatus);
-		}
+            UserStatus userStatus = DataPublisherUtil.getInitialUserStatusObject(request, context);
+            userStatus.setTransactionId(request.getParameter(Constants.TRANSACTION_ID));
+            context.addParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM, userStatus);
+            DataPublisherUtil.publishUserStatusMetaData(userStatus);
+        }
 		if (!canHandle(request)) {
 			return AuthenticatorFlowStatus.INCOMPLETE;
 		}
