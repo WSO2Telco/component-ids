@@ -348,12 +348,14 @@ public class DataPublisherUtil {
         authMap.put("RequestType", "GET");
         authMap.put("AuthenticatorStartTime", String.valueOf(new java.util.Date().getTime()));
         authMap.put("Operator", context.getProperty("operator") == null ? null : (String) context.getProperty("operator"));
-        authMap.put("Scope", context.getProperty("scope") == null ? null : (String) context.getProperty("scope"));
-        authMap.put("LoginHint", context.getProperty("login_hint") == null ? null : (String) context.getProperty("login_hint"));
-        authMap.put("AcrValue", context.getProperty("acr_values") == null ? null : (String) context.getProperty("acr_values"));
+        authMap.put("AcrValue", String.valueOf(context.getProperty("acr") == null ? null : context.getProperty("acr")));
         authMap.put("RequestUrl", request.getRequestURI());
-        authMap.put("HTTPMethod","GET");
+        authMap.put("HTTPMethod", "GET");
         authMap.put("AppID", context.getSequenceConfig() == null ? null : context.getSequenceConfig().getApplicationId());
+        authMap.put("Scope", request.getParameter("scope"));
+        authMap.put("State", request.getParameter("state"));
+        authMap.put("Nonce", request.getParameter("nonce"));
+        authMap.put("LoginHint", request.getParameter("login_hint"));
         return authMap;
     }
 

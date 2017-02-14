@@ -298,8 +298,6 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
         authMap.put("IsAuthCodeIssued", Boolean.toString(isAuthenticated));
         authMap.put("AppID", context.getSequenceConfig().getApplicationId());
         authMap.put("telco_scope", telcoScope);
-        authMap.put("State", (String) context.getProperty("state"));
-        authMap.put("Nonce", (String) context.getProperty("nonce"));
 
         // Handling exception due to data unavailability in user registration scenario
         try {
