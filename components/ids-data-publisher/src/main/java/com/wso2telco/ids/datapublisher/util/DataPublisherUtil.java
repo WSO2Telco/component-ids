@@ -10,10 +10,10 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 public class DataPublisherUtil {
 
@@ -79,9 +79,9 @@ public class DataPublisherUtil {
                 .state(paramMap.get("state") != null ? paramMap.get("state") : request.getParameter("state"))
                 .scope(paramMap.get("scope") != null ? paramMap.get("scope") : request.getParameter("scope"))
                 .acrValue(paramMap.get("acr_values") != null ? paramMap.get("acr_values")
-                        : request.getParameter("acr_values"))
+                                  : request.getParameter("acr_values"))
                 .telcoScope(paramMap.get("telco_scope") != null ? paramMap.get("telco_scope")
-                        : request.getParameter("telco_scope"))
+                                    : request.getParameter("telco_scope"))
                 .build();
     }
 
@@ -211,6 +211,12 @@ public class DataPublisherUtil {
 
         userstatusData.add(System.currentTimeMillis());
 
+
+        if (org.apache.commons.lang.StringUtils.isNotEmpty(userStatus.getTransactionId())) {
+            userstatusData.add(userStatus.getTransactionId());
+        } else {
+            userstatusData.add(null);
+        }
 
         IdsAgent.getInstance().publish(USER_STATUS_META_STREAM_NAME, USER_STATUS_META_STREAM_VERSION,
                                        System.currentTimeMillis(), userstatusData.toArray());
