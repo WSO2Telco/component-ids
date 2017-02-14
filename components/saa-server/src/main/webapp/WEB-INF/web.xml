@@ -5,18 +5,20 @@
 	http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 <display-name>cxf</display-name>
 
-<servlet>
-	<servlet-name>cxf</servlet-name>
-	<display-name>cxf</display-name>
-	<description>Apache CXF Endpoint</description>
-	<servlet-class>org.apache.cxf.transport.servlet.CXFServlet</servlet-class>
-	<load-on-startup>1</load-on-startup>
-</servlet>
-
-<servlet-mapping>
-	<servlet-name>cxf</servlet-name>
-	<url-pattern>/services/*</url-pattern>
-</servlet-mapping>
+	<servlet>
+		<description>JAX-RS Tools Generated</description>
+		<servlet-name>JAX-RS Servlet</servlet-name>
+		<servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
+		<init-param>
+			<param-name>com.sun.jersey.config.property.packages</param-name>
+			<param-value>com.wso2telco.saa.service</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>JAX-RS Servlet</servlet-name>
+		<url-pattern>/services/*</url-pattern>
+	</servlet-mapping>
 	
 <session-config>
 	<session-timeout>60</session-timeout>

@@ -109,8 +109,9 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
 		if (dataPublisherEnabled) {
             UserStatus userStatus = DataPublisherUtil.getInitialUserStatusObject(request, context);
-            userStatus.setTransactionId(request.getParameter(Constants.TRANSACTION_ID));
+            userStatus.setTransactionId(request.getParameter(Constants.INITIAL_REQUEST_UUID));
             context.addParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM, userStatus);
+            DataPublisherUtil.publishUserStatusMetaData(userStatus);
         }
 		if (!canHandle(request)) {
 			return AuthenticatorFlowStatus.INCOMPLETE;
@@ -267,6 +268,10 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		}
 		sequenceConfig.setStepMap(stepMap);
 		context.setSequenceConfig(sequenceConfig);
+        if(dataPublisherEnabled) {
+            context.setProperty(Constants.AUTH_ENDPOINT_DATA_PUBLISHING_PARAM,
+                    DataPublisherUtil.getAuthMapWithInitialData(request, context));
+        }
 		return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
 	}
 
