@@ -363,4 +363,12 @@ public final class Constants {
     public static final String USER_STATUS_DATA_PUBLISHING_PARAM = "UserStatusForDataPublishing";
 
     public static final String AUTH_ENDPOINT_DATA_PUBLISHING_PARAM = "AuthMapForDataPublishing";
+
+    public static final String USER_ACTION_REG_CONSENT = "RegConsent";
+
+    public static final String USER_ACTION_REG_REJECTED = "RegRejected";
+
+    public static final String USER_ACTION_UPGRADE_CONSENT = "UpgradeConsent";
+
+    public static final String USER_ACTION_UPGRADE_REJECTED = "UpgradeRejected";
 }

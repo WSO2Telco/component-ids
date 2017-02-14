@@ -15,7 +15,6 @@
  ******************************************************************************/
 package com.wso2telco.gsma.handlers.authenticationstephandler;
 
-import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.LOACompositeAuthenticator;
 import com.wso2telco.util.AuthenticationHealper;
 import com.wso2telco.util.Params;
@@ -43,11 +42,7 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -67,9 +62,6 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 	public void handle(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationContext context) throws FrameworkException {
         log.info("Initiated handle");
-
-		String ipAddress = request.getParameter(Constants.IP_ADDRESS);
-		context.setProperty(Constants.IP_ADDRESS, ipAddress);
 
 		StepConfig stepConfig = context.getSequenceConfig().getStepMap()
 				.get(context.getCurrentStep());
