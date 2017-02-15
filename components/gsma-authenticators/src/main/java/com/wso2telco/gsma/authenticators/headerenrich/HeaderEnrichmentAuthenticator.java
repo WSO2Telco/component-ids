@@ -497,6 +497,10 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     // On HE failure, untrust the header msisdn and forwards to next authenticator
                     // setting context MSISDN to null
                     context.setProperty(Constants.MSISDN, null);
+                    DataPublisherUtil.updateAndPublishUserStatus(
+                            (UserStatus) context.getProperty(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                            DataPublisherUtil.UserState.MSISDN_CLEARED,
+                            "MSISDN value cleared on Header Enrichment Authenticator failure", null);
                     log.info("HE FAILED : UNTRUST_MSISDN");
                     break;
 
@@ -516,6 +520,10 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
                     if(loginHintValue != null) {
                         context.setProperty(Constants.MSISDN, loginHintValue);
+                        DataPublisherUtil.updateAndPublishUserStatus(
+                                (UserStatus) context.getProperty(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                                DataPublisherUtil.UserState.MSISDN_SET_TO_LOGIN_HINT,
+                                "MSISDN set to login hint on Header Enrichment Authenticator failure", loginHintValue);
                     }
 
                     log.info("HE FAILED : TRUST_LOGINHINT_MSISDN");
