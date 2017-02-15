@@ -14,10 +14,8 @@ paths:
         Register's clients with the SAA server
       consumes:
         - application/json
-        - application/xml
       produces:
         - application/json
-        - application/xml
       parameters:
         - in: body
           name: body
@@ -42,13 +40,10 @@ paths:
       
       description: |
         Authenticates user when called by SmartPhoneAppAuthenticator fron Identity Server
-      
       consumes:
         - application/json
-        - application/xml
       produces:
         - application/json
-        - application/xml
       parameters:
         - in: body
           name: body
@@ -70,16 +65,12 @@ paths:
   /services/serverAPI/api/v1/clients/{msisdn}/auth_response:
     
     post:
-      
       description: |
         Authenticates user when called by Smart Phone client
-
       consumes:
         - application/json
-        - application/xml
       produces:
         - application/json
-        - application/xml
       parameters:
         - in: body
           name: body

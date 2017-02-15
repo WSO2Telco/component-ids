@@ -183,6 +183,18 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator, client_id, userStatus);
     }
 
+    /**
+     * Terminates the authenticator due to user implicit action
+     * @param context Authentication Context
+     * @throws AuthenticationFailedException
+     */
+    private void terminateAuthentication(AuthenticationContext context) throws AuthenticationFailedException {
+        log.info("User has terminated the authentication flow");
+
+        context.setProperty(Constants.IS_TERMINATED, true);
+        throw new AuthenticationFailedException("Authenticator is terminated");
+    }
+
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#processAuthenticationResponse(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
      */
@@ -204,6 +216,21 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             //But please note that, this cause ANY step following USSDAuthenticator to be removed.
             //Therefore, when redesigning, need to take this into consideration!
             context.setProperty("removeFollowingSteps", "true");
+        }
+
+        String userAction = request.getParameter(Constants.ACTION);
+        if(userAction != null && !userAction.isEmpty()) {
+            // Change behaviour depending on user action
+            switch(userAction) {
+                case Constants.USER_ACTION_USER_CANCELED:
+                    //User clicked cancel button from login
+                    terminateAuthentication(context);
+                    break;
+                case Constants.USER_ACTION_REG_REJECTED:
+                    //User clicked cancel button from registration
+                    terminateAuthentication(context);
+                    break;
+            }
         }
 
         String sessionDataKey = request.getParameter("sessionDataKey");

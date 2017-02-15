@@ -18,6 +18,7 @@ package com.wso2telco.saa.service;
 import com.google.gson.Gson;
 import com.wso2telco.entity.Data;
 import com.wso2telco.entity.Fcm;
+import com.wso2telco.exception.EmptyResultSetException;
 import com.wso2telco.util.DBConnection;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,8 +36,9 @@ import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
 
-@Path("/pushServiceApi/")
+@Path("/pushServiceAPI/")
 public class PushServiceAPI {
 
     private Log log = LogFactory.getLog(PushServiceAPI.class);
@@ -63,34 +65,36 @@ public class PushServiceAPI {
         int failure = 0;
         String platform = pushMessageObj.getString("platform");
         JSONObject messageData = pushMessageObj.getJSONObject("data");
-        String clientDetails[] = dbConnection.getClientDetails(msisdn);
-        String pushToken = clientDetails[2];
-        String message = messageData.getString("message");
-        String applicationName = messageData.getString("applicationName");
-        String referenceId = messageData.getString("ref");
-        String acr = messageData.getString("acr");
-        String spImageUrl = messageData.getString("spImgUrl");
+        String clientDetails[] = new String[0];
         String pushMessageResponse;
-        String response = null;
-
-        Data data = new Data();
-        data.setMsg(message);
-        data.setSp(applicationName);
-        data.setRef(referenceId);
-        data.setAcr(acr);
-        data.setSp_url(spImageUrl);
-
-        Fcm fcm = new Fcm();
-        fcm.setTo(pushToken);
-        fcm.setData(data);
-
-        HttpClient client = HttpClientBuilder.create().build();
-        HttpPost post = new HttpPost(FCM_URL);
-
-        StringEntity requestEntity = new StringEntity(new Gson().toJson(fcm), ContentType.APPLICATION_JSON);
-        post.setEntity(requestEntity);
-
         try {
+            clientDetails = dbConnection.getClientDetails(msisdn);
+            String pushToken = clientDetails[2];
+            String message = messageData.getString("message");
+            String applicationName = messageData.getString("applicationName");
+            String referenceId = messageData.getString("ref");
+            String acr = messageData.getString("acr");
+            String spImageUrl = messageData.getString("spImgUrl");
+            String response = null;
+
+            Data data = new Data();
+            data.setMsg(message);
+            data.setSp(applicationName);
+            data.setRef(referenceId);
+            data.setAcr(acr);
+            data.setSp_url(spImageUrl);
+
+            Fcm fcm = new Fcm();
+            fcm.setTo(pushToken);
+            fcm.setData(data);
+
+            HttpClient client = HttpClientBuilder.create().build();
+            HttpPost post = new HttpPost(FCM_URL);
+
+            StringEntity requestEntity = new StringEntity(new Gson().toJson(fcm), ContentType.APPLICATION_JSON);
+            post.setEntity(requestEntity);
+
+
             HttpResponse httpResponse = client.execute(post);
             BufferedReader br = new BufferedReader(
                     new InputStreamReader((httpResponse.getEntity().getContent())));
@@ -104,6 +108,12 @@ public class PushServiceAPI {
             return Response.ok(pushMessageResponse, MediaType.APPLICATION_JSON).build();
         } catch (IOException e) {
             e.printStackTrace();
+            pushMessageResponse = "{\"success\" :\"" + 0 + "\",\"failure\" :\"" + 1 + "\"}";
+            return Response.ok(pushMessageResponse, MediaType.APPLICATION_JSON).build();
+        } catch (SQLException e) {
+            pushMessageResponse = "{\"success\" :\"" + 0 + "\",\"failure\" :\"" + 1 + "\"}";
+            return Response.ok(pushMessageResponse, MediaType.APPLICATION_JSON).build();
+        } catch (EmptyResultSetException e) {
             pushMessageResponse = "{\"success\" :\"" + 0 + "\",\"failure\" :\"" + 1 + "\"}";
             return Response.ok(pushMessageResponse, MediaType.APPLICATION_JSON).build();
         }
