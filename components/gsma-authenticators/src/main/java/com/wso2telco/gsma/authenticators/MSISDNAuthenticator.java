@@ -84,7 +84,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
  
      
     private boolean canProcessResponse(AuthenticationContext context) {
-        return ((context.getProperty(Constants.MSISDN) != null &&  !context.getProperty(Constants.MSISDN).toString().isEmpty()) && (context.getProperty(Constants.REDIRECT_CONSENT_PROFILE_UPGRADE) == null || !(Boolean) context.getProperty(Constants.REDIRECT_CONSENT_PROFILE_UPGRADE)));
+        return ((context.getProperty(Constants.MSISDN) != null &&  !context.getProperty(Constants.MSISDN).toString().isEmpty()) && (context.getProperty(Constants.REDIRECT_CONSENT) == null || !(Boolean) context.getProperty(Constants.REDIRECT_CONSENT)));
     }
 
     /* (non-Javadoc)
@@ -158,8 +158,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     			boolean isProfileUpgrade = Util.isProfileUpgrade(msisdn, requestedLoa, isUserExists);
     			context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade);	
     			
-    			if(!isUserExists && isShowTnC || isProfileUpgrade) {
-    				retryAuthenticatorForProfileUpgradeOrConsent(context);
+    			if(!isUserExists && isShowTnC ) {
+    				retryAuthenticatorForConsent(context);
     			}
     			
     			
@@ -178,20 +178,19 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                             //User rejected to registration consent
                             terminateAuthentication(context);
                             break;
-                        case Constants.USER_ACTION_UPGRADE_CONSENT:
-                            //User agreed to registration consent
-                            break;
-                        case Constants.USER_ACTION_UPGRADE_REJECTED:
-                            //User rejected to registration consent
-                            terminateAuthentication(context);
-                            break;
+//                        case Constants.USER_ACTION_UPGRADE_CONSENT:
+//                            //User agreed to registration consent
+//                            break;
+//                        case Constants.USER_ACTION_UPGRADE_REJECTED:
+//                            //User rejected to registration consent
+//                            terminateAuthentication(context);
+//                            break;
             		}
             	} else {
                 	boolean isRegistering = (boolean)context.getProperty(Constants.IS_REGISTERING);
-                	boolean isProfileUpgrade = (boolean)context.getProperty(Constants.IS_PROFILE_UPGRADE);
                 	
-                	if(isRegistering && isShowTnC || isProfileUpgrade) {
-        				retryAuthenticatorForProfileUpgradeOrConsent(context);
+                	if(isRegistering && isShowTnC ) {
+        				retryAuthenticatorForConsent(context);
         			}
             	}
          	         	
@@ -208,8 +207,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         
     }
     
-    private void retryAuthenticatorForProfileUpgradeOrConsent (AuthenticationContext context) throws AuthenticationFailedException {
-    	context.setProperty(Constants.REDIRECT_CONSENT_PROFILE_UPGRADE, Boolean.TRUE);
+    private void retryAuthenticatorForConsent (AuthenticationContext context) throws AuthenticationFailedException {
+    	context.setProperty(Constants.REDIRECT_CONSENT, Boolean.TRUE);
     	throw new AuthenticationFailedException("Moving to get consent or profile upgrade");
     }
 
@@ -333,11 +332,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         	if(isShowTnC && isRegistering){
         		loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.CONSENT_JSP;
         	} else {
-                StringBuilder queryParams = new StringBuilder(context.getQueryParams());
-                queryParams.append("&").append(Constants.IS_PROFILE_UPGRADE).append("=true");
-                context.setQueryParams(queryParams.toString());
-                loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl()
-                        + Constants.PROFILE_UPGRADE_JSP;
+        		loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         	}
         	 	
         } else {

@@ -145,7 +145,7 @@ function registration() {
 
                 console.log("/commonauth/?sessionDataKey=" + sessionDataKey + "&msisdn=" + msisdn_header_str
                     + "&msisdn_header=" + msisdn_header_enc_str + "&operator=" + operator + "&isRegistration=true&domain=" + domain
-                    + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str + "&isTerminated=false");
+                    + "&authenticator=" + authenticator + "&acr_code=" + acr_code + "&userName=" + msisdn_header_str);
                 window.location = "/commonauth/?sessionDataKey=" + sessionDataKey + "&action=RegConsent";
 
             }

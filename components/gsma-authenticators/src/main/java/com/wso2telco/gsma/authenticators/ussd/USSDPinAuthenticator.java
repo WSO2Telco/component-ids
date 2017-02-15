@@ -34,11 +34,7 @@ import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
-import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.*;
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
@@ -100,6 +96,10 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         return true;
     }
 
+    private boolean canProcessResponse(AuthenticationContext context) {
+        return context.getProperty(Constants.REDIRECT_CONSENT) == null || !(Boolean) context.getProperty(Constants.REDIRECT_CONSENT);
+    }
+
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#process(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
      */
@@ -139,6 +139,8 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
         boolean isPinReset = (boolean)context.getProperty(Constants.IS_PIN_RESET);
         boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
+        boolean securityQuestionsShown = context.getProperty(Constants.IS_SECURITY_QUESTIONS_SHOWN) != null && (boolean) context.getProperty(Constants.IS_SECURITY_QUESTIONS_SHOWN);
+
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         String serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
 
@@ -163,7 +165,11 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
             savePinConfigToContext(context, isRegistering, msisdn, isPinReset, isProfileUpgrade);
 
-            if (!isPinReset) {
+            // send ussd message only when, request is not pin reset and any of followings,
+            // securityQuestionsShown : when user has entered security questions when profile upgrade flow
+            // isRegistering : when user has entered security questions in registration flow
+            // !isProfileUpgrade : when user is not following a profile upgrade
+            if (!isPinReset && (securityQuestionsShown || isRegistering || !isProfileUpgrade)) {
             	DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
                 sendUssd(context, isRegistering, msisdn, serviceProviderName, operator, userStatus);
             }
@@ -278,7 +284,6 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
         boolean isPinReset = isPinReset(pinConfig);
         boolean isPinResetConfirmation = isPinResetConfirmation(pinConfig);
-        boolean isTerminated = Boolean.parseBoolean(request.getParameter(Constants.IS_TERMINATED));
 
         if (log.isDebugEnabled()) {
             log.debug("MSISDN : " + msisdn);
@@ -286,11 +291,25 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             log.debug("Profile upgrade : " + isProfileUpgrade);
             log.debug("Pin reset : " + isPinReset);
             log.debug("Pin reset confirmation : " + isPinResetConfirmation);
-            log.debug("Terminated : " + isTerminated);
         }
 
-        if (isTerminated) {
-            terminateAuthentication(context);
+        String userAction = request.getParameter(Constants.ACTION);
+        if(userAction != null && !userAction.isEmpty()) {
+            // Change behaviour depending on user action
+            switch(userAction) {
+                case Constants.USER_ACTION_USER_CANCELED:
+                    //User rejected to login consent
+                    terminateAuthentication(context);
+                    break;
+                case Constants.USER_ACTION_REG_REJECTED:
+                    //User rejected to registration consent
+                    terminateAuthentication(context);
+                    break;
+                case Constants.USER_ACTION_UPGRADE_REJECTED:
+                    //User rejected to profile upgrade consent
+                    terminateAuthentication(context);
+                    break;
+            }
         }
 
         try {
@@ -487,24 +506,34 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         return pinConfig.getCurrentStep() == PinConfig.CurrentStep.PIN_RESET;
     }
 
-    private void handleProfileUpgrade(AuthenticationContext context) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException, UnsupportedEncodingException, NoSuchAlgorithmException {
-        String challengeAnswer1 = (String) context.getProperty(Constants.CHALLENGE_ANSWER_1);
-        String challengeAnswer2 = (String) context.getProperty(Constants.CHALLENGE_ANSWER_2);
-        String challengeQuestion1 = (String) context.getProperty(Constants.CHALLENGE_QUESTION_1);
-        String challengeQuestion2 = (String) context.getProperty(Constants.CHALLENGE_QUESTION_2);
-        String msisdn = (String) context.getProperty(Constants.MSISDN);
-        PinConfig pinConfig = (PinConfig) context.getProperty(com.wso2telco.core.config.util.Constants.PIN_CONFIG_OBJECT);
+    private void handleProfileUpgrade(AuthenticationContext context) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException, UnsupportedEncodingException, NoSuchAlgorithmException, AuthenticationFailedException {
+        boolean securityQuestionsShown = context.getProperty(Constants.IS_SECURITY_QUESTIONS_SHOWN) != null && (boolean) context.getProperty(Constants.IS_SECURITY_QUESTIONS_SHOWN);
+        boolean pinRegistered = context.getProperty(Constants.IS_SECURITY_QUESTIONS_ANSWERED) != null && (boolean) context.getProperty(Constants.IS_SECURITY_QUESTIONS_ANSWERED);
 
-        if (log.isDebugEnabled()) {
-            log.debug("Updating user profile from LOA2 to LOA3 flow [ msisdn : " + msisdn + " , challenge question 1 : " +
-                    challengeQuestion1 + " , challenge answer 1 : " + challengeAnswer1 + " , challenge question 2 : " +
-                    challengeQuestion2 + " , challenge answer 2 : " + challengeAnswer2 + " ] ");
+        if(securityQuestionsShown && pinRegistered) {
+            String challengeAnswer1 = (String) context.getProperty(Constants.CHALLENGE_ANSWER_1);
+            String challengeAnswer2 = (String) context.getProperty(Constants.CHALLENGE_ANSWER_2);
+            String challengeQuestion1 = (String) context.getProperty(Constants.CHALLENGE_QUESTION_1);
+            String challengeQuestion2 = (String) context.getProperty(Constants.CHALLENGE_QUESTION_2);
+            String msisdn = (String) context.getProperty(Constants.MSISDN);
+            PinConfig pinConfig = (PinConfig) context.getProperty(com.wso2telco.core.config.util.Constants.PIN_CONFIG_OBJECT);
+
+            if (log.isDebugEnabled()) {
+                log.debug("Updating user profile from LOA2 to LOA3 flow [ msisdn : " + msisdn + " , challenge question 1 : " +
+                        challengeQuestion1 + " , challenge answer 1 : " + challengeAnswer1 + " , challenge question 2 : " +
+                        challengeQuestion2 + " , challenge answer 2 : " + challengeAnswer2 + " ] ");
+            }
+
+            challengeAnswer1 = challengeQuestion1 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer1;
+            challengeAnswer2 = challengeQuestion2 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer2;
+
+            new UserProfileManager().updateUserProfileForLOA3(challengeAnswer1, challengeAnswer2, pinConfig.getConfirmedPin(), msisdn);
+        }else {
+            context.setProperty(Constants.IS_SECURITY_QUESTIONS_ANSWERED, Boolean.TRUE);
+
+            // throw authentication failed exception to retry the authenticator
+            throw new AuthenticationFailedException("Authenticator retry");
         }
-
-        challengeAnswer1 = challengeQuestion1 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer1;
-        challengeAnswer2 = challengeQuestion2 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer2;
-
-        new UserProfileManager().updateUserProfileForLOA3(challengeAnswer1, challengeAnswer2, pinConfig.getConfirmedPin(), msisdn);
     }
 
     private void handleUserRegistration(AuthenticationContext context, UserStatus userStatus) throws UserRegistrationAdminServiceIdentityException, RemoteException, AuthenticationFailedException {
@@ -529,6 +558,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
             new UserProfileManager().createUserProfileLoa3(msisdn, operator, challengeAnswer1, challengeAnswer2,
                     pinConfig.getRegisteredPin());
+
         } else {
             String errMsg = "Authentication failed for due to mismatch in entered and confirmed pin";
             DataPublisherUtil.updateAndPublishUserStatus(userStatus,
@@ -543,8 +573,12 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         PinConfig pinConfig = PinConfigUtil.getPinConfig(context);
 
         if (pinConfig != null) {
-            validatePin(pinConfig, context);
-
+            try {
+                validatePin(pinConfig, context);
+            }catch(AuthenticationFailedException e){
+                //if user did not respond
+                terminateAuthentication(context);
+            }
         } else {
             throw new AuthenticationFailedException("Cannot find pin information ");
         }
@@ -571,13 +605,22 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
     private String getAuthEndpointUrl(AuthenticationContext context) {
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
         boolean isPinReset = (boolean) context.getProperty(Constants.IS_PIN_RESET);
+        boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
+        boolean securityQuestionsShown = context.getProperty(Constants.IS_SECURITY_QUESTIONS_SHOWN) != null && (boolean) context.getProperty(Constants.IS_SECURITY_QUESTIONS_SHOWN);
         String loginPage;
 
-        if (isRegistering) {
-            context.setProperty(Constants.IS_REGISTERING, true);
+        if (securityQuestionsShown) {
             loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl()
                     + Constants.PIN_REGISTRATION_WAITING_JSP;
-        } else if (isPinReset) {
+        } else if(isProfileUpgrade){
+            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl()
+                    + Constants.PROFILE_UPGRADE_JSP;
+            context.setProperty(Constants.IS_SECURITY_QUESTIONS_SHOWN, true);
+        } else if(isRegistering){
+            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl()
+                    + Constants.PIN_REGISTRATION_WAITING_JSP;
+            context.setProperty(Constants.IS_SECURITY_QUESTIONS_SHOWN, true);
+        }else if (isPinReset) {
             loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl()
                     + Constants.PIN_RESET_JSP;
         } else {
