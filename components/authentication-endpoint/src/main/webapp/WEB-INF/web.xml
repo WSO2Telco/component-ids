@@ -131,6 +131,11 @@
     </servlet>
 
     <servlet>
+        <servlet-name>auth_registration_saa_waiting</servlet-name>
+        <jsp-file>/mcx-user-registration/saa_waiting.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>oauth2_logout_consent.do</servlet-name>
         <jsp-file>/oauth2_logout_consent.jsp</jsp-file>
     </servlet>
@@ -248,6 +253,11 @@
     <servlet-mapping>
         <servlet-name>auth_registration_pin_reset</servlet-name>
         <url-pattern>/mcx-user-registration/auth_registration_pin_reset</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>auth_registration_saa_waiting</servlet-name>
+        <url-pattern>/mcx-user-registration/auth_registration_saa_waiting</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

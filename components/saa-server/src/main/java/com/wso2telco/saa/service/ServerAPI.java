@@ -15,6 +15,9 @@
  ******************************************************************************/
 package com.wso2telco.saa.service;
 
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.exception.EmptyResultSetException;
 import com.wso2telco.util.DBConnection;
 import com.wso2telco.util.PropertyReader;
 import org.apache.commons.logging.Log;
@@ -33,12 +36,15 @@ import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.sql.SQLException;
 
-@Path("/serverApi/")
+@Path("/serverAPI/")
 public class ServerAPI {
 
     private Log log = LogFactory.getLog(ServerAPI.class);
     private DBConnection dbConnection = null;
+
+    private ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /**
      * InBound from SAA Client*
@@ -120,8 +126,14 @@ public class ServerAPI {
         JSONObject pushNotificationApiResponse;
         String refId = requestInfoObj.getString("ref");
 
-        String clientDetailsArray[];
-        clientDetailsArray = dbConnection.getClientDetails(msisdn);
+        String clientDetailsArray[] = null;
+        try {
+            clientDetailsArray = dbConnection.getClientDetails(msisdn);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (EmptyResultSetException e) {
+            e.printStackTrace();
+        }
         String pushMessageDetails;
 
         if (clientDetailsArray != null) {
@@ -165,7 +177,9 @@ public class ServerAPI {
 
     private JSONObject postRequest(String msisdn, String pushMessageDetails) throws IOException {
 
-        String url = PropertyReader.getProperty("saa.server.host") + "pushServiceAPI/client/" + msisdn + "/send";
+        String url = configurationService.getDataHolder().getMobileConnectConfig().getSaaConfig()
+                .getPushServiceEndpoint().replace("{msisdn}", msisdn);
+
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost httpPost = new HttpPost(url);
 

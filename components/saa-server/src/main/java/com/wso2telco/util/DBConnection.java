@@ -15,10 +15,18 @@
  ******************************************************************************/
 package com.wso2telco.util;
 
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.dbutils.DBUtilException;
+import com.wso2telco.core.dbutils.DbUtils;
+import com.wso2telco.exception.EmptyResultSetException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
@@ -36,20 +44,16 @@ public class DBConnection {
     private ResultSet resultSet;
 
 
-    protected DBConnection() throws SQLException, ClassNotFoundException {
-        Class.forName("com.mysql.jdbc.Driver");
-        connectionURL = PropertyReader.getProperty("saa.server.jdbcUrl");
-        dbUser = PropertyReader.getProperty("saa.server.dbUser");
-        dbPassword = PropertyReader.getProperty("saa.server.dbPassword");
-        connection = DriverManager.getConnection(connectionURL, dbUser, dbPassword);
+    protected DBConnection() throws SQLException, ClassNotFoundException, DBUtilException {
+        connection = DbUtils.getConnectDbConnection();
     }
 
     public static DBConnection getInstance() throws ClassNotFoundException {
         if (instance == null) {
             try {
                 instance = new DBConnection();
-            } catch (SQLException e) {
-                logger.info(e.getMessage());
+            } catch (SQLException | DBUtilException e) {
+                logger.error("Error occurred while getting connection");
             }
         }
         return instance;
@@ -59,9 +63,9 @@ public class DBConnection {
      * Register clients in the Database.
      *
      * @param clientDeviceId device id
-     * @param platform platform
-     * @param pushToken push token
-     * @param msisdn mobile number
+     * @param platform       platform
+     * @param pushToken      push token
+     * @param msisdn         mobile number
      * @return int indicating the transaction is success or failure
      */
     public boolean addClient(String clientDeviceId, String platform, String pushToken, String msisdn) {
@@ -105,25 +109,20 @@ public class DBConnection {
      * @param msisdn mobile number
      * @return clientID
      */
-    public String[] getClientDetails(String msisdn) {
+    public String[] getClientDetails(String msisdn) throws SQLException, EmptyResultSetException {
         String clientDetails[] = new String[3];
 
         String query = "SELECT client_device_id,platform,push_token FROM clients WHERE msisdn='" + msisdn + "';";
-        try {
-            statement = connection.prepareStatement(query);
-            resultSet = statement.executeQuery(query);
+        statement = connection.prepareStatement(query);
+        resultSet = statement.executeQuery(query);
 
-            if (resultSet.next()) {
-                clientDetails[0] = resultSet.getString(1);
-                clientDetails[1] = resultSet.getString(2);
-                clientDetails[2] = resultSet.getString(3);
-                return clientDetails;
-            } else {
-                return null;
-            }
-        } catch (SQLException ex) {
-            log.info(ex.getMessage());
-            return null;
+        if (resultSet.next()) {
+            clientDetails[0] = resultSet.getString(1);
+            clientDetails[1] = resultSet.getString(2);
+            clientDetails[2] = resultSet.getString(3);
+            return clientDetails;
+        } else {
+            throw new EmptyResultSetException("Result set is empty");
         }
     }
 
@@ -131,8 +130,8 @@ public class DBConnection {
      * Check the authentication of the client and get the message from the client.
      *
      * @param clientDeviceId device id of the client
-     * @param refID ref id
-     * @param message message
+     * @param refID          ref id
+     * @param message        message
      * @return int indicating the transaction is success ,failure or
      */
     public boolean authenticateClient(String refID, String clientDeviceId, String message) {
@@ -146,7 +145,7 @@ public class DBConnection {
     /**
      * Update message table after send the push notification
      *
-     * @param refID ref id
+     * @param refID  ref id
      * @param status status
      * @return int indicating the transaction is success ,failure or
      */

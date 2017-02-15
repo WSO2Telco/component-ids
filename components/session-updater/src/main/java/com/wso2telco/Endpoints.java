@@ -147,26 +147,31 @@ public class Endpoints {
     }
 
     @POST
-    @Path("/saa/status")
+    @Path("/update/saa/status")
     @Consumes("application/json")
     @Produces("application/json")
-    public Response saaUpdateStatus(SaaStatusRequest saaStatusRequest) {
+    public Response saaUpdateStatus(String jsonBody) {
         log.info("Received SAA update status request");
+
+        SaaStatusRequest saaStatusRequest = new Gson().fromJson(jsonBody, SaaStatusRequest.class);
 
         Response response;
 
         try {
             DatabaseUtils.updateStatus(saaStatusRequest.getSessionDataKey(), saaStatusRequest.getStatus());
 
+            SaaResponse saaResponse = new SaaResponse(saaStatusRequest.getSessionDataKey(), Constants.STATUS_SUCCESS);
             response = Response.status(Response.Status.ACCEPTED)
-                    .entity(new SaaResponse(saaStatusRequest.getSessionDataKey(), Constants.STATUS_SUCCESS)).build();
+                    .entity(new Gson().toJson(saaResponse)).build();
         } catch (SQLException e) {
 
+            SaaResponse saaResponse = new SaaResponse(saaStatusRequest.getSessionDataKey(), Constants.STATUS_FAILED);
             response = Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(new SaaResponse(saaStatusRequest.getSessionDataKey(), Constants.STATUS_FAILED)).build();
+                    .entity(new Gson().toJson(saaResponse)).build();
         }
         return response;
     }
+
 
     /**
      * Ussd receive.
@@ -184,7 +189,7 @@ public class Endpoints {
     public Response loginUssd(String jsonBody) throws SQLException, JSONException, IOException {
         log.info("Received login request");
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Json Body : " + jsonBody);
         }
         Gson gson = new GsonBuilder().serializeNulls().create();
@@ -201,12 +206,12 @@ public class Endpoints {
         String ussdSessionID = null;
         if (jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID") && !jsonObj.getJSONObject("inboundUSSDMessageRequest").isNull("sessionID")) {
             ussdSessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("sessionID");
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("UssdSessionID 01 : " + ussdSessionID);
             }
         }
         ussdSessionID = ((ussdSessionID != null) ? ussdSessionID : "");
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.info("UssdSessionID 02 : " + ussdSessionID);
         }
         //Accept or Reject response depending on configured values
@@ -245,7 +250,7 @@ public class Endpoints {
     public Response registrationUssd(String jsonBody) throws SQLException, JSONException, IOException {
         log.info("Received registration request");
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Json Body : " + jsonBody);
         }
 
@@ -265,14 +270,14 @@ public class Endpoints {
         String rejectInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getRejectUserInputs();
 
         if (validateUserInputs(acceptInputs, message)) {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Updating registration status as success");
             }
             status = "Approved";
             responseCode = Response.Status.CREATED.getStatusCode();
             DatabaseUtils.updateRegistrationStatus(sessionID, status);
         } else {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Updating registration status as rejected");
             }
             status = "Rejected";
@@ -428,7 +433,7 @@ public class Endpoints {
         String challengeAnswer2 = pinConfig.getChallengeAnswer2();
 
         if (challengeAnswer1.equalsIgnoreCase(answer1) && challengeAnswer2.equalsIgnoreCase(answer2)) {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Q&A are valid");
             }
 
@@ -442,7 +447,7 @@ public class Endpoints {
                 validationResponse = new ValidationResponse(StatusCode.USSD_ERROR.getCode(), sessionId, true, true);
             }
         } else {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Q&A are invalid. Sending error response");
             }
             validationResponse = new ValidationResponse(StatusCode.VALIDATION_ERROR.getCode(), sessionId,
@@ -456,7 +461,7 @@ public class Endpoints {
     @Path("/save/userChallenges")
     @Consumes("application/json")
     @Produces("application/json")
-    public Response saveUserChallenges(String request){
+    public Response saveUserChallenges(String request) {
         log.info("Saving user challenges");
 
         AuthenticationDetails authenticationDetails = new Gson().fromJson(request, AuthenticationDetails.class);
@@ -505,7 +510,7 @@ public class Endpoints {
         postRequest.setEntity(input);
         final CountDownLatch latch = new CountDownLatch(1);
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Posting data  [ " + requestStr + " ] to url [ " + url + " ]");
         }
         HttpClient client = new DefaultHttpClient();
@@ -551,7 +556,7 @@ public class Endpoints {
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
             response = gson.toJson(ussdRequest);
 
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Pin mismatch detected. Sending retry pin message [ " + ussdMessage + " ]");
             }
         } else if (pinConfig.getPinMismatchAttempts() == Integer.parseInt(configurationService.getDataHolder()
@@ -564,7 +569,7 @@ public class Endpoints {
             DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_PIN_RESET);
             pinConfig.setCurrentStep(PinConfig.CurrentStep.PIN_RESET);
 
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Pin mismatch detected for the last attempt. Terminating ussd session to move user to pin reset flow");
             }
         } else {
@@ -576,7 +581,7 @@ public class Endpoints {
             DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
             pinConfig.setCurrentStep(PinConfig.CurrentStep.PIN_RESET);
 
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Maximum attempts reached. Sending access denied message [ " + ussdMessage + " ]");
             }
         }
@@ -598,7 +603,7 @@ public class Endpoints {
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, ussdMessage);
             response = gson.toJson(ussdRequest);
 
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Pin mismatch detected. Sending retry pin message [ " + ussdMessage + " ]");
             }
         } else {
@@ -608,7 +613,7 @@ public class Endpoints {
 
             DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
 
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Maximum attempts reached. Sending access denied message [ " + ussdMessage + " ]");
             }
         }
@@ -627,7 +632,7 @@ public class Endpoints {
             String message = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinInvalidFormatMessage();
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTCONT, message);
 
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Invalid pin. Sending retry pin message [ " + message + " ]");
             }
         } else {
@@ -635,7 +640,7 @@ public class Endpoints {
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
 
             DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Invalid pin maximum attempts reached. Sending access denied message [ " + ussdMessage + " ]");
             }
         }
@@ -651,7 +656,7 @@ public class Endpoints {
         if (jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID")
                 && !jsonObj.getJSONObject("inboundUSSDMessageRequest").isNull("sessionID")) {
             ussdSessionId = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("sessionID");
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Ussd session id retrieved [ " + ussdSessionId + " ] ");
             }
         }
@@ -702,7 +707,7 @@ public class Endpoints {
      */
     private String validateUSSDResponse(String message, String msisdn, String sessionID, String ussdSessionID) {
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("message : " + message);
             log.debug("msisdn : " + msisdn);
             log.debug("sessionID : " + sessionID);
@@ -735,7 +740,7 @@ public class Endpoints {
         // load config values
         MobileConnectConfig.SessionUpdaterConfig sessionUpdaterConfig = configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig();
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("pin : " + pin);
             log.debug("sessionID : " + sessionID);
             log.debug("msisdn : " + msisdn);
@@ -755,7 +760,7 @@ public class Endpoints {
                 Integer noOfAttempts = DatabaseUtils.readMultiplePasswordNoOfAttempts(sessionID);
                 if (noOfAttempts < 2) {//resend USSD
                     responseString = SendUSSD.getJsonPayload(msisdn, sessionID, 2, "mtcont");//send 2 to show retry_message
-                    if(log.isDebugEnabled()) {
+                    if (log.isDebugEnabled()) {
                         log.debug("ResponseString 01 : " + responseString);
                     }
                     DatabaseUtils.updateMultiplePasswordNoOfAttempts(sessionID, noOfAttempts + 1);
@@ -800,7 +805,7 @@ public class Endpoints {
 
         String responseString = null;
         try {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Validate PIN");
             }
             LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(sessionUpdaterConfig.getAdmin_url());
@@ -812,19 +817,19 @@ public class Endpoints {
 
 
             if (hashedUserPin != null && profilePin != null && profilePin.equals(hashedUserPin)) {
-                if(log.isDebugEnabled()) {
+                if (log.isDebugEnabled()) {
                     log.debug("Profile Pin status : success");
                 }
                 //success
                 return null;
             } else {
-                if(log.isDebugEnabled()) {
+                if (log.isDebugEnabled()) {
                     log.debug("Profile Pin status : fail");
                 }
                 Integer noOfAttempts = DatabaseUtils.readMultiplePasswordNoOfAttempts(sessionID);
                 if (noOfAttempts < 2) {//resend USSD
                     responseString = SendUSSD.getJsonPayload(msisdn, sessionID, 2, "mtcont", ussdSessionID);//send 2 to show retry_message
-                    if(log.isDebugEnabled()) {
+                    if (log.isDebugEnabled()) {
                         log.info("Retry request : " + responseString);
                     }
                     DatabaseUtils.updateMultiplePasswordNoOfAttempts(sessionID, noOfAttempts + 1);
@@ -834,7 +839,7 @@ public class Endpoints {
 
 
                     String failedStatus = "FAILED_ATTEMPTS";
-                    if(log.isDebugEnabled()) {
+                    if (log.isDebugEnabled()) {
                         log.debug("Updating the database with session:" + sessionID + " and status: " + failedStatus);
                     }
                     DatabaseUtils.updateStatus(sessionID, failedStatus);
@@ -876,7 +881,7 @@ public class Endpoints {
     @Produces("application/json")
     public Response ussdPinReceive(String jsonBody) throws SQLException, JSONException {
         Gson gson = new GsonBuilder().serializeNulls().create();
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.info("Request : " + jsonBody);
         }
 
@@ -891,14 +896,14 @@ public class Endpoints {
 
             ussdSessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("sessionID");
 
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("UssdSessionID 01 : " + ussdSessionID);
             }
         }
 
         ussdSessionID = ((ussdSessionID != null) ? ussdSessionID : "");
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("UssdSessionID 02 : " + ussdSessionID);
             log.debug("message : " + message);
             log.debug("sessionID : " + sessionID);
@@ -951,16 +956,37 @@ public class Endpoints {
     @Produces("application/json")
     public Response userStatus(@QueryParam("sessionID") String sessionID, String jsonBody) throws SQLException {
 
-        String userStatus = null;
-        String responseString = null;
+        String responseString = getStatus(sessionID);
+
+        return Response.status(200).entity(responseString).build();
+    }
+
+    /**
+     * User status for saa.
+     *
+     * @param sessionID the session id
+     * @return the response
+     * @throws SQLException the SQL exception
+     */
+    @GET
+    @Path("/saa/status")
+    @Produces("application/json")
+    public Response getSaaStatus(@QueryParam("sessionId") String sessionID) throws SQLException {
+
+        String responseString = getStatus(sessionID);
+
+        return Response.status(200).entity(responseString).build();
+    }
+
+    private String getStatus(@QueryParam("sessionID") String sessionID) throws SQLException {
+        String userStatus;
+        String responseString;
 
         userStatus = DatabaseUtils.getUSerStatus(sessionID);
 
         responseString = "{" + "\"sessionID\":\"" + sessionID + "\","
                 + "\"status\":\"" + userStatus + "\"" + "}";
-
-
-        return Response.status(200).entity(responseString).build();
+        return responseString;
     }
 
     /**
@@ -1140,7 +1166,7 @@ public class Endpoints {
             transactionId, @FormParam("allow") String allow, @FormParam("transaction_status") String
                                          transactionStatus) throws SQLException {
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("MePIN transactionID : " + transactionId);
             log.debug("MePIN identifier : " + identifier);
             log.debug("MePIN transactionStatus : " + transactionStatus);
