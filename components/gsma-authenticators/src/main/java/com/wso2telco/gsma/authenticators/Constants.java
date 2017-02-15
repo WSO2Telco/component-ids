@@ -371,4 +371,10 @@ public final class Constants {
     public static final String USER_ACTION_UPGRADE_CONSENT = "UpgradeConsent";
 
     public static final String USER_ACTION_UPGRADE_REJECTED = "UpgradeRejected";
+
+    public static final String USER_ACTION_USER_REJECTED = "userRejected";
+
+    public static final String USER_ACTION_USER_CANCELED = "userCanceled";
+
+    public static final String USER_ACTION_USER_TIMEOUT = "userTimeout";
 }
