@@ -243,6 +243,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         log.info("Initiating authentication request");
 
+        AuthenticationContextCache.getInstance().addToCache(new AuthenticationContextCacheKey(context.getContextIdentifier()), new AuthenticationContextCacheEntry(context));
+
         UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         boolean ipValidation = false;
         boolean validOperator = true;
@@ -272,7 +274,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         // Throw error when ip validation failure
         if (ipValidation && !validOperator) {
-            log.info("HeaderEnrichment Authentication failed from request");
+            log.info("Header Enrichment Authentication failed from request");
             context.setProperty("faileduser", msisdn);
             throw new AuthenticationFailedException("Authentication Failed");
         }
@@ -320,6 +322,27 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         AuthenticationContextCache.getInstance().addToCache(new AuthenticationContextCacheKey(context.getContextIdentifier()), new AuthenticationContextCacheEntry(context));
 
+        String userAction = request.getParameter(Constants.ACTION);
+        if(userAction != null && !userAction.isEmpty()) {
+            // Change behaviour depending on user action
+            switch(userAction) {
+                case Constants.USER_ACTION_REG_CONSENT:
+                    //User agreed to registration consent
+                    break;
+                case Constants.USER_ACTION_REG_REJECTED:
+                    //User rejected to registration consent
+                    terminateAuthentication(context);
+                    break;
+                case Constants.USER_ACTION_UPGRADE_CONSENT:
+                    //User agreed to registration consent
+                    break;
+                case Constants.USER_ACTION_UPGRADE_REJECTED:
+                    //User rejected to registration consent
+                    terminateAuthentication(context);
+                    break;
+            }
+        }
+
         try {
 
             String msisdn = context.getProperty(Constants.MSISDN).toString();
@@ -329,7 +352,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             
             int requestedLoa = Integer.parseInt(context.getProperty(Constants.ACR).toString());
 
-
             if (operatorIpValidation.containsKey(operator)) {
                 ipValidation = operatorIpValidation.get(operator);
             }
@@ -338,6 +360,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 log.debug("Redirect URI : " + request.getParameter("redirect_uri"));
             }
             context.setProperty("redirectURI", request.getParameter("redirect_uri"));
+
+            populateAuthEndpointData(request, context);
 
             String ipAddress = (String) context.getProperty(Constants.IP_ADDRESS);
             if (ipAddress == null || StringUtils.isEmpty(ipAddress)) {
@@ -351,7 +375,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
                 // RULE : if operator ip validation is enabled and ip address is blank, break the flow
                 if (ipValidation) {
-                    log.info("HeaderEnrichment Authentication failed due to not having ip address");
+                    log.info("Header Enrichment Authentication failed due to not having ip address");
                     context.setProperty("faileduser", msisdn);
                     DataPublisherUtil
                             .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL,
@@ -368,7 +392,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
             // RULE : if operator ip validation is enabled and ip validation failed, break the flow
             if (ipValidation && !validOperator) {
-                log.info("HeaderEnrichment Authentication failed");
+                log.info("Header Enrichment Authentication failed");
                 context.setProperty("faileduser", msisdn);
                 DataPublisherUtil
                         .updateAndPublishUserStatus(userStatus,
@@ -502,6 +526,13 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     log.info("HE FAILED : BREAK THE FLOW");
             }
         }
+    }
+
+    private void terminateAuthentication(AuthenticationContext context) throws AuthenticationFailedException {
+        log.info("User has terminated the authentication flow");
+
+        context.setProperty(Constants.IS_TERMINATED, true);
+        throw new AuthenticationFailedException("Authenticator is terminated");
     }
 
     /**

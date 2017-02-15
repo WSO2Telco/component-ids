@@ -109,13 +109,15 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
 		if (dataPublisherEnabled) {
             UserStatus userStatus = DataPublisherUtil.getInitialUserStatusObject(request, context);
-            userStatus.setTransactionId(request.getParameter(Constants.TRANSACTION_ID));
             context.addParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM, userStatus);
             DataPublisherUtil.publishUserStatusMetaData(userStatus);
         }
 		if (!canHandle(request)) {
 			return AuthenticatorFlowStatus.INCOMPLETE;
 		}
+
+		String ipAddress = request.getParameter(Constants.IP_ADDRESS);
+		context.setProperty(Constants.IP_ADDRESS, ipAddress);
 
 		String mobileNetworkOperator = request.getParameter(Constants.OPERATOR);
 		String serviceProvider = request.getParameter(Constants.CLIENT_ID);
@@ -146,8 +148,21 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		if("onnet".equals(flowType)) {	
 			msisdnToBeDecrypted = msisdnHeader;
 		} else {
-			//If offnet, either we can trust sent login hint is not empty
-			if(StringUtils.isNotEmpty(loginHintMsisdn)) {
+			//RULE: Trust msisdn header or login hint depending on scope parameter configuration
+			if(StringUtils.isNotEmpty(msisdnHeader) && StringUtils.isEmpty(loginHintMsisdn)) {
+				//from offnet fallback due to header mismatch
+
+				//RULE: If offnet, either we can trust sent login hint is not empty
+				if (headerMismatchResult != null && headerMismatchResult.equals(ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK_TRUST_LOGINHINT) && StringUtils.isNotEmpty(loginHintMsisdn)) {
+					msisdnToBeDecrypted = loginHintMsisdn;
+				}
+
+				//RULE: If msisdn header mismatch result is fallback trust header msisdn, and header msisdn is non empty, select header msisdn
+				if (headerMismatchResult != null && headerMismatchResult.equals(ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK_TRUST_HEADER) && StringUtils.isNotEmpty(msisdnHeader)) {
+					msisdnToBeDecrypted = msisdnHeader;
+				}
+			}else{
+				//not from offnet fallback due to header mismatch
 				msisdnToBeDecrypted = loginHintMsisdn;
 			}
 		}

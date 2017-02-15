@@ -192,7 +192,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
         log.info("Processing authentication response");
 
-        UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
+        UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         if ("true".equals(request.getParameter("smsrequested"))) {
             //This logic would get hit if the user hits the link to get an SMS so in that case
             //We need to fallback. Therefore we through AuthenticationFailedException

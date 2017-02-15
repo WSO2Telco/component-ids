@@ -164,6 +164,7 @@ public class UserStatus {
         this.appId = builder.appId;
         this.telcoScope = builder.telcoScope;
         this.xForwardIP = builder.xForwardIP;
+        this.transactionId = builder.transactionId;
     }
 
     public static class UserStatusBuilder {
@@ -187,6 +188,7 @@ public class UserStatus {
         private String appId;
         private String telcoScope;
         private String xForwardIP;
+        private String transactionId;
 
         public UserStatusBuilder(String sessionId) {
             this.sessionId = sessionId;
@@ -294,6 +296,11 @@ public class UserStatus {
 
         public UserStatusBuilder xForwardIP(String xForwardIP) {
             this.xForwardIP = xForwardIP;
+            return this;
+        }
+
+        public UserStatusBuilder transactionId(String transactionId) {
+            this.transactionId = transactionId;
             return this;
         }
 

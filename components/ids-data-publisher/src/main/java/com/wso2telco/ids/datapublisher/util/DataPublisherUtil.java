@@ -5,15 +5,18 @@ import com.wso2telco.ids.datapublisher.IdsAgent;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.context.CarbonContext;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 
-import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
 public class DataPublisherUtil {
 
@@ -33,13 +36,30 @@ public class DataPublisherUtil {
     public static final String TOKEN_ENDPOINT_STREAM_NAME = "com.wso2telco.token.endpoint";
     public static final String TOKEN_ENDPOINT_STREAM_VERSION = "1.0.0";
 
+    public static final String OAUTH2_CLIENT_TYPE = "oauth2";
+
+    private static ApplicationManagementService applicationManagementService;
+
+    public static void setApplicationManagementService(ApplicationManagementService applicationMgtService) {
+        applicationManagementService = applicationMgtService;
+    }
 
     public static UserStatus buildUserStatusFromRequest(HttpServletRequest request, AuthenticationContext context) {
         UserStatus.UserStatusBuilder userStatusBuilder = new UserStatus
                 .UserStatusBuilder(resolveSessionID(request, context));
+        String appId = null;
+        try {
+            appId = applicationManagementService != null ?
+                    applicationManagementService
+                            .getServiceProviderNameByClientId(request.getParameter("client_id"), OAUTH2_CLIENT_TYPE,
+                                    CarbonContext.getThreadLocalCarbonContext().getTenantDomain()) :
+                    null;
+        } catch (IdentityApplicationManagementException e) {
+            log.warn("An error occurred while obtaining Service Provider name");
+        }
 
         return userStatusBuilder
-                .appId(context.getSequenceConfig() == null ? null : context.getSequenceConfig().getApplicationId())
+                .appId(appId)
                 .msisdn(request.getParameter("msisdn_header"))
                 .operator(request.getParameter("operator"))
                 .nonce(request.getParameter("operator"))
@@ -47,16 +67,16 @@ public class DataPublisherUtil {
                 .scope(request.getParameter("scope"))
                 .telcoScope(request.getParameter("telco_scope"))
                 .acrValue(request.getParameter("acr_values"))
-                .ipHeader(request.getParameter("ipAddress"))
-                .loginHint(request.getParameter("login_hint"))
+                .ipHeader(request.getParameter("ipAddress")).loginHint(request.getParameter("login_hint"))
                 .userAgent(request.getHeader("User-Agent"))
+                .transactionId(request.getParameter("transactionId"))
                 .build();
     }
 
     public static UserStatus getInitialUserStatusObject(HttpServletRequest request, AuthenticationContext context) {
         return buildUserStatusFromRequest(request, context);
     }
-
+ /*
     public static UserStatus buildUserStatusFromContext(HttpServletRequest request,
             AuthenticationContext context) {
 
@@ -84,6 +104,7 @@ public class DataPublisherUtil {
                                     : request.getParameter("telco_scope"))
                 .build();
     }
+ */
 
     public static String resolveSessionID(HttpServletRequest request,
                                           AuthenticationContext context) {
@@ -357,12 +378,14 @@ public class DataPublisherUtil {
         authMap.put("RequestType", "GET");
         authMap.put("AuthenticatorStartTime", String.valueOf(new java.util.Date().getTime()));
         authMap.put("Operator", context.getProperty("operator") == null ? null : (String) context.getProperty("operator"));
-        authMap.put("Scope", context.getProperty("scope") == null ? null : (String) context.getProperty("scope"));
-        authMap.put("LoginHint", context.getProperty("login_hint") == null ? null : (String) context.getProperty("login_hint"));
-        authMap.put("AcrValue", context.getProperty("acr_values") == null ? null : (String) context.getProperty("acr_values"));
+        authMap.put("AcrValue", String.valueOf(context.getProperty("acr") == null ? null : context.getProperty("acr")));
         authMap.put("RequestUrl", request.getRequestURI());
-        authMap.put("HTTPMethod","GET");
+        authMap.put("HTTPMethod", "GET");
         authMap.put("AppID", context.getSequenceConfig() == null ? null : context.getSequenceConfig().getApplicationId());
+        authMap.put("Scope", request.getParameter("scope"));
+        authMap.put("State", request.getParameter("state"));
+        authMap.put("Nonce", request.getParameter("nonce"));
+        authMap.put("LoginHint", request.getParameter("login_hint"));
         return authMap;
     }
 
@@ -549,8 +572,8 @@ public class DataPublisherUtil {
         if(request.getParameter("operator")!=null){
             context.setProperty("operator",request.getParameter("operator") );
         }
-        if(request.getParameter("msisdn")!=null){
-            context.setProperty("msisdn",request.getParameter("msisdn") );
+        if(request.getParameter("msisdn")!=null) {
+            context.setProperty("msisdn",request.getParameter("msisdn"));
         }
         String sessionId = resolveSessionID(request, context);
         context.setProperty(TRANSACTION_ID, sessionId);
@@ -586,8 +609,7 @@ public class DataPublisherUtil {
         }
     }
 
-    public static void publishInvalidRequest(HttpServletRequest request,
-                                             AuthenticationContext context) {
+    public static void publishInvalidRequest(HttpServletRequest request, AuthenticationContext context) {
 
         UserStatus uStatus = buildUserStatusFromRequest(request, context);
         uStatus.setStatus(UserState.INVALID_REQUEST.name());
