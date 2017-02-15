@@ -200,10 +200,12 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
         boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled();
         if(dataPublisherEnabled) {
             publishAuthEndpointData(request, context);
-            DataPublisherUtil.updateAndPublishUserStatus(
-                    (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-                    DataPublisherUtil.UserState.LOGIN_SUCCESS,
-                    "Authentication success");
+            if(context.isRequestAuthenticated()) {
+                DataPublisherUtil.updateAndPublishUserStatus(
+                        (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.LOGIN_SUCCESS,
+                        "Authentication success");
+            }
         }
         // Need to call this deliberately as sequenceConfig gets completed
         // within step handler
