@@ -12,9 +12,10 @@ import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 
 public class DataPublisherUtil {
@@ -75,6 +76,35 @@ public class DataPublisherUtil {
     public static UserStatus getInitialUserStatusObject(HttpServletRequest request, AuthenticationContext context) {
         return buildUserStatusFromRequest(request, context);
     }
+ /*
+    public static UserStatus buildUserStatusFromContext(HttpServletRequest request,
+            AuthenticationContext context) {
+
+        UserStatus.UserStatusBuilder userStatusBuilder = new UserStatus
+                .UserStatusBuilder((String) context.getProperty(TRANSACTION_ID));
+        Map<String, String> paramMap = new LinkedHashMap<String, String>();
+        String params = context.getQueryParams();
+        String[] pairs = params.split("&");
+
+        for (String pair : pairs) {
+            int idx = pair.indexOf("=");
+
+            paramMap.put(pair.substring(0, idx), pair.substring(idx + 1));
+        }
+
+        return userStatusBuilder
+                .msisdn((String) context.getProperty("msisdn"))
+                .operator((String) context.getProperty("operator"))
+                .nonce(paramMap.get("nonce") != null ? paramMap.get("nonce") : request.getParameter("nonce"))
+                .state(paramMap.get("state") != null ? paramMap.get("state") : request.getParameter("state"))
+                .scope(paramMap.get("scope") != null ? paramMap.get("scope") : request.getParameter("scope"))
+                .acrValue(paramMap.get("acr_values") != null ? paramMap.get("acr_values")
+                                  : request.getParameter("acr_values"))
+                .telcoScope(paramMap.get("telco_scope") != null ? paramMap.get("telco_scope")
+                                    : request.getParameter("telco_scope"))
+                .build();
+    }
+ */
 
     public static String resolveSessionID(HttpServletRequest request,
                                           AuthenticationContext context) {
@@ -203,6 +233,12 @@ public class DataPublisherUtil {
         userstatusData.add(System.currentTimeMillis());
 
 
+        if (org.apache.commons.lang.StringUtils.isNotEmpty(userStatus.getTransactionId())) {
+            userstatusData.add(userStatus.getTransactionId());
+        } else {
+            userstatusData.add(null);
+        }
+
         IdsAgent.getInstance().publish(USER_STATUS_META_STREAM_NAME, USER_STATUS_META_STREAM_VERSION,
                                        System.currentTimeMillis(), userstatusData.toArray());
     }
@@ -249,6 +285,9 @@ public class DataPublisherUtil {
         /*if (timestamp != null) {
             userStatusMetaData.add(timestamp);
         }*/
+
+
+        userStatusMetaData.add(userStatus.getTransactionId());
 
         IdsAgent.getInstance().publish(USER_STATUS_STREAM_NAME,
                                        USER_STATUS_STREAM_VERSION, System.currentTimeMillis(),
