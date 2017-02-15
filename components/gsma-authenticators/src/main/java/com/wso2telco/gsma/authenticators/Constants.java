@@ -224,7 +224,7 @@ public final class Constants {
 
     public static final String IS_REGISTERING = "isRegistering";
     
-    public static final String REDIRECT_CONSENT_PROFILE_UPGRADE = "redirectConsentUpgrade";
+    public static final String REDIRECT_CONSENT = "redirectConsent";
 
     public static final String TOKEN = "token";
 
@@ -273,8 +273,14 @@ public final class Constants {
     public static final String NO_OF_ATTEMPTS = "noOfAttempts";
 
     public static final String IS_PROFILE_UPGRADE = "isLoaUpgrade";
+
+    public static final String IS_PROFILE_UPGRADED = "profileUpgraded";
     
     public static final String HE_INITIATE_TRIGGERED = "HEInitiateTriggered";
+
+    public static final String IS_SECURITY_QUESTIONS_SHOWN = "securityQuestionsShown";
+
+    public static final String IS_SECURITY_QUESTIONS_ANSWERED = "securityQuestionsAnswered";
 
     public static final String LOA2 = "2";
 

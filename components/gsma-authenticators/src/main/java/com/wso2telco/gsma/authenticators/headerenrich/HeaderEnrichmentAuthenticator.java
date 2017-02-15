@@ -16,17 +16,18 @@
 
 package com.wso2telco.gsma.authenticators.headerenrich;
 
-import java.io.IOException;
-import java.rmi.RemoteException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.authenticators.Constants;
+import com.wso2telco.gsma.authenticators.IPRangeChecker;
+import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.gsma.authenticators.util.DecryptionAES;
+import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
+import com.wso2telco.gsma.authenticators.util.UserProfileManager;
+import com.wso2telco.gsma.manager.client.ClaimManagementClient;
+import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.lang.StringUtils;
@@ -53,17 +54,14 @@ import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServ
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.api.UserStoreException;
 
-import com.wso2telco.core.config.model.MobileConnectConfig;
-import com.wso2telco.core.config.service.ConfigurationService;
-import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.authenticators.IPRangeChecker;
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import com.wso2telco.gsma.authenticators.util.DecryptionAES;
-import com.wso2telco.gsma.authenticators.util.UserProfileManager;
-import com.wso2telco.gsma.manager.client.ClaimManagementClient;
-import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
-import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.rmi.RemoteException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 // TODO: Auto-generated Javadoc
 
@@ -232,7 +230,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
         boolean showTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
 
-    	return ((context.getProperty(Constants.HE_INITIATE_TRIGGERED) == null || !(Boolean)context.getProperty(Constants.HE_INITIATE_TRIGGERED)) && isRegistering && (showTnC || isProfileUpgrade)) ;
+    	return ((context.getProperty(Constants.HE_INITIATE_TRIGGERED) == null || !(Boolean)context.getProperty(Constants.HE_INITIATE_TRIGGERED)) && isRegistering && showTnC) ;
   
     }
 
@@ -249,39 +247,11 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         AuthenticationContextCache.getInstance().addToCache(new AuthenticationContextCacheKey(context.getContextIdentifier()), new AuthenticationContextCacheEntry(context));
 
         UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
-        boolean ipValidation = false;
-        boolean validOperator = true;
-
         
         String operator = context.getProperty(Constants.OPERATOR).toString();
         String msisdn = context.getProperty(Constants.MSISDN).toString();
-        String ipAddress = context.getProperty(Constants.IP_ADDRESS) != null ? (String) context.getProperty(Constants.IP_ADDRESS) : null;
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-        boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
         boolean showTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
-
-
-        if (ipAddress == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Header IpAddress not found.");
-            }
-        }
-
-        if (operatorIpValidation.containsKey(operator)) {
-            ipValidation = operatorIpValidation.get(operator);
-        }
-
-        if (ipAddress != null && ipValidation) {
-            validOperator = validateOperator(operator, ipAddress);
-        }
-
-        // Throw error when ip validation failure
-        if (ipValidation && !validOperator) {
-            log.info("Header Enrichment Authentication failed from request");
-            context.setProperty("faileduser", msisdn);
-            throw new AuthenticationFailedException("Authentication Failed");
-        }
-
 
         String queryParams = FrameworkUtils
                 .getQueryStringWithFrameworkContextId(context.getQueryParams(),
@@ -297,7 +267,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
       
         try {
 
-            String loginPage = getAuthEndpointUrl(isProfileUpgrade, showTnC, isRegistering);
+            String loginPage = getAuthEndpointUrl(showTnC, isRegistering);
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams))
                     + "&redirect_uri=" + request.getParameter("redirect_uri")
                     + "&authenticators=" + getName() + ":" + "LOCAL" );
@@ -333,13 +303,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     //User agreed to registration consent
                     break;
                 case Constants.USER_ACTION_REG_REJECTED:
-                    //User rejected to registration consent
-                    terminateAuthentication(context);
-                    break;
-                case Constants.USER_ACTION_UPGRADE_CONSENT:
-                    //User agreed to registration consent
-                    break;
-                case Constants.USER_ACTION_UPGRADE_REJECTED:
                     //User rejected to registration consent
                     terminateAuthentication(context);
                     break;
@@ -419,6 +382,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                                      DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL, e.getMessage());
 							throw new AuthenticationFailedException(e.getMessage(), e);
 						}
+                     }else{
+                         // login flow
                      }
                      context.setProperty(Constants.IS_PIN_RESET, false);
                      // explicitly remove all other authenticators and mark as a success
@@ -487,7 +452,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
      * Take action based on scope properties for HE Failure results
      *
      * @param context Authentication Context
-     * @param request HTTP request
      */
     private void actionBasedOnHEFailureResult(AuthenticationContext context) {
         String heFailureResult = context.getProperty(Constants.HE_FAILURE_RESULT).toString();
@@ -540,7 +504,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
     /**
      * Retrieves auth endpoint url
-     * @param isProfileUpgrade True if profile upgrade request
      * @param isShowTnc True if T&C visible
      * @param isRegistering TODO
      * @return Endpoint
@@ -550,16 +513,13 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
      * @throws LoginAuthenticationExceptionException
      * @throws RemoteUserStoreManagerServiceUserStoreExceptionException
      */
-    private String getAuthEndpointUrl(boolean isProfileUpgrade, boolean isShowTnc, boolean isRegistering)  {
+    private String getAuthEndpointUrl(boolean isShowTnc, boolean isRegistering)  {
 
     	 String loginPage;
     	
     	if(isRegistering && isShowTnc) {
     		 loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.CONSENT_JSP;
-    	} else if (isProfileUpgrade) {
-    		loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl()
-                    + Constants.PROFILE_UPGRADE_JSP;
-    	} else {
+    	} else  {
     		 loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
     	}
         return loginPage;
