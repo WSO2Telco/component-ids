@@ -265,6 +265,9 @@ public class DataPublisherUtil {
             userStatusMetaData.add(timestamp);
         }*/
 
+
+        userStatusMetaData.add(userStatus.getTransactionId());
+
         IdsAgent.getInstance().publish(USER_STATUS_STREAM_NAME,
                                        USER_STATUS_STREAM_VERSION, System.currentTimeMillis(),
                                        userStatusMetaData.toArray());
