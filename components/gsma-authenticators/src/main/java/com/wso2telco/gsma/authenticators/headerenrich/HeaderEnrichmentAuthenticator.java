@@ -16,18 +16,17 @@
 
 package com.wso2telco.gsma.authenticators.headerenrich;
 
+import java.io.IOException;
+import java.rmi.RemoteException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import com.wso2telco.core.config.DataHolder;
-import com.wso2telco.core.config.model.MobileConnectConfig;
-import com.wso2telco.core.config.service.ConfigurationService;
-import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.authenticators.IPRangeChecker;
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import com.wso2telco.gsma.authenticators.util.DecryptionAES;
-import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
-import com.wso2telco.gsma.authenticators.util.UserProfileManager;
-import com.wso2telco.gsma.manager.client.ClaimManagementClient;
-import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.lang.StringUtils;
@@ -54,14 +53,17 @@ import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServ
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.api.UserStoreException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.rmi.RemoteException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.authenticators.Constants;
+import com.wso2telco.gsma.authenticators.IPRangeChecker;
+import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.gsma.authenticators.util.DecryptionAES;
+import com.wso2telco.gsma.authenticators.util.UserProfileManager;
+import com.wso2telco.gsma.manager.client.ClaimManagementClient;
+import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
+import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
 
 // TODO: Auto-generated Javadoc
 
