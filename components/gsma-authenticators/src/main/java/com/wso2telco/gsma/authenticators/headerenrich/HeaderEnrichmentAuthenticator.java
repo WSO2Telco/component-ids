@@ -228,8 +228,11 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
     }
   
     private boolean triggerInitiateAuthRequest (AuthenticationContext context) {
-    	
-    	return ((context.getProperty(Constants.HE_INITIATE_TRIGGERED) == null || !(Boolean)context.getProperty(Constants.HE_INITIATE_TRIGGERED)) &&((Boolean)context.getProperty(Constants.IS_SHOW_TNC )|| (Boolean)context.getProperty(Constants.IS_PROFILE_UPGRADE ))) ;
+        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+        boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
+        boolean showTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
+
+    	return ((context.getProperty(Constants.HE_INITIATE_TRIGGERED) == null || !(Boolean)context.getProperty(Constants.HE_INITIATE_TRIGGERED)) && isRegistering && (showTnC || isProfileUpgrade)) ;
   
     }
 

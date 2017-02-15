@@ -307,8 +307,11 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         }
     }
 
-
-
+    /**
+     * Terminates the authenticator due to user implicit action
+     * @param context Authentication Context
+     * @throws AuthenticationFailedException
+     */
     private void terminateAuthentication(AuthenticationContext context) throws AuthenticationFailedException {
         log.info("User has terminated the authentication flow");
 

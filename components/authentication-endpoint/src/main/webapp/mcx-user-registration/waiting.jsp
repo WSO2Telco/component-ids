@@ -70,7 +70,7 @@
 
         
 
-        </script> 
+        </script>
         <script src="js/waiting.js"></script>
       </head>
 
@@ -150,7 +150,7 @@
     <div align="center" id ="sms_fallback" style="display:block">
       <p>No message arrived? <br><u><a onclick="sendSms()" style="cursor: pointer;">Click to get a text message instead.</a><u></p>
     </div>
-    <a onclick="cancelProcessToRegister()" class="btn btn--outline btn--full btn--large">
+    <a onclick="cancelProcessToRegister(true)" class="btn btn--outline btn--full btn--large">
       Cancel
     </a>
   </main>
