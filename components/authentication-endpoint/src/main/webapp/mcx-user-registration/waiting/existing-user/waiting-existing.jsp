@@ -73,7 +73,7 @@
 		<br>
 		<br>
 		<%} %>
-		<a onclick="handleTermination();" class="btn btn--outline btn--full btn--large">
+		<a onclick="handleTermination(true);" class="btn btn--outline btn--full btn--large">
 			{{misc-cancel-button}}
 		</a>
 	</main>

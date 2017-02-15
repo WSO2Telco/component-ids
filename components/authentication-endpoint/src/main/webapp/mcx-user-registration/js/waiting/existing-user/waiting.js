@@ -6,12 +6,11 @@ var isTimeout = false;
 var status;
 var pollingVar;
 var STATUS_PIN_FAIL ="FAILED_ATTEMPTS";
+var STATUS_PENDING = "PENDING";
+var STATUS_APPROVED = "APPROVED";
 var pinResetUrl;
 
 $(document).ready(function(){
-
-
-
 
 	// The template code
 	var templateSource = $("#results-template").html();
@@ -63,23 +62,22 @@ function pollForStatus() {
 /*
  * Handle polling termination and form submit.
  */
-function handleTermination() {
+function handleTermination(cancelButton) {
 	window.clearInterval(pollingVar);
 
 
 
 	var sessionDataKey = qs('sessionDataKey');
 	var commonAuthURL;
-
-	if(hasResponse){
-		commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
-			+ "&msisdn=" + msisdn
-			+ "&isTerminated=false&canHandle=true";
-	}else {
-		commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
-			+ "&msisdn=" + msisdn
-			+ "&isTerminated=true&canHandle=true";
+	var action = "userRespondedOrTimeout";
+	if(cancelButton){
+		action = "userCanceled";
 	}
+
+	commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
+		+ "&msisdn=" + msisdn
+		+ "&action=" + action + "&canHandle=true";
+
 	window.location = commonAuthURL;
 	//}, 5000);
 }
@@ -91,8 +89,6 @@ function checkUSSDResponseStatus() {
 
 	var sessionId = document.getElementById('sessionDataKey').value;
 	var url = "../sessionupdater/tnspoints/endpoint/ussd/status?sessionID=" + sessionId;
-	var STATUS_PENDING = "PENDING";
-
 
 	$.ajax({
 		type: "GET",
@@ -100,7 +96,6 @@ function checkUSSDResponseStatus() {
 		async: false,
 		cache: false,
 		success:function(result){
-
 			if(result != null) {
 				var responseStatus = result.status;
 

@@ -9,6 +9,10 @@ var hasResponse = false;
 var isTimeout = false;
 var status='pending';
 var sessionId;
+var STATUS_PIN_FAIL ="FAILED_ATTEMPTS";
+var STATUS_PENDING = "PENDING";
+var STATUS_APPROVED = "APPROVED";
+
 console.log(" timeout : " +timeout+" pollingInterval : " +pollingInterval+" timeRemaining : " +timeRemaining+" hasResponse : " +hasResponse+" isTimeout : " +isTimeout+" status : " +status);
 
 var pollingVar = setInterval(pollForStatus, pollingInterval);
@@ -44,7 +48,7 @@ console.log("waiting");
 /*
  * Handle polling termination and form submit.
  */
- function handleTermination() {
+ function handleTermination(cancelButton) {
 
  	window.clearInterval(pollingVar);
  	var STATUS_PENDING = "pending";
@@ -56,7 +60,7 @@ console.log("waiting");
  	$('#sms_fallback').hide();
 
  	setTimeout(function(){
- 		redirectBack();
+ 		redirectBack(cancelButton);
  	}, 5000);
 
 
@@ -68,13 +72,13 @@ console.log("waiting");
  */
 
  
- function redirectBack() {
+ function redirectBack(cancelButton) {
     // Get the value of the 'loginRequestURL' cookie
     var loginURL = decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + "loginRequestURL" + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
 
 
     if(tokenVal){
-    	selfAuthorize();
+    	selfAuthorize(cancelButton);
     }else{
 
     	if(isTimeout){
@@ -92,19 +96,18 @@ console.log("waiting");
 /*
  * Invoke the endpoint for self authenticate.
  */
- function selfAuthorize(){
+ function selfAuthorize(cancelButton){
 	 var commonAuthURL;
-
-	 if(hasResponse){
-		 commonAuthURL = "/commonauth/?sessionDataKey=" + tokenVal
-			 + "&msisdn=" + msisdn
-			 + "&operator=" + values["operator"] + "&isTerminated=false";
-	 }else {
-		 commonAuthURL = "/commonauth/?sessionDataKey=" + tokenVal
-			 + "&msisdn=" + msisdn
-			 + "&operator=" + values["operator"] + "&isTerminated=true";
+	 var action = "userRespondedOrTimeout";
+	 if(cancelButton){
+		 action = "userCanceled";
 	 }
- 	window.location = commonAuthURL;
+
+	 commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
+		 + "&msisdn=" + msisdn
+		 + "&action=" + action + "&canHandle=true";
+
+	 window.location = commonAuthURL;
  }
 
  function deleteUser(sessionId){
@@ -130,7 +133,6 @@ console.log("waiting");
  function checkUSSDResponseStatus() {
  	
  	sessionId=tokenVal;
-console.log("Inside checkUSSDResponseStatus-------------------------------");
  	var url = "/sessionupdater/tnspoints/endpoint/registration/ussd/status?sessionId=" + sessionId;
 
  	var STATUS_APPROVED = "Approved";
@@ -141,15 +143,18 @@ console.log("Inside checkUSSDResponseStatus-------------------------------");
  		async: false,
 		cache: false,
  		success:function(result){
- 			if(result != null) {
- 				var responseStatus = result.status; 
+			if(result != null) {
+				var responseStatus = result.status;
+				status = result.status;
 
- 				if(responseStatus != null && responseStatus.toUpperCase() == STATUS_APPROVED.toUpperCase()) {
- 					status = result.status;
- 					console.log("status : "+status);
- 					hasResponse = true;
- 				}
- 			}
+				if(responseStatus != null && responseStatus.toUpperCase() != STATUS_PENDING) {
+					hasResponse = true;
+					status = result.status;
+				}else if (responseStatus != null && responseStatus.toUpperCase() == STATUS_PIN_FAIL){
+					hasResponse = true;
+					status = STATUS_PIN_FAIL;
+				}
+			}
  		}});
 
  }
