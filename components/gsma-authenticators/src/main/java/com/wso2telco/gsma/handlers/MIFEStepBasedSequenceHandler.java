@@ -267,7 +267,7 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
             consentStatus = "consent given";
         }
 
-        boolean isNewuser = false;
+        boolean isNewuser = (boolean) context.getProperty(Constants.IS_REGISTERING);
         String authenticatedUser;
         String authenticators = "";
         Object amrValue;
