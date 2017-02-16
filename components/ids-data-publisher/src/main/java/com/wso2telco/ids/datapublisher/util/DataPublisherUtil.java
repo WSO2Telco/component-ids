@@ -408,7 +408,7 @@ public class DataPublisherUtil {
         } else {
             authEndpointData.add(null);
         }
-        if (authMap.get("IsAuthenticted") != null && !authMap.get("IsAuthenticated").isEmpty()) {
+        if (authMap.get("IsAuthenticated") != null && !authMap.get("IsAuthenticated").isEmpty()) {
             authEndpointData.add(Boolean.parseBoolean(authMap.get("IsAuthenticated")));
         } else {
             authEndpointData.add(false);
@@ -652,6 +652,7 @@ public class DataPublisherUtil {
     public enum UserState {
 
         HE_AUTH_PROCESSING_FAIL, HE_AUTH_PROCESSING, HE_AUTH_SUCCESS,
+        IP_HEADER_NOT_FOUND, IP_HEADER_NOT_IN_RANGE,
         MSISDN_AUTH_SUCCESS,
         MSISDN_AUTH_PROCESSING_FAIL, MSISDN_AUTH_PROCESSING,
 

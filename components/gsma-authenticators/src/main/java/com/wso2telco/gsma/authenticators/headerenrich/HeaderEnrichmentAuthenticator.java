@@ -340,6 +340,9 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 if (log.isDebugEnabled()) {
                     log.debug("Header ip address not found.");
                 }
+                DataPublisherUtil
+                        .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.IP_HEADER_NOT_FOUND,
+                                "Missing IP address");
 
                 // RULE : if operator ip validation is enabled and ip address is blank, break the flow
                 if (ipValidation) {
@@ -362,6 +365,9 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             if (ipValidation && !validOperator) {
                 log.info("Header Enrichment Authentication failed");
                 context.setProperty("faileduser", msisdn);
+                DataPublisherUtil
+                        .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.IP_HEADER_NOT_IN_RANGE,
+                                "IP address not in range");
                 DataPublisherUtil
                         .updateAndPublishUserStatus(userStatus,
                                 DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL, "IP validation failed");
