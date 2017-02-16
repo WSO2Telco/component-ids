@@ -97,9 +97,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
 
-        DataPublisherUtil
-                .updateAndPublishUserStatus((UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+        DataPublisherUtil.updateAndPublishUserStatus((UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING, "MSISDNAuthenticator processing started");
+
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
         } else {
@@ -137,9 +137,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         } catch (IOException e) {
             log.error("Error occurred while redirecting request", e);
             DataPublisherUtil
-                    .updateAndPublishUserStatus(
-                            (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-                            DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING_FAIL, e.getMessage());
+                    .updateAndPublishUserStatus((UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING_FAIL, e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(), e);
         } 
     }
@@ -161,7 +159,11 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             if(context.getProperty(Constants.MSISDN) == null && (request.getParameter(Constants.MSISDN) != null && !request.getParameter(Constants.MSISDN).isEmpty())) {
             	msisdn = request.getParameter(Constants.MSISDN);
             	context.setProperty(Constants.MSISDN, msisdn);
-            	boolean isUserExists = AdminServiceUtil.isUserExists(msisdn);
+                DataPublisherUtil.updateAndPublishUserStatus(
+                        (UserStatus) context.getProperty(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.MSISDN_SET_TO_USER_INPUT,
+                        "MSISDN set to user input in MSISDNAuthenticator", msisdn);
+                boolean isUserExists = AdminServiceUtil.isUserExists(msisdn);
     			context.setProperty(Constants.IS_REGISTERING, !isUserExists);
     			int requestedLoa = (int) context.getProperty(Constants.ACR);
     			boolean isProfileUpgrade = Util.isProfileUpgrade(msisdn, requestedLoa, isUserExists);
@@ -216,7 +218,16 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             if (rememberMe != null && "eon".equals(rememberMe)) {
                 context.setRememberMe(true);
             }
+
+            DataPublisherUtil
+                    .updateAndPublishUserStatus(
+                            (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                            DataPublisherUtil.UserState.MSISDN_AUTH_SUCCESS, "MSISDN Authentication success");
         } catch (Exception ex) {
+            DataPublisherUtil
+                    .updateAndPublishUserStatus(
+                            (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                            DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING_FAIL, ex.getMessage());
         	throw new AuthenticationFailedException("Authenicator failed",ex);
         }
         

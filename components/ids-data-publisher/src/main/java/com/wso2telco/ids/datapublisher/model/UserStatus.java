@@ -55,6 +55,10 @@ public class UserStatus {
         return msisdn;
     }
 
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
     public String getState() {
         return state;
     }
