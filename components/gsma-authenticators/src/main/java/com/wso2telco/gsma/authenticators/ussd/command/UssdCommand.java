@@ -43,9 +43,7 @@ public abstract class UssdCommand {
 
     private static Log log = LogFactory.getLog(UssdCommand.class);
 
-    public void execute(String msisdn, String sessionID, String serviceProvider, String operator, String client_id, UserStatus userStatus) throws IOException {
-        DataPublisherUtil
-                .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SEND_USSD_PIN, "");
+    public void execute(String msisdn, String sessionID, String serviceProvider, String operator, String client_id, BasicFutureCallback futureCallback) throws IOException {
 //        AuthenticationContext ctx = getAuthenticationContext(sessionID);
 //        String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(ctx.getQueryParams(),
 //                ctx.getCallerSessionKey(), ctx.getContextIdentifier());
@@ -59,7 +57,7 @@ public abstract class UssdCommand {
         Gson gson = new GsonBuilder().serializeNulls().create();
         String reqString = gson.toJson(ussdRequest);
 
-        postRequest(getUrl(msisdn), reqString, operator);
+        postRequest(getUrl(msisdn), reqString, operator, futureCallback);
     }
 
     protected abstract String getUrl(String msisdn);
@@ -75,9 +73,8 @@ public abstract class UssdCommand {
      * @return the string
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    private void postRequest(String url, String requestStr, String operator) throws IOException {
+    private void postRequest(String url, String requestStr, String operator, BasicFutureCallback futureCallback) throws IOException {
         MobileConnectConfig.USSDConfig ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
-        BasicFutureCallback futureCallback = new BasicFutureCallback();
         final HttpPost postRequest = futureCallback.getPostRequest();
         try {
             postRequest.setURI(new URI(url));

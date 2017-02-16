@@ -147,6 +147,13 @@ public class UserStatus {
         return transactionId;
     }
 
+    public UserStatus cloneUserStatus() {
+        return new UserStatusBuilder(getSessionId()).id(id).time(time).status(status).msisdn(msisdn).state(state)
+                .nonce(nonce).scope(scope).acrValue(acrValue).ipHeader(ipHeader).isNewUser(isNewUser)
+                .loginHint(loginHint).operator(operator).userAgent(userAgent).comment(comment).consumerKey(consumerKey)
+                .appId(appId).telcoScope(telcoScope).xForwardIP(xForwardIP).transactionId(transactionId).build();
+    }
+
     private UserStatus(UserStatusBuilder builder) {
         this.id = builder.id;
         this.time = builder.time;

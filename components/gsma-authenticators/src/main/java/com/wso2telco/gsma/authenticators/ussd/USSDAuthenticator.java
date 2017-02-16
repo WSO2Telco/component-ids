@@ -180,7 +180,8 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         String client_id = paramMap.get(Constants.CLIENT_ID);
 
         UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
-        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator, client_id, userStatus);
+        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator, client_id,
+                new USSDFutureCallback(userStatus.cloneUserStatus()));
     }
 
     /**
