@@ -19,6 +19,7 @@ import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.historylog.DbTracelog;
 import com.wso2telco.historylog.LogHistoryException;
+import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -199,6 +200,12 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
         boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled();
         if(dataPublisherEnabled) {
             publishAuthEndpointData(request, context);
+            if(context.isRequestAuthenticated()) {
+                DataPublisherUtil.updateAndPublishUserStatus(
+                        (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.LOGIN_SUCCESS,
+                        "Authentication success");
+            }
         }
         // Need to call this deliberately as sequenceConfig gets completed
         // within step handler

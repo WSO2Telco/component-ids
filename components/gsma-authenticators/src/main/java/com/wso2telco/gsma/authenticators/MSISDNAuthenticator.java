@@ -97,11 +97,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
 
-        DataPublisherUtil
-                .updateAndPublishUserStatus(
-                        (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-                        DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING,
-                        "MSISDNAuthenticator processing started");
+        DataPublisherUtil.updateAndPublishUserStatus((UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING, "MSISDNAuthenticator processing started");
+
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
         } else {
@@ -139,9 +137,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         } catch (IOException e) {
             log.error("Error occurred while redirecting request", e);
             DataPublisherUtil
-                    .updateAndPublishUserStatus(
-                            (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-                            DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING_FAIL, e.getMessage());
+                    .updateAndPublishUserStatus((UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING_FAIL, e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(), e);
         } 
     }
@@ -212,8 +208,13 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
          	         	
             }
             AuthenticationContextHelper.setSubject(context, msisdn);
-            String rememberMe = request.getParameter("chkRemember");
+            log.info("Authentication success");
+            DataPublisherUtil.updateAndPublishUserStatus(
+                    (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                    DataPublisherUtil.UserState.MSISDN_AUTH_SUCCESS,
+                    "MSISDN Authentication success");
 
+            String rememberMe = request.getParameter("chkRemember");
             if (rememberMe != null && "eon".equals(rememberMe)) {
                 context.setRememberMe(true);
             }
