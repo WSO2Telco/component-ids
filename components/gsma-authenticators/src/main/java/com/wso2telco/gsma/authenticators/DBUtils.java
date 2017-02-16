@@ -683,6 +683,10 @@ public class DBUtils {
 
     public static Set<String> getAllowedAuthenticatorSetForMNO(String mobileNetworkOperator)
             throws AuthenticatorException {
+    	
+    	Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT *");
         sql.append(" from ");
@@ -690,21 +694,28 @@ public class DBUtils {
         sql.append(" where mobile_network_operator=?");
 
         Set<String> authenticatorSet = new HashSet<>();
-        try (Connection connection = getConnectDBConnection()) {
-            PreparedStatement ps = connection.prepareStatement(sql.toString());
+        try {
+        	connection = getConnectDBConnection();
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, mobileNetworkOperator);
-            ResultSet rs = ps.executeQuery();
+            rs = ps.executeQuery();
             while (rs.next()) {
                 authenticatorSet.add(rs.getString("allowed_authenticator"));
             }
         } catch (SQLException e) {
             handleException("Error occurred while retrieving allowed authenticators for " + mobileNetworkOperator, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, ps);
         }
         return authenticatorSet;
     }
 
     public static Set<String> getAllowedAuthenticatorSetForSP(String serviceProvider)
             throws AuthenticatorException {
+    	
+    	Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT *");
         sql.append(" from ");
@@ -712,15 +723,18 @@ public class DBUtils {
         sql.append(" where client_id=?");
 
         Set<String> authenticatorSet = new HashSet<>();
-        try (Connection connection = getConnectDBConnection()) {
-            PreparedStatement ps = connection.prepareStatement(sql.toString());
+        try {
+        	connection = getConnectDBConnection();
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, serviceProvider);
-            ResultSet rs = ps.executeQuery();
+            rs = ps.executeQuery();
             while (rs.next()) {
                 authenticatorSet.add(rs.getString("allowed_authenticator"));
             }
         } catch (SQLException e) {
             handleException("Error occurred while retrieving allowed authenticators for " + serviceProvider, e);
+        } finally {
+        	IdentityDatabaseUtil.closeAllConnections(connection, rs, ps);
         }
         return authenticatorSet;
     }
@@ -777,13 +791,18 @@ public class DBUtils {
                     + contextIdentifier);
         }
 
-        try (Connection connection = getConnectDBConnection()) {
-            PreparedStatement ps = connection.prepareStatement(sql.toString());
+        Connection connection = null;
+        PreparedStatement ps = null;
+        try {
+        	connection = getConnectDBConnection();
+        	ps = connection.prepareStatement(sql.toString());
             ps.setString(1, hashKey);
             ps.setString(2, contextIdentifier);
             ps.executeUpdate();
         } catch (SQLException e) {
             handleException(e.getMessage(), e);
+        } finally {
+        	IdentityDatabaseUtil.closeAllConnections(connection, null, ps);
         }
     }
 }

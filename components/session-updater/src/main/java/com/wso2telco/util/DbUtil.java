@@ -3,13 +3,16 @@ package com.wso2telco.util;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.exception.AuthenticatorException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -193,13 +196,21 @@ public class DbUtil {
 
         String sql = "select contextid from sms_hashkey_contextid_mapping where hashkey=?";
 
-        try (Connection connection = getConnectDBConnection()) {
-            PreparedStatement ps = connection.prepareStatement(sql);
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+        	connection = getConnectDBConnection();
+            ps = connection.prepareStatement(sql);
             ps.setString(1, hashKey);
-            ResultSet rs = ps.executeQuery();
+            rs = ps.executeQuery();
             while (rs.next()) {
                 sessionDataKey = rs.getString("contextid");
             }
+        }catch (SQLException e) {
+            handleException(e.getMessage(), e);
+        } finally {
+        	IdentityDatabaseUtil.closeAllConnections(connection, rs, ps);
         }
         return sessionDataKey;
     }
