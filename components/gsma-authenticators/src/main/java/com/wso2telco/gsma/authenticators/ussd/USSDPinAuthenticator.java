@@ -167,9 +167,8 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
             // send ussd message only when, request is not pin reset and any of followings,
             // securityQuestionsShown : when user has entered security questions when profile upgrade flow
-            // isRegistering : when user has entered security questions in registration flow
-            // !isProfileUpgrade : when user is not following a profile upgrade
-            if (!isPinReset && (securityQuestionsShown || isRegistering || !isProfileUpgrade)) {
+            // or when user comes via LOA 3 login
+            if (securityQuestionsShown || (!isRegistering && !isProfileUpgrade && !isPinReset)) {
             	DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
                 sendUssd(context, isRegistering, msisdn, serviceProviderName, operator, userStatus);
             }
@@ -618,7 +617,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             context.setProperty(Constants.IS_SECURITY_QUESTIONS_SHOWN, true);
         } else if(isRegistering){
             loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl()
-                    + Constants.PIN_REGISTRATION_WAITING_JSP;
+                    + Constants.PIN_REGISTRATION_JSP;
             context.setProperty(Constants.IS_SECURITY_QUESTIONS_SHOWN, true);
         }else if (isPinReset) {
             loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl()

@@ -294,7 +294,7 @@
          * USSD Registration or USSD Pin Registration page 1
          * click on YES button
          */
-        if (acr_code == "USSDPinAuthenticator") {
+        /*if (acr_code == "USSDPinAuthenticator") {
             term_ussd_pin.style.display = 'block';
             term_ussd.style.display = 'none';
             slider.style.display = 'none';
@@ -305,8 +305,8 @@
 
         } else {
             registration();
-        }
-
+        }*/
+        registration();
     }
 
     function proceedRegistration() {
