@@ -62,12 +62,13 @@ public class DataPublisherUtil {
                 .appId(appId)
                 .msisdn(request.getParameter("msisdn_header"))
                 .operator(request.getParameter("operator"))
-                .nonce(request.getParameter("operator"))
+                .nonce(request.getParameter("nonce"))
                 .state(request.getParameter("state"))
                 .scope(request.getParameter("scope"))
                 .telcoScope(request.getParameter("telco_scope"))
                 .acrValue(request.getParameter("acr_values"))
-                .ipHeader(request.getParameter("ipAddress")).loginHint(request.getParameter("login_hint"))
+                .ipHeader(request.getParameter("ipAddress"))
+                .loginHint(request.getParameter("login_hint"))
                 .userAgent(request.getHeader("User-Agent"))
                 .transactionId(request.getParameter("transactionId"))
                 .build();
@@ -223,15 +224,12 @@ public class DataPublisherUtil {
         } else {
             userstatusData.add(null);
         }
-
-        userstatusData.add(System.currentTimeMillis());
-
-
         if (org.apache.commons.lang.StringUtils.isNotEmpty(userStatus.getTransactionId())) {
             userstatusData.add(userStatus.getTransactionId());
         } else {
             userstatusData.add(null);
         }
+        userstatusData.add(System.currentTimeMillis());
 
         IdsAgent.getInstance().publish(USER_STATUS_META_STREAM_NAME, USER_STATUS_META_STREAM_VERSION,
                                        System.currentTimeMillis(), userstatusData.toArray());
@@ -408,7 +406,7 @@ public class DataPublisherUtil {
         } else {
             authEndpointData.add(null);
         }
-        if (authMap.get("IsAuthenticted") != null && !authMap.get("IsAuthenticated").isEmpty()) {
+        if (authMap.get("IsAuthenticated") != null && !authMap.get("IsAuthenticated").isEmpty()) {
             authEndpointData.add(Boolean.parseBoolean(authMap.get("IsAuthenticated")));
         } else {
             authEndpointData.add(false);
@@ -652,6 +650,7 @@ public class DataPublisherUtil {
     public enum UserState {
 
         HE_AUTH_PROCESSING_FAIL, HE_AUTH_PROCESSING, HE_AUTH_SUCCESS,
+        IP_HEADER_NOT_FOUND, IP_HEADER_NOT_IN_RANGE,
         MSISDN_AUTH_SUCCESS,
         MSISDN_AUTH_PROCESSING_FAIL, MSISDN_AUTH_PROCESSING,
 
