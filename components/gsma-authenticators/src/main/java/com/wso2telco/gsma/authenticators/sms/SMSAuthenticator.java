@@ -24,6 +24,7 @@ import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.cryptosystem.AESencrp;
 import com.wso2telco.gsma.authenticators.util.Application;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
 import com.wso2telco.gsma.shorten.SelectShortUrl;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
@@ -41,6 +42,8 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Date;
 
 
@@ -166,7 +169,8 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             }
             
             DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
-            String smsResponse = new SendSMS().sendSMS(msisdn, messageText, operator);
+            BasicFutureCallback futureCallback = new SMSFutureCallback(userStatus.cloneUserStatus());
+            String smsResponse = new SendSMS().sendSMS(msisdn, messageText, operator, futureCallback);
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&authenticators=" +
                     getName() + ":" + "LOCAL" + retryParam);
 

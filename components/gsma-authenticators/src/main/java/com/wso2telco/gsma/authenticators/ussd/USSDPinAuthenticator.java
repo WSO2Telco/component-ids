@@ -27,6 +27,7 @@ import com.wso2telco.gsma.authenticators.ussd.command.PinLoginUssdCommand;
 import com.wso2telco.gsma.authenticators.ussd.command.PinRegistrationUssdCommand;
 import com.wso2telco.gsma.authenticators.ussd.command.UssdCommand;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
 import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
 import com.wso2telco.gsma.authenticators.util.UserProfileManager;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
@@ -171,7 +172,8 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             // !isProfileUpgrade : when user is not following a profile upgrade
             if (!isPinReset && (securityQuestionsShown || isRegistering || !isProfileUpgrade)) {
             	DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
-                sendUssd(context, isRegistering, msisdn, serviceProviderName, operator, userStatus);
+                sendUssd(context, isRegistering, msisdn, serviceProviderName, operator,
+                        new USSDPinFutureCallback(userStatus.cloneUserStatus()));
             }
 
             String redirectUrl = response.encodeRedirectURL(loginPage + ("?" + queryParams))
@@ -249,7 +251,9 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         PinConfigUtil.savePinConfigToContext(pinConfig, context);
     }
 
-    private void sendUssd(AuthenticationContext context, boolean isRegistering, String msisdn, String serviceProviderName, String operator, UserStatus userStatus) throws SQLException, AuthenticatorException, IOException {
+    private void sendUssd(AuthenticationContext context, boolean isRegistering, String msisdn,
+            String serviceProviderName, String operator, BasicFutureCallback futureCallback)
+            throws SQLException, AuthenticatorException, IOException {
         UssdCommand ussdCommand;
         boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
         if (isRegistering || isProfileUpgrade) {
@@ -263,7 +267,8 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
         String client_id = paramMap.get(Constants.CLIENT_ID);
 
-        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator, client_id, userStatus);
+        ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator, client_id,
+                futureCallback);
     }
 
     /* (non-Javadoc)

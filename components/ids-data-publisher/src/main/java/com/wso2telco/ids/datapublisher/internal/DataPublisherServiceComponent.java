@@ -48,6 +48,7 @@ public class DataPublisherServiceComponent {
     }
 
     protected void unsetApplicationManagementService(ApplicationManagementService applicationManagementService) {
+        DataPublisherUtil.setApplicationManagementService(null);
     }
 
 

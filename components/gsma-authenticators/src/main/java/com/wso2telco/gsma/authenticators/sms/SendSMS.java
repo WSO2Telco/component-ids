@@ -17,20 +17,26 @@ package com.wso2telco.gsma.authenticators.sms;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.wso2telco.Util;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.ReceiptRequest;
+import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -56,7 +62,7 @@ public class SendSMS {
      * @return the string
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    protected String sendSMS(String msisdn, String message,String operator) throws IOException {
+    protected String sendSMS(String msisdn, String message, String operator, BasicFutureCallback futureCallback) throws IOException {
         String returnString = null;
         
         List<String> address = new ArrayList<String>();
@@ -95,7 +101,7 @@ public class SendSMS {
         returnString = gson.toJson(req);
 
         smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
-        postRequest(smsConfig.getEndpoint(),returnString,operator);
+        postRequest(smsConfig.getEndpoint(), returnString, operator, futureCallback);
         
         return returnString;
         
@@ -109,7 +115,7 @@ public class SendSMS {
      * @param operator the operator
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    protected void postRequest(String url, String requestStr,String operator) throws IOException {
+    protected void postRequest(String url, String requestStr,String operator, BasicFutureCallback futureCallback) throws IOException {
 
 
 //        HttpClient client = HttpClientBuilder.create().build();
@@ -128,14 +134,6 @@ public class SendSMS {
         
         postRequest.setEntity(input);
 
-        HttpResponse response = client.execute(postRequest);
-        
-        if ( (response.getStatusLine().getStatusCode() != 201)){
-            LOG.error("Error occured while calling end points");
-        }
-        else{
-            LOG.info("Success Request");
-        }
-        
+        Util.sendAsyncRequest(postRequest, futureCallback);
     }
 }
