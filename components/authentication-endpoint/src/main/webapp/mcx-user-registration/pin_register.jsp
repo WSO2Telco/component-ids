@@ -272,8 +272,6 @@
         //do your action goes below
     });
 
-    alert("auth_pin_registration")
-
     var auth;
     var acr_code = getAcrValue();
 
