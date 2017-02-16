@@ -62,12 +62,13 @@ public class DataPublisherUtil {
                 .appId(appId)
                 .msisdn(request.getParameter("msisdn_header"))
                 .operator(request.getParameter("operator"))
-                .nonce(request.getParameter("operator"))
+                .nonce(request.getParameter("nonce"))
                 .state(request.getParameter("state"))
                 .scope(request.getParameter("scope"))
                 .telcoScope(request.getParameter("telco_scope"))
                 .acrValue(request.getParameter("acr_values"))
-                .ipHeader(request.getParameter("ipAddress")).loginHint(request.getParameter("login_hint"))
+                .ipHeader(request.getParameter("ipAddress"))
+                .loginHint(request.getParameter("login_hint"))
                 .userAgent(request.getHeader("User-Agent"))
                 .transactionId(request.getParameter("transactionId"))
                 .build();
@@ -223,15 +224,12 @@ public class DataPublisherUtil {
         } else {
             userstatusData.add(null);
         }
-
-        userstatusData.add(System.currentTimeMillis());
-
-
         if (org.apache.commons.lang.StringUtils.isNotEmpty(userStatus.getTransactionId())) {
             userstatusData.add(userStatus.getTransactionId());
         } else {
             userstatusData.add(null);
         }
+        userstatusData.add(System.currentTimeMillis());
 
         IdsAgent.getInstance().publish(USER_STATUS_META_STREAM_NAME, USER_STATUS_META_STREAM_VERSION,
                                        System.currentTimeMillis(), userstatusData.toArray());
