@@ -61,7 +61,7 @@ console.log("waiting");
 
  	setTimeout(function(){
  		redirectBack(cancelButton);
- 	}, 5000);
+ 	}, 500);
 
 
 

@@ -116,8 +116,8 @@
 
 
     <main class="site__main site__wrap section v-distribute v-grow">
-        <header class="page__header" id="ussdpin_header" style="display:none">
-            <h1 class="page__heading">Now, let’s make your account&nbsp;secure</h1>
+        <header class="page__header" id="ussdpin_header">
+            <h1 class="page__heading">Now, let's make your account&nbsp;secure</h1>
             <p>Create a PIN for secure log-in and two questions we can ask you in case you ever forget
                 your&nbsp;PIN.</p>
         </header>
@@ -127,52 +127,6 @@
             <p>Create a PIN for secure log-in and two questions we can ask you in case you ever forget
                 your&nbsp;PIN.</p>
         </header>
-        <div class="slider slider--all slick v-grow" id="slider">
-            <section class="slider__slide">
-                <div class="slider__slide-inner v-distribute">
-                    <header class="page__header">
-                        <h1 class="page__heading">Secure</h1>
-                        <p>A safer, more secure way to&nbsp;log-in.</p>
-                        <a href="https://mobileconnect.io/" class="cta">Learn more</a>
-                    </header>
-                    <div class="page__illustration v-grow v-align-content">
-                        <div>
-                            <img src="mcresources/img/svg/secure.svg" alt="Secure" width="106" height="126">
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="slider__slide">
-                <div class="slider__slide-inner v-distribute">
-                    <header class="page__header">
-                        <h1 class="page__heading">Private</h1>
-                        <p>Your personal data is never shared without your&nbsp;permission.</p>
-                        <a href="https://mobileconnect.io/" class="cta">Learn more</a>
-                    </header>
-                    <div class="page__illustration v-grow v-align-content">
-                        <div>
-                            <img src="mcresources/img/svg/private.svg" alt="Private" width="160" height="107">
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="slider__slide">
-                <div class="slider__slide-inner v-distribute">
-                    <header class="page__header">
-                        <h1 class="page__heading">Convenient</h1>
-                        <p>No need for multiple passwords or&nbsp;usernames.</p>
-                        <a href="https://mobileconnect.io/" class="cta">Learn more</a>
-                    </header>
-                    <div class="page__illustration v-grow v-align-content">
-                        <div>
-                            <img src="mcresources/img/svg/convenient.svg" alt="Convenient" width="106" height="127">
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
 
 
         <form class="form-horizontal" id="selfReg" name="selfReg" data-parsley-validate>
@@ -188,7 +142,7 @@
                 </div>
             </div>
 
-            <div id="questions" style="display:none; margin-bottom:5px;">
+            <div id="questions" margin-bottom:5px;">
                 <input type="hidden" value="" name="http://wso2.org/claims/challengeQuestion1">
                 <input type="hidden" value="" name="http://wso2.org/claims/challengeQuestion2">
 
@@ -243,9 +197,7 @@
             </div>
 
             <div class="page__copy">
-                <p id="msg">
-                    Looks like you don't yet have an account. Want to set one up? It's quick and&nbsp;easy.
-                </p>
+
             </div>
             <div id="term_ussd" style="display:none" class="page_term">
                 <p style="font-size:13px; margin:0px; padding:0px;" align="center">By setting up an account, you are
@@ -267,18 +219,14 @@
             </div>
 
 
-            <div class="grid">
+            <div class="grid" style="margin-top:15px;">
                 <div class="grid__item one-half">
                     <a onclick="cancelProcessToRegister()" class="btn btn--outline btn--full btn--large">
                         No thanks
                     </a>
                 </div>
                 <div class="grid__item one-half">
-                    <button type="button" id="validate-btn1" onclick="flow()" name="action" value="yes"
-                            class="btn btn--full btn--fill btn--large btn--color">
-                        Yes
-                    </button>
-                    <button type="button" id="validate-btn2" onclick="proceedRegistration()" style="display:none"
+                    <button type="button" id="validate-btn2" onclick="flow()"
                             name="action" value="yes" class="btn btn--full btn--fill btn--large btn--color">
                         Yes
                     </button>
@@ -324,7 +272,6 @@
         //do your action goes below
     });
 
-
     var auth;
     var acr_code = getAcrValue();
 
@@ -336,63 +283,17 @@
     var questions = document.getElementById("questions");
     var msg = document.getElementById("msg");
     var btn1 = document.getElementById("validate-btn1");
-    var btn2 = document.getElementById("validate-btn2");
 
-    /*
-     * USSD Pin Registration page 1
-     * hide terms
-     *
-     */
-
-    console.log('xxxxxxxxxxxxx uoioiuoiuoiuoi :' + acr_code)
-    if (acr_code == "USSDPinAuthenticator") {
-        term_ussd_pin.style.display = 'none';
-        term_ussd.style.display = 'none';
-        auth = "LoA3";
-    }
-
-    /*
-     * USSD Registration page 1
-     * display terms
-     */
-    if (acr_code == "USSDAuthenticator") {
-
-        term_ussd_pin.style.display = 'none';
-        term_ussd.style.display = 'block';
-    }
-
-    if ('<%=updateProfile%>' == "true") {
-        flow();
-        term_ussd_pin.style.display = 'none';
-        term_ussd.style.display = 'none';
-        header.style.display = 'none';
-        header_update.style.display = 'block';
-    }
 
     /*
      * USSD Registration or USSD Pin Registration page 1
      * click on YES button
      */
     function flow() {
-
-        /*
-         * USSD Registration or USSD Pin Registration page 1
-         * click on YES button
-         */
-        if (acr_code == "USSDPinAuthenticator") {
-            header.style.display = 'block';
-            term_ussd_pin.style.display = 'block';
-            term_ussd.style.display = 'none';
-            slider.style.display = 'none';
-            questions.style.display = 'block';
-            msg.style.display = 'none';
-            btn1.style.display = 'none';
-            btn2.style.display = 'block';
-
-        } else {
+        $('#selfReg').parsley().validate();
+        if (true === $('#selfReg').parsley().isValid()) {
             registration();
         }
-
     }
 
     function proceedRegistration() {

@@ -218,6 +218,8 @@ public final class Constants {
 
     public static final String PIN_RESET_JSP = "/mcx-user-registration/auth_registration_pin_reset";
 
+    public static final String PIN_REGISTRATION_JSP = "/mcx-user-registration/auth_pin_registration";
+
     public static final String SAA_WAITING_JSP = "/mcx-user-registration/auth_registration_saa_waiting";
 
     public static final String REDIRECT_URI = "redirectURI";
