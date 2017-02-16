@@ -154,12 +154,6 @@ public class DataPublisherUtil {
         } else {
             userstatusData.add(null);
         }
-        if (userStatus.getMsisdn() != null && !userStatus.getMsisdn().isEmpty()) {
-
-            userstatusData.add(userStatus.getMsisdn());
-        } else {
-            userstatusData.add(null);
-        }
         if (userStatus.getIsMsisdnHeader() == 1) {
 
             userstatusData.add(Boolean.TRUE);
@@ -285,6 +279,12 @@ public class DataPublisherUtil {
         /*if (timestamp != null) {
             userStatusMetaData.add(timestamp);
         }*/
+
+        if (userStatus.getMsisdn() != null && !userStatus.getMsisdn().isEmpty()) {
+            userStatusMetaData.add(userStatus.getMsisdn());
+        } else {
+            userStatusMetaData.add(null);
+        }
 
 
         userStatusMetaData.add(userStatus.getTransactionId());
@@ -628,9 +628,22 @@ public class DataPublisherUtil {
         boolean dataPublishingEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher()
                 .isEnabled();
         if (dataPublishingEnabled) {
-            if (userState != null) {
+            if (userStatus != null) {
                 userStatus.setStatus(userState.name());
                 userStatus.setComment(comment);
+                publishUserStatusData(userStatus);
+            }
+        }
+    }
+
+    public static void updateAndPublishUserStatus(UserStatus userStatus, UserState userState, String comment, String msisdn) {
+        boolean dataPublishingEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher()
+                .isEnabled();
+        if (dataPublishingEnabled) {
+            if (userStatus != null) {
+                userStatus.setStatus(userState.name());
+                userStatus.setComment(comment);
+                userStatus.setMsisdn(msisdn);
                 publishUserStatusData(userStatus);
             }
         }
@@ -670,7 +683,12 @@ public class DataPublisherUtil {
         MSISDN_INVALID,
         PROXY_REQUEST_FORWARDED_TO_IS,
         PROXY_PROCESSING,
-        OTHER_ERROR;
+        OTHER_ERROR,
+
+        MSISDN_SET_TO_LOGIN_HINT,
+        MSISDN_SET_TO_HEADER,
+        MSISDN_SET_TO_USER_INPUT,
+        MSISDN_CLEARED
 
     }
 }

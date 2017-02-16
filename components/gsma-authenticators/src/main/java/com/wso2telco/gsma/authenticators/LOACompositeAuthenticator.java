@@ -145,25 +145,30 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		//Can we find out the MSISDN here 
 		
 		String msisdnToBeDecrypted = "";
+		//Following variable is for data publishing purposes.
+		DataPublisherUtil.UserState msisdnStatus = DataPublisherUtil.UserState.MSISDN_SET_TO_HEADER;
 		if("onnet".equals(flowType)) {	
 			msisdnToBeDecrypted = msisdnHeader;
 		} else {
 			//RULE: Trust msisdn header or login hint depending on scope parameter configuration
-			if(StringUtils.isNotEmpty(msisdnHeader) && StringUtils.isEmpty(loginHintMsisdn)) {
+			if(StringUtils.isNotEmpty(msisdnHeader) && StringUtils.isNotEmpty(loginHintMsisdn)) {
 				//from offnet fallback due to header mismatch
 
 				//RULE: If offnet, either we can trust sent login hint is not empty
 				if (headerMismatchResult != null && headerMismatchResult.equals(ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK_TRUST_LOGINHINT) && StringUtils.isNotEmpty(loginHintMsisdn)) {
 					msisdnToBeDecrypted = loginHintMsisdn;
+					msisdnStatus = DataPublisherUtil.UserState.MSISDN_SET_TO_LOGIN_HINT;
 				}
 
 				//RULE: If msisdn header mismatch result is fallback trust header msisdn, and header msisdn is non empty, select header msisdn
 				if (headerMismatchResult != null && headerMismatchResult.equals(ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK_TRUST_HEADER) && StringUtils.isNotEmpty(msisdnHeader)) {
 					msisdnToBeDecrypted = msisdnHeader;
+					msisdnStatus = DataPublisherUtil.UserState.MSISDN_SET_TO_HEADER;
 				}
 			}else{
 				//not from offnet fallback due to header mismatch
 				msisdnToBeDecrypted = loginHintMsisdn;
+				msisdnStatus = DataPublisherUtil.UserState.MSISDN_SET_TO_LOGIN_HINT;
 			}
 		}
 		
@@ -172,6 +177,9 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 				//This should always be the MSISDN header
 				String decryptedMsisdn = DecryptionAES.decrypt(msisdnToBeDecrypted);
 				context.setProperty(Constants.MSISDN, decryptedMsisdn);
+				DataPublisherUtil.updateAndPublishUserStatus(
+						(UserStatus) context.getProperty(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), msisdnStatus,
+						"MSISDN value set in LOACompositeAuthenticator", decryptedMsisdn);
 				boolean isUserExists = AdminServiceUtil.isUserExists(decryptedMsisdn);
 				context.setProperty(Constants.IS_REGISTERING, !isUserExists);	
 				boolean isProfileUpgrade = Util.isProfileUpgrade(decryptedMsisdn, requestedLoa, isUserExists);
