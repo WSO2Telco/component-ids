@@ -75,7 +75,32 @@ public class TransactionDAO {
 			DbUtil.closeAllConnections(ps, conn, null);
 		}
 	}
-	
+
+	/**
+	 * Insert sub value.
+	 *
+	 * @param token the context id
+	 * @param sub the status code
+	 * @throws Exception the exception
+	 */
+	public static void insertTokenScopeLog(String token,String sub) throws Exception {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		try {
+			conn = DbUtil.getConnectDBConnection();
+			String query = "INSERT INTO scope_log ( access_token,sub) VALUES "+
+					"(? ,?);";
+			ps = conn.prepareStatement(query);
+			ps.setString(1, token);
+			ps.setString(2,sub);
+			ps.execute();
+			log.debug("Sub value inserted successfully");
+		} catch (SQLException e) {
+			handleException("Error in inserting transaction log record : " + e.getMessage(), e);
+		} finally {
+			DbUtil.closeAllConnections(ps, conn, null);
+		}
+	}
 	 
 	/**
 	 * Handle exception.
