@@ -16,28 +16,25 @@
 
 package com.wso2telco.gsma.authenticators.headerenrich;
 
-import java.io.IOException;
-import java.rmi.RemoteException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.authenticators.Constants;
+import com.wso2telco.gsma.authenticators.IPRangeChecker;
+import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.gsma.authenticators.util.DecryptionAES;
+import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
+import com.wso2telco.gsma.authenticators.util.UserProfileManager;
+import com.wso2telco.gsma.manager.client.ClaimManagementClient;
+import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
-import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticationDataPublisher;
-import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
-import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.*;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
 import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
@@ -53,17 +50,14 @@ import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServ
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.api.UserStoreException;
 
-import com.wso2telco.core.config.model.MobileConnectConfig;
-import com.wso2telco.core.config.service.ConfigurationService;
-import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.authenticators.IPRangeChecker;
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import com.wso2telco.gsma.authenticators.util.DecryptionAES;
-import com.wso2telco.gsma.authenticators.util.UserProfileManager;
-import com.wso2telco.gsma.manager.client.ClaimManagementClient;
-import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
-import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.rmi.RemoteException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 // TODO: Auto-generated Javadoc
 
@@ -389,8 +383,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                      }
                      context.setProperty(Constants.IS_PIN_RESET, false);
                      // explicitly remove all other authenticators and mark as a success
-                     context.setProperty("removeFollowingSteps", "true");
-                     
+                     context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
                  }
             	 
             	 AuthenticationContextHelper.setSubject(context, msisdn);
@@ -459,7 +452,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         String heFailureResult = context.getProperty(Constants.HE_FAILURE_RESULT).toString();
 
         if (heFailureResult == null || heFailureResult.isEmpty()) {
-            context.setProperty("removeFollowingSteps", "true");
+            context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
         } else {
             switch (heFailureResult) {
                 case Constants.UNTRUST_MSISDN:
@@ -493,13 +486,16 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                                 (UserStatus) context.getProperty(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                                 DataPublisherUtil.UserState.MSISDN_SET_TO_LOGIN_HINT,
                                 "MSISDN set to login hint on Header Enrichment Authenticator failure", loginHintValue);
+                    }else{
+                        //todo:
+                        context.setProperty(Constants.MSISDN, null);
                     }
 
                     log.info("HE FAILED : TRUST_LOGINHINT_MSISDN");
                     break;
 
                 default:
-                    context.setProperty("removeFollowingSteps", "true");
+                    context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
                     log.info("HE FAILED : BREAK THE FLOW");
             }
         }
@@ -508,7 +504,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
     private void terminateAuthentication(AuthenticationContext context) throws AuthenticationFailedException {
         log.info("User has terminated the authentication flow");
 
-        context.setProperty(Constants.IS_TERMINATED, true);
+        context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
         throw new AuthenticationFailedException("Authenticator is terminated");
     }
 

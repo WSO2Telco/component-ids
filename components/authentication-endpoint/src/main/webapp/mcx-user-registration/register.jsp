@@ -100,18 +100,6 @@
             <p class="site-header__powered-by">powered by
                 <img src='<%=imgPath%>' alt="Operator" class="brandLogo">
             </p>
-
-            <!--form action="/lang" class="site-header__lang-menu field--select field--select-plain" novalidate>
-              <label for="field-select-lang" class="visuallyhidden">Language:</label>
-              <select id="field-select-lang" name="lang" class="field__select-native js-transparent">
-                <option value="en" selected>English (UK)</option>
-                <option value="de">Deutsche</option>
-                <option value="th">ภาษาไทย</option>
-                <option value="fr">fr_French</option>
-              </select>
-              <input type="hidden" name="return-url" value="/registration/02-prompt-to-create-account">
-              <input type="submit" value="Go" class="btn btn--natural btn--light js-visuallyhidden">
-            </form-->
         </div>
     </header>
 
@@ -189,66 +177,12 @@
                 </div>
             </div>
 
-            <div id="questions" style="display:none; margin-bottom:5px;">
-                <input type="hidden" value="" name="http://wso2.org/claims/challengeQuestion1">
-                <input type="hidden" value="" name="http://wso2.org/claims/challengeQuestion2">
-
-
-                <li class="field--select field--select-block">
-                    <label for="field-account-security-question-1">Choose a security&nbsp;question</label>
-                    <select name="challengeQuestion1" id="q1" class="field__select-native" required="" autofocus
-                            data-parsley-required-message="Please choose a security&nbsp;question.">
-                        <option disabled selected value="">Choose a&nbsp;question</option>
-
-                        <option name="q" value="City where you were born ?">City where you were born ?</option>
-
-                        <option name="q" value="Favorite vacation location ?">Favorite vacation location ?</option>
-
-                        <option name="q" value="Father's middle name ?">Father's middle name ?</option>
-
-                        <option name="q" value="Favorite food ?">Favorite food ?</option>
-                    </select>
-                </li>
-                <li>
-                    <label for="field-account-security-answer-1">Type the answer to your question&nbsp;here</label>
-                    <input type="text" name="challengeAns1" +="" json.fieldvalues.return[i].fieldname="" ""=""
-                    id="field-account-security-answer-1" placeholder="Answer your&nbsp;question" required autofocus
-                    data-parsley-error-message="Please answer your security&nbsp;question.">
-                </li>
-                <li class="field--select field--select-block">
-                    <label for="field-account-security-question-2">Choose a second&nbsp;question</label>
-                    <select id="q2" name="challengeQuestion2" class="field__select-native" required=""
-                            data-parsley-notequalto="#field-account-security-question-1"
-                            data-parsley-required-message="Please choose a security&nbsp;question."
-                            data-parsley-notequalto-message="Please choose a different security&nbsp;question.">
-                        <option disabled selected value="">Choose a&nbsp;question</option>
-                        <option name="q" value="Favorite sport ?">Favorite sport ?</option>
-
-                        <option name="q" value="Name of the hospital where you were born ?">Name of the hospital where
-                            you were born ?
-                        </option>
-
-                        <option name="q" value="Name of your first pet ?">Name of your first pet ?</option>
-
-                        <option name="q" value="Model of your first car ?">Model of your first car ?</option>
-                    </select>
-                </li>
-                <li>
-                    <label for="field-account-security-answer-2">Type the answer to your second
-                        question&nbsp;here</label>
-                    <input type="text" name="challengeAns2" +="" json.fieldvalues.return[i].fieldname="" ""=""
-                    id="field-account-security-answer-2" placeholder="Answer your&nbsp;question" required
-                    data-parsley-error-message="Please answer your security&nbsp;question.">
-                </li>
-
-            </div>
-
             <div class="page__copy">
                 <p id="msg">
                     Looks like you don't yet have an account. Want to set one up? It's quick and&nbsp;easy.
                 </p>
             </div>
-            <div id="term_ussd" style="display:none" class="page_term">
+            <div id="term_ussd" class="page_term">
                 <p style="font-size:13px; margin:0px; padding:0px;" align="center">By setting up an account, you are
                     agreeing to the <a href="/authenticationendpoint/terms_and_conditions"
                                        target="_blank">Terms and Conditions.</a></p>
@@ -256,15 +190,6 @@
                     Connect Privacy Promise</a> means that your mobile number won't be shared and no personal
                     information will be disclosed without your consent. See our full <a href="/authenticationendpoint/privacy_policy" target="_blank">privacy
                         policy&nbsp;here</a>.</p>
-            </div>
-            <div id="term_ussd_pin" style="display:none" class="page_term">
-                <p style="font-size:11px; margin:0px; padding:0px;" align="center">By setting up an account, you are
-                    agreeing to the <a href="/authenticationendpoint/terms_and_conditions"
-                                       target="_blank">Terms and Conditions.</a></p>
-                <p style="font-size:11px;" align="center">The <a href="/authenticationendpoint/privacy_promise" target="_blank">Mobile Connect Privacy
-                    Promise</a> means that your mobile number won't be shared and no personal information will be
-                    disclosed without your consent. See our full <a href="/authenticationendpoint/privacy_policy" target="_blank">privacy policy&nbsp;here</a>.
-                </p>
             </div>
 
 
@@ -275,12 +200,8 @@
                     </a>
                 </div>
                 <div class="grid__item one-half">
-                    <button type="button" id="validate-btn1" onclick="flow()" name="action" value="yes"
+                    <button type="button" id="validate-btn1" onclick="accept()" name="action" value="yes"
                             class="btn btn--full btn--fill btn--large btn--color">
-                        Yes
-                    </button>
-                    <button type="button" id="validate-btn2" onclick="proceedRegistration()" style="display:none"
-                            name="action" value="yes" class="btn btn--full btn--fill btn--large btn--color">
                         Yes
                     </button>
                 </div>
@@ -290,117 +211,18 @@
 </div>
 <script type="text/javascript">
 
-
-    /*
-     * geting acr code from acr value and make the register page template according to acr *code
-     *USSDAuthenticator ==>
-     * Display Slider
-     * Display message for new account
-     * Display term and condition
-     * Display button validate-btn1
-     * Yes = call flow then register
-     *USSDPinAuthenticator ==>
-     * Display Slider
-     * Hide term and condition
-     * Display message for new account
-     * Display button validate-btn1
-     * Yes = call flow
-     *   Hide slider 
-     *   Hide message for new account
-     *   Hide button validate-btn1
-     *   Display Header ussdpin_header
-     *   Display chllenge queqtion form
-     *   Display button validate-btn2
-     *   Yes = call registration
-     *
-     * if updateProfile = true
-     *   Hide Header ussdpin_header
-     *   Display Header ussdpin_header_update
-     *   Display chllenge queqtion form
-     *   Display button validate-btn2
-     *   Yes = call registration
-     */
     $('#validate-btn1').click(function (event) {
         event.preventDefault();
         //do your action goes below
     });
 
 
-    var auth;
-    var acr_code = getAcrValue();
-
-    var term_ussd = document.getElementById("term_ussd");
-    var term_ussd_pin = document.getElementById("term_ussd_pin");
-    var slider = document.getElementById("slider");
-    var header = document.getElementById("ussdpin_header");
-    var header_update = document.getElementById("ussdpin_update_header");
-    var questions = document.getElementById("questions");
-    var msg = document.getElementById("msg");
-    var btn1 = document.getElementById("validate-btn1");
-    var btn2 = document.getElementById("validate-btn2");
-
     /*
-     * USSD Pin Registration page 1
-     * hide terms
-     *
-     */
-
-    console.log('xxxxxxxxxxxxx uoioiuoiuoiuoi :' + acr_code)
-    if (acr_code == "USSDPinAuthenticator") {
-        term_ussd_pin.style.display = 'none';
-        term_ussd.style.display = 'none';
-        auth = "LoA3";
-    }
-
-    /*
-     * USSD Registration page 1
-     * display terms
-     */
-    if (acr_code == "USSDAuthenticator") {
-
-        term_ussd_pin.style.display = 'none';
-        term_ussd.style.display = 'block';
-    }
-
-    if ('<%=updateProfile%>' == "true") {
-        flow();
-        term_ussd_pin.style.display = 'none';
-        term_ussd.style.display = 'none';
-        header.style.display = 'none';
-        header_update.style.display = 'block';
-    }
-
-    /*
-     * USSD Registration or USSD Pin Registration page 1
-     * click on YES button
-     */
-    function flow() {
-
-        /*
-         * USSD Registration or USSD Pin Registration page 1
-         * click on YES button
-         */
-        /*if (acr_code == "USSDPinAuthenticator") {
-            header.style.display = 'block';
-            term_ussd_pin.style.display = 'block';
-            term_ussd.style.display = 'none';
-            slider.style.display = 'none';
-            questions.style.display = 'block';
-            msg.style.display = 'none';
-            btn1.style.display = 'none';
-            btn2.style.display = 'block';
-
-        } else {
-            registration();
-        }*/
-        registration();
-    }
-
-    function proceedRegistration() {
-        $('#selfReg').parsley().validate();
-        if (true === $('#selfReg').parsley().isValid()) {
-            registration();
-        }
+    * Consent accepted
+    */
+    function accept() {
+        var sessionDataKey = getParameterByName('sessionDataKey');
+        window.location = "/commonauth/?sessionDataKey=" + sessionDataKey + "&action=RegConsent";
     }
 
 </script>

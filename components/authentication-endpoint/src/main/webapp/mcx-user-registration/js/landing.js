@@ -87,8 +87,6 @@ function registration() {
     var callbackUrl = getParameterByName('callback_url');
     var updateProfile = getParameterByName('updateProfile');
     var domain = "PRIMARY";
-    var pwd = randomPassword(10);
-    //alert(pwd);
     var msisdn_header = getParameterByName('msisdn_header');
     var msisdn_header_enc_str = getParameterWithPlusByName('msisdn_header_enc_str');
     var msisdn_header_str = getParameterByName('msisdn_header_str');
@@ -122,7 +120,6 @@ function registration() {
 
         document.getElementsByName('http://wso2.org/claims/challengeQuestion1')[0].value = challengeQ1 + "!" + challengeA1;
         document.getElementsByName('http://wso2.org/claims/challengeQuestion2')[0].value = challengeQ2 + "!" + challengeA2;
-
     }
 
     var data = {};
@@ -254,43 +251,10 @@ function getMSISDN(token) {
 }
 
 function selfAuthorize(sessionDataKey, msisdn, operator) {
-    //getting userinfo from backend is useless here
-    var callbackURL;
-    var acr;
-    var authendpoint;
-    var token;
-    var scope;
-    var id = sessionDataKey;
-    var state;
-    var nonce;
-    var username = msisdn;
-    var url = "/user-registration/webresources/endpoint/user/authenticate/get?tokenid=" + id;
-
-    //$.ajax({
-    //	type: "GET",
-    //	url:url,
-    //	async: false,
-    //	dataType: 'json',
-    //	success:function(result){
-    //		if(result != null) {
-    //			scope = result.scope;
-    //			callbackURL = result.redirectUri;
-    //			state= result.state;
-    //			nonce=result.nonce;
-    //			clientkey = result.clientId;
-    //			acr = result.acrValues;
-    //			authendpoint = "/oauth2/authorize";
-    //			token = result.tokenID;
-    //		}
-    //	}});
-
-    //var url = authendpoint + "?scope="+encodeURIComponent(scope)+"&response_type=code&redirect_uri="
-    //+ encodeURIComponent(callbackURL) + "&client_id=" + clientkey + "&acr_values="
-    //+ acr+"&tokenid="+token+"&msisdn="+username+"&state="+state+"&nonce="+nonce + "&operator="+operator;
     var commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
         + "&msisdn_header=" + msisdn
         + "&operator=" + operator;
-    console.log("commonAuthURL   " + commonAuthURL);
+
     window.location = commonAuthURL;
 }
 
