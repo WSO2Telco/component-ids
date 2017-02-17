@@ -73,7 +73,7 @@
                             <artifactItems>
                                 <artifactItem>
                                     <groupId>com.wso2telco.ids</groupId>
-                                    <artifactId>session-updater</artifactId>
+                                    <artifactId>saa-server</artifactId>
                                     <version>${com.wso2telco.ids.version}</version>
                                     <type>war</type>
                                     <destFileName>saaserver.war</destFileName>

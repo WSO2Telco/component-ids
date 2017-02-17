@@ -159,12 +159,12 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             if(context.getProperty(Constants.MSISDN) == null && (request.getParameter(Constants.MSISDN) != null && !request.getParameter(Constants.MSISDN).isEmpty())) {
             	msisdn = request.getParameter(Constants.MSISDN);
             	context.setProperty(Constants.MSISDN, msisdn);
+                boolean isUserExists = AdminServiceUtil.isUserExists(msisdn);
+    			context.setProperty(Constants.IS_REGISTERING, !isUserExists);
                 DataPublisherUtil.updateAndPublishUserStatus(
                         (UserStatus) context.getProperty(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.MSISDN_SET_TO_USER_INPUT,
-                        "MSISDN set to user input in MSISDNAuthenticator", msisdn);
-                boolean isUserExists = AdminServiceUtil.isUserExists(msisdn);
-    			context.setProperty(Constants.IS_REGISTERING, !isUserExists);
+                        "MSISDN set to user input in MSISDNAuthenticator", msisdn, isUserExists ? 0 : 1);
     			int requestedLoa = (int) context.getProperty(Constants.ACR);
     			boolean isProfileUpgrade = Util.isProfileUpgrade(msisdn, requestedLoa, isUserExists);
     			context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade);	
