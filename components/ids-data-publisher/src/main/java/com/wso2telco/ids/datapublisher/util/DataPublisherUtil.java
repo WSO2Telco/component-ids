@@ -205,12 +205,6 @@ public class DataPublisherUtil {
         } else {
             userstatusData.add(null);
         }
-        if (userStatus.getIsNewUser() == 1) {
-
-            userstatusData.add(Boolean.TRUE);
-        } else {
-            userstatusData.add(Boolean.FALSE);
-        }
 
         if (userStatus.getTelcoScope() != null && !userStatus.getTelcoScope().isEmpty()) {
 
