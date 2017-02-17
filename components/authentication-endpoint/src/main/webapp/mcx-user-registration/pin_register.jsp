@@ -237,66 +237,15 @@
 </div>
 <script type="text/javascript">
 
-
-    /*
-     * geting acr code from acr value and make the register page template according to acr *code
-     *USSDAuthenticator ==>
-     * Display Slider
-     * Display message for new account
-     * Display term and condition
-     * Display button validate-btn1
-     * Yes = call flow then register
-     *USSDPinAuthenticator ==>
-     * Display Slider
-     * Hide term and condition
-     * Display message for new account
-     * Display button validate-btn1
-     * Yes = call flow
-     *   Hide slider 
-     *   Hide message for new account
-     *   Hide button validate-btn1
-     *   Display Header ussdpin_header
-     *   Display chllenge queqtion form
-     *   Display button validate-btn2
-     *   Yes = call registration
-     *
-     * if updateProfile = true
-     *   Hide Header ussdpin_header
-     *   Display Header ussdpin_header_update
-     *   Display chllenge queqtion form
-     *   Display button validate-btn2
-     *   Yes = call registration
-     */
     $('#validate-btn1').click(function (event) {
         event.preventDefault();
         //do your action goes below
     });
 
-    var auth;
-    var acr_code = getAcrValue();
-
-    var term_ussd = document.getElementById("term_ussd");
-    var term_ussd_pin = document.getElementById("term_ussd_pin");
-    var slider = document.getElementById("slider");
-    var header = document.getElementById("ussdpin_header");
-    var header_update = document.getElementById("ussdpin_update_header");
-    var questions = document.getElementById("questions");
-    var msg = document.getElementById("msg");
-    var btn1 = document.getElementById("validate-btn1");
-
-
     /*
-     * USSD Registration or USSD Pin Registration page 1
      * click on YES button
      */
     function flow() {
-        $('#selfReg').parsley().validate();
-        if (true === $('#selfReg').parsley().isValid()) {
-            registration();
-        }
-    }
-
-    function proceedRegistration() {
         $('#selfReg').parsley().validate();
         if (true === $('#selfReg').parsley().isValid()) {
             registration();

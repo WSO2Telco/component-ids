@@ -216,7 +216,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             //MIFEAuthenticationStepHandler, the steps following USSDAuthenticator will be removed.
             //But please note that, this cause ANY step following USSDAuthenticator to be removed.
             //Therefore, when redesigning, need to take this into consideration!
-            context.setProperty("removeFollowingSteps", "true");
+            context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
         }
 
         String userAction = request.getParameter(Constants.ACTION);

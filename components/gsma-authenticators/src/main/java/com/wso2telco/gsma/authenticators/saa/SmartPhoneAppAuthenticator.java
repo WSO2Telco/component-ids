@@ -57,7 +57,6 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 
     private static Log log = LogFactory.getLog(SmartPhoneAppAuthenticator.class);
-    private static final String REMOVE_FOLLOWING_STEPS = "removeFollowingSteps";
 
     private static final String IS_FLOW_COMPLETED = "isFlowCompleted";
     private static final String PIN_CLAIM = "http://wso2.org/claims/pin";
@@ -236,7 +235,7 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
 
         AuthenticationContextHelper.setSubject(context, (String) context.getProperty(Constants.MSISDN));
         context.setProperty(IS_FLOW_COMPLETED, true);
-        context.setProperty(REMOVE_FOLLOWING_STEPS, "true");
+        context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
     }
 
     @Override

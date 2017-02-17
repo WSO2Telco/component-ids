@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.wso2telco.gsma.handlers.authenticationstephandler;
 
+import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.LOACompositeAuthenticator;
 import com.wso2telco.util.AuthenticationHealper;
 import com.wso2telco.util.Params;
@@ -292,7 +293,7 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			//The following if block is a part of implementing the functionality of SMSAuthenticator
 			//getting hit ONLY when the link to get a text message is clicked in the USSD waiting page.
 			//This ensures that after USSDAuthenticator is executed, SMS authenticator doesn't get hit.
-			if ("true".equals(context.getProperty("removeFollowingSteps"))) {
+			if ("true".equals(context.getProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS))) {
 				removeAllFollowingSteps(context,currentStep);
 				context.setProperty("removeFollowingSteps", null);
 			}
@@ -375,9 +376,9 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 			//The following if block is a part of implementing the functionality of SMSAuthenticator
 			//getting hit ONLY when the link to get a text message is clicked in the USSD waiting page.
 			//This ensures when USSDAuthenticator is failed, SMS authenticator doesn't get hit.
-			if ("true".equals(context.getProperty("removeFollowingSteps"))) {
+			if ("true".equals(context.getProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS))) {
 				removeAllFollowingSteps(context,currentStep);
-				context.setProperty("removeFollowingSteps", null);
+				context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, null);
 				followingStepsRemoved = true;
 			}
 			if (e instanceof InvalidCredentialsException) {
