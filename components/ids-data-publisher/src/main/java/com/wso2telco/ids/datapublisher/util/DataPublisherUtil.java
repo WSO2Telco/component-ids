@@ -277,6 +277,7 @@ public class DataPublisherUtil {
         /*if (timestamp != null) {
             userStatusMetaData.add(timestamp);
         }*/
+        userStatusMetaData.add(userStatus.getTransactionId());
 
         if (userStatus.getMsisdn() != null && !userStatus.getMsisdn().isEmpty()) {
             userStatusMetaData.add(userStatus.getMsisdn());
@@ -284,8 +285,7 @@ public class DataPublisherUtil {
             userStatusMetaData.add(null);
         }
 
-
-        userStatusMetaData.add(userStatus.getTransactionId());
+        userStatusMetaData.add(userStatus.getIsNewUser());
 
         IdsAgent.getInstance().publish(USER_STATUS_STREAM_NAME,
                                        USER_STATUS_STREAM_VERSION, System.currentTimeMillis(),
@@ -366,8 +366,8 @@ public class DataPublisherUtil {
         }
         tokenEndpointData.add(System.currentTimeMillis());
 
-        IdsAgent.getInstance().publish(TOKEN_ENDPOINT_STREAM_NAME,
-                TOKEN_ENDPOINT_STREAM_VERSION, System.currentTimeMillis(), tokenEndpointData.toArray());
+        IdsAgent.getInstance().publish(TOKEN_ENDPOINT_STREAM_NAME, TOKEN_ENDPOINT_STREAM_VERSION,
+                System.currentTimeMillis(), tokenEndpointData.toArray());
     }
 
     public static Map<String, String> getAuthMapWithInitialData(HttpServletRequest request, AuthenticationContext context) {
@@ -634,7 +634,8 @@ public class DataPublisherUtil {
         }
     }
 
-    public static void updateAndPublishUserStatus(UserStatus userStatus, UserState userState, String comment, String msisdn) {
+    public static void updateAndPublishUserStatus(UserStatus userStatus, UserState userState, String comment,
+            String msisdn) {
         boolean dataPublishingEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher()
                 .isEnabled();
         if (dataPublishingEnabled) {
@@ -642,6 +643,21 @@ public class DataPublisherUtil {
                 userStatus.setStatus(userState.name());
                 userStatus.setComment(comment);
                 userStatus.setMsisdn(msisdn);
+                publishUserStatusData(userStatus);
+            }
+        }
+    }
+
+    public static void updateAndPublishUserStatus(UserStatus userStatus, UserState userState, String comment,
+            String msisdn, int isNewUser) {
+        boolean dataPublishingEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher()
+                .isEnabled();
+        if (dataPublishingEnabled) {
+            if (userStatus != null) {
+                userStatus.setStatus(userState.name());
+                userStatus.setComment(comment);
+                userStatus.setMsisdn(msisdn);
+                userStatus.setIsNewUser(isNewUser);
                 publishUserStatusData(userStatus);
             }
         }

@@ -177,11 +177,11 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 				//This should always be the MSISDN header
 				String decryptedMsisdn = DecryptionAES.decrypt(msisdnToBeDecrypted);
 				context.setProperty(Constants.MSISDN, decryptedMsisdn);
+				boolean isUserExists = AdminServiceUtil.isUserExists(decryptedMsisdn);
+				context.setProperty(Constants.IS_REGISTERING, !isUserExists);
 				DataPublisherUtil.updateAndPublishUserStatus(
 						(UserStatus) context.getProperty(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), msisdnStatus,
-						"MSISDN value set in LOACompositeAuthenticator", decryptedMsisdn);
-				boolean isUserExists = AdminServiceUtil.isUserExists(decryptedMsisdn);
-				context.setProperty(Constants.IS_REGISTERING, !isUserExists);	
+						"MSISDN value set in LOACompositeAuthenticator", decryptedMsisdn, isUserExists ? 0 : 1);
 				boolean isProfileUpgrade = Util.isProfileUpgrade(decryptedMsisdn, requestedLoa, isUserExists);
 				context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade);			
 			} catch (Exception e) {
