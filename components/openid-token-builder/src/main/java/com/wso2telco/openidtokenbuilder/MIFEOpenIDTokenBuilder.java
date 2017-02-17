@@ -22,6 +22,7 @@ import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.dao.TransactionDAO;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.util.AuthenticationHealper;
 import org.apache.commons.codec.binary.Base64;
@@ -237,12 +238,16 @@ public class MIFEOpenIDTokenBuilder implements
             //claimsCallBackHandler.handleCustomClaims(builder, request);
 
             String plainIDToken = builder.buildIDToken();
-
+            String accessToken = tokenRespDTO.getAccessToken();
+            try {
+                TransactionDAO.insertTokenScopeLog(accessToken,subject);
+            } catch (Exception e) {
+                log.error("Error inserting to sub value Scope Log " , e);
+            }
             boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled();
 
             if(dataPublisherEnabled) {
                 //Publish event
-                String accessToken = tokenRespDTO.getAccessToken();
                 Map<String, String> tokenMap = new HashMap<String, String>();
                 tokenMap.put("Timestamp", String.valueOf(new java.util.Date().getTime()));
                 tokenMap.put("AuthenticatedUser", msisdn);
@@ -257,7 +262,6 @@ public class MIFEOpenIDTokenBuilder implements
                 tokenMap.put("TokenClaims", getClaimValues(request));
                 tokenMap.put("ContentType", "application/x-www-form-urlencoded");
                 tokenMap.put("ReturnedResult", plainIDToken);
-
                 if (accessToken != null) {
                     tokenMap.put("StatusCode", "200");
                 } else {

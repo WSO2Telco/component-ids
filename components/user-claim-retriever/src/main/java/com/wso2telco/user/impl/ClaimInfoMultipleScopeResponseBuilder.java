@@ -20,6 +20,10 @@ import com.wso2telco.config.ConfigLoader;
 import com.wso2telco.config.DataHolder;
 import com.wso2telco.config.Scope;
 import com.wso2telco.config.ScopeConfigs;
+import com.wso2telco.dao.DBConnection;
+import com.wso2telco.dao.ScopeDetails;
+import com.wso2telco.exception.EmptyResultSetException;
+import com.wso2telco.exception.ScopeException;
 import com.wso2telco.util.ClaimUtil;
 import org.apache.amber.oauth2.common.utils.JSONUtils;
 import org.apache.commons.logging.Log;
@@ -34,6 +38,7 @@ import org.wso2.carbon.identity.oauth.user.UserInfoClaimRetriever;
 import org.wso2.carbon.identity.oauth.user.UserInfoEndpointException;
 import org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
+import org.wso2.carbon.user.core.authorization.DBConstants;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -105,15 +110,23 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
             //oauth2/userinfo requests should serve scopes in openid connect onl
             requestedScopes = getValidScopes(requestedScopes);
         }
+
         Map<String, Object> requestedClaims = null;
         try {
+            DBConnection dbConnection = DBConnection.getInstance();
+            ScopeDetails scopeDetails = dbConnection.getScopeFromAcessToken(tokenResponse.getAuthorizationContextToken().getTokenString());
             requestedClaims = getRequestedClaims(requestedScopes, scopeConfigs, claims);
+            requestedClaims.put("sub",scopeDetails.getPcr());
         } catch (NoSuchAlgorithmException e) {
             throw new UserInfoEndpointException("Error while generating hashed claim values.");
+        }  catch (Exception e) {
+            throw new UserInfoEndpointException("Error while generating sub value");
         }
 
         try {
-            return JSONUtils.buildJSON(requestedClaims);
+            String userInfoJson = JSONUtils.buildJSON(requestedClaims);
+            log.debug("User data JSON " + userInfoJson);
+            return userInfoJson;
 
         } catch (JSONException e) {
             throw new UserInfoEndpointException("Error while generating the response JSON");
