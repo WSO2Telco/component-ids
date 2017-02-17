@@ -35,4 +35,6 @@ public class Constants {
     public static final String CHALLENGE_QUESTION_2 = "challengeQuestion2";
     public static final String CHALLENGE_ANSWER_1 = "challengeAnswer1";
     public static final String CHALLENGE_ANSWER_2 = "challengeAnswer2";
+
+    public static final String USER_STATUS_DATA_PUBLISHING_PARAM = "UserStatusForDataPublishing";
 }

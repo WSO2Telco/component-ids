@@ -27,6 +27,8 @@ import com.wso2telco.core.config.util.PinConfigUtil;
 import com.wso2telco.cryptosystem.AESencrp;
 import com.wso2telco.entity.*;
 import com.wso2telco.exception.AuthenticatorException;
+import com.wso2telco.ids.datapublisher.model.UserStatus;
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.util.Constants;
 import com.wso2telco.util.DbUtil;
 import org.apache.axis2.AxisFault;
@@ -217,19 +219,29 @@ public class Endpoints {
         //Accept or Reject response depending on configured values
         String acceptInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getAcceptUserInputs();
         String rejectInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getRejectUserInputs();
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
 
         if (validateUserInputs(acceptInputs, message)) {
             status = "Approved";
             responseCode = Response.Status.CREATED.getStatusCode();
             DatabaseUtils.updateStatus(sessionID, status);
+            DataPublisherUtil.updateAndPublishUserStatus(
+                    (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                    DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_APPROVED, "USSD login push approved");
         } else if (validateUserInputs(rejectInputs, message)) {
             status = "Rejected";
             responseCode = Response.Status.BAD_REQUEST.getStatusCode();
             DatabaseUtils.updateStatus(sessionID, status);
+            DataPublisherUtil.updateAndPublishUserStatus(
+                    (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                    DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_REJECTED, "USSD login push rejected");
         } else {
             status = "Rejected";
             responseCode = Response.Status.NOT_ACCEPTABLE.getStatusCode();
             DatabaseUtils.updateStatus(sessionID, status);
+            DataPublisherUtil.updateAndPublishUserStatus(
+                    (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                    DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_FAIL, "USSD login push failed");
         }
 
         if (responseCode == Response.Status.BAD_REQUEST.getStatusCode() || responseCode == Response.Status.NOT_ACCEPTABLE.getStatusCode()) {
@@ -268,6 +280,7 @@ public class Endpoints {
         //Accept or Reject response depending on configured values
         String acceptInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getAcceptUserInputs();
         String rejectInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getRejectUserInputs();
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
 
         if (validateUserInputs(acceptInputs, message)) {
             if (log.isDebugEnabled()) {
@@ -276,6 +289,9 @@ public class Endpoints {
             status = "Approved";
             responseCode = Response.Status.CREATED.getStatusCode();
             DatabaseUtils.updateRegistrationStatus(sessionID, status);
+            DataPublisherUtil.updateAndPublishUserStatus(
+                    (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                    DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_APPROVED, "USSD registration push approved");
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Updating registration status as rejected");
@@ -283,6 +299,9 @@ public class Endpoints {
             status = "Rejected";
             responseCode = Response.Status.BAD_REQUEST.getStatusCode();
             DatabaseUtils.updateRegistrationStatus(sessionID, status);
+            DataPublisherUtil.updateAndPublishUserStatus(
+                    (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                    DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_REJECTED, "USSD registration push rejected");
         }
 
         if (responseCode == Response.Status.BAD_REQUEST.getStatusCode()) {
@@ -330,6 +349,9 @@ public class Endpoints {
             } else {
                 response = getPinMatchedResponse(gson, sessionID, msisdn, ussdSessionId);
                 DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_APPROVED);
+                DataPublisherUtil.updateAndPublishUserStatus(
+                        (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.RECEIVE_USSD_PIN_APPROVED, "USSD pin approved");
                 return Response.status(Response.Status.CREATED).entity(response).build();
             }
         } catch (SQLException e) {
@@ -399,6 +421,9 @@ public class Endpoints {
                     response = getPinMatchedResponse(gson, sessionID, msisdn, ussdSessionId);
 
                     DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_APPROVED);
+                    DataPublisherUtil.updateAndPublishUserStatus(
+                            (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                            DataPublisherUtil.UserState.RECEIVE_USSD_PIN_APPROVED, "USSD pin approved");
 
                     pinConfig.setCurrentStep(PinConfig.CurrentStep.PIN_RESET_CONFIRMATION);
 
@@ -548,6 +573,7 @@ public class Endpoints {
             throws SQLException, AuthenticatorException {
         USSDRequest ussdRequest;
         String response;
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
 
         if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(configurationService.getDataHolder()
                 .getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts()) - 1) {
@@ -579,6 +605,9 @@ public class Endpoints {
             response = gson.toJson(ussdRequest);
 
             DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
+            DataPublisherUtil.updateAndPublishUserStatus(
+                    (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                    DataPublisherUtil.UserState.RECEIVE_USSD_PIN_REJECTED, "USSD pin rejected");
             pinConfig.setCurrentStep(PinConfig.CurrentStep.PIN_RESET);
 
             if (log.isDebugEnabled()) {
@@ -595,6 +624,7 @@ public class Endpoints {
 
         USSDRequest ussdRequest;
         String response;
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
 
         if (pinConfig.getPinMismatchAttempts() < Integer.parseInt(configurationService.getDataHolder()
                 .getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts()) - 1) {
@@ -612,6 +642,9 @@ public class Endpoints {
             response = gson.toJson(ussdRequest);
 
             DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
+            DataPublisherUtil.updateAndPublishUserStatus(
+                    (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                    DataPublisherUtil.UserState.RECEIVE_USSD_PIN_REJECTED, "USSD pin rejected");
 
             if (log.isDebugEnabled()) {
                 log.debug("Maximum attempts reached. Sending access denied message [ " + ussdMessage + " ]");
@@ -627,6 +660,7 @@ public class Endpoints {
             throws SQLException, AuthenticatorException {
         USSDRequest ussdRequest;
         String response;
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
 
         if (pinConfig.getInvalidFormatAttempts() < Integer.parseInt(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getInvalidFormatPinAttempts())) {
             String message = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getPinInvalidFormatMessage();
@@ -640,6 +674,9 @@ public class Endpoints {
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
 
             DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
+            DataPublisherUtil.updateAndPublishUserStatus(
+                    (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                    DataPublisherUtil.UserState.RECEIVE_USSD_PIN_REJECTED, "USSD pin rejected");
             if (log.isDebugEnabled()) {
                 log.debug("Invalid pin maximum attempts reached. Sending access denied message [ " + ussdMessage + " ]");
             }
