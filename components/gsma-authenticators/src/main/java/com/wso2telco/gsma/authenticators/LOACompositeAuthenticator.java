@@ -110,6 +110,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		if (dataPublisherEnabled) {
             UserStatus userStatus = DataPublisherUtil.getInitialUserStatusObject(request, context);
             context.addParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM, userStatus);
+            userStatus.setStatus(DataPublisherUtil.UserState.AUTH_INITIAL_STEP.name());
             DataPublisherUtil.publishUserStatusMetaData(userStatus);
         }
 		if (!canHandle(request)) {
@@ -178,8 +179,8 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 				String decryptedMsisdn = DecryptionAES.decrypt(msisdnToBeDecrypted);
 				context.setProperty(Constants.MSISDN, decryptedMsisdn);
 				DataPublisherUtil.updateAndPublishUserStatus(
-						(UserStatus) context.getProperty(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), msisdnStatus,
-						"MSISDN value set in LOACompositeAuthenticator", decryptedMsisdn);
+                        (UserStatus) context.getProperty(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), msisdnStatus,
+                        "MSISDN value set in LOACompositeAuthenticator", decryptedMsisdn);
 				boolean isUserExists = AdminServiceUtil.isUserExists(decryptedMsisdn);
 				context.setProperty(Constants.IS_REGISTERING, !isUserExists);	
 				boolean isProfileUpgrade = Util.isProfileUpgrade(decryptedMsisdn, requestedLoa, isUserExists);

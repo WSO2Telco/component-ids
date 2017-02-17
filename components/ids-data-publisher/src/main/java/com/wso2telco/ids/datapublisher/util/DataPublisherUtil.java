@@ -10,13 +10,12 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 
 public class DataPublisherUtil {
 
@@ -71,6 +70,7 @@ public class DataPublisherUtil {
                 .loginHint(request.getParameter("login_hint"))
                 .userAgent(request.getHeader("User-Agent"))
                 .transactionId(request.getParameter("transactionId"))
+                .consumerKey(request.getParameter("client_id"))
                 .build();
     }
 
