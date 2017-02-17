@@ -142,6 +142,12 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         boolean securityQuestionsShown = context.getProperty(Constants.IS_SECURITY_QUESTIONS_SHOWN) != null && (boolean) context.getProperty(Constants.IS_SECURITY_QUESTIONS_SHOWN);
 
         String msisdn = (String) context.getProperty(Constants.MSISDN);
+
+        // USSDPinAuthenticator cannot proceed without an msisdn
+        if(StringUtils.isEmpty(msisdn)){
+            terminateAuthentication(context);
+        }
+
         String serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
 
         if (log.isDebugEnabled()) {
@@ -661,4 +667,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         return Constants.USSDPIN_AUTHENTICATOR_NAME;
     }
 
+    private enum AuthenticatorState {
+        Initiating
+    }
 }

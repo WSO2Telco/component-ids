@@ -487,7 +487,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                                 DataPublisherUtil.UserState.MSISDN_SET_TO_LOGIN_HINT,
                                 "MSISDN set to login hint on Header Enrichment Authenticator failure", loginHintValue);
                     }else{
-                        //todo:
+                        // Clear MSISDN from context if scope parameter is 'TRUST_LOGINHINT_MSISDN' and loginhint is not provided
                         context.setProperty(Constants.MSISDN, null);
                     }
 

@@ -27,7 +27,6 @@ import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.proxy.MSISDNDecryption;
 import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.model.MSISDNHeader;
-import com.wso2telco.proxy.model.Operator;
 import com.wso2telco.proxy.model.RedirectUrlInfo;
 import com.wso2telco.proxy.util.AuthProxyConstants;
 import com.wso2telco.proxy.util.DBUtils;
@@ -38,11 +37,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminService;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceException;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceStub;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceUserRegistrationException;
+import org.wso2.carbon.identity.user.registration.stub.*;
 import org.wso2.carbon.identity.user.registration.stub.dto.UserDTO;
 import org.wso2.carbon.identity.user.registration.stub.dto.UserFieldDTO;
 
@@ -79,7 +74,7 @@ public class Endpoints {
     private static HashMap<String, MSISDNDecryption> msisdnDecryptorsClassObjectMap = null;
     private static MobileConnectConfig mobileConnectConfigs = null;
     private static Map<String, List<MSISDNHeader>> operatorsMSISDNHeadersMap;
-    private static Map<String, Operator> operatorPropertiesMap = null;
+    private static Map<String, MobileConnectConfig.OPERATOR> operatorPropertiesMap = null;
 
     /**
      * The Configuration service
@@ -108,7 +103,11 @@ public class Endpoints {
             //Load msisdn header properties.
             operatorsMSISDNHeadersMap = DBUtils.getOperatorsMSISDNHeaderProperties();
             //Load operator properties.
-            operatorPropertiesMap = DBUtils.getOperatorProperties();
+            operatorPropertiesMap = new HashMap<String, MobileConnectConfig.OPERATOR>();
+            List<MobileConnectConfig.OPERATOR> operators = mobileConnectConfigs.getHEADERENRICH().getOperators();
+            for (MobileConnectConfig.OPERATOR op: operators) {
+                operatorPropertiesMap.put(op.getOperatorName(), op);
+            }
         } catch (SQLException e) {
             log.error("Error occurred while retrieving operator MSISDN properties of operators.");
         } catch (NamingException e) {
@@ -607,15 +606,13 @@ public class Endpoints {
 
     private String getIpAddress(HttpHeaders httpHeaders, String operatorName) {
         String ipAddress = null;
-        Operator operatorProperties = operatorPropertiesMap.get(operatorName);
-        if (operatorProperties != null) {
-            boolean isRequiredIpValidation = operatorProperties.isRequiredIpValidation();
+        MobileConnectConfig.OPERATOR operatorProperties = operatorPropertiesMap.get(operatorName);
+        String ipHeaderName = mobileConnectConfigs.getHEADERENRICH().getIPHeaderName();
+        if (StringUtils.isNotEmpty(ipHeaderName) && operatorProperties != null) {
+            boolean isRequiredIpValidation = "true".equalsIgnoreCase(operatorProperties.getIpValidation());
             if (isRequiredIpValidation) {
-                String ipHeader = operatorProperties.getIpHeader();
-                if (!StringUtils.isEmpty(ipHeader)) {
-                    if (httpHeaders.getRequestHeader(ipAddress) != null) {
-                        ipAddress = httpHeaders.getRequestHeader(ipAddress).get(0);
-                    }
+                if (httpHeaders.getRequestHeader(ipHeaderName) != null) {
+                    ipAddress = httpHeaders.getRequestHeader(ipHeaderName).get(0);
                 }
             }
         }
