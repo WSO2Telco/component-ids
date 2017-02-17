@@ -54,6 +54,7 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
     public void handle(HttpServletRequest request, HttpServletResponse response,
                        AuthenticationContext context) throws FrameworkException {
 
+
         if (log.isDebugEnabled()) {
             log.debug("Executing the Step Based Authentication...");
         }

@@ -117,9 +117,6 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 			return AuthenticatorFlowStatus.INCOMPLETE;
 		}
 
-		String ipAddress = request.getParameter(Constants.IP_ADDRESS);
-		context.setProperty(Constants.IP_ADDRESS, ipAddress);
-
 		String mobileNetworkOperator = request.getParameter(Constants.OPERATOR);
 		String serviceProvider = request.getParameter(Constants.CLIENT_ID);
 		String msisdnHeader = request.getParameter(Constants.MSISDN_HEADER);
