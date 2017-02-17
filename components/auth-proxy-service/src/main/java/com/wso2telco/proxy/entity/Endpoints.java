@@ -301,19 +301,42 @@ public class Endpoints {
         //TODO: get all scope related params. This should be move to a initialization method or add to cache later
         ScopeParam scopeParam = getScopeParam(scope, userStatus);
         // show t&c page on authenticators depending on this scope specific variable
+        
+        if(scopeParam == null) {
+        	  String errMsg = "Invalid scope config - " + scope;
+
+              DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.CONFIGURATION_ERROR,
+                                                           errMsg);
+
+              throw new AuthenticationFailedException(errMsg);
+        }
+        
+        
         redirectUrlInfo.setShowTnc(scopeParam.isTncVisible());
         redirectUrlInfo.setHeaderMismatchResult(scopeParam.getMsisdnMismatchResult());
         redirectUrlInfo.setHeFailureResult(scopeParam.getHeFailureResult());
+        
+        String verifiedLoginHint = null;
+        
+        if (scopeParam.isLoginHintMandatory() && StringUtils.isEmpty(loginHint)) {
+        	  String errMsg = "Login Hint parameter cannot be empty for scope : " + scope;
+              DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                                           DataPublisherUtil.UserState.LOGIN_HINT_INVALID,errMsg);
+
+              throw new AuthenticationFailedException(errMsg);
+        }
+        
+        if (scopeParam.isHeaderMsisdnMandatory() && StringUtils.isEmpty(msisdnHeader)) {
+            String errMsg = "MSISDN header not found for scope : " + scope;
+
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.MSISDN_INVALID,
+                                                         errMsg);
+
+            throw new AuthenticationFailedException(errMsg);
+        }
 
         if (StringUtils.isNotEmpty(loginHint)) {
-            if (!validateMsisdnFormat(loginHint)) {
-                String errMsg = "Invalid login hint msisdn format - " + loginHint;
-
-                DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.LOGIN_HINT_INVALID,
-                                                             errMsg);
-
-                throw new AuthenticationFailedException(errMsg);
-            }
+        	verifiedLoginHint = retunFormatVerfiedPlainTextLoginHint(loginHint, scopeParam.getLoginHintFormat(), userStatus);
         }
 
         if (StringUtils.isNotEmpty(msisdnHeader)) {
@@ -325,41 +348,21 @@ public class Endpoints {
 
                 throw new AuthenticationFailedException(errMsg);
             }
-        }
+            
+            if(StringUtils.isNotEmpty(verifiedLoginHint)) {
+            	  if (ScopeParam.msisdnMismatchResultTypes.ERROR_RETURN.equals(scopeParam.getMsisdnMismatchResult())) {
+                      if (!verifiedLoginHint.equals(msisdnHeader)) {
+                          DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                                                       DataPublisherUtil.UserState.LOGIN_HINT_MISMATCH,
+                                                                       null);
 
-        if (scopeParam != null) {
-            //check login hit existence validation
-            if (scopeParam.isLoginHintMandatory()) {
-                if (StringUtils.isEmpty(loginHint)) {
-                    String errMsg = "Login Hint parameter cannot be empty for scope : " + scope;
-                    DataPublisherUtil.updateAndPublishUserStatus(userStatus,
-                                                                 DataPublisherUtil.UserState.LOGIN_HINT_INVALID,errMsg);
-
-                    throw new AuthenticationFailedException(errMsg);
-                }
-
-                if (StringUtils.isNotEmpty(msisdnHeader)) {
-                    // check if decryption possible
-                    if (log.isDebugEnabled()) {
-                        log.debug("Set msisdn from header msisdn_header : " + msisdnHeader);
-                    }
-
-                    //validate login hint format
-                    validateFormatAndMatchLoginHintWithHeaderMsisdn(loginHint, scopeParam.getLoginHintFormat(),
-                            msisdnHeader, scopeParam.getMsisdnMismatchResult(), userStatus);
-                }
-            }
-
-            //check if header msisdn is required
-            if (scopeParam.isHeaderMsisdnMandatory() && StringUtils.isEmpty(msisdnHeader)) {
-                String errMsg = "MSISDN header not found for scope : " + scope;
-
-                DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.MSISDN_INVALID,
-                                                             errMsg);
-
-                throw new AuthenticationFailedException(errMsg);
+                          throw new AuthenticationFailedException(
+                                  "login hint is not matching with the header msisdn");
+                      }
+                  }
             }
         }
+        
     }
 
     /**
@@ -397,29 +400,25 @@ public class Endpoints {
      *
      * @param loginHint
      * @param loginHintAllowedFormatDetailsList
-     * @param plainTextMsisdnHeader
-     * @param headerMismatchResult
      * @throws AuthenticationFailedException
      * @return MSISDN extracted from login-hint
      */
-    private void validateFormatAndMatchLoginHintWithHeaderMsisdn(String loginHint,
+    private  String retunFormatVerfiedPlainTextLoginHint(String loginHint,
                                                                  List<LoginHintFormatDetails>
-                                                                         loginHintAllowedFormatDetailsList,
-                                                                 String plainTextMsisdnHeader,
-                                                                 ScopeParam.msisdnMismatchResultTypes
-                                                                         headerMismatchResult, UserStatus userStatus)
+                                                                         loginHintAllowedFormatDetailsList, UserStatus userStatus)
             throws AuthenticationFailedException {
         boolean isValidFormatType = false; //msisdn/loginhint should be a either of defined formats
 
+        String plainTextLoginHint = null;
         for (LoginHintFormatDetails loginHintFormatDetails : loginHintAllowedFormatDetailsList) {
-            String msisdn = null;
+            
             switch (loginHintFormatDetails.getFormatType()) {
                 case PLAINTEXT:
                     if (log.isDebugEnabled()) {
-                        log.debug("Plain text login hint : " + msisdn);
+                        log.debug("Plain text login hint : " + plainTextLoginHint);
                     }
                     if (StringUtils.isNotEmpty(loginHint)) {
-                        msisdn = loginHint;
+                        plainTextLoginHint = loginHint;
                     }
                     isValidFormatType = true;
                     break;
@@ -435,9 +434,9 @@ public class Endpoints {
                                 if (log.isDebugEnabled()) {
                                     log.debug("Decrypted login hint : " + decrypted);
                                 }
-                                msisdn = decrypted.substring(0, decrypted.indexOf(LOGIN_HINT_SEPARATOR));
+                                plainTextLoginHint = decrypted.substring(0, decrypted.indexOf(LOGIN_HINT_SEPARATOR));
                                 if (log.isDebugEnabled()) {
-                                    log.debug("MSISDN by encrypted login hint : " + msisdn);
+                                    log.debug("MSISDN by encrypted login hint : " + plainTextLoginHint);
                                 }
                                 isValidFormatType = true;
                                 break;
@@ -452,9 +451,9 @@ public class Endpoints {
                 case MSISDN:
                     if (StringUtils.isNotEmpty(loginHint)) {
                         if (loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX)) {
-                            msisdn = loginHint.replace(LOGIN_HINT_NOENCRYPTED_PREFIX, "");
+                            plainTextLoginHint = loginHint.replace(LOGIN_HINT_NOENCRYPTED_PREFIX, "");
                             if (log.isDebugEnabled()) {
-                                log.debug("MSISDN by login hint: " + msisdn);
+                                log.debug("MSISDN by login hint: " + plainTextLoginHint);
                             }
                             isValidFormatType = true;
                             break;
@@ -468,36 +467,16 @@ public class Endpoints {
             }
 
             //msisdn/loginhint should be a either of defined formats
-            if (!isValidFormatType) {
+            if (!isValidFormatType || !validateMsisdnFormat(plainTextLoginHint)) {
                 DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.LOGIN_HINT_INVALID,
                                                              null);
 
                 throw new AuthenticationFailedException(
                         "login hint is malformat");
             }
-
-            if (StringUtils.isNotEmpty(msisdn)) {
-                //validate format
-                if (validateMsisdnFormat(msisdn)) {
-                    if (ScopeParam.msisdnMismatchResultTypes.ERROR_RETURN.equals(headerMismatchResult)) {
-                        if (!plainTextMsisdnHeader.equals(msisdn)) {
-                            DataPublisherUtil.updateAndPublishUserStatus(userStatus,
-                                                                         DataPublisherUtil.UserState.LOGIN_HINT_MISMATCH,
-                                                                         null);
-
-                            throw new AuthenticationFailedException(
-                                    "login hint is not matching with the header msisdn");
-                        }
-                    }
-                } else {
-                    DataPublisherUtil.updateAndPublishUserStatus(userStatus,
-                                                                 DataPublisherUtil.UserState.LOGIN_HINT_INVALID, null);
-
-                    throw new AuthenticationFailedException(
-                            "login hint is malformat");
-                }
-            }
         }
+        
+        return plainTextLoginHint;
     }
 
 
