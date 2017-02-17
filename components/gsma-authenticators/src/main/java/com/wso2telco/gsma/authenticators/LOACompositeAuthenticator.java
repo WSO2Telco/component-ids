@@ -279,7 +279,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
 						stepOrder++;
 					} else {
-						break;
+						continue;
 					}
 				}
 			}

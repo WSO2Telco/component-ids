@@ -349,6 +349,8 @@ public final class Constants {
     public static final String CLIENT_ID = "client_id";
 
     public static final String IS_TERMINATED = "isTerminated";
+
+    public static final String TERMINATE_BY_REMOVE_FOLLOWING_STEPS = "removeFollowingSteps";
     
     public static final String ACTION = "action";
 
