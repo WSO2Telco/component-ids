@@ -177,8 +177,10 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             // or when user comes via LOA 3 login
             if (securityQuestionsShown || (!isRegistering && !isProfileUpgrade && !isPinReset)) {
             	DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
-                sendUssd(context, isRegistering, msisdn, serviceProviderName, operator,
-                        new USSDPinFutureCallback(userStatus.cloneUserStatus()));
+                USSDPinFutureCallback futureCallback = userStatus != null ?
+                        new USSDPinFutureCallback(userStatus.cloneUserStatus()) :
+                        new USSDPinFutureCallback();
+                sendUssd(context, isRegistering, msisdn, serviceProviderName, operator, futureCallback);
             }
 
             String redirectUrl = response.encodeRedirectURL(loginPage + ("?" + queryParams))
