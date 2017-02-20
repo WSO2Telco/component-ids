@@ -36,7 +36,6 @@ import com.wso2telco.proxy.util.EncryptAES;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminService;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceException;
@@ -133,11 +132,9 @@ public class Endpoints {
 
 
         //maintain userstatus related to request for data publishing purpose
-        AuthenticationContext authenticationContext = new AuthenticationContext();
-        UserStatus userStatus = DataPublisherUtil.buildUserStatusFromRequest(httpServletRequest,
-                                                                             authenticationContext);
+        UserStatus userStatus = DataPublisherUtil.buildUserStatusFromRequest(httpServletRequest);
         //check for forwarded trn Id
-        String transactionId = DataPublisherUtil.resolveSessionID(httpServletRequest, authenticationContext);
+        String transactionId = DataPublisherUtil.getSessionID(httpServletRequest);
         if (StringUtils.isEmpty(transactionId)) {
             //generate new trn id
             transactionId = UUID.randomUUID().toString();
@@ -149,7 +146,7 @@ public class Endpoints {
 
         userStatus.setStatus(DataPublisherUtil.UserState.PROXY_PROCESSING.name());
         DataPublisherUtil.publishUserStatusMetaData(userStatus);
-        DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.PROXY_PROCESSING,null);
+        DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.PROXY_PROCESSING, null);
 
 
         if (!configurationService.getDataHolder().getMobileConnectConfig().isSpValidationDisabled() && !isValidScope(scopeName, clientId)) {

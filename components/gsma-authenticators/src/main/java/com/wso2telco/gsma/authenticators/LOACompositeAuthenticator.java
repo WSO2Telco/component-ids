@@ -108,7 +108,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled();
 
 		if (dataPublisherEnabled) {
-            UserStatus userStatus = DataPublisherUtil.getInitialUserStatusObject(request, context);
+            UserStatus userStatus = DataPublisherUtil.buildUserStatusFromRequest(request);
             context.addParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM, userStatus);
             userStatus.setStatus(DataPublisherUtil.UserState.AUTH_INITIAL_STEP.name());
             DataPublisherUtil.publishUserStatusMetaData(userStatus);

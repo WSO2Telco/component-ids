@@ -43,9 +43,9 @@ public class DataPublisherUtil {
         applicationManagementService = applicationMgtService;
     }
 
-    public static UserStatus buildUserStatusFromRequest(HttpServletRequest request, AuthenticationContext context) {
+    public static UserStatus buildUserStatusFromRequest(HttpServletRequest request) {
         UserStatus.UserStatusBuilder userStatusBuilder = new UserStatus
-                .UserStatusBuilder(resolveSessionID(request, context));
+                .UserStatusBuilder(getSessionID(request));
         String appId = null;
         try {
             appId = applicationManagementService != null ?
@@ -74,9 +74,6 @@ public class DataPublisherUtil {
                 .build();
     }
 
-    public static UserStatus getInitialUserStatusObject(HttpServletRequest request, AuthenticationContext context) {
-        return buildUserStatusFromRequest(request, context);
-    }
  /*
     public static UserStatus buildUserStatusFromContext(HttpServletRequest request,
             AuthenticationContext context) {
@@ -107,20 +104,8 @@ public class DataPublisherUtil {
     }
  */
 
-    public static String resolveSessionID(HttpServletRequest request,
-                                          AuthenticationContext context) {
-
-        if (request.getParameter("transactionId") != null && !request.getParameter("transactionId").isEmpty()) {
-            return request.getParameter("transactionId");
-        } else if (context.getProperty(TRANSACTION_ID) != null
-                && !((String) context.getProperty(TRANSACTION_ID)).isEmpty()) {
-
-            return (String) context.getProperty(TRANSACTION_ID);
-        } else if (context.getSessionIdentifier() != null) {
-            return context.getSessionIdentifier();
-        } else {
+    public static String getSessionID(HttpServletRequest request) {
             return request.getParameter("sessionDataKey");
-        }
     }
 
     /**
@@ -129,7 +114,7 @@ public class DataPublisherUtil {
      * @param userStatus
      */
     public static void publishUserStatusMetaData(UserStatus userStatus) {
-        List<Object> userstatusData = new ArrayList<Object>(17);
+        List<Object> userstatusData = new ArrayList<Object>();
 
         if (userStatus.getSessionId() != null && !userStatus.getSessionId().isEmpty()) {
 
@@ -218,12 +203,11 @@ public class DataPublisherUtil {
         } else {
             userstatusData.add(null);
         }
-        if (org.apache.commons.lang.StringUtils.isNotEmpty(userStatus.getTransactionId())) {
-            userstatusData.add(userStatus.getTransactionId());
-        } else {
-            userstatusData.add(null);
-        }
+
+        userstatusData.add(userStatus.getTransactionId());
+
         userstatusData.add(System.currentTimeMillis());
+
 
         IdsAgent.getInstance().publish(USER_STATUS_META_STREAM_NAME, USER_STATUS_META_STREAM_VERSION,
                                        System.currentTimeMillis(), userstatusData.toArray());
@@ -235,7 +219,7 @@ public class DataPublisherUtil {
      * @param userStatus
      */
     private static void publishUserStatusData(UserStatus userStatus) {
-        List<Object> userStatusMetaData = new ArrayList<Object>(4);
+        List<Object> userStatusMetaData = new ArrayList<Object>();
         String sessionId = userStatus.getSessionId();
         String status = userStatus.getStatus();
         Timestamp timestamp = userStatus.getTime();
@@ -266,7 +250,6 @@ public class DataPublisherUtil {
             userStatusMetaData.add(null);
         }
 
-        userStatusMetaData.add(System.currentTimeMillis());
         //TODO: Once DAS scripts are refactored add the following if block
         /*if (timestamp != null) {
             userStatusMetaData.add(timestamp);
@@ -280,6 +263,8 @@ public class DataPublisherUtil {
         }
 
         userStatusMetaData.add(userStatus.getIsNewUser() == 1 ? Boolean.TRUE : Boolean.FALSE);
+
+        userStatusMetaData.add(System.currentTimeMillis());
 
         IdsAgent.getInstance().publish(USER_STATUS_STREAM_NAME,
                                        USER_STATUS_STREAM_VERSION, System.currentTimeMillis(),
@@ -567,15 +552,14 @@ public class DataPublisherUtil {
         if(request.getParameter("msisdn")!=null) {
             context.setProperty("msisdn",request.getParameter("msisdn"));
         }
-        String sessionId = resolveSessionID(request, context);
+        String sessionId = getSessionID(request);
         context.setProperty(TRANSACTION_ID, sessionId);
 
     }
 
 
-    public static void publishDataForHESkipFlow(HttpServletRequest request,
-                                                AuthenticationContext context) {
-        UserStatus uStatus = buildUserStatusFromRequest(request, context);
+    public static void publishDataForHESkipFlow(HttpServletRequest request) {
+        UserStatus uStatus = buildUserStatusFromRequest(request);
         uStatus.setIsNewUser(1);
 
         if (uStatus.getIsMsisdnHeader() == 1) {
@@ -601,9 +585,9 @@ public class DataPublisherUtil {
         }
     }
 
-    public static void publishInvalidRequest(HttpServletRequest request, AuthenticationContext context) {
+    public static void publishInvalidRequest(HttpServletRequest request) {
 
-        UserStatus uStatus = buildUserStatusFromRequest(request, context);
+        UserStatus uStatus = buildUserStatusFromRequest(request);
         uStatus.setStatus(UserState.INVALID_REQUEST.name());
 
         uStatus.setComment("Invalid Request");
