@@ -169,7 +169,8 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             }
             
             DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
-            BasicFutureCallback futureCallback = new SMSFutureCallback(userStatus.cloneUserStatus());
+            BasicFutureCallback futureCallback =
+                    userStatus != null ? new SMSFutureCallback(userStatus.cloneUserStatus()) : new SMSFutureCallback();
             String smsResponse = new SendSMS().sendSMS(msisdn, messageText, operator, futureCallback);
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&authenticators=" +
                     getName() + ":" + "LOCAL" + retryParam);
