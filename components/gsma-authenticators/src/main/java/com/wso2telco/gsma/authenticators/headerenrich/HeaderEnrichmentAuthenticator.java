@@ -249,6 +249,17 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
         boolean showTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
 
+        try{
+            isValidOperator(request, context, msisdn, operator, userStatus);
+        } catch (AuthenticationFailedException e) {
+            // take action based on scope properties
+            DataPublisherUtil
+                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL,
+                            e.getMessage());
+            actionBasedOnHEFailureResult(context);
+            throw e;
+        }
+
         String queryParams = FrameworkUtils
                 .getQueryStringWithFrameworkContextId(context.getQueryParams(),
                         context.getCallerSessionKey(),
@@ -307,16 +318,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         try {
 
-            String msisdn = context.getProperty(Constants.MSISDN).toString();
-            String operator = context.getProperty(Constants.OPERATOR).toString();
-            boolean ipValidation = false;
-            boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-            
             int requestedLoa = Integer.parseInt(context.getProperty(Constants.ACR).toString());
-
-            if (operatorIpValidation.containsKey(operator)) {
-                ipValidation = operatorIpValidation.get(operator);
-            }
 
             if (log.isDebugEnabled()) {
                 log.debug("Redirect URI : " + request.getParameter("redirect_uri"));
@@ -325,48 +327,11 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
             populateAuthEndpointData(request, context);
 
-            String ipAddress = (String) context.getProperty(Constants.IP_ADDRESS);
-            if (ipAddress == null || StringUtils.isEmpty(ipAddress)) {
-                ipAddress = retriveIPAddress(request);
-            }
+            String msisdn = context.getProperty(Constants.MSISDN).toString();
+            String operator = context.getProperty(Constants.OPERATOR).toString();
+            boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
 
-            if (ipAddress == null) {
-                if (log.isDebugEnabled()) {
-                    log.debug("Header ip address not found.");
-                }
-                DataPublisherUtil
-                        .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.IP_HEADER_NOT_FOUND,
-                                "Missing IP address");
-
-                // RULE : if operator ip validation is enabled and ip address is blank, break the flow
-                if (ipValidation) {
-                    log.info("Header Enrichment Authentication failed due to not having ip address");
-                    context.setProperty("faileduser", msisdn);
-                    DataPublisherUtil
-                            .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL,
-                                    "Unable to proceed with ip validation due to missing IP address");
-                    throw new AuthenticationFailedException("Authentication Failed");
-                }
-            }
-
-            boolean validOperator = true;
-
-            if (ipAddress != null && ipValidation) {
-                validOperator = validateOperator(operator, ipAddress);
-            }
-
-            // RULE : if operator ip validation is enabled and ip validation failed, break the flow
-            if (ipValidation && !validOperator) {
-                log.info("Header Enrichment Authentication failed");
-                context.setProperty("faileduser", msisdn);
-                DataPublisherUtil
-                        .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.IP_HEADER_NOT_IN_RANGE,
-                                "IP address not in range");
-                DataPublisherUtil
-                        .updateAndPublishUserStatus(userStatus,
-                                DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL, "IP validation failed");
-                throw new AuthenticationFailedException("Authentication Failed");
-            }
+            boolean validOperator = isValidOperator(request, context, msisdn, operator, userStatus);
 
             if (validOperator) {
             	 if (requestedLoa == 3) {
@@ -413,6 +378,67 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.HE_AUTH_SUCCESS,
                 "Header Enrichment Authentication success");
+    }
+
+    /**
+     * IP validation method. Throws AuthenticationFailedException if ip validation is failed
+     * @param request HTTP Request
+     * @param context Authentication context
+     * @param msisdn msisdn
+     * @param operator operator
+     * @param userStatus user status for data publishing
+     * @return true if valid operator
+     * @throws AuthenticationFailedException
+     */
+    private boolean isValidOperator(HttpServletRequest request, AuthenticationContext context, String msisdn, String operator, UserStatus userStatus) throws AuthenticationFailedException {
+        boolean ipValidation = false;
+        boolean validOperator = true;
+
+        if (operatorIpValidation.containsKey(operator)) {
+            ipValidation = operatorIpValidation.get(operator);
+        }
+
+        String ipAddress = (String) context.getProperty(Constants.IP_ADDRESS);
+        if (ipAddress == null || StringUtils.isEmpty(ipAddress)) {
+            ipAddress = retriveIPAddress(request);
+        }
+
+        if (ipAddress == null) {
+            if (log.isDebugEnabled()) {
+                log.debug("Header ip address not found.");
+            }
+            DataPublisherUtil
+                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.IP_HEADER_NOT_FOUND,
+                            "Missing IP address");
+
+            // RULE : if operator ip validation is enabled and ip address is blank, break the flow
+            if (ipValidation) {
+                log.info("Header Enrichment Authentication failed due to not having ip address");
+                context.setProperty("faileduser", msisdn);
+                DataPublisherUtil
+                        .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL,
+                                "Unable to proceed with ip validation due to missing IP address");
+                throw new AuthenticationFailedException("Authentication Failed");
+            }
+        }
+
+        if (ipAddress != null && ipValidation) {
+            validOperator = validateOperator(operator, ipAddress);
+        }
+
+        // RULE : if operator ip validation is enabled and ip validation failed, break the flow
+        if (ipValidation && !validOperator) {
+            log.info("Header Enrichment Authentication failed");
+            context.setProperty("faileduser", msisdn);
+            DataPublisherUtil
+                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.IP_HEADER_NOT_IN_RANGE,
+                            "IP address not in range");
+            DataPublisherUtil
+                    .updateAndPublishUserStatus(userStatus,
+                            DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL, "IP validation failed");
+            throw new AuthenticationFailedException("Authentication Failed");
+        }
+        return validOperator;
     }
 
     private void populateAuthEndpointData(HttpServletRequest request, AuthenticationContext context) {
