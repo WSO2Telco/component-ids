@@ -71,6 +71,7 @@ public class DataPublisherUtil {
                 .userAgent(request.getHeader("User-Agent"))
                 .transactionId(request.getParameter("transactionId"))
                 .consumerKey(request.getParameter("client_id"))
+                .xForwardIP(request.getHeader("X-Forwarded-For"))
                 .build();
     }
 
