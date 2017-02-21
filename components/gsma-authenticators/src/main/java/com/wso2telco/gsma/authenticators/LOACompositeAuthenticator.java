@@ -122,6 +122,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		String msisdnHeader = request.getParameter(Constants.MSISDN_HEADER);
 		String loginHintMsisdn = request.getParameter(Constants.LOGIN_HINT_MSISDN);
 		Integer requestedLoa = Integer.parseInt(request.getParameter(Constants.PARAM_ACR));
+		String ipAddress = request.getParameter(Constants.IP_ADDRESS);
 
 		boolean isShowTnc = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
 		ScopeParam.msisdnMismatchResultTypes headerMismatchResult = ScopeParam.msisdnMismatchResultTypes.valueOf(
@@ -137,6 +138,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		context.setProperty(Constants.ACR, requestedLoa);
 		context.setProperty(Constants.OPERATOR, mobileNetworkOperator);
 		context.setProperty(Constants.LOGIN_HINT_MSISDN, loginHintMsisdn);
+		context.setProperty(Constants.IP_ADDRESS, ipAddress);
 
 		String flowType = getFlowType(msisdnHeader, loginHintMsisdn, headerMismatchResult);
 		
