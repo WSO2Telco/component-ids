@@ -61,6 +61,8 @@ public class MIFEClaimHandler extends DefaultClaimHandler {
 			SessionDataCacheEntry sdce = (SessionDataCacheEntry) SessionDataCache.getInstance()
 					.getValueFromCache(sessionDataCacheKey);
 
+			localClaims.put("sessionId", context.getContextIdentifier());
+
 			// Add acr to claims map
 			LinkedHashSet<?> acrValues = sdce.getoAuth2Parameters().getACRValues();
 			Iterator<?> it = acrValues.iterator();

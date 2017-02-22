@@ -257,7 +257,7 @@ public class MIFEOpenIDTokenBuilder implements
                 tokenMap.put("AccessToken", accessToken);
                 tokenMap.put("ClientId", request.getOauth2AccessTokenReqDTO().getClientId());
                 tokenMap.put("RefreshToken", tokenRespDTO.getRefreshToken());
-//              tokenMap.put("sessionId", getValuesFromCache(request, "sessionId"));
+                tokenMap.put("sessionId", getValuesFromCache(request, "sessionId"));
                 tokenMap.put("State", getValuesFromCache(request, "state"));
                 tokenMap.put("TokenClaims", getClaimValues(request));
                 tokenMap.put("ContentType", "application/x-www-form-urlencoded");
