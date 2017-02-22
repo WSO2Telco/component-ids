@@ -354,6 +354,8 @@ public final class Constants {
     
     public static final String ACTION = "action";
 
+    public static final String SELECTED_LOA = "selectedLOA";
+
     public static final String IP_ADDRESS = "ipAddress";
 
     public static final String SESSION_UPDATER_SMS_RESPONSE_CONTEXT = "/sessionupdater/wt?id=";

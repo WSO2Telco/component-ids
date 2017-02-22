@@ -65,21 +65,12 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
 	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 119680530347040691L;
-	
-	/** The selected loa. */
-	private String selectedLOA = null;
-    
+
     /** The log. */
     private static Log log = LogFactory.getLog(LOACompositeAuthenticator.class);
-	private String isAdminUserName = null;
-	private String isAdminPassword = null;
-
 
     public LOACompositeAuthenticator() {
 		//Use this credentials to login to IS.
-		//TODO : get this username and password from a suitable configuration file.
-		isAdminUserName = "admin";
-		isAdminPassword = "admin";
 	}
 
 	/** The Configuration service */
@@ -89,13 +80,11 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 	 * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
 	 */
 	public boolean canHandle(HttpServletRequest request) {
-		LinkedHashSet<?> acrs = this.getACRValues(request);
-		
-		if(acrs == null || acrs.size() == 0){
+		String acr = request.getParameter(Constants.PARAM_ACR);
+		if(acr == null){
 			return false;
 		}else{
-			selectedLOA = (String) acrs.iterator().next();
-			return selectedLOA != null;
+			return acr != null;
 		}			
 	}
 
@@ -106,6 +95,9 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
                 HttpServletResponse response, AuthenticationContext context)
 			throws AuthenticationFailedException, LogoutFailedException {
 		boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled();
+
+		// set context current LOA
+		context.setProperty(Constants.SELECTED_LOA, request.getParameter(Constants.PARAM_ACR));
 
 		if (dataPublisherEnabled) {
             UserStatus userStatus = DataPublisherUtil.buildUserStatusFromRequest(request);
@@ -194,7 +186,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		
 		
 		Map<String, MIFEAuthentication> authenticationMap = configurationService.getDataHolder().getAuthenticationLevelMap();
-		MIFEAuthentication mifeAuthentication = authenticationMap.get(selectedLOA);
+		MIFEAuthentication mifeAuthentication = authenticationMap.get(context.getProperty(Constants.SELECTED_LOA));
 
 		SequenceConfig sequenceConfig = context.getSequenceConfig();
 		Map<Integer, StepConfig> stepMap = sequenceConfig.getStepMap();
@@ -269,7 +261,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 						authenticatorConfig.setApplicationAuthenticator(applicationAuthenticator);
 
 						Map<String, String> parameterMap = new HashMap<String, String>();
-						parameterMap.put("currentLOA", selectedLOA);
+						parameterMap.put("currentLOA", (String)context.getProperty(Constants.SELECTED_LOA));
 						parameterMap.put("fallBack", (null != fallBack) ? fallBack : "");
 						parameterMap.put("onFail", (null != onFailAction) ? onFailAction : "");
 						parameterMap.put("isLastAuthenticator", (authenticatorList
@@ -288,8 +280,8 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 			if (null == fallBack) {
 				break;
 			}
-			selectedLOA = fallBack;
-			mifeAuthentication = authenticationMap.get(selectedLOA);
+			context.setProperty(Constants.SELECTED_LOA, fallBack);
+			mifeAuthentication = authenticationMap.get(fallBack);
 		}
 		sequenceConfig.setStepMap(stepMap);
 		context.setSequenceConfig(sequenceConfig);
@@ -348,7 +340,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 		SessionDataCacheKey sessionDataCacheKey=new SessionDataCacheKey(sdk);		
 		SessionDataCacheEntry sdce = (SessionDataCacheEntry) SessionDataCache.getInstance()
 				.getValueFromCache(sessionDataCacheKey);
-		LinkedHashSet<?> acrValues = sdce.getoAuth2Parameters().getACRValues();
+		LinkedHashSet<String> acrValues = sdce.getoAuth2Parameters().getACRValues();
 		return acrValues;
 	}
 
