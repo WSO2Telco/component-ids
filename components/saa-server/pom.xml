@@ -47,6 +47,7 @@
             <artifactId>jersey-server</artifactId>
             <version>1.8</version>
         </dependency>
+
         <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
@@ -67,6 +68,28 @@
             <artifactId>dbutils</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <!--Addedd dependency for the rs.client-->
+        <!--<dependency>-->
+            <!--<groupId>javax.ws.rs</groupId>-->
+            <!--<artifactId>javax.ws.rs-api</artifactId>-->
+            <!--<version>2.0.1</version>-->
+        <!--</dependency>-->
+
+        <!--<dependency>-->
+            <!--<groupId>org.glassfish.jersey.core</groupId>-->
+            <!--<artifactId>jersey-server</artifactId>-->
+            <!--<version>2.17</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.glassfish.jersey.containers</groupId>-->
+            <!--<artifactId>jersey-container-servlet-core</artifactId>-->
+            <!--<version>2.17</version>-->
+        <!--</dependency>-->
+
+
+
+
     </dependencies>
     <repositories>
         <repository>
