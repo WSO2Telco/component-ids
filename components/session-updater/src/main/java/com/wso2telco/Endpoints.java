@@ -174,7 +174,6 @@ public class Endpoints {
         return response;
     }
 
-
     /**
      * Ussd receive.
      *
@@ -1011,7 +1010,6 @@ public class Endpoints {
     public Response getSaaStatus(@QueryParam("sessionId") String sessionID) throws SQLException {
 
         String responseString = getStatus(sessionID);
-        log.info("SAA/status"+ responseString);
 
         return Response.status(200).entity(responseString).build();
     }
