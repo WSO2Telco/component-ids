@@ -15,8 +15,6 @@
  ******************************************************************************/
 package com.wso2telco.util;
 
-import com.wso2telco.core.config.service.ConfigurationService;
-import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.core.dbutils.DbUtils;
 import com.wso2telco.exception.EmptyResultSetException;
@@ -35,17 +33,13 @@ public class DBConnection {
     private static Log logger = LogFactory.getLog(DBConnection.class);
     private static DBConnection instance = null;
 
-    String connectionURL;
-    String dbUser;
-    String dbPassword;
-    private Log log = LogFactory.getLog(DBConnection.class);
-    private Connection connection = null;
-    private PreparedStatement statement;
-    private ResultSet resultSet;
-
-
     protected DBConnection() throws SQLException, ClassNotFoundException, DBUtilException {
-        connection = DbUtils.getConnectDbConnection();
+
+    }
+
+    public Connection getConnection() throws SQLException, DBUtilException {
+        Connection connection = DbUtils.getConnectDbConnection();
+        return connection;
     }
 
     public static DBConnection getInstance() throws ClassNotFoundException {
@@ -70,7 +64,6 @@ public class DBConnection {
      */
     public boolean addClient(String clientDeviceId, String platform, String pushToken, String msisdn) {
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
-
         String query = "INSERT INTO clients (client_device_id,platform,push_token,date_time,msisdn) VALUES ('" + clientDeviceId + "','" + platform + "','" + pushToken + "','" + timeStamp + "','" + msisdn + "');";
         return executeUpdate(query);
     }
@@ -86,8 +79,13 @@ public class DBConnection {
         final int REGISTEREDCLIENT = 0;
         final int ERROR = 2;
 
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+
         String query = "SELECT * FROM clients where msisdn=" + msisdn + ";";
         try {
+            connection = getConnection();
             statement = connection.prepareStatement(query);
             resultSet = statement.executeQuery(query);
 
@@ -97,9 +95,14 @@ public class DBConnection {
                 return REGISTEREDCLIENT;
             }
 
-        } catch (SQLException ex) {
-            log.info(ex.getMessage());
+        } catch (SQLException e) {
+            logger.info("SQLException occurred " + e);
             return ERROR;
+        } catch (DBUtilException e) {
+            logger.info("DBUtilException occurred " + e);
+            return ERROR;
+        } finally {
+            close(connection, statement, resultSet);
         }
     }
 
@@ -109,20 +112,73 @@ public class DBConnection {
      * @param msisdn mobile number
      * @return clientID
      */
-    public String[] getClientDetails(String msisdn) throws SQLException, EmptyResultSetException {
-        String clientDetails[] = new String[3];
+    public String[] getClientDetails(String msisdn) {
+
+        logger.info("getclientdetails");
+        String[] clientDetails = new String[3];
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
 
         String query = "SELECT client_device_id,platform,push_token FROM clients WHERE msisdn='" + msisdn + "';";
-        statement = connection.prepareStatement(query);
-        resultSet = statement.executeQuery(query);
+        try {
+            connection = getConnection();
+            statement = connection.prepareStatement(query);
+            resultSet = statement.executeQuery(query);
 
-        if (resultSet.next()) {
-            clientDetails[0] = resultSet.getString(1);
-            clientDetails[1] = resultSet.getString(2);
-            clientDetails[2] = resultSet.getString(3);
+            if(connection !=null)
+                logger.error("connection:not null");
+            else
+                logger.error("connection:null ");
+
+            if(statement  !=null)
+                logger.error("statement :not null");
+            else
+                logger.error("statement :null ");
+
+            if(resultSet  !=null)
+                logger.error("resultSet :not null");
+            else
+                logger.error("resultSet :null ");
+
+            if (resultSet != null) {
+                logger.info("Result set: "+resultSet.toString());
+                if (resultSet.next()) {
+                    logger.info(resultSet.getString(1));
+                    logger.info(resultSet.getString(2));
+                    logger.info(resultSet.getString(3));
+
+                    clientDetails[0] = resultSet.getString(1);
+                    logger.info(clientDetails[0]);
+                    clientDetails[1] = resultSet.getString(2);
+                    logger.info(clientDetails[1]);
+                    clientDetails[2] = resultSet.getString(3);
+                    logger.info(clientDetails[2]);
+//                    clientDetails[0] = resultSet.getString(1);
+//                    logger.info(clientDetails[0]);
+//                    clientDetails[1] = resultSet.getString(2);
+//                    clientDetails[2] = resultSet.getString(3);
+                    return clientDetails;
+                } else {
+                    logger.error("Error occurred Result Set is null!!!!");
+                    //throw new EmptyResultSetException("Result set is empty");
+                    return clientDetails;
+                }
+            } else {
+                logger.error("Error occurred Result Set is null!!!!");
+                return clientDetails;
+            }
+        } catch (SQLException e) {
+            logger.error("SQLException occurred !!!" + e);
             return clientDetails;
-        } else {
-            throw new EmptyResultSetException("Result set is empty");
+        } catch (DBUtilException e) {
+            logger.error("DBUtilException occurred !!!" + e);
+            return clientDetails;
+        } catch (Exception e){
+            logger.error("Exception occurred !!!" + e);
+            return clientDetails;
+        } finally {
+            close(connection, statement, resultSet);
         }
     }
 
@@ -167,19 +223,32 @@ public class DBConnection {
     }
 
     private boolean executeUpdate(String query) {
+
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+
         try {
+            connection = getConnection();
             statement = connection.prepareStatement(query);
             statement.executeUpdate();
             return true;
-        } catch (SQLException ex) {
+        } catch (SQLException e) {
+            logger.error("SQLException occurred " + e);
             return false;
+        } catch (DBUtilException e) {
+            logger.error("DBUtilException occurred " + e);
+            return false;
+        } finally {
+            close(connection, statement, resultSet);
         }
     }
 
     /**
      * Close the database connection.
      */
-    private void close() {
+    public void close(Connection connection, PreparedStatement statement, ResultSet resultSet) {
+
         try {
             if (resultSet != null)
                 resultSet.close();
@@ -188,6 +257,9 @@ public class DBConnection {
             if (connection != null)
                 connection.close();
         } catch (Exception e) {
+            logger.error("Error occurred " + e);
         }
     }
 }
+
+

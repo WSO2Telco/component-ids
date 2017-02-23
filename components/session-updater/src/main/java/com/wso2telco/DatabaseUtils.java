@@ -312,6 +312,7 @@ public class DatabaseUtils {
             }
 
         } catch (NamingException ex) {
+            log.error("Naming Exception ", ex);
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
             log.error("Error while retrieving user status", e);
@@ -320,6 +321,7 @@ public class DatabaseUtils {
 
         }
 
+        log.info("UserStatus "+userStatus);
         return userStatus;
     }
 

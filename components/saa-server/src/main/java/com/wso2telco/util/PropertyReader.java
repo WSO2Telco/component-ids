@@ -41,12 +41,12 @@ public class PropertyReader {
                 throw new FileNotFoundException("property file application.properties not found in the classpath");
             }
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Exception occurred "+e.getMessage());
         } finally {
             try {
                 inputStream.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("IOException "+e.getMessage());
             }
         }
     }

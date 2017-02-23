@@ -17,9 +17,8 @@ package com.wso2telco.saa.service;
 
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.exception.EmptyResultSetException;
+import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.util.DBConnection;
-import com.wso2telco.util.PropertyReader;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -43,7 +42,6 @@ public class ServerAPI {
 
     private Log log = LogFactory.getLog(ServerAPI.class);
     private DBConnection dbConnection = null;
-
     private ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /**
@@ -61,6 +59,7 @@ public class ServerAPI {
     public Response registerClient(@HeaderParam("msisdn") String msisdn, String clientData) throws ClassNotFoundException {
         log.info("Inside registerClient API");
         dbConnection = DBConnection.getInstance();
+
         final int UNREGISTERED_CLIENT = 1;
         final int REGISTRED_CLIENT = 0;
         int success = 0;
@@ -69,27 +68,33 @@ public class ServerAPI {
         int clientAvailability;
         String response = null;
         JSONObject requestInfoObj = new JSONObject(clientData);
-        try {
-            String clientDeviceID = requestInfoObj.getString("clientDeviceID");
-            String platform = requestInfoObj.getString("platform");
-            String pushToken = requestInfoObj.getString("pushToken");
 
-            log.info("checking client exists");
-            clientAvailability = dbConnection.isExist(msisdn);
-            if (clientAvailability == UNREGISTERED_CLIENT) {
-                dbConnection.addClient(clientDeviceID, platform, pushToken, msisdn);
-                success = 1;
-                responseMessage = "Device registered";
-            } else if (clientAvailability == REGISTRED_CLIENT) {
+        if (dbConnection != null) {
+            try {
+                String clientDeviceID = requestInfoObj.getString("clientDeviceID");
+                String platform = requestInfoObj.getString("platform");
+                String pushToken = requestInfoObj.getString("pushToken");
+
+                log.info("checking client exists");
+                clientAvailability = dbConnection.isExist(msisdn);
+                if (clientAvailability == UNREGISTERED_CLIENT) {
+                    dbConnection.addClient(clientDeviceID, platform, pushToken, msisdn);
+                    success = 1;
+                    responseMessage = "Device registered";
+                } else if (clientAvailability == REGISTRED_CLIENT) {
+                    failure = 1;
+                    responseMessage = "Device Already registered";
+                }
+            } catch (Exception e) {
+                log.info("error occurred while checking availability");
+                log.error("Exception Occurred " + e);
                 failure = 1;
-                responseMessage = "Device Already registered";
+                responseMessage = "Error in Registration";
             }
-        } catch (Exception e) {
-            log.info("error occurred while checking availability");
-            log.info("Error :" + e.toString());
+        } else {
+            success = 0;
             failure = 1;
-            responseMessage = "Error in Registration";
-            log.info(responseMessage, e);
+            responseMessage = "Error in Database Connection";
         }
 
         log.info("sending response back");
@@ -125,56 +130,69 @@ public class ServerAPI {
         JSONObject requestInfoObj = new JSONObject(messageDetails);
         JSONObject pushNotificationApiResponse;
         String refId = requestInfoObj.getString("ref");
-
         String clientDetailsArray[] = null;
-        try {
-            clientDetailsArray = dbConnection.getClientDetails(msisdn);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (EmptyResultSetException e) {
-            e.printStackTrace();
-        }
         String pushMessageDetails;
 
-        if (clientDetailsArray != null) {
-            clientDeviceId = clientDetailsArray[0];
-            platform = clientDetailsArray[1];
-            pushToken = clientDetailsArray[2];
-            pushMessageDetails = "{\"platform\" :\"" + platform + "\",\"pushToken\" :\"" + pushToken + "\",\"data\" : " + messageDetails + "}";
+        if (dbConnection != null) {
+            clientDetailsArray = dbConnection.getClientDetails(msisdn);
 
-            authenticationResponse = dbConnection.authenticateClient(refId, clientDeviceId, messageDetails);
+            if (clientDetailsArray != null) {
+                log.info("clientDetailsArray is not null");
+                clientDeviceId = clientDetailsArray[0];
+                platform = clientDetailsArray[1];
+                pushToken = clientDetailsArray[2];
+                pushMessageDetails = "{\"platform\" :\"" + platform + "\",\"pushToken\" :\"" + pushToken + "\",\"data\" : " + messageDetails + "}";
 
-            if (authenticationResponse) {
+                authenticationResponse = dbConnection.authenticateClient(refId, clientDeviceId, messageDetails);
 
-                try {
-                    pushNotificationApiResponse = postRequest(msisdn, pushMessageDetails);
+                if (authenticationResponse) {
 
-                    if (pushNotificationApiResponse.getInt("success") == 1) {
-                        dbConnection.updateMessageTable(refId, 'A');
-                        success = 1;
-                        responseMessage = "Message Pushed";
-                    } else {
+                    try {
+                        pushNotificationApiResponse = postRequest(msisdn, pushMessageDetails);
+                        log.info("pushNotificationAPI " + pushNotificationApiResponse);
+
+                        if (pushNotificationApiResponse.getInt("success") == 1) {
+                            dbConnection.updateMessageTable(refId, 'A');
+                            success = 1;
+                            responseMessage = "Message Pushed";
+                        } else {
+                            failure = 1;
+                            responseMessage = "Invalid Registration";
+                        }
+                    } catch (IOException e) {
+                        log.error("IOException Occurred " + e);
                         failure = 1;
-                        responseMessage = "Invalid Registration";
+                        responseMessage = "Authentication Unsuccessful";
                     }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } else {
+                    failure = 1;
+                    responseMessage = "Authentication Unsuccessful";
                 }
-            } else if (authenticationResponse == false) {
+
+            } else {
+                log.info("clientDetailsArray is null");
                 failure = 1;
                 responseMessage = "Authentication Unsuccessful";
             }
-
         } else {
             failure = 1;
             responseMessage = "Authentication Unsuccessful";
         }
 
         response = "{\"success\" :\"" + success + "\",\"failure\" :\"" + failure + "\",\"result\" : {\"message\" :\"" + responseMessage + "\"}}";
-        log.info(response.toString());
+        log.info(response);
         return Response.ok(response, MediaType.APPLICATION_JSON).build();
     }
 
+    /**
+     * Method for post requests
+     * Request comes from SAA Adapter to authenticate the Service Provider.
+     *
+     * @param msisdn             msisdn number of the user
+     * @param pushMessageDetails info to pass to FCM
+     * @return pushNotificationApiResponse JSON Object including response from FCM
+     * @throws IOException on error
+     */
     private JSONObject postRequest(String msisdn, String pushMessageDetails) throws IOException {
 
         String url = configurationService.getDataHolder().getMobileConnectConfig().getSaaConfig()
@@ -199,6 +217,7 @@ public class ServerAPI {
             stringBuilder.append(output);
         }
         pushNotificationApiResponse = new JSONObject(stringBuilder.toString());
+        log.info("pushNotificationApiResponse is " + pushNotificationApiResponse.toString());
         return pushNotificationApiResponse;
     }
 
@@ -214,31 +233,46 @@ public class ServerAPI {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response authenticateClientBySAAClient(@PathParam("msisdn") String msisdn, String messageDetails) throws ClassNotFoundException {
-        log.info("Inside auth_response API method");
 
-        dbConnection = DBConnection.getInstance();
+        log.info("Inside auth_response API method");
+        log.info("Message Details: "+messageDetails);
         JSONObject requestInfoObj = new JSONObject(messageDetails);
+        dbConnection = DBConnection.getInstance();
         int success = 0;
         int failure = 0;
-        String responceMessage;
+        String responseMessage;
         String response;
 
-        int authenticatedStatus = requestInfoObj.getInt("status");
-        String refID = requestInfoObj.getString("refId");
+        if (requestInfoObj != null) {
+            log.info("requestInfoObj is not null");
+            if (dbConnection != null) {
+                int authenticatedStatus = requestInfoObj.getInt("status");
+                String refID = requestInfoObj.getString("refId");
 
-        if (authenticatedStatus == 1) {
-            log.info("authentication success");
-            dbConnection.updateMessageTable(refID, 'S');
-            success = 1;
-            responceMessage = "Status Updated";
+                if (authenticatedStatus == 1) {
+                    log.info("authentication success");
+                    dbConnection.updateMessageTable(refID, 'S');
+                    success = 1;
+                    responseMessage = "Status Updated";
 
+                } else {
+                    log.info("Invalid messageID");
+                    failure = 1;
+                    responseMessage = "Invalid messageID";
+                }
+            } else {
+                log.info("Error in Database Connection.");
+                failure = 1;
+                responseMessage = "Error in Database Connection.";
+            }
         } else {
+            log.info("Error in sending authorization response");
             failure = 1;
-            responceMessage = "Invalid messageID";
+            responseMessage = "Error in sending authorization response";
         }
 
         log.info("sending response back");
-        response = "{\"success\" :\"" + success + "\",\"failure\" :\"" + failure + "\",\"result\" : {\"message\" :\"" + responceMessage + "\"}}";
+        response = "{\"success\" :\"" + success + "\",\"failure\" :\"" + failure + "\",\"result\" : {\"message\" :\"" + responseMessage + "\"}}";
         Response build = Response.ok(response, MediaType.APPLICATION_JSON).build();
         log.info("response sent");
         return build;
@@ -254,16 +288,23 @@ public class ServerAPI {
     @GET
     @Path("api/v1/clients/{msisdn}/is_registered")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response isRegistered(@PathParam("msisdn") String msisdn) throws ClassNotFoundException {
+    public Response isRegistered(@PathParam("msisdn") String msisdn) throws ClassNotFoundException, SQLException, DBUtilException {
         dbConnection = DBConnection.getInstance();
-        int isExist = dbConnection.isExist(msisdn);
         boolean registered = false;
         String response;
 
-        if (isExist == 1) {
+        if (dbConnection != null) {
+            int isExist = dbConnection.isExist(msisdn);
+
+            if (isExist == 1) {
+                registered = false;
+            } else if (isExist == 0) {
+                registered = true;
+            }
+
+        } else {
             registered = false;
-        } else if (isExist == 0) {
-            registered = true;
+            log.info("Error in Database Connection");
         }
 
         response = "{\"registered\" :\"" + registered + "\"}";
@@ -280,22 +321,30 @@ public class ServerAPI {
     @DELETE
     @Path("api/v1/clients/{msisdn}/unregisterClient")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response unregisterClient(@PathParam("msisdn") String msisdn) throws ClassNotFoundException {
-        dbConnection = DBConnection.getInstance();
-        int isExist = dbConnection.isExist(msisdn);
+    public Response unregisterClient(@PathParam("msisdn") String msisdn) throws ClassNotFoundException, SQLException, DBUtilException {
+
         String responseMessage = null;
         String apiResponse;
         boolean unregister = false;
+        dbConnection = DBConnection.getInstance();
 
-        if (isExist == 1) {
-            responseMessage = "msisdn is not registered in the database";
-        } else if (isExist == 0) {
-            unregister = dbConnection.removeClient(msisdn);
-            if (unregister == true)
-                responseMessage = "SUCCESS";
-            else
-                responseMessage = "FAILURE";
+        if (dbConnection != null) {
+            int isExist = dbConnection.isExist(msisdn);
+
+            if (isExist == 1) {
+                responseMessage = "msisdn is not registered in the database";
+            } else if (isExist == 0) {
+                unregister = dbConnection.removeClient(msisdn);
+                if (unregister == true)
+                    responseMessage = "SUCCESS";
+                else
+                    responseMessage = "FAILURE";
+            }
+        } else {
+            responseMessage = "FAILURE";
+            log.info("Error in Database Connection ");
         }
+
         apiResponse = "{\"removeClient\" :\"" + responseMessage + "\"}";
         return Response.ok(apiResponse, MediaType.APPLICATION_JSON).build();
     }
