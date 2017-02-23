@@ -16,14 +16,13 @@
 package com.wso2telco.user.impl;
 
 
-import com.wso2telco.config.ConfigLoader;
-import com.wso2telco.config.DataHolder;
-import com.wso2telco.config.Scope;
-import com.wso2telco.config.ScopeConfigs;
+import com.google.gson.Gson;
+import com.wso2telco.config.*;
 import com.wso2telco.dao.DBConnection;
 import com.wso2telco.dao.ScopeDetails;
 import com.wso2telco.util.ClaimUtil;
 import org.apache.amber.oauth2.common.utils.JSONUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
@@ -50,13 +49,9 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
     /** The log. */
     private static Log log = LogFactory.getLog(ClaimInfoMultipleScopeResponseBuilder.class);
 
-    private final String openidScope = "openid";
-
     private final String hashPhoneScope = "mc_identity_phonenumber_hashed";
 
     private final String phone_number_claim = "phone_number";
-
-    private final String msisdnKeyValue = "msisdn";
 
     /** The openid scopes. */
     List<String> openidScopes = Arrays.asList("profile", "email", "address", "phone", "openid", "mc_identity_phonenumber_hashed");
@@ -120,14 +115,10 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
             throw new UserInfoEndpointException("Error while generating sub value");
         }
 
-        try {
-            String userInfoJson = JSONUtils.buildJSON(requestedClaims);
+            Gson gson = new Gson();
+            String userInfoJson = gson.toJson(requestedClaims);
             log.debug("User data JSON " + userInfoJson);
             return userInfoJson;
-
-        } catch (JSONException e) {
-            throw new UserInfoEndpointException("Error while generating the response JSON");
-        }
     }
 
     /**
@@ -156,31 +147,30 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
      */
     private Map<String, Object> getRequestedClaims(String[] scopes, ScopeConfigs scopeConfigs, Map<String, Object> totalClaims) throws NoSuchAlgorithmException {
         Map<String, Object> requestedClaims = new HashMap<String, Object>();
-        String[] attributes;
         if (scopeConfigs != null) {
-            for (String scopeName : scopes) {
-                for (Scope scope : scopeConfigs.getScopes().getScopeList()) {
-                    if (scopeName.equals(scope.getName())) {
-                        attributes = new String[scope.getClaims().getClaimValues().size()];
-                        if (scopeName.equals(openidScope)) {
-                            if(scopes.length == 1) {
-                                requestedClaims = addClaims(totalClaims, requestedClaims, scope.getClaims().getClaimValues().toArray(attributes));
-                                String msisdn = (String) requestedClaims.remove(phone_number_claim);
-                                requestedClaims.put(msisdnKeyValue, msisdn);
-                                break;
+                if( ArrayUtils.contains( scopes, hashPhoneScope)){
+                    String hashed_msisdn = getHashedClaimValue((String) totalClaims.get(phone_number_claim));
+                    requestedClaims.put(phone_number_claim, hashed_msisdn);
+                }else{
+                    String msisdn = totalClaims.get(phone_number_claim).toString();
+                    if(scopes.length == 1) {
+                        requestedClaims.put(phone_number_claim, msisdn);
+                    }else{
+                        for (Scope scope : scopeConfigs.getScopes().getScopeList()) {
+                            if(ArrayUtils.contains( scopes, scope.getName())){
+                                for(String claims:scope.getClaims().getClaimValues()){
+                                    if(totalClaims.get(claims)==null){
+                                        requestedClaims.put(claims,"");
+                                    }else {
+                                        requestedClaims.put(claims,totalClaims.get(claims));
+                                    }
+
+                                }
                             }
-                        } else {
-                            requestedClaims = addClaims(totalClaims, requestedClaims, scope.getClaims().getClaimValues().toArray(attributes));
                         }
-                        if(scopeName.equals(hashPhoneScope)){
-                            String hashed_msisdn = getHashedClaimValue((String) requestedClaims.get(phone_number_claim));
-                            requestedClaims.put(phone_number_claim, hashed_msisdn);
-                            break;
-                        }
-                        break;
                     }
                 }
-            }
+
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Could not load user-info claims.");
@@ -189,25 +179,6 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         return requestedClaims;
     }
 
-
-    /**
-     * Adds the claims.
-     *
-     * @param claims the claims
-     * @param requestedClaims the requested claims
-     * @param attributeList the attribute list
-     * @return the map
-     */
-    private Map<String, Object> addClaims(Map<String, Object> claims, Map<String, Object> requestedClaims, String[] attributeList) {
-        int attributeIndex = 0;
-        while (attributeIndex < attributeList.length) {
-            if (claims.get(attributeList[attributeIndex]) != null) {
-                requestedClaims.put(attributeList[attributeIndex], claims.get(attributeList[attributeIndex]));
-            }
-            attributeIndex++;
-        }
-        return requestedClaims;
-    }
 
     /**
      * Gets the valid scopes.
@@ -241,4 +212,5 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
 
         return sb.toString();
     }
+
 }
