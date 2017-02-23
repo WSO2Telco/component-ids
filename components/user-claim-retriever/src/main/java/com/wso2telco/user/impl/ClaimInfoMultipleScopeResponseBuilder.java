@@ -152,10 +152,6 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
                     String hashed_msisdn = getHashedClaimValue((String) totalClaims.get(phone_number_claim));
                     requestedClaims.put(phone_number_claim, hashed_msisdn);
                 }else{
-                    String msisdn = totalClaims.get(phone_number_claim).toString();
-                    if(scopes.length == 1) {
-                        requestedClaims.put(phone_number_claim, msisdn);
-                    }else{
                         for (Scope scope : scopeConfigs.getScopes().getScopeList()) {
                             if(ArrayUtils.contains( scopes, scope.getName())){
                                 for(String claims:scope.getClaims().getClaimValues()){
@@ -164,11 +160,9 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
                                     }else {
                                         requestedClaims.put(claims,totalClaims.get(claims));
                                     }
-
                                 }
                             }
                         }
-                    }
                 }
 
         } else {
