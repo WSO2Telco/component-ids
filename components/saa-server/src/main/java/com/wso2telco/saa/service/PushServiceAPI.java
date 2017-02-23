@@ -17,6 +17,7 @@ package com.wso2telco.saa.service;
 
 import com.google.gson.Gson;
 import com.wso2telco.core.dbutils.DBUtilException;
+import com.wso2telco.entity.ClientDetails;
 import com.wso2telco.entity.Data;
 import com.wso2telco.entity.Fcm;
 import com.wso2telco.exception.EmptyResultSetException;
@@ -26,6 +27,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ClientConnectionManager;
@@ -73,75 +75,55 @@ public class PushServiceAPI {
     @Path("client/{msisdn}/send")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response sendPushNotification(@PathParam("msisdn") String msisdn, String pushMessageData) throws ClassNotFoundException {
+    public Response sendPushNotification(@PathParam("msisdn") String msisdn, String pushMessageData) {
 
         JSONObject pushMessageObj = new JSONObject(pushMessageData);
         JSONObject messageData = pushMessageObj.getJSONObject("data");
-        String clientDetails[] = new String[0];
         String pushMessageResponse;
-        dbConnection = DBConnection.getInstance();
 
-        if (dbConnection != null) {
-            try {
-                clientDetails = dbConnection.getClientDetails(msisdn);
+        try{
+            dbConnection = DBConnection.getInstance();
+            ClientDetails clientDetails = dbConnection.getClientDetails(msisdn);
+            if (clientDetails != null) {
+                String pushToken = clientDetails.getPushToken();
+                String message = messageData.getString("message");
+                String applicationName = messageData.getString("applicationName");
+                String referenceId = messageData.getString("ref");
+                String acr = messageData.getString("acr");
+                String spImageUrl = messageData.getString("spImgUrl");
 
-                if(clientDetails != null){
-                    String pushToken = clientDetails[2];
-                    String message = messageData.getString("message");
-                    String applicationName = messageData.getString("applicationName");
-                    String referenceId = messageData.getString("ref");
-                    String acr = messageData.getString("acr");
-                    String spImageUrl = messageData.getString("spImgUrl");
+                Data data = new Data();
+                data.setMsg(message);
+                data.setSp(applicationName);
+                data.setRef(referenceId);
+                data.setAcr(acr);
+                data.setSp_url(spImageUrl);
 
-                    Data data = new Data();
-                    data.setMsg(message);
-                    data.setSp(applicationName);
-                    data.setRef(referenceId);
-                    data.setAcr(acr);
-                    data.setSp_url(spImageUrl);
+                Fcm fcm = new Fcm();
+                fcm.setTo(pushToken);
+                fcm.setData(data);
 
-                    Fcm fcm = new Fcm();
-                    fcm.setTo(pushToken);
-                    fcm.setData(data);
+                HttpClient client = getNewHttpClient();
+                HttpPost post = new HttpPost(FCM_URL);
 
-                    HttpClient client = getNewHttpClient();
-                    HttpPost post = new HttpPost(FCM_URL);
+                post.setHeader("Authorization", "key=AIzaSyCIqO7iVo2djUVRIKh-DUe1kn3zODTzcDg");
+                post.setHeader("Content-Type", MediaType.APPLICATION_JSON);
 
-                    post.setHeader("Authorization", "key=AIzaSyCIqO7iVo2djUVRIKh-DUe1kn3zODTzcDg");
-                    post.setHeader("Content-Type", MediaType.APPLICATION_JSON);
+                StringEntity requestEntity = new StringEntity(new Gson().toJson(fcm), ContentType.APPLICATION_JSON);
+                post.setEntity(requestEntity);
 
-                    StringEntity requestEntity = new StringEntity(new Gson().toJson(fcm), ContentType.APPLICATION_JSON);
-                    post.setEntity(requestEntity);
+                HttpResponse httpResponse = client.execute(post);
+                getJsonObject(httpResponse);
 
-                    HttpResponse httpResponse = client.execute(post);
-                    getJsonObject(httpResponse);
-
-                    pushMessageResponse = "{\"success\" :\"" + success + "\",\"failure\" :\"" + failure + "\"}";
-                }
-                else
-                    pushMessageResponse = "{\"success\" :\"" + 0 + "\",\"failure\" :\"" + 1 + "\"}";
-
-                return Response.ok(pushMessageResponse, MediaType.APPLICATION_JSON).build();
-            } catch (IOException e) {
-                log.error("IO Exception " + e);
+                pushMessageResponse = "{\"success\" :\"" + success + "\",\"failure\" :\"" + failure + "\"}";
+            } else
                 pushMessageResponse = "{\"success\" :\"" + 0 + "\",\"failure\" :\"" + 1 + "\"}";
-                return Response.ok(pushMessageResponse, MediaType.APPLICATION_JSON).build();
-            }
-//            catch (SQLException e) {
-//                log.error("SQL Exception " + e);
-//                pushMessageResponse = "{\"success\" :\"" + 0 + "\",\"failure\" :\"" + 1 + "\"}";
-//                return Response.ok(pushMessageResponse, MediaType.APPLICATION_JSON).build();
-//            } catch (EmptyResultSetException e) {
-//                log.error("EmptyResultSetException " + e);
-//                pushMessageResponse = "{\"success\" :\"" + 0 + "\",\"failure\" :\"" + 1 + "\"}";
-//                return Response.ok(pushMessageResponse, MediaType.APPLICATION_JSON).build();
-//            }
-
-        } else {
-            log.info("Error in Database Connection");
-            pushMessageResponse = "{\"success\" :\"" + 0 + "\",\"failure\" :\"" + 1 + "\"}";
-            return Response.ok(pushMessageResponse, MediaType.APPLICATION_JSON).build();
         }
+        catch(SQLException | IOException | DBUtilException | EmptyResultSetException |ClassNotFoundException e){
+            log.error("Exception " + e);
+            pushMessageResponse = "{\"success\" :\"" + 0 + "\",\"failure\" :\"" + 1 + "\"}";
+        }
+        return Response.ok(pushMessageResponse, MediaType.APPLICATION_JSON).build();
     }
 
     private void getJsonObject(HttpResponse response) {
