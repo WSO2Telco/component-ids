@@ -15,12 +15,6 @@
  ******************************************************************************/
 package com.wso2telco.claimhandler;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,6 +27,8 @@ import org.wso2.carbon.identity.application.authentication.framework.model.Authe
 import org.wso2.carbon.identity.oauth.cache.SessionDataCache;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
+
+import java.util.*;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -79,12 +75,17 @@ public class MIFEClaimHandler extends DefaultClaimHandler {
 			if (null != amrValue && amrValue instanceof ArrayList<?>) {
 				@SuppressWarnings("unchecked")
 				List<String> amr = (ArrayList<String>) amrValue;
-				localClaims.put("amr", StringUtils.join(amr, ','));
+				if(!amr.isEmpty()) {
+					localClaims.put("amr", amr.get(amr.size() - 1));
+				}else{
+					localClaims.put("amr", "");
+				}
 			}
 			
 			//this becomes null for scenario where user is already authenticated
 			//ex: accessing tokens from two SPs from a same browser. user is already
 			//authenticated for the first SP
+			// todo: confirm this scenario
 			if(null == amrValue){
 				Map<Integer, StepConfig> stepMap = context.getSequenceConfig().getStepMap();
 				List<String> amr = new ArrayList<String>();
@@ -95,7 +96,6 @@ public class MIFEClaimHandler extends DefaultClaimHandler {
 					}					
 				}
 				localClaims.put("amr", StringUtils.join(amr, ','));
-		
 			}
 			
 			

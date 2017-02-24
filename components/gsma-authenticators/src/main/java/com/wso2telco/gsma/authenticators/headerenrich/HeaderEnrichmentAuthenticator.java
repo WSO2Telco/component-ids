@@ -20,6 +20,7 @@ import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.IPRangeChecker;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
@@ -65,7 +66,7 @@ import java.util.Map;
  * The Class HeaderEnrichmentAuthenticator.
  */
 public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthenticator
-        implements LocalApplicationAuthenticator {
+        implements LocalApplicationAuthenticator, BaseApplicationAuthenticator {
 
     /**
      * The Constant serialVersionUID.
@@ -707,5 +708,10 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         }
 
         return isvalid;
+    }
+
+    @Override
+    public String getAmrValue(int acr) {
+        return "HE_OK";
     }
 }

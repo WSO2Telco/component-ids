@@ -19,6 +19,7 @@ import com.wso2telco.Util;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
+import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.ussd.command.LoginUssdCommand;
@@ -55,7 +56,7 @@ import java.util.Map;
  * The Class USSDAuthenticator.
  */
 public class USSDAuthenticator extends AbstractApplicationAuthenticator
-        implements LocalApplicationAuthenticator {
+        implements LocalApplicationAuthenticator, BaseApplicationAuthenticator {
 
     /**
      * The Constant serialVersionUID.
@@ -321,6 +322,9 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
     public String getName() {
         return Constants.USSD_AUTHENTICATOR_NAME;
     }
+
+    @Override
+    public String getAmrValue(int acr) { return "USSD_OK"; }
 
     /**
      * The Enum UserResponse.
