@@ -48,7 +48,7 @@ import java.util.Map;
  * The Class MSISDNAuthenticator.
  */
 public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
-        implements LocalApplicationAuthenticator {
+        implements LocalApplicationAuthenticator, BaseApplicationAuthenticator {
 
     /**
      * The Constant serialVersionUID.
@@ -407,5 +407,10 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     @Override
     public String getName() {
         return Constants.MSISDN_AUTHENTICATOR_NAME;
+    }
+
+    @Override
+    public String getAmrValue(int acr) {
+        return null;
     }
 }
