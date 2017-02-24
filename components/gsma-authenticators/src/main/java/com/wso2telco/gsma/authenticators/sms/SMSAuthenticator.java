@@ -19,6 +19,7 @@ import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
+import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.cryptosystem.AESencrp;
@@ -42,8 +43,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Date;
 
 
@@ -53,7 +52,7 @@ import java.util.Date;
  * The Class SMSAuthenticator.
  */
 public class SMSAuthenticator extends AbstractApplicationAuthenticator
-        implements LocalApplicationAuthenticator {
+        implements LocalApplicationAuthenticator, BaseApplicationAuthenticator {
 
     /**
      * The Constant serialVersionUID.
@@ -284,6 +283,9 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
     public String getName() {
         return Constants.SMS_AUTHENTICATOR_NAME;
     }
+
+    @Override
+    public String getAmrValue(int acr) { return "SMS_URL_OK"; }
 
     /**
      * The Enum UserResponse.

@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.wso2telco.gsma.handlers.authenticationstephandler;
 
+import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.LOACompositeAuthenticator;
 import com.wso2telco.util.AuthenticationHealper;
@@ -361,7 +362,15 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
                     } else {
                         amr = new ArrayList();
                     }
-                    amr.add(authenticator.getName());
+
+                    // Add authenticator AMR value if current authenticator is an instance of BaseApplicationAuthenticator
+                    if(authenticator instanceof BaseApplicationAuthenticator){
+						String amrValueFromAuthenticator = ((BaseApplicationAuthenticator) authenticator).getAmrValue((int) context.getParameter(Constants.ACR));
+                    	if(amrValueFromAuthenticator != null) {
+							amr.add(amrValueFromAuthenticator);
+						}
+					}
+
                     context.setProperty(Params.AMR.toString(), amr);
                 } catch (NullPointerException e) {
 					// Possible exception during dashboard login
