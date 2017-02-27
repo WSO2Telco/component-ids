@@ -103,7 +103,6 @@ function registration() {
     if (sessionDataKey) {
         //we can remove this code.
         acr_code = getAcrValue();
-        msisdnval = getMSISDN(sessionDataKey);
     } else {
         acr_code = "USSDAuthenticator";
     }
@@ -222,33 +221,6 @@ function getAcrValue() {
 
 }
 
-/*
- *  return msisdn from the token using authenticate request values
- *
- */
-function getMSISDN(token) {
-
-    var msisdn = '';
-    var url = "/user-registration/webresources/endpoint/user/authenticate/get?tokenid=" + token;
-
-    $.ajax({
-        type: "GET",
-        url: url,
-        async: false,
-        success: function (result) {
-            if (result != null) {
-
-                if (result.msisdn != null) {
-                    msisdn = result.msisdn;
-
-                }
-            }
-        }
-    });
-
-    return msisdn;
-
-}
 
 function selfAuthorize(sessionDataKey, msisdn, operator) {
     var commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
