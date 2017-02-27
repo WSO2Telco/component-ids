@@ -121,33 +121,32 @@ public class ServerAPI {
         ClientDetails clientDetailsArray = new ClientDetails();
         String pushMessageDetails;
 
-        try{
+        try {
             dbConnection = DBConnection.getInstance();
             clientDetailsArray = dbConnection.getClientDetails(msisdn);
 
             if (clientDetailsArray != null) {
-                log.info("clientDetailsArray is not null");
                 pushMessageDetails = "{\"platform\" :\"" + clientDetailsArray.getPlatform() + "\",\"pushToken\" :\"" + clientDetailsArray.getPushToken() + "\",\"data\" : " + messageDetails + "}";
 
                 dbConnection.authenticateClient(refId, clientDetailsArray.getDeviceId(), messageDetails);
 
-                    try {
-                        pushNotificationApiResponse = postRequest(msisdn, pushMessageDetails);
-                        log.info("pushNotificationAPI " + pushNotificationApiResponse);
+                try {
+                    pushNotificationApiResponse = postRequest(msisdn, pushMessageDetails);
+                    log.info("pushNotificationAPI " + pushNotificationApiResponse);
 
-                        if (pushNotificationApiResponse.getInt("success") == 1) {
-                            dbConnection.updateMessageTable(refId, 'A');
-                            success = 1;
-                            responseMessage = "Message Pushed";
-                        } else {
-                            failure = 1;
-                            responseMessage = "Invalid Registration";
-                        }
-                    } catch (IOException e) {
-                        log.error("IOException Occurred " + e);
+                    if (pushNotificationApiResponse.getInt("success") == 1) {
+                        dbConnection.updateMessageTable(refId, 'A');
+                        success = 1;
+                        responseMessage = "Message Pushed";
+                    } else {
                         failure = 1;
-                        responseMessage = "Authentication Unsuccessful";
+                        responseMessage = "Invalid Registration";
                     }
+                } catch (IOException e) {
+                    log.error("IOException Occurred " + e);
+                    failure = 1;
+                    responseMessage = "Authentication Unsuccessful";
+                }
             } else {
                 log.info("clientDetailsArray is null");
                 failure = 1;
@@ -223,7 +222,7 @@ public class ServerAPI {
         String responseMessage;
         String response;
 
-        try{
+        try {
             dbConnection = DBConnection.getInstance();
             if (requestInfoObj != null) {
                 log.info("requestInfoObj is not null");
@@ -247,8 +246,7 @@ public class ServerAPI {
                 failure = 1;
                 responseMessage = "Error in sending authorization response";
             }
-        }
-        catch (SQLException | DBUtilException e){
+        } catch (SQLException | DBUtilException e) {
             log.info("Error in sending authorization response");
             failure = 1;
             responseMessage = "Error in sending authorization response";

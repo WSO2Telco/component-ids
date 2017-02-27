@@ -140,7 +140,7 @@ public class DBConnection {
         } catch (DBUtilException e) {
             logger.error("DBUtilException occurred !!!" + e);
             throw new DBUtilException(e.getMessage(), e);
-        }  finally {
+        } finally {
             close(connection, statement, resultSet);
         }
     }
