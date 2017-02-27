@@ -105,7 +105,6 @@ function registration() {
     if (sessionDataKey) {
         //we can remove this code.
         acr_code = getAcrValue();
-        msisdnval = getMSISDN(sessionDataKey);
     } else {
         acr_code = "USSDAuthenticator";
     }
@@ -226,72 +225,4 @@ function getAcrValue() {
 
 }
 
-/*
- *  return msisdn from the token using authenticate request values
- *
- */
-function getMSISDN(token) {
-
-    var msisdn = '';
-    var url = "/user-registration/webresources/endpoint/user/authenticate/get?tokenid=" + token;
-
-    $.ajax({
-        type: "GET",
-        url: url,
-        async: false,
-        success: function (result) {
-            if (result != null) {
-
-                if (result.msisdn != null) {
-                    msisdn = result.msisdn;
-
-                }
-            }
-        }
-    });
-
-    return msisdn;
-
-}
-
-function selfAuthorize(sessionDataKey, msisdn, operator) {
-    //getting userinfo from backend is useless here
-    var callbackURL;
-    var acr;
-    var authendpoint;
-    var token;
-    var scope;
-    var id = sessionDataKey;
-    var state;
-    var nonce;
-    var username = msisdn;
-    var url = "/user-registration/webresources/endpoint/user/authenticate/get?tokenid=" + id;
-
-    //$.ajax({
-    //	type: "GET",
-    //	url:url,
-    //	async: false,
-    //	dataType: 'json',
-    //	success:function(result){
-    //		if(result != null) {
-    //			scope = result.scope;
-    //			callbackURL = result.redirectUri;
-    //			state= result.state;
-    //			nonce=result.nonce;
-    //			clientkey = result.clientId;
-    //			acr = result.acrValues;
-    //			authendpoint = "/oauth2/authorize";
-    //			token = result.tokenID;
-    //		}
-    //	}});
-
-    //var url = authendpoint + "?scope="+encodeURIComponent(scope)+"&response_type=code&redirect_uri="
-    //+ encodeURIComponent(callbackURL) + "&client_id=" + clientkey + "&acr_values="
-    //+ acr+"&tokenid="+token+"&msisdn="+username+"&state="+state+"&nonce="+nonce + "&operator="+operator;
-    var commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
-        + "&msisdn_header=" + msisdn
-        + "&operator=" + operator;
-    console.log("commonAuthURL   " + commonAuthURL);
-    window.location = commonAuthURL;
-}
 
