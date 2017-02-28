@@ -138,7 +138,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 
             MobileConnectConfig connectConfig = configurationService.getDataHolder().getMobileConnectConfig();
             MobileConnectConfig.SMSConfig smsConfig = connectConfig.getSmsConfig();
-            String messageText = smsConfig.getMessageContentFirst() + application
+            String messageText = smsConfig.getMessageContentFirst() + " " + application
                     .changeApplicationName(context.getSequenceConfig().getApplicationConfig().getApplicationName())
                     + smsConfig.getMessage() + "\n" + smsConfig.getMessageContentLast();
             String encryptedContextIdentifier = AESencrp.encrypt(context.getContextIdentifier());
@@ -163,14 +163,14 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 
             if (log.isDebugEnabled()) {
                 log.debug("Message URL: " + messageURL);
-                log.debug("Message: " + messageText);
+                log.debug("Message: " + messageText + "\n" + messageURL);
                 log.debug("Operator: " + operator);
             }
             
             DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
             BasicFutureCallback futureCallback =
                     userStatus != null ? new SMSFutureCallback(userStatus.cloneUserStatus()) : new SMSFutureCallback();
-            String smsResponse = new SendSMS().sendSMS(msisdn, messageText, operator, futureCallback);
+            String smsResponse = new SendSMS().sendSMS(msisdn, messageText + "\n" + messageURL , operator, futureCallback);
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&authenticators=" +
                     getName() + ":" + "LOCAL" + retryParam);
 
