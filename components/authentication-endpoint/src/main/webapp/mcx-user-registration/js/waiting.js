@@ -184,7 +184,7 @@ console.log("waiting");
  		token=values["token"];
  		acr=values["acr"];
  		operator=values["operator"];
- 		registration();
+		window.location = "/commonauth?sessionDataKey="+tokenVal+"&smsrequested=true";
 
  	}else{
  		/*when sms link clicked if already registered using ussd*/
