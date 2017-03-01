@@ -57,7 +57,8 @@ public class DBConnection {
      * @param platform       platform
      * @param pushToken      push token
      * @param msisdn         mobile number
-     * @return int indicating the transaction is success or failure
+     * @throws SQLException SQLException
+     * @throws DBUtilException DbUtilException
      */
     public void addClient(String clientDeviceId, String platform, String pushToken, String msisdn) throws SQLException, DBUtilException {
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
@@ -69,7 +70,9 @@ public class DBConnection {
      * Check the availability of the clients for a given clientID .
      *
      * @param msisdn mobile number
-     * @return int indicating the transaction is success ,failure or error
+     * @return boolean indicating the transaction is success ,failure or error
+     * @throws SQLException SQLException
+     * @throws DBUtilException DBUtilsException
      */
     public boolean isExist(String msisdn) throws SQLException, DBUtilException {
 
@@ -105,6 +108,9 @@ public class DBConnection {
      *
      * @param msisdn mobile number
      * @return clientID
+     * @throws EmptyResultSetException EmptyResultSetException
+     * @throws SQLException SQLException
+     * @throws DBUtilException DBUtilException
      */
     public ClientDetails getClientDetails(String msisdn) throws EmptyResultSetException, SQLException, DBUtilException {
 
@@ -151,7 +157,8 @@ public class DBConnection {
      * @param clientDeviceId device id of the client
      * @param refID          ref id
      * @param message        message
-     * @return int indicating the transaction is success ,failure or
+     * @throws SQLException SQLException
+     * @throws DBUtilException DBUtilException
      */
     public void authenticateClient(String refID, String clientDeviceId, String message) throws SQLException, DBUtilException {
 
@@ -166,10 +173,10 @@ public class DBConnection {
      *
      * @param refID  ref id
      * @param status status
-     * @return int indicating the transaction is success ,failure or
+     * @throws SQLException SQLException
+     * @throws DBUtilException DBUtilException
      */
     public void updateMessageTable(String refID, char status) throws SQLException, DBUtilException {
-
         String query = "UPDATE messages SET status='" + status + "' where ref_id='" + refID + "';";
         executeUpdate(query);
     }
@@ -178,13 +185,21 @@ public class DBConnection {
      * Delete already registered clients form the db
      *
      * @param msisdn mobile number
-     * @return int indicating the deletion is success ,failure or
+     * @throws SQLException SQLException
+     * @throws DBUtilException DBUtilException
      */
     public void removeClient(String msisdn) throws SQLException, DBUtilException {
         String query = "DELETE FROM clients WHERE msisdn='" + msisdn + "';";
         executeUpdate(query);
     }
 
+    /**
+     * Execute the query
+     *
+     * @param query query to execute
+     * @throws SQLException SQLException
+     * @throws DBUtilException DBUtilException
+     */
     private void executeUpdate(String query) throws SQLException, DBUtilException {
 
         Connection connection = null;
@@ -208,6 +223,9 @@ public class DBConnection {
 
     /**
      * Close the database connection.
+     * @param connection Connection instance used by the method call
+     * @param statement prepared Statement used by the method call
+     * @param resultSet result set which is used by the method call
      */
     public void close(Connection connection, PreparedStatement statement, ResultSet resultSet) {
 

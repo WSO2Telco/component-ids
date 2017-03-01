@@ -48,9 +48,9 @@ public class PushServiceAPI {
     /**
      * OutBound to Push Service*
      *
-     * @param pushMessageData
+     * @param pushMessageData  Message details to pass to the fcm
+     * @param msisdn  msisdn of the client user
      * @return successful message
-     * @throws ClassNotFoundException
      */
     @POST
     @Path("client/{msisdn}/send")
