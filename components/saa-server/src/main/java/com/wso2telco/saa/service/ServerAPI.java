@@ -52,7 +52,6 @@ public class ServerAPI {
      * @param clientData client data
      * @param msisdn     mobile number
      * @return int indicating the transaction is success ,failure or error
-     * @throws ClassNotFoundException on error
      */
     @POST
     @Path("api/v1/clients")
@@ -101,8 +100,8 @@ public class ServerAPI {
      * Request comes from SAA Adapter to authenticate the Service Provider.
      *
      * @param messageDetails message details
+     * @param msisdn msisdn of the client
      * @return success or failure indicating the client is authenticated or not to the SAA adapter.
-     * @throws ClassNotFoundException on error
      */
     @POST
     @Path("api/v1/clients/{msisdn}/authenticate")
@@ -205,6 +204,7 @@ public class ServerAPI {
      * InBound from SAA Client
      *
      * @param messageDetails message details
+     * @param msisdn msisdn of the client
      * @return success or failure indicating the client is authenticated or not to the SAA Client.
      * @throws ClassNotFoundException on error
      */
@@ -263,7 +263,9 @@ public class ServerAPI {
      *
      * @param msisdn MSISDN of the client
      * @return registred or notRegistred indicating the client registred or not in the SAA Server database.
-     * @throws ClassNotFoundException on error
+     * @throws ClassNotFoundException ClassNotFound Exception
+     * @throws SQLException SQLException
+     * @throws DBUtilException DBUtilException
      */
     @GET
     @Path("api/v1/clients/{msisdn}/is_registered")
@@ -279,7 +281,6 @@ public class ServerAPI {
      *
      * @param msisdn MSISDN of the client
      * @return Client instance removed from  the SAA Server database.
-     * @throws ClassNotFoundException on error
      */
     @DELETE
     @Path("api/v1/clients/{msisdn}/unregisterClient")
