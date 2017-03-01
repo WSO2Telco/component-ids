@@ -26,6 +26,7 @@ import com.wso2telco.gsma.authenticators.cryptosystem.AESencrp;
 import com.wso2telco.gsma.authenticators.util.Application;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
+import com.wso2telco.gsma.authenticators.util.UserProfileManager;
 import com.wso2telco.gsma.shorten.SelectShortUrl;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
@@ -40,9 +41,11 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.rmi.RemoteException;
 import java.util.Date;
 
 
@@ -92,7 +95,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
         DataPublisherUtil
-                .updateAndPublishUserStatus((UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.SMS_AUTH_PROCESSING, "SMSAuthenticator processing started");
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
@@ -111,7 +114,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 
         log.info("Initiating authentication request");
 
-        UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
+        UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         String queryParams = FrameworkUtils
                 .getQueryStringWithFrameworkContextId(context.getQueryParams(),
@@ -142,7 +145,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                     .changeApplicationName(context.getSequenceConfig().getApplicationConfig().getApplicationName())
                     + smsConfig.getMessage() + "\n" + smsConfig.getMessageContentLast();
             String encryptedContextIdentifier = AESencrp.encrypt(context.getContextIdentifier());
-            String messageURL = connectConfig.getListenerWebappHost() + Constants.SESSION_UPDATER_SMS_RESPONSE_CONTEXT;
+            String messageURL = connectConfig.getSmsConfig().getAuthUrl() + Constants.AUTH_URL_ID_PREFIX;
 
             if (smsConfig.isShortUrl()) {
                 // If a URL shortening service is enabled, then we need to encrypt the context identifier, create the
@@ -166,11 +169,11 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                 log.debug("Message: " + messageText + "\n" + messageURL);
                 log.debug("Operator: " + operator);
             }
-            
+
             DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
             BasicFutureCallback futureCallback =
                     userStatus != null ? new SMSFutureCallback(userStatus.cloneUserStatus()) : new SMSFutureCallback();
-            String smsResponse = new SendSMS().sendSMS(msisdn, messageText + "\n" + messageURL , operator, futureCallback);
+            String smsResponse = new SendSMS().sendSMS(msisdn, messageText + "\n" + messageURL, operator, futureCallback);
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&authenticators=" +
                     getName() + ":" + "LOCAL" + retryParam);
 
@@ -199,44 +202,35 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
         log.info("Processing authentication response");
 
-        UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
+        UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         String sessionDataKey = request.getParameter("sessionDataKey");
+        String msisdn = (String) context.getProperty("msisdn");
+        String operator = (String) context.getProperty("operator");
 
         if (log.isDebugEnabled()) {
             log.debug("SessionDataKey : " + sessionDataKey);
         }
 
-        boolean isAuthenticated = false;
-
         // Check if the user has provided consent
         try {
-            String responseStatus = DBUtils.getUserResponse(sessionDataKey);
+            String responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
 
-            if (responseStatus.equalsIgnoreCase(UserResponse.APPROVED.toString())) {
-                isAuthenticated = true;
+            if (!responseStatus.equalsIgnoreCase(UserResponse.APPROVED.toString())) {
+                throw new AuthenticatorException("Authentication Failed");
+            } else {
+                boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+                if (isRegistering) {
+                    UserProfileManager userProfileManager = new UserProfileManager();
+                    userProfileManager.createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
+                }
             }
-
-        } catch (AuthenticatorException e) {
+        } catch (AuthenticatorException | RemoteException | UserRegistrationAdminServiceIdentityException e) {
             log.error("SMS Authentication failed while trying to authenticate", e);
             DataPublisherUtil
                     .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
                             e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
-
-        if (!isAuthenticated) {
-            log.info("Authentication failed. Consent not provided.");
-            context.setProperty("faileduser", (String) context.getProperty("msisdn"));
-            DataPublisherUtil
-                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
-                            "User consent not provided");
-            throw new AuthenticationFailedException("Authentication Failed");
-        }
-
-
-        String msisdn = (String) context.getProperty("msisdn");
-//        AuthenticatedUser user=new AuthenticatedUser();
-//        context.setSubject(user);
         AuthenticationContextHelper.setSubject(context, msisdn);
 
         log.info("Authentication success");
@@ -285,7 +279,9 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
     }
 
     @Override
-    public String getAmrValue(int acr) { return "SMS_URL_OK"; }
+    public String getAmrValue(int acr) {
+        return "SMS_URL_OK";
+    }
 
     /**
      * The Enum UserResponse.

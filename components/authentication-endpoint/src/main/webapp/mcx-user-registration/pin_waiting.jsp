@@ -171,16 +171,6 @@
   <%--instruction_SMSAuthenticator.style.display = 'block';--%>
 <%--}--%>
 
-function sendSms(){
-
-  e1.style.display = 'none';
-  console.log(isTimeout);
-
-  isTimeout = true;
-  handleTerminationSms();
-
-}
-
 </script>
 </body>
 

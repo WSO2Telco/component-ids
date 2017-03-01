@@ -165,6 +165,12 @@
         <jsp-file>/mcx-user-registration/privacy_policy.jsp</jsp-file>
     </servlet>
 
+
+    <servlet>
+        <servlet-name>sms_auth</servlet-name>
+        <jsp-file>/mcx-user-registration/sms_auth.jsp</jsp-file>
+    </servlet>
+
     <servlet>
         <servlet-name>oauth2_error.do</servlet-name>
         <jsp-file>/oauth2_error.jsp</jsp-file>
@@ -268,6 +274,12 @@
     <servlet-mapping>
         <servlet-name>auth_registration_saa_waiting</servlet-name>
         <url-pattern>/mcx-user-registration/auth_registration_saa_waiting</url-pattern>
+    </servlet-mapping>
+
+
+    <servlet-mapping>
+        <servlet-name>sms_auth</servlet-name>
+        <url-pattern>/sms</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
