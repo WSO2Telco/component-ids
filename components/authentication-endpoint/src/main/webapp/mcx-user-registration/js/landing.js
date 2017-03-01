@@ -102,7 +102,6 @@ function registration() {
     /*for the inline registration get acr code from acr value and msisdn (username) from token*/
     if (sessionDataKey) {
         //we can remove this code.
-        acr_code = getAcrValue();
     } else {
         acr_code = "USSDAuthenticator";
     }
@@ -190,36 +189,6 @@ function validateUser() {
  *  send acr value and get the authenticator according to LOA
  *
  */
-function getAcrValue() {
-
-
-    var acrReturn = "";
-    var url = "/sessionupdater/tnspoints/endpoint/loa/authenticator?acr=" + acr;
-
-    $.ajax({
-        type: "GET",
-        url: url,
-        async: false,
-        success: function (result) {
-            if (result != null) {
-
-                var responseStatus = result.status;
-                if (result.authenticator.name != null) {
-
-                    acrReturn = result.authenticator.name;
-
-
-                }
-            }
-        }
-    });
-
-    if (acrReturn == null | acrReturn == "") {
-        acrReturn = "USSDAuthenticator";
-    }
-    return acrReturn;
-
-}
 
 
 function selfAuthorize(sessionDataKey, msisdn, operator) {

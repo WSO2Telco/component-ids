@@ -173,18 +173,13 @@ console.log("waiting");
  * when sms registration starts clear the polling values.
  * if the status is still pending, start the sms registration.
  */
- function handleTerminationSms() {
+ function handleTerminationSms(key) {
  	window.clearInterval(pollingVar);
  	var STATUS_PENDING = "pending";
  	console.log(status +" = " +STATUS_PENDING);
  	if(status==STATUS_PENDING){
  		console.log('changed the flow');
- 		console.log(" timeout : " +timeout+" pollingInterval : " +pollingInterval+" timeRemaining : " +timeRemaining+" hasResponse : " +hasResponse+" isTimeout : " +isTimeout+" status : " +status);
- 		smsClick=true;
- 		token=values["token"];
- 		acr=values["acr"];
- 		operator=values["operator"];
-		window.location = "/commonauth?sessionDataKey="+tokenVal+"&smsrequested=true";
+		window.location = "/commonauth?sessionDataKey="+key+"&smsrequested=true";
 
  	}else{
  		/*when sms link clicked if already registered using ussd*/
