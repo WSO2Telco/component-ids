@@ -215,10 +215,10 @@ public class Endpoints {
                     operatorScopeWithClaims = queryParams.get(AuthProxyConstants.SCOPE).get(0);
 
                     // Check if scope list contains openid scope, and append if it does not contain
-                    if(queryParams.containsKey("scope") && queryParams.get("scope").get(0) != null){
-                        List<String> scopes = new ArrayList<>(Arrays.asList(queryParams.get("scope").get(0).split(" ")));
-                        if(!scopes.contains("openid")) {
-                            queryParams.get("scope").add(0, queryParams.get("scope").get(0) + " openid");
+                    if(queryParams.containsKey(AuthProxyConstants.SCOPE) && queryParams.get(AuthProxyConstants.SCOPE).get(0) != null){
+                        List<String> scopes = new ArrayList<>(Arrays.asList(queryParams.get(AuthProxyConstants.SCOPE).get(0).split(" ")));
+                        if(!scopes.contains(AuthProxyConstants.SCOPE_OPENID)) {
+                            queryParams.get(AuthProxyConstants.SCOPE).add(0, queryParams.get(AuthProxyConstants.SCOPE).get(0) + " " + AuthProxyConstants.SCOPE_OPENID);
                         }
                     }
 
@@ -418,10 +418,10 @@ public class Endpoints {
                     if (log.isDebugEnabled()) {
                         log.debug("Plain text login hint : " + plainTextLoginHint);
                     }
-                    if (StringUtils.isNotEmpty(loginHint)) {
+                    if (StringUtils.isNotEmpty(loginHint) && (!loginHint.startsWith(LOGIN_HINT_ENCRYPTED_PREFIX) && !loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX))) {
                         plainTextLoginHint = loginHint;
-                    }
-                    isValidFormatType = true;
+                        isValidFormatType = true;
+                    }  
                     break;
                 case ENCRYPTED:
                     String decryptAlgorithm = loginHintFormatDetails.getDecryptAlgorithm();
@@ -440,15 +440,12 @@ public class Endpoints {
                                     log.debug("MSISDN by encrypted login hint : " + plainTextLoginHint);
                                 }
                                 isValidFormatType = true;
-                                break;
                             } catch (Exception e) {
                                 log.error("Error while decrypting login hint : " + loginHint, e);
                             }
                         }
-                    } else {
-                        isValidFormatType = true;
-                        break;
                     }
+                    break;
                 case MSISDN:
                     if (StringUtils.isNotEmpty(loginHint)) {
                         if (loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX)) {
@@ -457,24 +454,27 @@ public class Endpoints {
                                 log.debug("MSISDN by login hint: " + plainTextLoginHint);
                             }
                             isValidFormatType = true;
-                            break;
                         }
-                    } else {
-                        isValidFormatType = true;
-                        break;
                     }
+                    break;
                 default:
                     log.warn("Invalid Login Hint format - " + loginHintFormatDetails.getFormatType());
+                    break;
+            }
+            
+            if(isValidFormatType) {
+            	break;
             }
 
-            //msisdn/loginhint should be a either of defined formats
-            if (!isValidFormatType || !validateMsisdnFormat(plainTextLoginHint)) {
-                DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.LOGIN_HINT_INVALID,
-                                                             null);
+        }
+        
+        //msisdn/loginhint should be a either of defined formats
+        if (!isValidFormatType || !validateMsisdnFormat(plainTextLoginHint)) {
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.LOGIN_HINT_INVALID,
+                                                         null);
 
-                throw new AuthenticationFailedException(
-                        "login hint is malformat");
-            }
+            throw new AuthenticationFailedException(
+                    "login hint is malformat");
         }
         
         return plainTextLoginHint;
