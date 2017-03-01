@@ -9,6 +9,8 @@ var STATUS_PIN_FAIL ="FAILED_ATTEMPTS";
 var STATUS_PENDING = "PENDING";
 var STATUS_APPROVED = "APPROVED";
 var pinResetUrl;
+var smsRequested = false;
+var xhr;
 
 $(document).ready(function(){
 
@@ -86,11 +88,12 @@ function handleTermination(cancelButton) {
  * Invoke the endpoint to retrieve USSD status.
  */
 function checkUSSDResponseStatus() {
-
+	if(smsRequested)
+		return;
 	var sessionId = document.getElementById('sessionDataKey').value;
 	var url = "../sessionupdater/tnspoints/endpoint/ussd/status?sessionID=" + sessionId;
 
-	$.ajax({
+	xhr = $.ajax({
 		type: "GET",
 		url:url,
 		async: false,
@@ -139,6 +142,10 @@ function getCookieAndResend() {
 }
 
 function sendSMS(key){
+	smsRequested = true;
+	if(xhr)
+		xhr.abort();
+	window.clearInterval(pollingVar);
 	window.location = "/commonauth?sessionDataKey="+key+"&smsrequested=true";
 }
 
