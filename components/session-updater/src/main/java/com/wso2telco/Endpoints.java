@@ -1134,8 +1134,7 @@ public class Endpoints {
     public Response smsConfirm(@QueryParam("id") String sessionID)
             throws SQLException {
         String responseString;
-        if ("true"
-                .equals(configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig().getIsShortUrl())) {
+        if (configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig().getIsShortUrl()) {
             // If a URL shortening service is enabled, that means, the id query parameter is the encrypted context
             // identifier. Therefore, to get the actual context identifier, we can decrypt the value of id query param.
             log.debug("A short URL service is enabled in mobile-connect.xml");
