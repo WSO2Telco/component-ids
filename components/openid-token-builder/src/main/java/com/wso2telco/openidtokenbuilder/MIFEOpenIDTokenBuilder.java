@@ -22,8 +22,15 @@ import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.pcrservice.PCRFactory;
+import com.wso2telco.core.pcrservice.PCRGeneratable;
+import com.wso2telco.core.pcrservice.Returnable;
+import com.wso2telco.core.pcrservice.exception.PCRException;
+import com.wso2telco.core.pcrservice.model.RequestDTO;
+import com.wso2telco.core.pcrservice.util.SectorUtil;
 import com.wso2telco.dao.TransactionDAO;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import com.wso2telco.internal.OpenIdTokenBuilderDataHolder;
 import com.wso2telco.util.AuthenticationHealper;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.Header;
@@ -161,8 +168,6 @@ public class MIFEOpenIDTokenBuilder implements
         //String msisdn = request.getAuthorizedUser().replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
         String msisdn = AuthenticationHealper.getUser(request).replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
 
-        msisdn = "tel:+".concat(msisdn); //$NON-NLS-1$
-
         // Loading respective application data
         OAuthAppDO oAuthAppDO;
         try {
@@ -172,6 +177,8 @@ public class MIFEOpenIDTokenBuilder implements
                     "Error occured while retrieving application information", e); //$NON-NLS-1$
         }
         String applicationName = oAuthAppDO.getApplicationName();
+        String applicationClientId = oAuthAppDO.getOauthConsumerKey();
+        String callbackUrl = oAuthAppDO.getCallbackUrl();
 
         // Get authenticators used
         String amr[] = getValuesFromCache(request, "amr").split(",");
@@ -181,11 +188,24 @@ public class MIFEOpenIDTokenBuilder implements
         // Set ACR (PCR) to sub
         String subject = null;
 
+        ConfigurationService configurationService = new ConfigurationServiceImpl();
+        DataHolder dataHolder = configurationService.getDataHolder();
+        MobileConnectConfig  mobileConnectConfig = dataHolder.getMobileConnectConfig();
+
         try {
-            subject = createLocalACR(msisdn, applicationName);
+            if(mobileConnectConfig.isPcrServiceEnabled()) {
+                log.info("Generating UUID based PCR");
+                subject = getPCR(msisdn,applicationClientId,callbackUrl);
+            }else{
+                msisdn = "tel:+".concat(msisdn); //$NON-NLS-1$
+                subject = createLocalACR(msisdn, applicationName);
+            }
+            log.info("PCR : " + subject);
         } catch (InvalidKeyException e) {
             log.error("Error", e);
         } catch (NoSuchAlgorithmException e) {
+            log.error("Error", e);
+        } catch (PCRException e) {
             log.error("Error", e);
         }
 
@@ -596,6 +616,19 @@ public class MIFEOpenIDTokenBuilder implements
         }
 
         return strACR;
+    }
+
+    private String getPCR(String msisdn, String applicationClientId, String callbackUrl) throws PCRException {
+
+        log.info("Generating PCR");
+        PCRFactory pcrFactory = new PCRFactory();
+        //String userUUID = MsisdnUtil.getUuidFromMsisdn(msisdn);
+        String sectorId = SectorUtil.getSectorIdFromUrl(callbackUrl);
+        RequestDTO requestDTO = new RequestDTO(msisdn, applicationClientId, sectorId);
+        PCRGeneratable pcrGeneratable = OpenIdTokenBuilderDataHolder.getInstance().getPcrGeneratable();
+
+        Returnable pcr = pcrGeneratable.getPCR(requestDTO);
+        return pcr.getID();
     }
 
     private String createLocalACR(String msisdn, String serviceProvider) throws InvalidKeyException, NoSuchAlgorithmException {
