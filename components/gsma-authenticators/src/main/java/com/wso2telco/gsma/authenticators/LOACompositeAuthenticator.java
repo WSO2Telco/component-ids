@@ -21,9 +21,11 @@ import com.wso2telco.core.config.MIFEAuthentication;
 import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.authenticators.model.PromptData;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.DecryptionAES;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
+import com.wso2telco.ids.datapublisher.util.DBUtil;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -141,6 +143,10 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.OPERATOR, mobileNetworkOperator);
         context.setProperty(Constants.LOGIN_HINT_MSISDN, loginHintMsisdn);
         context.setProperty(Constants.IP_ADDRESS, ipAddress);
+
+        //Retrieve propt data from DB
+        PromptData promptData = DBUtils.getPromptData(request.getParameter(Constants.SCOPE));
+
 
         String flowType = getFlowType(msisdnHeader, loginHintMsisdn, headerMismatchResult);
 

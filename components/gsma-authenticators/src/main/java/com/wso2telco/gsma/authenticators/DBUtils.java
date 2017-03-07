@@ -18,12 +18,14 @@ package com.wso2telco.gsma.authenticators;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.MSISDNHeader;
+import com.wso2telco.gsma.authenticators.model.PromptData;
 import com.wso2telco.gsma.authenticators.ussd.Pinresponse;
 import com.wso2telco.gsma.authenticators.util.TableName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
+import javax.naming.ConfigurationException;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -820,4 +822,39 @@ public class DBUtils {
             IdentityDatabaseUtil.closeAllConnections(connection, null, ps);
         }
     }
+
+
+    /**
+     * Get prompt data
+     *
+     * @param scope
+     * @return PromptData
+     */
+    public static PromptData getPromptData(String scope) {
+        PromptData promptData = new PromptData();
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        String sql = "SELECT * FROM prompt_configuration WHERE scope = ?";
+
+        try {
+            connection = getConnectDBConnection();
+            ps = connection.prepareStatement(sql);
+            ps.setString(1, scope);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                promptData.setScope(rs.getString("scope"));
+                promptData.setLoginHintExists(rs.getBoolean("is_login_hint_exists"));
+                promptData.setPromptValue(rs.getString("prompt_value"));
+                promptData.setBehaviour(PromptData.behaviorTypes.valueOf(rs.getString("behaviour")));
+            }
+        } catch (SQLException ex) {
+            handleException("Error while retrieving Propmt Data ", ex);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, rs, ps);
+            return promptData;
+        }
+    }
+
 }
