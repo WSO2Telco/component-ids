@@ -66,7 +66,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
+     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
+     * .servlet.http.HttpServletRequest)
      */
     @Override
     public boolean canHandle(HttpServletRequest request) {
@@ -75,7 +76,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         }
 
 
-        if ((request.getParameter(Constants.ACTION) != null && !request.getParameter(Constants.ACTION).isEmpty()) || (request.getParameter(Constants.MSISDN) != null && !request.getParameter(Constants.MSISDN).isEmpty())) {
+        if ((request.getParameter(Constants.ACTION) != null && !request.getParameter(Constants.ACTION).isEmpty()) ||
+                (request.getParameter(Constants.MSISDN) != null && !request.getParameter(Constants.MSISDN).isEmpty())) {
             log.info("msisdn forwarding ");
             return true;
         }
@@ -83,22 +85,26 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         return false;
     }
 
- 
-     
+
     private boolean canProcessResponse(AuthenticationContext context) {
-        return ((context.getProperty(Constants.MSISDN) != null &&  !context.getProperty(Constants.MSISDN).toString().isEmpty()) && (context.getProperty(Constants.REDIRECT_CONSENT) == null || !(Boolean) context.getProperty(Constants.REDIRECT_CONSENT)));
+        return ((context.getProperty(Constants.MSISDN) != null && !context.getProperty(Constants.MSISDN).toString()
+                .isEmpty()) && (context.getProperty(Constants.REDIRECT_CONSENT) == null || !(Boolean) context
+                .getProperty(Constants.REDIRECT_CONSENT)));
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#process(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
+     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#process
+     * (javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity
+     * .application.authentication.framework.context.AuthenticationContext)
      */
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request,
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
 
-        DataPublisherUtil.updateAndPublishUserStatus((UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-                        DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING, "MSISDNAuthenticator processing started");
+        DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
+                        .USER_STATUS_DATA_PUBLISHING_PARAM),
+                DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING, "MSISDNAuthenticator processing started");
 
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
@@ -108,7 +114,10 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#initiateAuthenticationRequest(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .AbstractApplicationAuthenticator#initiateAuthenticationRequest(javax.servlet.http.HttpServletRequest, javax
+     * .servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context
+     * .AuthenticationContext)
      */
     @Override
     protected void initiateAuthenticationRequest(HttpServletRequest request,
@@ -132,18 +141,24 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
 
-            response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" + request.getParameter("redirect_uri") + "&authenticators="
+            response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
+                    request.getParameter("redirect_uri") + "&authenticators="
                     + getName() + ":" + "LOCAL" + retryParam);
         } catch (IOException e) {
             log.error("Error occurred while redirecting request", e);
             DataPublisherUtil
-                    .updateAndPublishUserStatus((UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING_FAIL, e.getMessage());
+                    .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
+                            .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
+                            .MSISDN_AUTH_PROCESSING_FAIL, e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(), e);
-        } 
+        }
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#processAuthenticationResponse(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .AbstractApplicationAuthenticator#processAuthenticationResponse(javax.servlet.http.HttpServletRequest, javax
+     * .servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context
+     * .AuthenticationContext)
      */
     @Override
     protected void processAuthenticationResponse(HttpServletRequest request,
@@ -151,37 +166,37 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
         log.info("Processing authentication response");
 
-        String msisdn ;
-		boolean isShowTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
-        
+        String msisdn;
+        boolean isShowTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
+
         try {
             //MSISDN is captured by MSISDNAuthenticator
-            if(context.getProperty(Constants.MSISDN) == null && (request.getParameter(Constants.MSISDN) != null && !request.getParameter(Constants.MSISDN).isEmpty())) {
-            	msisdn = request.getParameter(Constants.MSISDN);
-            	context.setProperty(Constants.MSISDN, msisdn);
+            if (context.getProperty(Constants.MSISDN) == null && (request.getParameter(Constants.MSISDN) != null &&
+                    !request.getParameter(Constants.MSISDN).isEmpty())) {
+                msisdn = request.getParameter(Constants.MSISDN);
+                context.setProperty(Constants.MSISDN, msisdn);
                 boolean isUserExists = AdminServiceUtil.isUserExists(msisdn);
-    			context.setProperty(Constants.IS_REGISTERING, !isUserExists);
+                context.setProperty(Constants.IS_REGISTERING, !isUserExists);
                 DataPublisherUtil.updateAndPublishUserStatus(
                         (UserStatus) context.getProperty(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.MSISDN_SET_TO_USER_INPUT,
                         "MSISDN set to user input in MSISDNAuthenticator", msisdn, isUserExists ? 0 : 1);
-    			int requestedLoa = (int) context.getProperty(Constants.ACR);
-    			boolean isProfileUpgrade = Util.isProfileUpgrade(msisdn, requestedLoa, isUserExists);
-    			context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade);	
-    			
-    			if(!isUserExists && isShowTnC ) {
-    				retryAuthenticatorForConsent(context);
-    			}
-    			
-    			
-    		
+                int requestedLoa = (int) context.getProperty(Constants.ACR);
+                boolean isProfileUpgrade = Util.isProfileUpgrade(msisdn, requestedLoa, isUserExists);
+                context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade);
+
+                if (!isUserExists && isShowTnC) {
+                    retryAuthenticatorForConsent(context);
+                }
+
+
             } else {
-            	msisdn = context.getProperty(Constants.MSISDN).toString();
-            	//We already have the MSISDN	
-            	String userAction = request.getParameter(Constants.ACTION);
-            	if(userAction != null && !userAction.isEmpty()) {
+                msisdn = context.getProperty(Constants.MSISDN).toString();
+                //We already have the MSISDN
+                String userAction = request.getParameter(Constants.ACTION);
+                if (userAction != null && !userAction.isEmpty()) {
                     // Change behaviour depending on user action
-            		switch(userAction) {
+                    switch (userAction) {
                         case Constants.USER_ACTION_REG_CONSENT:
                             //User agreed to registration consent
                             break;
@@ -196,15 +211,15 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 //                            //User rejected to registration consent
 //                            terminateAuthentication(context);
 //                            break;
-            		}
-            	} else {
-                	boolean isRegistering = (boolean)context.getProperty(Constants.IS_REGISTERING);
-                	
-                	if(isRegistering && isShowTnC ) {
-        				retryAuthenticatorForConsent(context);
-        			}
-            	}
-         	         	
+                    }
+                } else {
+                    boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+
+                    if (isRegistering && isShowTnC) {
+                        retryAuthenticatorForConsent(context);
+                    }
+                }
+
             }
             AuthenticationContextHelper.setSubject(context, msisdn);
             log.info("Authentication success");
@@ -227,19 +242,20 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     .updateAndPublishUserStatus(
                             (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                             DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING_FAIL, ex.getMessage());
-        	throw new AuthenticationFailedException("Authenicator failed",ex);
+            throw new AuthenticationFailedException("Authenicator failed", ex);
         }
-        
-    }
-    
-    private void retryAuthenticatorForConsent (AuthenticationContext context) throws AuthenticationFailedException {
-    	context.setProperty(Constants.REDIRECT_CONSENT, Boolean.TRUE);
-    	throw new AuthenticationFailedException("Moving to get consent or profile upgrade");
+
     }
 
+    private void retryAuthenticatorForConsent(AuthenticationContext context) throws AuthenticationFailedException {
+        context.setProperty(Constants.REDIRECT_CONSENT, Boolean.TRUE);
+        throw new AuthenticationFailedException("Moving to get consent or profile upgrade");
+    }
 
 
-    public AuthenticatorFlowStatus processRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
+    public AuthenticatorFlowStatus processRequest(HttpServletRequest request, HttpServletResponse response,
+                                                  AuthenticationContext context) throws
+            AuthenticationFailedException, LogoutFailedException {
         if (context.isLogoutRequest()) {
             try {
                 if (!canHandle(request)) {
@@ -257,15 +273,18 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
                 return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
             }
-        } else if ((canHandle(request) || canProcessResponse(context)) && (request.getAttribute("commonAuthHandled") == null || !(Boolean) request.getAttribute("commonAuthHandled"))) {
+        } else if ((canHandle(request) || canProcessResponse(context)) && (request.getAttribute("commonAuthHandled")
+                == null || !(Boolean) request.getAttribute("commonAuthHandled"))) {
             try {
                 processAuthenticationResponse(request, response, context);
-                if (this instanceof LocalApplicationAuthenticator && !context.getSequenceConfig().getApplicationConfig().isSaaSApp()) {
+                if (this instanceof LocalApplicationAuthenticator && !context.getSequenceConfig()
+                        .getApplicationConfig().isSaaSApp()) {
                     String e = context.getSubject().getTenantDomain();
                     String stepMap1 = context.getTenantDomain();
                     if (!StringUtils.equals(e, stepMap1)) {
                         context.setProperty("UserTenantDomainMismatch", Boolean.valueOf(true));
-                        throw new AuthenticationFailedException("Service Provider tenant domain must be equal to user tenant domain for non-SaaS applications");
+                        throw new AuthenticationFailedException("Service Provider tenant domain must be equal to user" +
+                                " tenant domain for non-SaaS applications");
                     }
                 }
 
@@ -308,8 +327,10 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         }
     }
 
-    private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context, User user, boolean success) {
-        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance().getAuthnDataPublisherProxy();
+    private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context, User
+            user, boolean success) {
+        AuthenticationDataPublisher authnDataPublisherProxy = FrameworkServiceDataHolder.getInstance()
+                .getAuthnDataPublisherProxy();
         if (authnDataPublisherProxy != null && authnDataPublisherProxy.isEnabled(context)) {
             boolean isFederated = this instanceof FederatedApplicationAuthenticator;
             HashMap paramMap = new HashMap();
@@ -333,6 +354,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
     /**
      * Terminates the authenticator due to user implicit action
+     *
      * @param context Authentication Context
      * @throws AuthenticationFailedException
      */
@@ -344,31 +366,32 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     }
 
 
+    private String getAuthEndpointUrl(AuthenticationContext context) {
 
-    private String getAuthEndpointUrl(AuthenticationContext context)  {
+        String loginPage;
 
-    	String loginPage;
-    	    	
         if (context.getProperty(Constants.MSISDN) != null) {
-        	
-        	boolean isShowTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
-        	boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-        	
-        	if(isShowTnC && isRegistering){
-        		loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.CONSENT_JSP;
-        	} else {
-        		loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
-        	}
-        	 	
+
+            boolean isShowTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
+            boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+
+            if (isShowTnC && isRegistering) {
+                loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+                        Constants.CONSENT_JSP;
+            } else {
+                loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
+            }
+
         } else {
-        	loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
+            loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         }
-    
+
         return loginPage;
     }
-  
+
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#retryAuthenticationEnabled()
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .AbstractApplicationAuthenticator#retryAuthenticationEnabled()
      */
     @Override
     protected boolean retryAuthenticationEnabled() {
@@ -377,7 +400,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
      */
     @Override
     public String getContextIdentifier(HttpServletRequest request) {

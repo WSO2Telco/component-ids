@@ -50,7 +50,8 @@ public class AuthenticationEndpoint extends HttpServlet {
                     for (int i = 1; i < authenticatorIdPMapArr.length; i++) {
                         if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
                             idpAuthenticatorMapping.put(authenticatorIdPMapArr[i],
-                                    idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," + authenticatorIdPMapArr[0]);
+                                    idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," +
+                                            authenticatorIdPMapArr[0]);
                         } else {
                             idpAuthenticatorMapping.put(authenticatorIdPMapArr[i], authenticatorIdPMapArr[0]);
                         }

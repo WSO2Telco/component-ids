@@ -22,6 +22,7 @@ package com.wso2telco.gsma.authenticators;
 public interface BaseApplicationAuthenticator {
     /**
      * Gets the AMR value depending on the ACR value
+     *
      * @param acr the acr value
      * @return AMR value of the Authenticator for the provided ACR
      */

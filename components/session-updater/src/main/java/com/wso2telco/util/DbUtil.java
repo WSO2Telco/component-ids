@@ -32,7 +32,9 @@ public class DbUtil {
 
     private static final Log log = LogFactory.getLog(DbUtil.class);
 
-    /** The Configuration service */
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     private static void initializeDatasources() throws AuthenticatorException {
@@ -93,7 +95,8 @@ public class DbUtil {
         return noOfAttempts;
     }
 
-    public static void updateMultiplePasswordNoOfAttempts(String username, int attempts) throws SQLException, AuthenticatorException {
+    public static void updateMultiplePasswordNoOfAttempts(String username, int attempts) throws SQLException,
+            AuthenticatorException {
 
         Connection connection = null;
         PreparedStatement ps = null;
@@ -113,7 +116,8 @@ public class DbUtil {
         }
     }
 
-    public static String updateRegistrationStatus(String uuid, String status) throws SQLException, AuthenticatorException {
+    public static String updateRegistrationStatus(String uuid, String status) throws SQLException,
+            AuthenticatorException {
 
         Connection connection;
         PreparedStatement ps;
@@ -170,7 +174,8 @@ public class DbUtil {
         }
     }
 
-    public static void insertPinAttempt(String msisdn, int attempts, String sessionId) throws SQLException, AuthenticatorException {
+    public static void insertPinAttempt(String msisdn, int attempts, String sessionId) throws SQLException,
+            AuthenticatorException {
 
         Connection connection = null;
         PreparedStatement ps = null;
@@ -200,17 +205,17 @@ public class DbUtil {
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
-        	connection = getConnectDBConnection();
+            connection = getConnectDBConnection();
             ps = connection.prepareStatement(sql);
             ps.setString(1, hashKey);
             rs = ps.executeQuery();
             while (rs.next()) {
                 sessionDataKey = rs.getString("contextid");
             }
-        }catch (SQLException e) {
+        } catch (SQLException e) {
             handleException(e.getMessage(), e);
         } finally {
-        	IdentityDatabaseUtil.closeAllConnections(connection, rs, ps);
+            IdentityDatabaseUtil.closeAllConnections(connection, rs, ps);
         }
         return sessionDataKey;
     }

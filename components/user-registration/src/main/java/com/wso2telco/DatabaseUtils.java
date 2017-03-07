@@ -17,7 +17,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
-
 /**
  * Created with IntelliJ IDEA
  * User: Tharanga Ranaweera
@@ -29,13 +28,13 @@ public class DatabaseUtils {
 
     private static volatile DataSource ussdDatasource = null;
     private static Log log = LogFactory.getLog(DatabaseUtils.class);
-    
-   // private static final org.apache.log4j.Logger LOG = org.apache.log4j.Logger.getLogger(Endpoints.class.getName());
+
+    // private static final org.apache.log4j.Logger LOG = org.apache.log4j.Logger.getLogger(Endpoints.class.getName());
 
     //private static Log log = LogFactory.getLog(DatabaseUtils.class);
 
     public static void initializeDataSource() throws NamingException {
-        if (ussdDatasource != null ) {
+        if (ussdDatasource != null) {
             return;
         }
 
@@ -46,17 +45,15 @@ public class DatabaseUtils {
                 Context ctx = new InitialContext();
                 ussdDatasource = (DataSource) ctx.lookup(statdataSourceName);
             } catch (NamingException e) {
-               //log.error(e);
-               throw e;
+                //log.error(e);
+                throw e;
             }
 
         }
     }
 
 
-    public static void insertMultiplePasswordPIN(String username, String ussdSessionID) throws SQLException{
-
-
+    public static void insertMultiplePasswordPIN(String username, String ussdSessionID) throws SQLException {
 
 
         Connection connection = null;
@@ -64,7 +61,6 @@ public class DatabaseUtils {
         PreparedStatement ps = null;
 
         ResultSet results = null;
-
 
 
         String sql = "INSERT INTO multiplepasswords (username, attempts, ussdsessionid) VALUES (?, ?, ?);";
@@ -84,14 +80,12 @@ public class DatabaseUtils {
             ps = connection.prepareStatement(sql);
 
 
-
             ps.setString(1, username);
 
             ps.setInt(2, 1);
 
             ps.setString(3, ussdSessionID);
             ps.execute();
-
 
 
         } catch (SQLException e) {
@@ -105,140 +99,141 @@ public class DatabaseUtils {
         }
 
     }
-     public static void updateUSerStatus(String sessionID, String status) throws SQLException{
+
+    public static void updateUSerStatus(String sessionID, String status) throws SQLException {
         Connection connection = null;
         PreparedStatement ps = null;
-        
+
         String sql = "INSERT INTO `clientstatus` (`SessionID`, `Status`) VALUES (?, ?);";
-       
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
 
-                ps.setString(1, sessionID);
-                ps.setString(2, status);
+        try {
+            connection = getUssdDBConnection();
 
-                ps.execute();
+            ps = connection.prepareStatement(sql);
 
-            } catch (NamingException ex) {
-                //Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SQLException e) {
-                log.error("Error while updating user status", e);
-            } finally {
-                connection.close();
-            }
+            ps.setString(1, sessionID);
+            ps.setString(2, status);
 
-     }
-     
-    public static void updateStatus(String sessionID, String status) throws SQLException{
+            ps.execute();
+
+        } catch (NamingException ex) {
+            //Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+            log.error("Error while updating user status", e);
+        } finally {
+            connection.close();
+        }
+
+    }
+
+    public static void updateStatus(String sessionID, String status) throws SQLException {
         Connection connection = null;
         PreparedStatement ps = null;
-        
-        String sql =
-		             "update `clientstatus` set "
-		                     + "Status=? where " 
-                                     + "SessionID=?;" ;
-       
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
 
-                ps.setString(1, status);
-                ps.setString(2, sessionID);
-                ps.execute();
-             
-                        
-            } catch (NamingException ex) {
-                // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SQLException e) {
-                log.error("Error while updating status", e);
-            } finally {
-                connection.close();			
-            }
-            
+        String sql =
+                "update `clientstatus` set "
+                        + "Status=? where "
+                        + "SessionID=?;";
+
+        try {
+            connection = getUssdDBConnection();
+
+            ps = connection.prepareStatement(sql);
+
+            ps.setString(1, status);
+            ps.setString(2, sessionID);
+            ps.execute();
+
+
+        } catch (NamingException ex) {
+            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+            log.error("Error while updating status", e);
+        } finally {
+            connection.close();
+        }
+
     }
-     
+
     /**
      * Insert pin to PIN_RESET.
+     *
      * @param sessionID sessionId
-     * @param status status
-     * @param pin PIN
+     * @param status    status
+     * @param pin       PIN
      * @throws SQLException exception
      */
-    public static void insertPinResetRequest(String sessionID, String status, String pin) throws SQLException{
+    public static void insertPinResetRequest(String sessionID, String status, String pin) throws SQLException {
         Connection connection = null;
         PreparedStatement ps = null;
-        
-        String sql = "INSERT INTO `clientstatus` (`SessionID`, `Status`, `pin`) VALUES (?, ?, ?);";
-       
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
 
-                ps.setString(1, sessionID);
-                ps.setString(2, status);
-                ps.setString(3, pin);
-                
-                ps.execute();
-                        
-		} catch (NamingException ex) {
-                //Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-                log.error(ex.getMessage());
-            } catch (SQLException e) {
-                log.error("Error while inserting pin reset request");
-            } finally {
-                connection.close();
-            }
+        String sql = "INSERT INTO `clientstatus` (`SessionID`, `Status`, `pin`) VALUES (?, ?, ?);";
+
+        try {
+            connection = getUssdDBConnection();
+
+            ps = connection.prepareStatement(sql);
+
+            ps.setString(1, sessionID);
+            ps.setString(2, status);
+            ps.setString(3, pin);
+
+            ps.execute();
+
+        } catch (NamingException ex) {
+            //Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+            log.error(ex.getMessage());
+        } catch (SQLException e) {
+            log.error("Error while inserting pin reset request");
+        } finally {
+            connection.close();
+        }
 
     }
-    
-    public static String getUSerPIN(String sessionID) throws SQLException{
+
+    public static String getUSerPIN(String sessionID) throws SQLException {
         Connection connection = null;
         PreparedStatement ps = null;
-        String pin = null; 
+        String pin = null;
         ResultSet rs = null;
-        
+
         String sql =
-		             "select pin "
-		                     + "from `pin` where " + "SessionID=?;";
-       
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
-            
-                ps.setString(1, sessionID);
+                "select pin "
+                        + "from `pin` where " + "SessionID=?;";
 
-                rs = ps.executeQuery();
-            
-                while (rs.next()) {
-                    pin = rs.getString("pin");
-                }
-                        
-		} catch (NamingException ex) {
-                // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            catch (SQLException e) {
-                log.error("Error while getting user pin", e);
-            } finally {
-                connection.close();
+        try {
+            connection = getUssdDBConnection();
 
+            ps = connection.prepareStatement(sql);
+
+            ps.setString(1, sessionID);
+
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                pin = rs.getString("pin");
             }
+
+        } catch (NamingException ex) {
+            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+            log.error("Error while getting user pin", e);
+        } finally {
+            connection.close();
+
+        }
 
         return pin;
     }
-    
+
     //insert initial Entry
-    public static void insertMultiplePasswordPIN(String username) throws SQLException{
-        
+    public static void insertMultiplePasswordPIN(String username) throws SQLException {
+
         Connection connection = null;
         PreparedStatement ps = null;
         ResultSet results = null;
- 
-        
+
+
         String sql = "INSERT INTO `multiplepasswords` (`username`, `attempts`) VALUES (?, ?);";
         try {
             try {
@@ -246,278 +241,274 @@ public class DatabaseUtils {
             } catch (NamingException ex) {
                 Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
             }
-                        ps = connection.prepareStatement(sql);
-			
-			ps.setString(1, username);
-                        ps.setInt(2, 1);
-			ps.execute();
-                        
-		} catch (SQLException e) {
+            ps = connection.prepareStatement(sql);
+
+            ps.setString(1, username);
+            ps.setInt(2, 1);
+            ps.execute();
+
+        } catch (SQLException e) {
             log.error("Error while inserting multiple password pin", e);
         } finally {
-			connection.close();
-		}
-    }
-
-    
-    //Update PIN
-    public static void updateMultiplePasswordPIN(String username,int pin) throws SQLException{
-        
-        Connection connection = null;
-        PreparedStatement ps = null;
-        
-        String sql =
-		             "update `multiplepasswords` set "
-		                     + "pin=? where " 
-                                     + "username=?;" ;
-       
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
-
-                ps.setInt(1, pin);
-                ps.setString(2, username);
-                ps.execute();
-             
-                        
-            } catch (NamingException ex) {
-                // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SQLException e) {
-                log.error("Error while updating password pin", e);
-            } finally {
-                connection.close();			
-            }
-    }
-    
-    //Update no of attempts
-    public static void updateMultiplePasswordNoOfAttempts(String username,int attempts) throws SQLException{
-        
-        Connection connection = null;
-        PreparedStatement ps = null;
-        
-        String sql =
-		             "update `multiplepasswords` set "
-		                     + "attempts=? where " 
-                                     + "username=?;" ;
-       
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
-
-                ps.setInt(1, attempts);
-                ps.setString(2, username);
-                ps.execute();
-             
-                        
-            } catch (NamingException ex) {
-                // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SQLException e) {
-                log.error("Error while updating password attempts", e);
-            } finally {
-                connection.close();			
-            }
-    }
-      //Read PIN  
-      public static int readMultiplePasswordPIN(String username) throws SQLException{
-        
-       Connection connection = null;
-        PreparedStatement ps = null;
-        int pin = 0; 
-        ResultSet rs = null;
-        
-        String sql =
-		             "select pin "
-		                     + "from `multiplepasswords` where " + "username=?;";
-       
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
-            
-                ps.setString(1, username);
-
-                rs = ps.executeQuery();
-            
-                while (rs.next()) {
-     
-                    pin = rs.getInt("pin");
-                }
-                        
-		} catch (NamingException ex) {
-            log.error(ex.getMessage());
+            connection.close();
         }
-        catch (SQLException e) {
+    }
+
+
+    //Update PIN
+    public static void updateMultiplePasswordPIN(String username, int pin) throws SQLException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+
+        String sql =
+                "update `multiplepasswords` set "
+                        + "pin=? where "
+                        + "username=?;";
+
+        try {
+            connection = getUssdDBConnection();
+
+            ps = connection.prepareStatement(sql);
+
+            ps.setInt(1, pin);
+            ps.setString(2, username);
+            ps.execute();
+
+
+        } catch (NamingException ex) {
+            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+            log.error("Error while updating password pin", e);
+        } finally {
+            connection.close();
+        }
+    }
+
+    //Update no of attempts
+    public static void updateMultiplePasswordNoOfAttempts(String username, int attempts) throws SQLException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+
+        String sql =
+                "update `multiplepasswords` set "
+                        + "attempts=? where "
+                        + "username=?;";
+
+        try {
+            connection = getUssdDBConnection();
+
+            ps = connection.prepareStatement(sql);
+
+            ps.setInt(1, attempts);
+            ps.setString(2, username);
+            ps.execute();
+
+
+        } catch (NamingException ex) {
+            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+            log.error("Error while updating password attempts", e);
+        } finally {
+            connection.close();
+        }
+    }
+
+    //Read PIN
+    public static int readMultiplePasswordPIN(String username) throws SQLException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+        int pin = 0;
+        ResultSet rs = null;
+
+        String sql =
+                "select pin "
+                        + "from `multiplepasswords` where " + "username=?;";
+
+        try {
+            connection = getUssdDBConnection();
+
+            ps = connection.prepareStatement(sql);
+
+            ps.setString(1, username);
+
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+
+                pin = rs.getInt("pin");
+            }
+
+        } catch (NamingException ex) {
+            log.error(ex.getMessage());
+        } catch (SQLException e) {
             log.error("Error while reading multiple password pin", e);
         } finally {
             connection.close();
         }
 
-      return pin;
+        return pin;
     }
-    
+
     //Read Attempts
-    public static int readMultiplePasswordNoOfAttempts(String username) throws SQLException{
-        
+    public static int readMultiplePasswordNoOfAttempts(String username) throws SQLException {
+
         Connection connection = null;
         PreparedStatement ps = null;
-        int noOfAttempts = 0; 
+        int noOfAttempts = 0;
         ResultSet rs = null;
-        
-        String sql =
-		             "select attempts "
-		                     + "from `multiplepasswords` where " + "username=?;";
-       
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
-            
-                ps.setString(1, username);
 
-                rs = ps.executeQuery();
-            
-                while (rs.next()) {
-     
-                    noOfAttempts = rs.getInt("attempts");
-                }
-                        
-		} catch (NamingException ex) {
-                // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        String sql =
+                "select attempts "
+                        + "from `multiplepasswords` where " + "username=?;";
+
+        try {
+            connection = getUssdDBConnection();
+
+            ps = connection.prepareStatement(sql);
+
+            ps.setString(1, username);
+
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+
+                noOfAttempts = rs.getInt("attempts");
             }
-            catch (SQLException e) {
-                log.error("Error while reading multiple password attempts", e);
-            } finally {
-                connection.close();
-            }
+
+        } catch (NamingException ex) {
+            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+            log.error("Error while reading multiple password attempts", e);
+        } finally {
+            connection.close();
+        }
 
         return noOfAttempts;
     }
-    
-    public static boolean isExistingUser(String username) throws SQLException{
+
+    public static boolean isExistingUser(String username) throws SQLException {
         boolean isUser = false;
-        
+
         Connection connection = null;
         PreparedStatement ps = null;
         String usernameDB = "noUser";
         ResultSet rs = null;
-        
+
         String sql =
-		             "select username "
-		                     + "from `multiplepasswords` where " + "username=?;";
-       
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
-            
-                ps.setString(1, username);
+                "select username "
+                        + "from `multiplepasswords` where " + "username=?;";
 
-                rs = ps.executeQuery();
-            
-                while (rs.next()) {
-     
-                    usernameDB = rs.getString("username");
-                }
-                        
-		} catch (NamingException ex) {
-                // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            catch (SQLException e) {
-                log.error("Error while checking for existing user", e);
-            } finally {
-                connection.close();
+        try {
+            connection = getUssdDBConnection();
 
-            }
-            
-            if (usernameDB.equals(username) ){
-                
-                isUser = true;
-            }else{
-                isUser = false;
-            }
-            return isUser;
+            ps = connection.prepareStatement(sql);
 
-      }
-    
-    //Delete Entry
-    public static void deleteUser(String username) throws SQLException{
-        
-        Connection connection = null;
-        PreparedStatement ps = null;
-        int noOfAttempts = 0; 
-        ResultSet rs = null;
-        
-        String sql =
-		             "delete "
-		                     + "from `multiplepasswords` where " + "username=?;";
-       
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
-            
-                ps.setString(1, username);
-                ps.execute();
-                        
-		} catch (NamingException ex) {
-                // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            catch (SQLException e) {
-                log.error("Error while deleting user ", e);
-            } finally {
-                connection.close();
+            ps.setString(1, username);
 
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+
+                usernameDB = rs.getString("username");
             }
+
+        } catch (NamingException ex) {
+            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+            log.error("Error while checking for existing user", e);
+        } finally {
+            connection.close();
+
+        }
+
+        if (usernameDB.equals(username)) {
+
+            isUser = true;
+        } else {
+            isUser = false;
+        }
+        return isUser;
+
     }
-    
-    public static String getUSerStatus(String username) throws SQLException{
+
+    //Delete Entry
+    public static void deleteUser(String username) throws SQLException {
+
         Connection connection = null;
         PreparedStatement ps = null;
-        String userStatus = null; 
+        int noOfAttempts = 0;
         ResultSet rs = null;
-        
+
         String sql =
-		             "select status "
-		                     + "from `regstatus` where " + "username=?;";
-       
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
-            
-                ps.setString(1, username);
+                "delete "
+                        + "from `multiplepasswords` where " + "username=?;";
 
-                rs = ps.executeQuery();
-            
-                while (rs.next()) {
-                    userStatus = rs.getString("status");
-                }
-                        
-		} catch (NamingException ex) {
-                   // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-                } 
-                catch (SQLException e) {
+        try {
+            connection = getUssdDBConnection();
 
-		} finally {
-                        connection.close();
-                        
-		}
-            
-            return userStatus;
-     }
+            ps = connection.prepareStatement(sql);
+
+            ps.setString(1, username);
+            ps.execute();
+
+        } catch (NamingException ex) {
+            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+            log.error("Error while deleting user ", e);
+        } finally {
+            connection.close();
+
+        }
+    }
+
+    public static String getUSerStatus(String username) throws SQLException {
+        Connection connection = null;
+        PreparedStatement ps = null;
+        String userStatus = null;
+        ResultSet rs = null;
+
+        String sql =
+                "select status "
+                        + "from `regstatus` where " + "username=?;";
+
+        try {
+            connection = getUssdDBConnection();
+
+            ps = connection.prepareStatement(sql);
+
+            ps.setString(1, username);
+
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                userStatus = rs.getString("status");
+            }
+
+        } catch (NamingException ex) {
+            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+
+        } finally {
+            connection.close();
+
+        }
+
+        return userStatus;
+    }
 
 
     //insert initial Entry
-    public static String insertUserStatus(String username,String status) throws SQLException{
+    public static String insertUserStatus(String username, String status) throws SQLException {
 
         Connection connection = null;
         PreparedStatement ps = null;
         ResultSet results = null;
-        String uuid="";
+        String uuid = "";
         UUID idOne = UUID.randomUUID();
-        uuid=idOne.toString();
+        uuid = idOne.toString();
 
         String sql = "INSERT INTO `regstatus` (`uuid`,`username`, `status`) VALUES (?,?,?);";
         try {
@@ -540,121 +531,118 @@ public class DatabaseUtils {
         return uuid;
     }
 
-     
-     
-    public static boolean isExistingUserStatus(String username) throws SQLException{
+
+    public static boolean isExistingUserStatus(String username) throws SQLException {
         boolean isUser = false;
-        
+
         Connection connection = null;
         PreparedStatement ps = null;
         String usernameDB = "noUser";
         ResultSet rs = null;
-        
+
         String sql =
-		             "select username "
-		                     + "from `regstatus` where " + "username=?;";
-       
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
-            
-                ps.setString(1, username);
+                "select username "
+                        + "from `regstatus` where " + "username=?;";
 
-                rs = ps.executeQuery();
-            
-                while (rs.next()) {
-     
-                    usernameDB = rs.getString("username");
-                }
-                        
-		} catch (NamingException ex) {
-                // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            catch (SQLException e) {
-                log.error("Error while checking user status", e);
-            } finally {
-                connection.close();
+        try {
+            connection = getUssdDBConnection();
 
-            }
-            
-            if (usernameDB.equals(username) ){
-                
-                isUser = true;
-            }else{
-                isUser = false;
-            }
-            return isUser;
+            ps = connection.prepareStatement(sql);
 
-      }
-    
+            ps.setString(1, username);
+
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+
+                usernameDB = rs.getString("username");
+            }
+
+        } catch (NamingException ex) {
+            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+            log.error("Error while checking user status", e);
+        } finally {
+            connection.close();
+
+        }
+
+        if (usernameDB.equals(username)) {
+
+            isUser = true;
+        } else {
+            isUser = false;
+        }
+        return isUser;
+
+    }
+
     //Delete Entry
-    public static void deleteUserStatus(String username) throws SQLException{
-        
+    public static void deleteUserStatus(String username) throws SQLException {
+
         Connection connection = null;
         PreparedStatement ps = null;
-        int noOfAttempts = 0; 
+        int noOfAttempts = 0;
         ResultSet rs = null;
-        
-        String sql =
-		             "delete "
-		                     + "from `regstatus` where " + "username=?;";
-       
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
-            
-                ps.setString(1, username);
-                ps.execute();
-                        
-		} catch (NamingException ex) {
-                   // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-                } 
-                catch (SQLException e) {
 
-		} finally {
-                        connection.close();
-                        
-		}
+        String sql =
+                "delete "
+                        + "from `regstatus` where " + "username=?;";
+
+        try {
+            connection = getUssdDBConnection();
+
+            ps = connection.prepareStatement(sql);
+
+            ps.setString(1, username);
+            ps.execute();
+
+        } catch (NamingException ex) {
+            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+
+        } finally {
+            connection.close();
+
+        }
     }
-    
-     public static void updateRegStatus(String username, String status) throws SQLException{
+
+    public static void updateRegStatus(String username, String status) throws SQLException {
         Connection connection = null;
         PreparedStatement ps = null;
-        
-        String sql =
-		             "update `regstatus` set "
-		                     + "status=? where " 
-                                     + "username=?;" ;
-       
-            try {
-                connection = getUssdDBConnection();
-            
-                ps = connection.prepareStatement(sql);
 
-                ps.setString(1, status);
-                ps.setString(2, username);
-                ps.execute();
-             
-                        
-            } catch (NamingException ex) {
-                // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (SQLException e) {
-                log.error("Error while updating reg status");
-            } finally {
-                connection.close();			
-            }
+        String sql =
+                "update `regstatus` set "
+                        + "status=? where "
+                        + "username=?;";
+
+        try {
+            connection = getUssdDBConnection();
+
+            ps = connection.prepareStatement(sql);
+
+            ps.setString(1, status);
+            ps.setString(2, username);
+            ps.execute();
+
+
+        } catch (NamingException ex) {
+            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+            log.error("Error while updating reg status");
+        } finally {
+            connection.close();
+        }
     }
-    
+
     static Integer getPendingUSSDRequestType(String msisdn) throws SQLException {
-        
+
         Connection connection = null;
         PreparedStatement ps = null;
         Integer requestType = null;
 
         String sql = "select requesttype"
-                        + " from `pendingussd` where msisdn=?;";
+                + " from `pendingussd` where msisdn=?;";
 
         try {
             connection = getUssdDBConnection();
@@ -670,7 +658,7 @@ public class DatabaseUtils {
         } catch (SQLException e) {
             log.error("Error while getting pending USSD request type ", e);
         } finally {
-            if(connection != null) {
+            if (connection != null) {
                 connection.close();
             }
         }
@@ -681,10 +669,11 @@ public class DatabaseUtils {
         return requestType;
     }
 
-    static int saveRequestType(String msisdn, Integer requestType) throws SQLException,NamingException {
+    static int saveRequestType(String msisdn, Integer requestType) throws SQLException, NamingException {
         Connection connection = null;
 //        String sql = "insert into pendingussd (msisdn, requesttype) values (?,?)";
-        String sql = "insert into pendingussd (msisdn, requesttype) values (?,?) ON DUPLICATE KEY UPDATE requesttype=VALUES(requesttype)";
+        String sql = "insert into pendingussd (msisdn, requesttype) values (?,?) ON DUPLICATE KEY UPDATE " +
+                "requesttype=VALUES(requesttype)";
         try {
             connection = getUssdDBConnection();
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -697,7 +686,7 @@ public class DatabaseUtils {
         } catch (SQLException e) {
             log.error("Error while saving request type", e);
         } finally {
-            if(connection != null) {
+            if (connection != null) {
                 connection.close();
             }
         }
@@ -714,13 +703,13 @@ public class DatabaseUtils {
             ps.executeUpdate();
         } catch (NamingException ex) {
         } finally {
-            if(connection != null) {
+            if (connection != null) {
                 connection.close();
             }
         }
     }
-    
-    public static Connection getUssdDBConnection() throws SQLException,NamingException {
+
+    public static Connection getUssdDBConnection() throws SQLException, NamingException {
         initializeDataSource();
         if (ussdDatasource != null) {
             return ussdDatasource.getConnection();
@@ -729,10 +718,11 @@ public class DatabaseUtils {
         }
     }
 
-    public static int saveAuthenticateData(AuthenticationData authenticationData) throws SQLException,NamingException {
+    public static int saveAuthenticateData(AuthenticationData authenticationData) throws SQLException, NamingException {
         Connection connection = null;
 
-        String sql = "insert into authenticated_login (tokenID,scope,redirect_uri,client_id,response_type,acr_value,msisdn,state,nonce) values (?,?,?,?,?,?,?,?,?) ";
+        String sql = "insert into authenticated_login (tokenID,scope,redirect_uri,client_id,response_type,acr_value," +
+                "msisdn,state,nonce) values (?,?,?,?,?,?,?,?,?) ";
         try {
             connection = getUssdDBConnection();
 
@@ -754,14 +744,14 @@ public class DatabaseUtils {
         } catch (SQLException ex) {
             log.error(ex);
         } finally {
-            if(connection != null) {
+            if (connection != null) {
                 connection.close();
             }
         }
         return -1;
     }
 
-    public static AuthenticationData getAuthenticateData(String tokenID) throws SQLException,NamingException {
+    public static AuthenticationData getAuthenticateData(String tokenID) throws SQLException, NamingException {
 
         Connection connection = null;
         PreparedStatement ps = null;
@@ -802,14 +792,13 @@ public class DatabaseUtils {
     }
 
 
-
-    public static void updateAuthenticateData(String msisdn, String status) throws SQLException{
+    public static void updateAuthenticateData(String msisdn, String status) throws SQLException {
         Connection connection = null;
         PreparedStatement ps = null;
         String sql =
                 "update `authenticated_login` set "
                         + "status=? where "
-                        + "msisdn=?;" ;
+                        + "msisdn=?;";
 
         try {
             connection = getUssdDBConnection();
@@ -819,8 +808,7 @@ public class DatabaseUtils {
             ps.execute();
         } catch (NamingException ex) {
             log.error(ex);
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             log.error("Error while updating authenticate data", e);
         } finally {
             connection.close();
@@ -828,13 +816,13 @@ public class DatabaseUtils {
     }
 
 
-    public static void updateAuthenticateDataMsisdn(String tokenId, String msisdn) throws SQLException{
+    public static void updateAuthenticateDataMsisdn(String tokenId, String msisdn) throws SQLException {
         Connection connection = null;
         PreparedStatement ps = null;
         String sql =
                 "update `authenticated_login` set "
                         + "msisdn=? where "
-                        + "tokenID=?;" ;
+                        + "tokenID=?;";
 
         try {
             connection = getUssdDBConnection();
@@ -853,11 +841,11 @@ public class DatabaseUtils {
 
 
     //insert initial Entry
-    public static String getUserNameById(String uuid) throws SQLException{
+    public static String getUserNameById(String uuid) throws SQLException {
 
         Connection connection = null;
         PreparedStatement ps = null;
-        String username= "noUser";
+        String username = "noUser";
         ResultSet rs = null;
 
         String sql =
@@ -879,8 +867,7 @@ public class DatabaseUtils {
 
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        catch (SQLException e) {
+        } catch (SQLException e) {
             log.error("Error while getting username by id");
         } finally {
             connection.close();
@@ -890,6 +877,6 @@ public class DatabaseUtils {
 
         return username;
     }
-    
-    
+
+
 }

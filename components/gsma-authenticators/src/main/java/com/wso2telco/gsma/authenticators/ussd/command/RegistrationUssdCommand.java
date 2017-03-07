@@ -34,15 +34,20 @@ public class RegistrationUssdCommand extends UssdCommand {
 
     private Application application = new Application();
 
-    /** The logger */
+    /**
+     * The logger
+     */
     private static Log log = LogFactory.getLog(LoginUssdCommand.class);
 
-    /** The Configuration service */
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     @Override
     protected String getUrl(String msisdn) {
-        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
+        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig()
+                .getUssdConfig();
 
         String url = ussdConfig.getEndpoint();
         if (url.endsWith("/")) {
@@ -56,17 +61,20 @@ public class RegistrationUssdCommand extends UssdCommand {
     }
 
     @Override
-    protected USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String operator, String client_id) {
-        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
+    protected USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String operator,
+                                         String client_id) {
+        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig()
+                .getUssdConfig();
 
         USSDRequest ussdRequest = new USSDRequest();
 
         // prepare the USSD message from template
         HashMap<String, String> variableMap = new HashMap<String, String>();
         variableMap.put("application", application.changeApplicationName(serviceProvider));
-        String message = USSDOutboundMessage.prepare(client_id, USSDOutboundMessage.MessageType.REGISTRATION, variableMap, operator);
+        String message = USSDOutboundMessage.prepare(client_id, USSDOutboundMessage.MessageType.REGISTRATION,
+                variableMap, operator);
 
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("Message : " + message);
         }
 

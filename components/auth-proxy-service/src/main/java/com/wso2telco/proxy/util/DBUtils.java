@@ -52,7 +52,9 @@ public class DBUtils {
      */
     private static volatile DataSource mConnectDatasource = null;
 
-    /** The Configuration service */
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     private static void initializeDatasource() throws NamingException {
@@ -63,7 +65,8 @@ public class DBUtils {
         String dataSourceName = null;
         try {
             Context ctx = new InitialContext();
-            dataSourceName = configurationService.getDataHolder().getMobileConnectConfig().getAuthProxy().getDataSourceName();
+            dataSourceName = configurationService.getDataHolder().getMobileConnectConfig().getAuthProxy()
+                    .getDataSourceName();
             if (dataSourceName != null) {
                 dataSource = (DataSource) ctx.lookup(dataSourceName);
             } else {
@@ -119,8 +122,9 @@ public class DBUtils {
 
     /**
      * Get Operators' Properties.
+     *
      * @return operators properties map.
-     * @throws SQLException on errors.
+     * @throws SQLException    on errors.
      * @throws NamingException on errors.
      */
     public static Map<String, Operator> getOperatorProperties() throws SQLException, NamingException {
@@ -150,8 +154,7 @@ public class DBUtils {
             throw new SQLException("Error occurred while retrieving operator properties.", e);
         } catch (NamingException e) {
             throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
-        }
-        finally {
+        } finally {
             closeAllConnections(preparedStatement, connection, resultSet);
         }
         return operatorProperties;
@@ -159,12 +162,13 @@ public class DBUtils {
 
     /**
      * Get operators' MSISDN header properties.
+     *
      * @return operators' MSISDN header properties map.
-     * @throws SQLException on errors
-     * @throws NamingException  on errors
+     * @throws SQLException    on errors
+     * @throws NamingException on errors
      */
     public static Map<String, List<MSISDNHeader>> getOperatorsMSISDNHeaderProperties() throws SQLException,
-                                                                                              NamingException {
+            NamingException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
@@ -186,8 +190,7 @@ public class DBUtils {
             throw new SQLException("Error occurred while retrieving operator MSISDN properties of operators : ", e);
         } catch (NamingException e) {
             throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
-        }
-        finally {
+        } finally {
             closeAllConnections(preparedStatement, connection, resultSet);
         }
         return operatorsMSISDNHeadersList;
@@ -195,15 +198,16 @@ public class DBUtils {
 
     /**
      * Get MSISDN properties by operator Id.
-     * @param operatorId operator Id.
+     *
+     * @param operatorId   operator Id.
      * @param operatorName operator Name.
      * @return MSISDN properties of given operator.
-     * @throws SQLException  on errors
+     * @throws SQLException    on errors
      * @throws NamingException on errors
      */
     public static List<MSISDNHeader> getMSISDNPropertiesByOperatorId(int operatorId, String operatorName) throws
-                                                                                                     SQLException,
-                                                                                            NamingException {
+            SQLException,
+            NamingException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
@@ -220,18 +224,18 @@ public class DBUtils {
                 MSISDNHeader msisdnHeader = new MSISDNHeader();
                 msisdnHeader.setMsisdnHeaderName(resultSet.getString(AuthProxyConstants.MSISDN_HEADER_NAME));
                 msisdnHeader.setHeaderEncrypted(resultSet.getBoolean(AuthProxyConstants.IS_HEADER_ENCRYPTED));
-                msisdnHeader.setHeaderEncryptionMethod(resultSet.getString(AuthProxyConstants.ENCRYPTION_IMPLEMENTATION));
+                msisdnHeader.setHeaderEncryptionMethod(resultSet.getString(AuthProxyConstants
+                        .ENCRYPTION_IMPLEMENTATION));
                 msisdnHeader.setHeaderEncryptionKey(resultSet.getString(AuthProxyConstants.MSISDN_ENCRYPTION_KEY));
                 msisdnHeader.setPriority(resultSet.getInt(AuthProxyConstants.PRIORITY));
                 msisdnHeaderList.add(msisdnHeader);
             }
         } catch (SQLException e) {
             throw new SQLException("Error occurred while retrieving operator MSISDN properties of operator : " +
-                                           operatorName, e);
+                    operatorName, e);
         } catch (NamingException e) {
             throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
-        }
-        finally {
+        } finally {
             closeAllConnections(preparedStatement, connection, resultSet);
         }
         return msisdnHeaderList;
@@ -249,7 +253,7 @@ public class DBUtils {
         ResultSet results = null;
         String[] scopeValues = scope.split("\\s+|\\+");
         StringBuilder params = new StringBuilder("?");
-        for(int i=1; i< scopeValues.length; i++) {
+        for (int i = 1; i < scopeValues.length; i++) {
             params.append(",?");
         }
         String sql = "SELECT * FROM `scope_parameter` WHERE scope in (" + params + ")";
@@ -262,8 +266,8 @@ public class DBUtils {
         try {
             conn = getConnectDBConnection();
             ps = conn.prepareStatement(sql);
-            for(int i=0; i<scopeValues.length; i++) {
-                ps.setString(i+1, scopeValues[i]);
+            for (int i = 0; i < scopeValues.length; i++) {
+                ps.setString(i + 1, scopeValues[i]);
             }
             results = ps.executeQuery();
 
@@ -364,9 +368,8 @@ public class DBUtils {
     }
 
 
-
     private static void closeAllConnections(PreparedStatement preparedStatement,
-                                           Connection connection, ResultSet resultSet) {
+                                            Connection connection, ResultSet resultSet) {
         closeResultSet(resultSet);
         closeStatement(preparedStatement);
         closeConnection(connection);
@@ -374,6 +377,7 @@ public class DBUtils {
 
     /**
      * Close Connection
+     *
      * @param dbConnection Connection
      */
     private static void closeConnection(Connection dbConnection) {
@@ -389,6 +393,7 @@ public class DBUtils {
 
     /**
      * Close ResultSet
+     *
      * @param resultSet ResultSet
      */
     private static void closeResultSet(ResultSet resultSet) {
@@ -403,6 +408,7 @@ public class DBUtils {
 
     /**
      * Close PreparedStatement
+     *
      * @param preparedStatement PreparedStatement
      */
     private static void closeStatement(PreparedStatement preparedStatement) {

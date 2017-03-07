@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
- * 
+ *
  * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,34 +35,45 @@ import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.util.Map;
 
- 
+
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class SendUSSD.
  */
 public class SendUSSD implements AuthenticatorSelector {
 
-    /** The log. */
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(SendUSSD.class);
 
-/** The read mobile connect config. */
+    /**
+     * The read mobile connect config.
+     */
 //    private MobileConnectConfig.USSDConfig ussdConfig;
     ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
-    
-    /** The read mobile connect config result. */
+
+    /**
+     * The read mobile connect config result.
+     */
     Map<String, String> readMobileConnectConfigResult;
-    
-    /** The const mtinit. */
+
+    /**
+     * The const mtinit.
+     */
     private static String CONST_MTINIT = "mtinit";
 
-    /** The service provider name. */
+    /**
+     * The service provider name.
+     */
     String msisdn, identifier, serviceProviderName;
 
     /**
      * Instantiates a new send ussd.
      *
-     * @param msisdn the msisdn
-     * @param identifier the identifier
+     * @param msisdn              the msisdn
+     * @param identifier          the identifier
      * @param serviceProviderName the service provider name
      */
     public SendUSSD(String msisdn, String identifier, String serviceProviderName) {
@@ -74,16 +85,17 @@ public class SendUSSD implements AuthenticatorSelector {
     /**
      * Send ussd.
      *
-     * @param msisdn the msisdn
-     * @param sessionID the session id
+     * @param msisdn          the msisdn
+     * @param sessionID       the session id
      * @param serviceProvider the service provider
      * @return the string
-     * @throws IOException Signals that an I/O exception has occurred.
-     * @throws XPathExpressionException the x path expression exception
-     * @throws SAXException the SAX exception
+     * @throws IOException                  Signals that an I/O exception has occurred.
+     * @throws XPathExpressionException     the x path expression exception
+     * @throws SAXException                 the SAX exception
      * @throws ParserConfigurationException the parser configuration exception
      */
-    protected String sendUSSD(String msisdn, String sessionID, String serviceProvider) throws IOException, XPathExpressionException, SAXException, ParserConfigurationException {
+    protected String sendUSSD(String msisdn, String sessionID, String serviceProvider) throws IOException,
+            XPathExpressionException, SAXException, ParserConfigurationException {
 //        ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
 
         USSDRequest req = new USSDRequest();
@@ -95,12 +107,15 @@ public class SendUSSD implements AuthenticatorSelector {
         outboundUSSDMessageRequest.setShortCode(readMobileConnectConfigResult.get("ShortCode"));
 //        outboundUSSDMessageRequest.setKeyword(ussdConfig.getKeyword());
         outboundUSSDMessageRequest.setKeyword(readMobileConnectConfigResult.get("Keyword"));
-//        outboundUSSDMessageRequest.setOutboundUSSDMessage(serviceProvider + ":" + ussdConfig.getMessage()+"\n1. OK\n2. Cancel");
-        outboundUSSDMessageRequest.setOutboundUSSDMessage(serviceProvider + ":" + readMobileConnectConfigResult.get("MessageContent") +"\n1. OK\n2. Cancel");
+//        outboundUSSDMessageRequest.setOutboundUSSDMessage(serviceProvider + ":" + ussdConfig.getMessage()+"\n1.
+// OK\n2. Cancel");
+        outboundUSSDMessageRequest.setOutboundUSSDMessage(serviceProvider + ":" + readMobileConnectConfigResult.get
+                ("MessageContent") + "\n1. OK\n2. Cancel");
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
         ResponseRequest responseRequest = new ResponseRequest();
-//        responseRequest.setNotifyURL(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getUssdContextEndpoint());
+//        responseRequest.setNotifyURL(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig()
+// .getUssdContextEndpoint());
         responseRequest.setNotifyURL(readMobileConnectConfigResult.get("USSDContextEndpoint"));
         responseRequest.setCallbackData("");
 
@@ -122,8 +137,8 @@ public class SendUSSD implements AuthenticatorSelector {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Endpoint : "+endpoint);
-            log.debug("Request : "+reqString);
+            log.debug("Endpoint : " + endpoint);
+            log.debug("Request : " + reqString);
         }
         return postRequest(endpoint, reqString);
     }
@@ -131,16 +146,17 @@ public class SendUSSD implements AuthenticatorSelector {
     /**
      * Send ussdpin.
      *
-     * @param msisdn the msisdn
-     * @param sessionID the session id
+     * @param msisdn          the msisdn
+     * @param sessionID       the session id
      * @param serviceProvider the service provider
      * @return the string
-     * @throws IOException Signals that an I/O exception has occurred.
-     * @throws XPathExpressionException the x path expression exception
-     * @throws SAXException the SAX exception
+     * @throws IOException                  Signals that an I/O exception has occurred.
+     * @throws XPathExpressionException     the x path expression exception
+     * @throws SAXException                 the SAX exception
      * @throws ParserConfigurationException the parser configuration exception
      */
-    protected String sendUSSDPIN(String msisdn, String sessionID, String serviceProvider) throws IOException, XPathExpressionException, SAXException, ParserConfigurationException {
+    protected String sendUSSDPIN(String msisdn, String sessionID, String serviceProvider) throws IOException,
+            XPathExpressionException, SAXException, ParserConfigurationException {
 //        ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
 
         USSDRequest req = new USSDRequest();
@@ -152,11 +168,13 @@ public class SendUSSD implements AuthenticatorSelector {
 //        outboundUSSDMessageRequest.setKeyword(ussdConfig.getKeyword());
         outboundUSSDMessageRequest.setKeyword(readMobileConnectConfigResult.get("Keyword"));
 //        outboundUSSDMessageRequest.setOutboundUSSDMessage(serviceProvider + ":" + ussdConfig.getMessage()+"\n\nPIN");
-        outboundUSSDMessageRequest.setOutboundUSSDMessage(serviceProvider + ":" + readMobileConnectConfigResult.get("MessageContent") +"\n\nPIN");
+        outboundUSSDMessageRequest.setOutboundUSSDMessage(serviceProvider + ":" + readMobileConnectConfigResult.get
+                ("MessageContent") + "\n\nPIN");
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
         ResponseRequest responseRequest = new ResponseRequest();
-//        responseRequest.setNotifyURL(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig().getUssdPinContextEndpoint());
+//        responseRequest.setNotifyURL(DataHolder.getInstance().getMobileConnectConfig().getUssdConfig()
+// .getUssdPinContextEndpoint());
         responseRequest.setNotifyURL(readMobileConnectConfigResult.get("USSDPinContextEndpoint"));
         responseRequest.setCallbackData("");
 
@@ -178,8 +196,8 @@ public class SendUSSD implements AuthenticatorSelector {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Endpoint : "+endpoint);
-            log.debug("Request : "+reqString);
+            log.debug("Endpoint : " + endpoint);
+            log.debug("Request : " + reqString);
         }
 
         return postRequest(endpoint, reqString);
@@ -189,15 +207,16 @@ public class SendUSSD implements AuthenticatorSelector {
     /**
      * Post request.
      *
-     * @param url the url
+     * @param url        the url
      * @param requestStr the request str
      * @return the string
-     * @throws IOException Signals that an I/O exception has occurred.
-     * @throws XPathExpressionException the x path expression exception
-     * @throws SAXException the SAX exception
+     * @throws IOException                  Signals that an I/O exception has occurred.
+     * @throws XPathExpressionException     the x path expression exception
+     * @throws SAXException                 the SAX exception
      * @throws ParserConfigurationException the parser configuration exception
      */
-    private String postRequest(String url, String requestStr) throws IOException, XPathExpressionException, SAXException, ParserConfigurationException {
+    private String postRequest(String url, String requestStr) throws IOException, XPathExpressionException,
+            SAXException, ParserConfigurationException {
 
 //        HttpClient client = HttpClientBuilder.create().build();
         HttpClient client = new DefaultHttpClient();
@@ -219,9 +238,9 @@ public class SendUSSD implements AuthenticatorSelector {
             log.error("Error occured while calling end points - " + response.getStatusLine().getStatusCode() + "-" +
                     response.getStatusLine().getReasonPhrase());
         } else {
-        	if (log.isDebugEnabled()) {
-            log.debug("Success Request");
-        	}
+            if (log.isDebugEnabled()) {
+                log.debug("Success Request");
+            }
         }
         String responseStr = null;
         HttpEntity responseEntity = response.getEntity();
@@ -235,7 +254,8 @@ public class SendUSSD implements AuthenticatorSelector {
      * @see com.wso2telco.gsma.authendictorselector.AuthenticatorSelector#invokeAuthendicator()
      */
     @Override
-    public String invokeAuthendicator() throws SAXException, ParserConfigurationException, XPathExpressionException, IOException {
+    public String invokeAuthendicator() throws SAXException, ParserConfigurationException, XPathExpressionException,
+            IOException {
         return sendUSSD(msisdn, identifier, serviceProviderName);
     }
 
@@ -243,12 +263,13 @@ public class SendUSSD implements AuthenticatorSelector {
      * Invoke authendicator ussdpin.
      *
      * @return the string
-     * @throws SAXException the SAX exception
+     * @throws SAXException                 the SAX exception
      * @throws ParserConfigurationException the parser configuration exception
-     * @throws XPathExpressionException the x path expression exception
-     * @throws IOException Signals that an I/O exception has occurred.
+     * @throws XPathExpressionException     the x path expression exception
+     * @throws IOException                  Signals that an I/O exception has occurred.
      */
-    public String invokeAuthendicatorUSSDPIN() throws SAXException, ParserConfigurationException, XPathExpressionException, IOException {
+    public String invokeAuthendicatorUSSDPIN() throws SAXException, ParserConfigurationException,
+            XPathExpressionException, IOException {
         return sendUSSDPIN(msisdn, identifier, serviceProviderName);
     }
 }

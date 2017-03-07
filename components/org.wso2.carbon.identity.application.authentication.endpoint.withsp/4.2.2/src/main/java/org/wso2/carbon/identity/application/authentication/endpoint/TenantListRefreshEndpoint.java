@@ -29,7 +29,7 @@ public class TenantListRefreshEndpoint extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws
             AuthenticationException {
         String tenantList = req.getParameter("tenantList");
-        if(tenantList != null) {
+        if (tenantList != null) {
             TenantDataManager.setTenantDataList(tenantList);
         }
     }

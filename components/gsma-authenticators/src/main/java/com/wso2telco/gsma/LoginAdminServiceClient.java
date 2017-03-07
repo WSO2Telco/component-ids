@@ -36,7 +36,8 @@ public class LoginAdminServiceClient {
      * @param userName username
      * @return return a session
      * @throws RemoteException                       Throws this when failed connect with the AuthenticationAdminService
-     * @throws LoginAuthenticationExceptionException Throws this when failed to authenticate with given username and password
+     * @throws LoginAuthenticationExceptionException Throws this when failed to authenticate with given username and
+     *                                               password
      */
     public String authenticate(String userName, String password) throws RemoteException,
             LoginAuthenticationExceptionException {

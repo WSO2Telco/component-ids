@@ -43,7 +43,8 @@ public abstract class UssdCommand {
 
     private static Log log = LogFactory.getLog(UssdCommand.class);
 
-    public void execute(String msisdn, String sessionID, String serviceProvider, String operator, String client_id, BasicFutureCallback futureCallback) throws IOException {
+    public void execute(String msisdn, String sessionID, String serviceProvider, String operator, String client_id,
+                        BasicFutureCallback futureCallback) throws IOException {
 //        AuthenticationContext ctx = getAuthenticationContext(sessionID);
 //        String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(ctx.getQueryParams(),
 //                ctx.getCallerSessionKey(), ctx.getContextIdentifier());
@@ -62,7 +63,8 @@ public abstract class UssdCommand {
 
     protected abstract String getUrl(String msisdn);
 
-    protected abstract USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String operator, String client_id);
+    protected abstract USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String
+            operator, String client_id);
 
     /**
      * Post request.
@@ -73,7 +75,8 @@ public abstract class UssdCommand {
      * @return the string
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    private void postRequest(String url, String requestStr, String operator, BasicFutureCallback futureCallback) throws IOException {
+    private void postRequest(String url, String requestStr, String operator, BasicFutureCallback futureCallback)
+            throws IOException {
         MobileConnectConfig.USSDConfig ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
         final HttpPost postRequest = futureCallback.getPostRequest();
         try {
@@ -94,7 +97,7 @@ public abstract class UssdCommand {
 
         postRequest.setEntity(input);
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Posting data  [ " + requestStr + " ] to url [ " + url + " ]");
         }
         Util.sendAsyncRequest(postRequest, futureCallback);
@@ -102,6 +105,7 @@ public abstract class UssdCommand {
 
     /**
      * Gets authentication context from session id
+     *
      * @param sessionID Session ID
      * @return Authentication Context
      */

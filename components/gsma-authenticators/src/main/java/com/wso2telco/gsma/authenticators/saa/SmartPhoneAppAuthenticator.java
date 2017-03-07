@@ -148,13 +148,16 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
         }
     }
 
-    private void handleRedirect(HttpServletResponse response, AuthenticationContext context, boolean isFlowCompleted) throws AuthenticationFailedException {
+    private void handleRedirect(HttpServletResponse response, AuthenticationContext context, boolean isFlowCompleted)
+            throws AuthenticationFailedException {
 
-        String loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.SAA_WAITING_JSP;
+        String loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+                Constants.SAA_WAITING_JSP;
         context.setProperty(IS_FLOW_COMPLETED, isFlowCompleted);
 
         if (!isFlowCompleted) {
-            String redirectUrl = response.encodeRedirectURL(loginPage + ("?" + context.getQueryParams())) + "&scope=" + (String) context.getProperty("scope")
+            String redirectUrl = response.encodeRedirectURL(loginPage + ("?" + context.getQueryParams())) + "&scope="
+                    + (String) context.getProperty("scope")
                     + "&redirect_uri=" + context.getProperty("redirectURI")
                     + "&authenticators=" + getName() + ":" + "LOCAL";
 
@@ -198,7 +201,8 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
         HttpResponse httpResponse = httpClient.execute(httpPost);
 
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            log.error("SAA server replied with invalid HTTP status [ " + httpResponse.getStatusLine().getStatusCode() + "] ");
+            log.error("SAA server replied with invalid HTTP status [ " + httpResponse.getStatusLine().getStatusCode()
+                    + "] ");
 
             throw new SaaException("Error occurred while posting data to SAA server");
         }
@@ -218,7 +222,8 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
         }
     }
 
-    private SaaRequest createSaaRequest(Map<String, String> paramMap, String clientId, String applicationName) throws Exception {
+    private SaaRequest createSaaRequest(Map<String, String> paramMap, String clientId, String applicationName) throws
+            Exception {
         SaaRequest saaRequest = new SaaRequest();
         saaRequest.setApplicationName(applicationName);
         saaRequest.setMessage(spConfigService.getSaaMessage(clientId));

@@ -48,15 +48,20 @@ import java.net.URLEncoder;
  */
 public class CustomRequestCoordinator implements RequestCoordinator {
 
-    private static final Log log = LogFactory.getLog(org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator.class);
-    private static volatile org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator instance;
+    private static final Log log = LogFactory.getLog(org.wso2.carbon.identity.application.authentication.framework
+            .handler.request.impl.DefaultRequestCoordinator.class);
+    private static volatile org.wso2.carbon.identity.application.authentication.framework.handler.request.impl
+            .DefaultRequestCoordinator instance;
 
-    public static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator getInstance() {
+    public static org.wso2.carbon.identity.application.authentication.framework.handler.request.impl
+            .DefaultRequestCoordinator getInstance() {
 
         if (instance == null) {
-            synchronized (org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator.class) {
+            synchronized (org.wso2.carbon.identity.application.authentication.framework.handler.request.impl
+                    .DefaultRequestCoordinator.class) {
                 if (instance == null) {
-                    instance = new org.wso2.carbon.identity.application.authentication.framework.handler.request.impl.DefaultRequestCoordinator();
+                    instance = new org.wso2.carbon.identity.application.authentication.framework.handler.request.impl
+                            .DefaultRequestCoordinator();
                 }
             }
         }
@@ -99,7 +104,8 @@ public class CustomRequestCoordinator implements RequestCoordinator {
 
                     if (authRequest == null) {
                         // authRequest cannot be retrieved from cache. Cache
-                        throw new FrameworkException("Invalid authentication request. Session data key : " + sessionDataKey);
+                        throw new FrameworkException("Invalid authentication request. Session data key : " +
+                                sessionDataKey);
                     }
 
                 } else if (!Boolean.parseBoolean(request.getParameter(FrameworkConstants.LOGOUT))) {
@@ -136,7 +142,7 @@ public class CustomRequestCoordinator implements RequestCoordinator {
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, response,
                             context);
 
-                    if(log.isDebugEnabled()) {
+                    if (log.isDebugEnabled()) {
                         log.debug("Authenticating user : " + context.getParameter("msisdn"));
                     }
 
@@ -182,7 +188,7 @@ public class CustomRequestCoordinator implements RequestCoordinator {
     /**
      * Handles the initial request (from the calling servlet)
      *
-     * @param request request
+     * @param request  request
      * @param response response
      * @throws FrameworkException throws when error occurred from framework
      */
@@ -323,7 +329,8 @@ public class CustomRequestCoordinator implements RequestCoordinator {
 
         try {
             outboundQueryStringBuilder.append("sessionDataKey=").append(context.getContextIdentifier())
-                    .append("&relyingParty=").append(URLEncoder.encode(context.getRelyingParty(), "UTF-8")).append("&type=")
+                    .append("&relyingParty=").append(URLEncoder.encode(context.getRelyingParty(), "UTF-8")).append
+                    ("&type=")
                     .append(context.getRequestType()).append("&sp=")
                     .append(URLEncoder.encode(context.getServiceProviderName(), "UTF-8")).append("&isSaaSApp=")
                     .append(context.getSequenceConfig().getApplicationConfig().isSaaSApp());

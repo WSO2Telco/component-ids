@@ -227,7 +227,7 @@ public final class Constants {
     public static final String COMMON_AUTH_HANDLED = "commonAuthHandled";
 
     public static final String IS_REGISTERING = "isRegistering";
-    
+
     public static final String REDIRECT_CONSENT = "redirectConsent";
 
     public static final String TOKEN = "token";
@@ -279,7 +279,7 @@ public final class Constants {
     public static final String IS_PROFILE_UPGRADE = "isLoaUpgrade";
 
     public static final String IS_PROFILE_UPGRADED = "profileUpgraded";
-    
+
     public static final String HE_INITIATE_TRIGGERED = "HEInitiateTriggered";
 
     public static final String IS_SECURITY_QUESTIONS_SHOWN = "securityQuestionsShown";
@@ -351,7 +351,7 @@ public final class Constants {
     public static final String IS_TERMINATED = "isTerminated";
 
     public static final String TERMINATE_BY_REMOVE_FOLLOWING_STEPS = "removeFollowingSteps";
-    
+
     public static final String ACTION = "action";
 
     public static final String SELECTED_LOA = "selectedLOA";

@@ -26,13 +26,13 @@ public class CustomScopeServiceComponent {
     private static Log log = LogFactory.getLog(CustomScopeServiceComponent.class);
 
     protected void activate(ComponentContext context) {
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("CustomScopeServiceComponent activated");
         }
     }
 
     protected void deactivate(ComponentContext context) {
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("CustomScopeServiceComponent deactivated");
         }
     }

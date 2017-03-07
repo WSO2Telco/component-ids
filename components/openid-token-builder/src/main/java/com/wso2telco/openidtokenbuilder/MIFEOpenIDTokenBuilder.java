@@ -102,22 +102,26 @@ public class MIFEOpenIDTokenBuilder implements
     /**
      * The Constant RETRIEVE_SERVICE.
      */
-    private static final String RETRIEVE_SERVICE = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig().getRetrieveService();
+    private static final String RETRIEVE_SERVICE = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig()
+            .getRetrieveService();
 
     /**
      * The Constant CREATE_SERVICE.
      */
-    private static final String CREATE_SERVICE = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig().getCreateService();
+    private static final String CREATE_SERVICE = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig()
+            .getCreateService();
 
     /**
      * The Constant APP_PROV_SERVICE.
      */
-    private static final String APP_PROV_SERVICE = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig().getAppProvService();
+    private static final String APP_PROV_SERVICE = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig()
+            .getAppProvService();
 
     /**
      * The Constant SERVICE_PROVIDER.
      */
-    private static final String SERVICE_PROVIDER = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig().getServiceProvider();
+    private static final String SERVICE_PROVIDER = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig()
+            .getServiceProvider();
 
     /**
      * The Constant SERVICE_KEY.
@@ -127,7 +131,8 @@ public class MIFEOpenIDTokenBuilder implements
     /**
      * The Constant ACR_ACCESS_TOKEN.
      */
-    private static final String ACR_ACCESS_TOKEN = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig().getAcrAccessToken();
+    private static final String ACR_ACCESS_TOKEN = mobileConnectConfig.getMifeOpenIDTokenBuilderConfig()
+            .getAcrAccessToken();
 
     /**
      * The log.
@@ -150,13 +155,14 @@ public class MIFEOpenIDTokenBuilder implements
     private String acrAppID;
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.openidconnect.IDTokenBuilder#buildIDToken(org.wso2.carbon.identity.oauth2.token.OAuthTokenReqMessageContext, org.wso2.carbon.identity.oauth2.dto.OAuth2AccessTokenRespDTO)
+     * @see org.wso2.carbon.identity.openidconnect.IDTokenBuilder#buildIDToken(org.wso2.carbon.identity.oauth2.token
+     * .OAuthTokenReqMessageContext, org.wso2.carbon.identity.oauth2.dto.OAuth2AccessTokenRespDTO)
      */
     public String buildIDToken(OAuthTokenReqMessageContext request,
                                OAuth2AccessTokenRespDTO tokenRespDTO) throws IdentityOAuth2Exception {
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("MSISDN : " + request.getAuthorizedUser().getUserName());
-            log.debug("Generated access token : [" + tokenRespDTO.getAccessToken() +"]  for Authorization Code :  "
+            log.debug("Generated access token : [" + tokenRespDTO.getAccessToken() + "]  for Authorization Code :  "
                     + request.getProperty("AuthorizationCode"));
         }
 
@@ -190,13 +196,13 @@ public class MIFEOpenIDTokenBuilder implements
 
         ConfigurationService configurationService = new ConfigurationServiceImpl();
         DataHolder dataHolder = configurationService.getDataHolder();
-        MobileConnectConfig  mobileConnectConfig = dataHolder.getMobileConnectConfig();
+        MobileConnectConfig mobileConnectConfig = dataHolder.getMobileConnectConfig();
 
         try {
-            if(mobileConnectConfig.isPcrServiceEnabled()) {
+            if (mobileConnectConfig.isPcrServiceEnabled()) {
                 log.info("Generating UUID based PCR");
-                subject = getPCR(msisdn,applicationClientId,callbackUrl);
-            }else{
+                subject = getPCR(msisdn, applicationClientId, callbackUrl);
+            } else {
                 msisdn = "tel:+".concat(msisdn); //$NON-NLS-1$
                 subject = createLocalACR(msisdn, applicationName);
             }
@@ -260,13 +266,14 @@ public class MIFEOpenIDTokenBuilder implements
             String plainIDToken = builder.buildIDToken();
             String accessToken = tokenRespDTO.getAccessToken();
             try {
-                TransactionDAO.insertTokenScopeLog(accessToken,subject);
+                TransactionDAO.insertTokenScopeLog(accessToken, subject);
             } catch (Exception e) {
-                log.error("Error inserting to sub value Scope Log " , e);
+                log.error("Error inserting to sub value Scope Log ", e);
             }
-            boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled();
+            boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher()
+                    .isEnabled();
 
-            if(dataPublisherEnabled) {
+            if (dataPublisherEnabled) {
                 //Publish event
                 Map<String, String> tokenMap = new HashMap<String, String>();
                 tokenMap.put("Timestamp", String.valueOf(new java.util.Date().getTime()));
@@ -296,7 +303,8 @@ public class MIFEOpenIDTokenBuilder implements
                 DataPublisherUtil.publishTokenEndpointData(tokenMap);
             }
 
-            return new PlainJWT((com.nimbusds.jwt.JWTClaimsSet) PlainJWT.parse(plainIDToken).getJWTClaimsSet()).serialize();
+            return new PlainJWT((com.nimbusds.jwt.JWTClaimsSet) PlainJWT.parse(plainIDToken).getJWTClaimsSet())
+                    .serialize();
 
         } catch (IDTokenException e) {
             throw new IdentityOAuth2Exception("Error occurred while generating the IDToken", e);
@@ -322,8 +330,9 @@ public class MIFEOpenIDTokenBuilder implements
         String keyValue = null;
         AuthorizationGrantCacheKey authorizationGrantCacheKey = new AuthorizationGrantCacheKey(
                 request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
-        AuthorizationGrantCacheEntry authorizationGrantCacheEntry = (AuthorizationGrantCacheEntry) AuthorizationGrantCache
-                .getInstance().getValueFromCache(authorizationGrantCacheKey);
+        AuthorizationGrantCacheEntry authorizationGrantCacheEntry = (AuthorizationGrantCacheEntry)
+                AuthorizationGrantCache
+                        .getInstance().getValueFromCache(authorizationGrantCacheKey);
 
         Iterator<ClaimMapping> userAttributes = authorizationGrantCacheEntry.getUserAttributes()
                 .keySet().iterator();
@@ -357,7 +366,7 @@ public class MIFEOpenIDTokenBuilder implements
         Map<ClaimMapping, String> claimMap = authorizationGrantCacheEntry.getUserAttributes();
         StringBuilder tokenClaims = new StringBuilder("");
         for (Map.Entry<ClaimMapping, String> entry : claimMap.entrySet()) {
-            if(!tokenClaims.toString().isEmpty()) {
+            if (!tokenClaims.toString().isEmpty()) {
                 tokenClaims.append(", ");
             }
             tokenClaims.append(entry.getValue());
@@ -631,7 +640,8 @@ public class MIFEOpenIDTokenBuilder implements
         return pcr.getID();
     }
 
-    private String createLocalACR(String msisdn, String serviceProvider) throws InvalidKeyException, NoSuchAlgorithmException {
+    private String createLocalACR(String msisdn, String serviceProvider) throws InvalidKeyException,
+            NoSuchAlgorithmException {
         String acr = null;
         String keyText = "cY4L3dBf@mifenew";
 
@@ -702,7 +712,8 @@ public class MIFEOpenIDTokenBuilder implements
                     "application/json", "UTF-8"); //$NON-NLS-1$ //$NON-NLS-2$
             PostMethod postMethod = new PostMethod(requestURL);
             postMethod
-                    .addRequestHeader(new Header("Authorization-ACR", "ServiceKey " + SERVICE_KEY)); //$NON-NLS-1$ //$NON-NLS-2$
+                    .addRequestHeader(new Header("Authorization-ACR", "ServiceKey " + SERVICE_KEY)); //$NON-NLS-1$
+            // $NON-NLS-2$
             postMethod.addRequestHeader("Authorization", "Bearer " + ACR_ACCESS_TOKEN); //$NON-NLS-1$ //$NON-NLS-2$
             postMethod.setRequestEntity(requestEntity);
 
@@ -796,7 +807,8 @@ public class MIFEOpenIDTokenBuilder implements
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.openidconnect.IDTokenBuilder#buildIDToken(org.wso2.carbon.identity.oauth2.authz.OAuthAuthzReqMessageContext, org.wso2.carbon.identity.oauth2.dto.OAuth2AuthorizeRespDTO)
+     * @see org.wso2.carbon.identity.openidconnect.IDTokenBuilder#buildIDToken(org.wso2.carbon.identity.oauth2.authz
+     * .OAuthAuthzReqMessageContext, org.wso2.carbon.identity.oauth2.dto.OAuth2AuthorizeRespDTO)
      */
     public String buildIDToken(OAuthAuthzReqMessageContext tokReqMsgCtx,
                                OAuth2AuthorizeRespDTO tokenRespDTO) throws IdentityOAuth2Exception {

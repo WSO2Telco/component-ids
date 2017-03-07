@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
- * 
+ *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,6 +30,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Application
 import org.wso2.carbon.user.core.service.RealmService;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class CustomAuthenticatorServiceComponent.
  */
@@ -45,10 +46,14 @@ import org.wso2.carbon.user.core.service.RealmService;
 )
 public class CustomAuthenticatorServiceComponent {
 
-    /** The log. */
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(CustomAuthenticatorServiceComponent.class);
 
-    /** The realm service. */
+    /**
+     * The realm service.
+     */
     private static RealmService realmService;
 
     /**
@@ -59,7 +64,7 @@ public class CustomAuthenticatorServiceComponent {
     @Activate
     protected void activate(ComponentContext ctxt) {
 
-         
+
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new PinAuthenticator(), null);
 
@@ -91,7 +96,7 @@ public class CustomAuthenticatorServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Custom Application Authenticator bundle is activated");
         }
-     }
+    }
 
     /**
      * Deactivate.
@@ -111,9 +116,9 @@ public class CustomAuthenticatorServiceComponent {
      * @param realmService the new realm service
      */
     protected void setRealmService(RealmService realmService) {
-    	if (log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("Setting the Realm Service");
-    	}
+        }
         CustomAuthenticatorServiceComponent.realmService = realmService;
     }
 
@@ -123,9 +128,9 @@ public class CustomAuthenticatorServiceComponent {
      * @param realmService the realm service
      */
     protected void unsetRealmService(RealmService realmService) {
-    	if (log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("UnSetting the Realm Service");
-    	}
+        }
         CustomAuthenticatorServiceComponent.realmService = null;
     }
 

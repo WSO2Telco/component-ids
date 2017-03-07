@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
- * 
+ *
  * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,8 +39,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 
- 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class BitlyUrlShorten.
  */
@@ -53,14 +53,14 @@ public class BitlyUrlShorten implements UrlShorten {
      * @see com.wso2telco.gsma.shorten.UrlShorten#getShortenURL(java.lang.String, java.lang.String, java.lang.String)
      */
     @Override
-    public String getShortenURL(String longUrl,String accessToken,String shortServiceUrl) {
+    public String getShortenURL(String longUrl, String accessToken, String shortServiceUrl) {
 
-        String webserviceUrl=shortServiceUrl+"?access_token="+accessToken+"&longUrl="+longUrl;
-        String shortUrl=null;
+        String webserviceUrl = shortServiceUrl + "?access_token=" + accessToken + "&longUrl=" + longUrl;
+        String shortUrl = null;
 
         try {
 
-            org.apache.http.client.HttpClient httpClient =  getNewHttpClient();
+            org.apache.http.client.HttpClient httpClient = getNewHttpClient();
             HttpGet getRequest = new HttpGet(webserviceUrl);
             getRequest.addHeader("accept", "application/json");
             HttpResponse response = httpClient.execute(getRequest);
@@ -74,17 +74,17 @@ public class BitlyUrlShorten implements UrlShorten {
                     new InputStreamReader((response.getEntity().getContent())));
 
             String output;
-            String outLine=null;
+            String outLine = null;
             while ((output = br.readLine()) != null) {
-               outLine = output;
+                outLine = output;
             }
 
-            JSONObject jsonObj = (JSONObject)new JSONParser().parse(outLine);
+            JSONObject jsonObj = (JSONObject) new JSONParser().parse(outLine);
             String shortUrlObject = jsonObj.get("data").toString();
-            JSONObject urlObject = (JSONObject)new JSONParser().parse(shortUrlObject);
+            JSONObject urlObject = (JSONObject) new JSONParser().parse(shortUrlObject);
             shortUrl = urlObject.get("url").toString();
 
-        } catch(Exception ex){
+        } catch (Exception ex) {
             log.error(ex.getMessage());
         }
 

@@ -24,7 +24,6 @@ import java.rmi.RemoteException;
 //import org.wso2.carbon.um.ws.api.stub.getC
 
 /**
- *
  * @author tharanga_07219
  */
 public class ClaimManagementClient {
@@ -34,19 +33,19 @@ public class ClaimManagementClient {
     private RemoteUserStoreManagerServiceStub remoteUser;
 
     private static final Log log = LogFactory.getLog(ClaimManagementClient.class);
-    
+
     public ClaimManagementClient(String backEndUrl, String sessionCookie)
             throws AxisFault {
-         this.endPoint = backEndUrl + "/services/" + serviceName;
-           remoteUser = new RemoteUserStoreManagerServiceStub(endPoint);
-        
-     
+        this.endPoint = backEndUrl + "/services/" + serviceName;
+        remoteUser = new RemoteUserStoreManagerServiceStub(endPoint);
+
+
         // Authenticate Your stub from sessionCooke
         ServiceClient serviceClient = null;
         Options option;
-        
+
         serviceClient = remoteUser._getServiceClient();
-        
+
         option = serviceClient.getOptions();
         option.setManageSession(true);
         option.setProperty(
@@ -54,15 +53,17 @@ public class ClaimManagementClient {
                 sessionCookie);
         remoteUser._getServiceClient().setOptions(option);
     }
-    
-    public void setClaim() throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException{
-        if(log.isDebugEnabled()) {
+
+    public void setClaim() throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException {
+        if (log.isDebugEnabled()) {
             log.debug("Remote User "
                     + remoteUser.getProfileNames(DataHolder.getInstance().getMobileConnectConfig().getAdminUrl()));
         }
     }
 
-    public String getRegisteredLOA(String msisdn) throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException, AuthenticationFailedException, UserStoreException {
+    public String getRegisteredLOA(String msisdn) throws RemoteException,
+            RemoteUserStoreManagerServiceUserStoreExceptionException, AuthenticationFailedException,
+            UserStoreException {
 
         int tenantId = -1234;
         UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService()

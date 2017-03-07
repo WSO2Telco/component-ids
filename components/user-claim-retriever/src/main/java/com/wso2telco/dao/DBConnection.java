@@ -17,10 +17,12 @@ import com.wso2telco.core.dbutils.DbUtils;
 import com.wso2telco.exception.EmptyResultSetException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 public class DBConnection {
 
     private static DBConnection instance = null;
@@ -28,7 +30,7 @@ public class DBConnection {
 
     public static DBConnection getInstance() throws ClassNotFoundException {
         if (instance == null) {
-                instance = new DBConnection();
+            instance = new DBConnection();
         }
         return instance;
     }
@@ -43,7 +45,7 @@ public class DBConnection {
         ScopeDetails accessTokenRelatedscopeDetails = new ScopeDetails();
         String query = "SELECT sub FROM scope_log where access_token = ? " +
                 "order by created_time desc limit 1";
-        PreparedStatement statement=null;
+        PreparedStatement statement = null;
         ResultSet resultSet = null;
         Connection connection = null;
         try {
@@ -61,14 +63,14 @@ public class DBConnection {
                 throw new EmptyResultSetException("Result set is empty");
             }
         } catch (SQLException e) {
-            throw new Exception("Error in selecting scope log record",e);
-        }finally {
+            throw new Exception("Error in selecting scope log record", e);
+        } finally {
             if (resultSet != null)
                 resultSet.close();
             if (statement != null) {
                 statement.close();
             }
-            if (connection != null){
+            if (connection != null) {
                 connection.close();
             }
 

@@ -65,7 +65,6 @@ public class DBUtils {
         }
 
 
-
         String dataSourceName = null;
         try {
             Context ctx = new InitialContext();
@@ -157,7 +156,8 @@ public class DBUtils {
                 userResponse = results.getString("Status");
             }
         } catch (SQLException e) {
-            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " from the database", e);
+            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " " +
+                    "from the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
         }
@@ -193,7 +193,8 @@ public class DBUtils {
                 userResponse = results.getString("status");
             }
         } catch (SQLException e) {
-            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " from the database", e);
+            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " " +
+                    "from the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
         }
@@ -230,7 +231,8 @@ public class DBUtils {
                 pinresponse.setUserPin(results.getString("pin"));
             }
         } catch (SQLException e) {
-            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " from the database", e);
+            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " " +
+                    "from the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
         }
@@ -246,7 +248,8 @@ public class DBUtils {
      * @return the string
      * @throws AuthenticatorException the authenticator exception
      */
-    public static String insertUserResponse(String sessionDataKey, String responseStatus) throws AuthenticatorException {
+    public static String insertUserResponse(String sessionDataKey, String responseStatus) throws
+            AuthenticatorException {
         Connection conn = null;
         PreparedStatement ps = null;
         //String sql = "INSERT INTO clientstatus (SessionID, Status) VALUES (?,?)";
@@ -266,7 +269,8 @@ public class DBUtils {
             SessionExpire sessionExpire = new SessionExpire(sessionDataKey);
             sessionExpire.start();
         } catch (SQLException e) {
-            handleException("Error occured while inserting User Response for SessionDataKey: " + sessionDataKey + " to the database", e);
+            handleException("Error occured while inserting User Response for SessionDataKey: " + sessionDataKey + " " +
+                    "to the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, null, ps);
         }
@@ -302,7 +306,8 @@ public class DBUtils {
             SessionExpire sessionExpire = new SessionExpire(sessionDataKey);
             sessionExpire.start();
         } catch (SQLException e) {
-            handleException("Error occured while inserting User Response for SessionDataKey: " + sessionDataKey + " to the database", e);
+            handleException("Error occured while inserting User Response for SessionDataKey: " + sessionDataKey + " " +
+                    "to the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, null, ps);
         }
@@ -329,7 +334,8 @@ public class DBUtils {
      * @return the string
      * @throws AuthenticatorException the authenticator exception
      */
-    public static String updateUserResponse(String sessionDataKey, String responseStatus) throws AuthenticatorException {
+    public static String updateUserResponse(String sessionDataKey, String responseStatus) throws
+            AuthenticatorException {
         Connection conn = null;
         PreparedStatement ps = null;
         //String sql = "update  clientstatus set Status=? WHERE SessionID=?";
@@ -445,10 +451,12 @@ public class DBUtils {
         }
     }
 
-    static int saveRequestType(String msisdn, Integer requestType) throws SQLException, NamingException, AuthenticatorException {
+    static int saveRequestType(String msisdn, Integer requestType) throws SQLException, NamingException,
+            AuthenticatorException {
         Connection connection = null;
 //        String sql = "insert into pendingussd (msisdn, requesttype) values (?,?)";
-        String sql = "insert into pendingussd (msisdn, requesttype) values (?,?) ON DUPLICATE KEY UPDATE requesttype=VALUES(requesttype)";
+        String sql = "insert into pendingussd (msisdn, requesttype) values (?,?) ON DUPLICATE KEY UPDATE " +
+                "requesttype=VALUES(requesttype)";
         try {
             connection = getConnectDBConnection();
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -466,7 +474,8 @@ public class DBUtils {
         return -1;
     }
 
-    public static String insertAuthFlowStatus(String username, String status, String uuid) throws SQLException, AuthenticatorException {
+    public static String insertAuthFlowStatus(String username, String status, String uuid) throws SQLException,
+            AuthenticatorException {
 
         Connection connection = null;
         PreparedStatement ps = null;
@@ -508,7 +517,8 @@ public class DBUtils {
         }
     }
 
-    public static void updateAuthenticateData(String msisdn, String status) throws SQLException, AuthenticatorException {
+    public static void updateAuthenticateData(String msisdn, String status) throws SQLException,
+            AuthenticatorException {
         Connection connection = null;
         PreparedStatement ps = null;
         String sql =
@@ -555,7 +565,8 @@ public class DBUtils {
         return noOfAttempts;
     }
 
-    public static void updateMultiplePasswordNoOfAttempts(String username, int attempts) throws SQLException, AuthenticatorException {
+    public static void updateMultiplePasswordNoOfAttempts(String username, int attempts) throws SQLException,
+            AuthenticatorException {
 
         Connection connection = null;
         PreparedStatement ps = null;
@@ -617,7 +628,8 @@ public class DBUtils {
         }
     }
 
-    public static void insertPinAttempt(String msisdn, int attempts, String sessionId) throws SQLException, AuthenticatorException {
+    public static void insertPinAttempt(String msisdn, int attempts, String sessionId) throws SQLException,
+            AuthenticatorException {
 
         Connection connection = null;
         PreparedStatement ps = null;
@@ -651,8 +663,8 @@ public class DBUtils {
     @Deprecated
     private static List<MSISDNHeader> getMSISDNPropertiesByOperatorId(int operatorId, String operatorName,
                                                                       Connection connection) throws
-                                                                                             SQLException,
-                                                                                             AuthenticatorException {
+            SQLException,
+            AuthenticatorException {
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         List<MSISDNHeader> msisdnHeaderList = new ArrayList<MSISDNHeader>();
@@ -683,8 +695,8 @@ public class DBUtils {
 
     public static Set<String> getAllowedAuthenticatorSetForMNO(String mobileNetworkOperator)
             throws AuthenticatorException {
-    	
-    	Connection connection = null;
+
+        Connection connection = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         StringBuilder sql = new StringBuilder();
@@ -695,7 +707,7 @@ public class DBUtils {
 
         Set<String> authenticatorSet = new HashSet<>();
         try {
-        	connection = getConnectDBConnection();
+            connection = getConnectDBConnection();
             ps = connection.prepareStatement(sql.toString());
             ps.setString(1, mobileNetworkOperator);
             rs = ps.executeQuery();
@@ -712,8 +724,8 @@ public class DBUtils {
 
     public static Set<String> getAllowedAuthenticatorSetForSP(String serviceProvider)
             throws AuthenticatorException {
-    	
-    	Connection connection = null;
+
+        Connection connection = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         StringBuilder sql = new StringBuilder();
@@ -724,7 +736,7 @@ public class DBUtils {
 
         Set<String> authenticatorSet = new HashSet<>();
         try {
-        	connection = getConnectDBConnection();
+            connection = getConnectDBConnection();
             ps = connection.prepareStatement(sql.toString());
             ps.setString(1, serviceProvider);
             rs = ps.executeQuery();
@@ -734,7 +746,7 @@ public class DBUtils {
         } catch (SQLException e) {
             handleException("Error occurred while retrieving allowed authenticators for " + serviceProvider, e);
         } finally {
-        	IdentityDatabaseUtil.closeAllConnections(connection, rs, ps);
+            IdentityDatabaseUtil.closeAllConnections(connection, rs, ps);
         }
         return authenticatorSet;
     }
@@ -747,8 +759,10 @@ public class DBUtils {
         try {
             conn = getConnectDBConnection();
 
-            String ADD_USER_STATUS =  " INSERT INTO USER_STATUS (Time, Status, Msisdn, State, Nonce, Scope, AcrValue, SessionId, IsMsisdnHeader, IpHeader," +
-                    "IsNewUser, LoginHint, Operator, UserAgent, Comment, ConsumerKey) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            String ADD_USER_STATUS =  " INSERT INTO USER_STATUS (Time, Status, Msisdn, State, Nonce, Scope, AcrValue,
+             SessionId, IsMsisdnHeader, IpHeader," +
+                    "IsNewUser, LoginHint, Operator, UserAgent, Comment, ConsumerKey) values (?,?,?,?,?,?,?,?,?,?,?,
+                    ?,?,?,?,?)";
 
             ps = conn.prepareStatement(ADD_USER_STATUS);
 
@@ -773,7 +787,8 @@ public class DBUtils {
             ps.executeUpdate();
             return 1;
         } catch (SQLException e) {
-            handleException("Error occured while inserting User status for SessionDataKey: " + userStatus.getSessionId() + " to the database", e);
+            handleException("Error occured while inserting User status for SessionDataKey: " + userStatus
+            .getSessionId() + " to the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, null, ps);
         }
@@ -794,15 +809,15 @@ public class DBUtils {
         Connection connection = null;
         PreparedStatement ps = null;
         try {
-        	connection = getConnectDBConnection();
-        	ps = connection.prepareStatement(sql.toString());
+            connection = getConnectDBConnection();
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, hashKey);
             ps.setString(2, contextIdentifier);
             ps.executeUpdate();
         } catch (SQLException e) {
             handleException(e.getMessage(), e);
         } finally {
-        	IdentityDatabaseUtil.closeAllConnections(connection, null, ps);
+            IdentityDatabaseUtil.closeAllConnections(connection, null, ps);
         }
     }
 }

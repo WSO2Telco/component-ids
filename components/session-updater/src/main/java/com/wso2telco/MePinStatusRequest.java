@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
- * 
+ *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,18 +33,25 @@ import java.sql.SQLException;
 import java.util.concurrent.Callable;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class MePinStatusRequest.
  */
 public class MePinStatusRequest implements Callable<String> {
 
-    /** The log. */
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(MePinStatusRequest.class);
 
-    /** The Configuration service */
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
-    /** The transaction id. */
+    /**
+     * The transaction id.
+     */
     private String transactionId;
 
     /**
@@ -62,13 +69,16 @@ public class MePinStatusRequest implements Callable<String> {
     public String call() {
         String allowStatus = null;
 
-        String clientId = configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig().getMePinClientId();
-        String url = configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig().getMePinUrl();
+        String clientId = configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig()
+                .getMePinClientId();
+        String url = configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig()
+                .getMePinUrl();
         url = url + "?transaction_id=" + transactionId + "&client_id=" + clientId + "";
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.info("MePIN Status URL : " + url);
         }
-        String authHeader = "Basic " + configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig().getMePinAccessToken();
+        String authHeader = "Basic " + configurationService.getDataHolder().getMobileConnectConfig()
+                .getSessionUpdaterConfig().getMePinAccessToken();
 
         try {
             HttpsURLConnection connection = (HttpsURLConnection) new URL(url).openConnection();
@@ -93,7 +103,7 @@ public class MePinStatusRequest implements Callable<String> {
             }
             br.close();
 
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("MePIN Status Response Code : " + statusCode + " " + connection.getResponseMessage());
                 log.debug("MePIN Status Response : " + resp);
             }

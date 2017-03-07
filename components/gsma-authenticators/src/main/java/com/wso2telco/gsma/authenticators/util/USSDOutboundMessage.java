@@ -31,36 +31,52 @@ import java.util.Map;
  */
 public class USSDOutboundMessage {
 
-    /** Message type enum */
-    public enum MessageType{
+    /**
+     * Message type enum
+     */
+    public enum MessageType {
         LOGIN,
         REGISTRATION,
         PIN_LOGIN,
         PIN_REGISTRATION
     }
 
-    /** The Configuration service */
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
-    /** The SP Configuration service */
+    /**
+     * The SP Configuration service
+     */
     private static SpConfigService spConfigService = new SpConfigServiceImpl();
 
-    /** Temporary reference for ussd config */
+    /**
+     * Temporary reference for ussd config
+     */
     private static MobileConnectConfig.USSDConfig ussdConfig;
 
-    /** Map to store operator specific messages loaded from config file */
-    private static HashMap<String, MobileConnectConfig.OperatorSpecificMessage> operatorSpecificMessageMap = new HashMap<>();
+    /**
+     * Map to store operator specific messages loaded from config file
+     */
+    private static HashMap<String, MobileConnectConfig.OperatorSpecificMessage> operatorSpecificMessageMap = new
+            HashMap<>();
 
-    /** Map to store operator specific PIN messages loaded from config file */
-    private static HashMap<String, MobileConnectConfig.OperatorSpecificMessage> operatorSpecificPinMessageMap = new HashMap<>();
+    /**
+     * Map to store operator specific PIN messages loaded from config file
+     */
+    private static HashMap<String, MobileConnectConfig.OperatorSpecificMessage> operatorSpecificPinMessageMap = new
+            HashMap<>();
 
     static {
         ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
-        for(MobileConnectConfig.OperatorSpecificMessage osm : ussdConfig.getOperatorSpecificMessages().getOperatorSpecificMessage()){
+        for (MobileConnectConfig.OperatorSpecificMessage osm : ussdConfig.getOperatorSpecificMessages()
+                .getOperatorSpecificMessage()) {
             operatorSpecificMessageMap.put(osm.getOperator(), osm);
         }
 
-        for(MobileConnectConfig.OperatorSpecificMessage osm : ussdConfig.getOperatorSpecificPinMessages().getOperatorSpecificPinMessage()){
+        for (MobileConnectConfig.OperatorSpecificMessage osm : ussdConfig.getOperatorSpecificPinMessages()
+                .getOperatorSpecificPinMessage()) {
             operatorSpecificPinMessageMap.put(osm.getOperator(), osm);
         }
     }
@@ -70,13 +86,14 @@ public class USSDOutboundMessage {
      * message stored in mobile-connect.xml. Message template can have ${variable} and relevant data to apply to the
      * template should be passed with map parameter.
      *
-     * @param clientId sp client id
+     * @param clientId    sp client id
      * @param messageType ussd message type
-     * @param map additional variable data map for the message template
-     * @param operator operator name
+     * @param map         additional variable data map for the message template
+     * @param operator    operator name
      * @return prepared ussd message
      */
-    public static String prepare(String clientId, MessageType messageType, HashMap<String, String> map, String operator){
+    public static String prepare(String clientId, MessageType messageType, HashMap<String, String> map, String
+            operator) {
 
         MobileConnectConfig.OperatorSpecificMessage operatorSpecificMessage = null;
         String template = null;
@@ -85,8 +102,8 @@ public class USSDOutboundMessage {
         // add default map values here
         // data.put("key", "value");
 
-        if(map != null && map.size() > 0) {
-            for (Map.Entry<String, String> entry : map.entrySet()){
+        if (map != null && map.size() > 0) {
+            for (Map.Entry<String, String> entry : map.entrySet()) {
                 data.put(entry.getKey(), entry.getValue());
             }
         }
@@ -105,23 +122,23 @@ public class USSDOutboundMessage {
         }
 
         // RULE 1 : first try to get login/registration messages from sp config table
-        if(messageType == MessageType.LOGIN) {
+        if (messageType == MessageType.LOGIN) {
             template = spConfigService.getUSSDLoginMessage(clientId);
         }
 
-        if(messageType == MessageType.REGISTRATION) {
+        if (messageType == MessageType.REGISTRATION) {
             template = spConfigService.getUSSDRegistrationMessage(clientId);
         }
 
-        if(messageType == MessageType.PIN_LOGIN) {
+        if (messageType == MessageType.PIN_LOGIN) {
             template = spConfigService.getUSSDPinLoginMessage(clientId);
         }
 
-        if(messageType == MessageType.PIN_REGISTRATION) {
+        if (messageType == MessageType.PIN_REGISTRATION) {
             template = spConfigService.getUSSDPinRegistrationMessage(clientId);
         }
 
-        if(template == null) {
+        if (template == null) {
             // RULE 2 : if message template is not found, try loading them from operator specific config from xml
             if (operatorSpecificMessage != null) {
                 if (messageType == MessageType.LOGIN) {

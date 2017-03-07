@@ -35,16 +35,21 @@ public class PinLoginUssdCommand extends UssdCommand {
 
     private static Log log = LogFactory.getLog(PinLoginUssdCommand.class);
 
-    /** The const mtinit. */
+    /**
+     * The const mtinit.
+     */
     private static String CONST_MTINIT = "mtinit";
 
-    /** The Configuration service */
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     @Override
     protected String getUrl(String msisdn) {
 
-        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
+        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig()
+                .getUssdConfig();
 
         String url = ussdConfig.getEndpoint();
         if (url.endsWith("/")) {
@@ -58,17 +63,20 @@ public class PinLoginUssdCommand extends UssdCommand {
     }
 
     @Override
-    protected USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String operator, String client_id) {
-        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
+    protected USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String operator,
+                                         String client_id) {
+        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig()
+                .getUssdConfig();
 
         USSDRequest req = new USSDRequest();
 
         // prepare the USSD message from template
         HashMap<String, String> variableMap = new HashMap<String, String>();
         variableMap.put("application", application.changeApplicationName(serviceProvider));
-        String message = USSDOutboundMessage.prepare(client_id, USSDOutboundMessage.MessageType.PIN_LOGIN, variableMap, operator);
+        String message = USSDOutboundMessage.prepare(client_id, USSDOutboundMessage.MessageType.PIN_LOGIN,
+                variableMap, operator);
 
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("Message : " + message);
         }
 

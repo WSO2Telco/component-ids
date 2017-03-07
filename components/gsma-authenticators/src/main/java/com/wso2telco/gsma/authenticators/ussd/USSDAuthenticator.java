@@ -74,7 +74,8 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
+     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
+     * .servlet.http.HttpServletRequest)
      */
     @Override
     public boolean canHandle(HttpServletRequest request) {
@@ -85,14 +86,17 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#process(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
+     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#process
+     * (javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity
+     * .application.authentication.framework.context.AuthenticationContext)
      */
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request,
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
         DataPublisherUtil
-                .updateAndPublishUserStatus((UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
+                                .USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.USSD_AUTH_PROCESSING, "USSDAuthenticator processing started");
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
@@ -102,7 +106,10 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#initiateAuthenticationRequest(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .AbstractApplicationAuthenticator#initiateAuthenticationRequest(javax.servlet.http.HttpServletRequest, javax
+     * .servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context
+     * .AuthenticationContext)
      */
     @Override
     protected void initiateAuthenticationRequest(HttpServletRequest request,
@@ -110,7 +117,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
 
         log.info("Initiating authentication request");
-        UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
+        UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         String loginPage;
         String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
                 context.getCallerSessionKey(), context.getContextIdentifier());
@@ -132,7 +139,8 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             loginPage = getAuthEndpointUrl(context);
 
             if (serviceProviderName.equals("wso2_sp_dashboard")) {
-                serviceProviderName = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getDashBoard();
+                serviceProviderName = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig()
+                        .getDashBoard();
             }
             String operator = (String) context.getProperty(Constants.OPERATOR);
 
@@ -143,7 +151,8 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
                 log.debug("Operator : " + operator);
                 log.debug("Redirect URI : " + context.getProperty("redirectURI"));
             }
-            response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" + (String) context.getProperty("redirectURI") + "&authenticators="
+            response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
+                    (String) context.getProperty("redirectURI") + "&authenticators="
                     + getName() + ":" + "LOCAL" + retryParam);
 
         } catch (IOException | SQLException | AuthenticatorException e) {
@@ -159,14 +168,16 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         String loginPage;
 
         if (isRegistering) {
-            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.REGISTRATION_WAITING_JSP;
+            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+                    Constants.REGISTRATION_WAITING_JSP;
         } else {
             loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         }
         return loginPage;
     }
 
-    private void sendUssd(AuthenticationContext context, String msisdn, String serviceProviderName, String operator, boolean isUserExists) throws IOException {
+    private void sendUssd(AuthenticationContext context, String msisdn, String serviceProviderName, String operator,
+                          boolean isUserExists) throws IOException {
         UssdCommand ussdCommand;
 
         if (isUserExists) {
@@ -180,7 +191,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
         String client_id = paramMap.get(Constants.CLIENT_ID);
 
-        UserStatus userStatus = (UserStatus)context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
+        UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         USSDFutureCallback futureCallback =
                 userStatus != null ? new USSDFutureCallback(userStatus.cloneUserStatus()) : new USSDFutureCallback();
         ussdCommand.execute(msisdn, context.getContextIdentifier(), serviceProviderName, operator, client_id,
@@ -189,6 +200,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
     /**
      * Terminates the authenticator due to user implicit action
+     *
      * @param context Authentication Context
      * @throws AuthenticationFailedException
      */
@@ -200,7 +212,10 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#processAuthenticationResponse(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .AbstractApplicationAuthenticator#processAuthenticationResponse(javax.servlet.http.HttpServletRequest, javax
+     * .servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context
+     * .AuthenticationContext)
      */
     @Override
     protected void processAuthenticationResponse(HttpServletRequest request,
@@ -212,7 +227,8 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         if ("true".equals(request.getParameter("smsrequested"))) {
             //This logic would get hit if the user hits the link to get an SMS so in that case
             //We need to fallback. Therefore we through AuthenticationFailedException
-            throw new AuthenticationFailedException("USSD Authentication is skipped and moving forward to SMSAuthenticator");
+            throw new AuthenticationFailedException("USSD Authentication is skipped and moving forward to " +
+                    "SMSAuthenticator");
         } else {
             //This logic would get hit whenever normal USSD Authentication flow is happening and in that case
             //we don't need the SMSAuthenticator to be hit. Therefore, we set this property so that in the
@@ -223,9 +239,9 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         }
 
         String userAction = request.getParameter(Constants.ACTION);
-        if(userAction != null && !userAction.isEmpty()) {
+        if (userAction != null && !userAction.isEmpty()) {
             // Change behaviour depending on user action
-            switch(userAction) {
+            switch (userAction) {
                 case Constants.USER_ACTION_USER_CANCELED:
                     //User clicked cancel button from login
                     terminateAuthentication(context);
@@ -292,7 +308,8 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#retryAuthenticationEnabled()
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .AbstractApplicationAuthenticator#retryAuthenticationEnabled()
      */
     @Override
     protected boolean retryAuthenticationEnabled() {
@@ -300,7 +317,8 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
      */
     @Override
     public String getContextIdentifier(HttpServletRequest request) {
@@ -324,7 +342,9 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
     }
 
     @Override
-    public String getAmrValue(int acr) { return "USSD_OK"; }
+    public String getAmrValue(int acr) {
+        return "USSD_OK";
+    }
 
     /**
      * The Enum UserResponse.
