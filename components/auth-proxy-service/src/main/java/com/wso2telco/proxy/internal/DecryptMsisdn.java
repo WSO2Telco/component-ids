@@ -30,7 +30,7 @@ import java.security.NoSuchAlgorithmException;
 public class DecryptMsisdn implements MSISDNDecryption {
     public String decryptMsisdn(String encryptedText, String decryptionKey)
             throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException,
-                   IllegalBlockSizeException {
+            IllegalBlockSizeException {
         byte[] hexBinaryOfEncryptedText = DatatypeConverter.parseHexBinary(encryptedText);
 
         Cipher cipher = Cipher.getInstance(AuthProxyConstants.RC4_KEY);

@@ -54,7 +54,8 @@ public class TenantDataManager {
     private static Properties prop;
     private static String carbonLogin = "";
     private static String usernameHeaderName = "";
-    private static List<String> tenantDomainList;;
+    private static List<String> tenantDomainList;
+    ;
     private static boolean isInitialized = false;
 
     private static synchronized void init() {
@@ -63,7 +64,8 @@ public class TenantDataManager {
             if (!isInitialized) {
                 prop = new Properties();
 
-                InputStream inputStream = TenantDataManager.class.getClassLoader().getResourceAsStream("TenantConfig.properties");
+                InputStream inputStream = TenantDataManager.class.getClassLoader().getResourceAsStream("TenantConfig" +
+                        ".properties");
 
                 if (inputStream != null) {
                     prop.load(inputStream);
@@ -101,12 +103,12 @@ public class TenantDataManager {
 
     private static String buildFilePath(String path) throws IOException {
 
-        if(path != null && path.startsWith(".")){ //relative path is given
+        if (path != null && path.startsWith(".")) { //relative path is given
             File currentDirectory = new File(new File(".").getAbsolutePath());
             path = currentDirectory.getCanonicalPath() + File.separator + path;
         }
 
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("File path for KeyStore/TrustStore : " + path);
         }
         return path;
@@ -124,7 +126,7 @@ public class TenantDataManager {
             headerParams.put(usernameHeaderName, carbonLogin);
             return MutualSSLClient.sendGetRequest(url, null, headerParams);
         } catch (Exception e) {
-            log.error("Processing request for " + url + " Failed : " , e);
+            log.error("Processing request for " + url + " Failed : ", e);
             return null;
         }
     }
@@ -226,7 +228,7 @@ public class TenantDataManager {
             }
 
         } catch (Exception e) {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Retrieving Active Tenant Domains Failed. Ignore this if there are no tenants : ", e);
             }
         }

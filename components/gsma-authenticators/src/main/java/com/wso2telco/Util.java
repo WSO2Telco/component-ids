@@ -87,13 +87,17 @@ public class Util {
         }
         return paramMap;
     }
-    
-    public static boolean isProfileUpgrade(String msisdn, int requestedLoa, boolean isUserExits) throws RemoteException, LoginAuthenticationExceptionException, RemoteUserStoreManagerServiceUserStoreExceptionException, AuthenticationFailedException, UserStoreException {
+
+    public static boolean isProfileUpgrade(String msisdn, int requestedLoa, boolean isUserExits) throws
+            RemoteException, LoginAuthenticationExceptionException,
+            RemoteUserStoreManagerServiceUserStoreExceptionException, AuthenticationFailedException,
+            UserStoreException {
 
         if (isUserExits) {
             String adminURL = configurationService.getDataHolder().getMobileConnectConfig().getAdminUrl();
             LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
-            String sessionCookie = lAdmin.authenticate(configurationService.getDataHolder().getMobileConnectConfig().getAdminUsername(),
+            String sessionCookie = lAdmin.authenticate(configurationService.getDataHolder().getMobileConnectConfig()
+                            .getAdminUsername(),
                     configurationService.getDataHolder().getMobileConnectConfig().getAdminPassword());
             ClaimManagementClient claimManager = new ClaimManagementClient(adminURL, sessionCookie);
             int registeredLoa = Integer.parseInt(claimManager.getRegisteredLOA(msisdn));
@@ -104,6 +108,6 @@ public class Util {
         }
 
     }
-    
-    
+
+
 }

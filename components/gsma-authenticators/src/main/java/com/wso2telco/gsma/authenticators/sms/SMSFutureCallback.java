@@ -43,14 +43,16 @@ public class SMSFutureCallback extends BasicFutureCallback {
         } else {
             log.error("Failed Request - " + postRequest.getURI().getSchemeSpecificPart());
             DataPublisherUtil
-                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SEND_SMS_FAIL, "SMS sending failed");
+                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SEND_SMS_FAIL, "SMS sending " +
+                            "failed");
         }
         closeClient();
     }
 
     public void failed(Exception exception) {
         DataPublisherUtil
-                .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SEND_SMS_FAIL, "SMS sending failed");
+                .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SEND_SMS_FAIL, "SMS sending " +
+                        "failed");
         super.failed(exception);
     }
 }

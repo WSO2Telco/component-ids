@@ -234,7 +234,8 @@ public class DatabaseUtils {
      * @param ussdSessionID the ussd session id
      * @throws SQLException the SQL exception
      */
-    public static void updatePinStatus(String sessionID, String status, String userpin, String ussdSessionID) throws SQLException {
+    public static void updatePinStatus(String sessionID, String status, String userpin, String ussdSessionID) throws
+            SQLException {
 
         Connection connection = null;
 
@@ -321,7 +322,7 @@ public class DatabaseUtils {
 
         }
 
-        log.info("UserStatus "+userStatus);
+        log.info("UserStatus " + userStatus);
         return userStatus;
     }
 
@@ -478,7 +479,8 @@ public class DatabaseUtils {
      * @return the login history
      * @throws SQLException the SQL exception
      */
-    public static List<LoginHistory> getLoginHistory(String userId, String application, Date fromDate, Date toDate) throws SQLException {
+    public static List<LoginHistory> getLoginHistory(String userId, String application, Date fromDate, Date toDate)
+            throws SQLException {
         Connection connection = null;
         PreparedStatement ps = null;
         String userStatus = null;
@@ -490,7 +492,8 @@ public class DatabaseUtils {
 
         List<LoginHistory> loghistory = new ArrayList();
 
-        String sql = "SELECT id, reqtype, application_id, authenticated_user, isauthenticated, authenticators, ipaddress, created_date "
+        String sql = "SELECT id, reqtype, application_id, authenticated_user, isauthenticated, authenticators, " +
+                "ipaddress, created_date "
                 + "FROM sp_login_history "
                 + "WHERE application_id like ? "
                 + "AND authenticated_user = ? "
@@ -516,7 +519,8 @@ public class DatabaseUtils {
                 sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
                 String creationDate = sdf.format(rs.getTimestamp("created_date"));
                 loghistory.add(new LoginHistory(rs.getString("application_id"), rs.getString("authenticated_user"),
-                        (rs.getInt("isauthenticated") == 1) ? "SUCCESS" : "FAILED", rs.getString("ipaddress"), creationDate));
+                        (rs.getInt("isauthenticated") == 1) ? "SUCCESS" : "FAILED", rs.getString("ipaddress"),
+                        creationDate));
             }
 
         } catch (NamingException ex) {

@@ -35,13 +35,13 @@ public class FileUtil {
             props.load(FileUtil.class.getResourceAsStream("application.properties"));
 
         } catch (FileNotFoundException e) {
-           log.error(
+            log.error(
                     "Check your Property file, it should be in application home dir, Error:"
-                    + e.getCause() + "Cant load APPLICATION.properties");
+                            + e.getCause() + "Cant load APPLICATION.properties");
         } catch (IOException e) {
             log.error(
                     "Check your Property file, it should be in application home dir, Error:"
-                    + e.getCause() + "Cant load APPLICATION.properties");
+                            + e.getCause() + "Cant load APPLICATION.properties");
         }
     }
 

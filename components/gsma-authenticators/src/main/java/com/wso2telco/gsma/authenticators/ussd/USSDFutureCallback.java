@@ -38,7 +38,8 @@ public class USSDFutureCallback extends BasicFutureCallback {
         if ((response.getStatusLine().getStatusCode() == 200)) {
             log.info("Success Request - " + postRequest.getURI().getSchemeSpecificPart());
             DataPublisherUtil
-                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SEND_USSD_PUSH, "USSD Push done");
+                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SEND_USSD_PUSH, "USSD Push " +
+                            "done");
 
         } else {
             log.error("Failed Request - " + postRequest.getURI().getSchemeSpecificPart());

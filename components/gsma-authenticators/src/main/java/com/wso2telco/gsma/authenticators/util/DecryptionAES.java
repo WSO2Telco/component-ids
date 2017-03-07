@@ -28,18 +28,25 @@ import java.security.NoSuchAlgorithmException;
 
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class DecryptionAES.
  */
 public class DecryptionAES {
 
-    /** The cipher. */
+    /**
+     * The cipher.
+     */
     private static Cipher cipher;
-    
-    /** The key value. */
+
+    /**
+     * The key value.
+     */
     private static byte[] keyValue;
 
-    /** The Configuration service */
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     private static final ThreadLocal<Cipher> CIPHER_THREAD_LOCAL = new ThreadLocal<Cipher>() {
@@ -48,7 +55,7 @@ public class DecryptionAES {
             try {
                 SecretKey key = new SecretKeySpec(keyValue, "AES");
                 Cipher cipher = Cipher.getInstance("AES");
-                cipher.init(Cipher.DECRYPT_MODE,key);
+                cipher.init(Cipher.DECRYPT_MODE, key);
                 return cipher;
             } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
                 throw new RuntimeException(e);
@@ -56,10 +63,11 @@ public class DecryptionAES {
         }
     };
 
-    static{
-        keyValue = configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getEncryptionKey().getBytes();
+    static {
+        keyValue = configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getEncryptionKey()
+                .getBytes();
     }
-    
+
     /**
      * Decrypt.
      *
@@ -68,23 +76,22 @@ public class DecryptionAES {
      * @throws Exception the exception
      */
     public static String decrypt(String encryptedText)
-			throws Exception {
-		
-               String decryptedText =null ;
-               if (encryptedText != null){
-                    byte[] encryptedTextByte = Base64.decode(encryptedText);
+            throws Exception {
+
+        String decryptedText = null;
+        if (encryptedText != null) {
+            byte[] encryptedTextByte = Base64.decode(encryptedText);
                     /* The cipher. */
-                   Cipher cipher = CIPHER_THREAD_LOCAL.get();
-                    byte[] decryptedByte = cipher.doFinal(encryptedTextByte);
-                    decryptedText = new String(decryptedByte);
-               }
-               else{
-                  //nop 
-               }
-		return decryptedText;
-	}
-    
-     
+            Cipher cipher = CIPHER_THREAD_LOCAL.get();
+            byte[] decryptedByte = cipher.doFinal(encryptedTextByte);
+            decryptedText = new String(decryptedByte);
+        } else {
+            //nop
+        }
+        return decryptedText;
+    }
+
+
 }
     
 

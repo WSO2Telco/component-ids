@@ -57,12 +57,14 @@ public class DBConnection {
      * @param platform       platform
      * @param pushToken      push token
      * @param msisdn         mobile number
-     * @throws SQLException SQLException
+     * @throws SQLException    SQLException
      * @throws DBUtilException DbUtilException
      */
-    public void addClient(String clientDeviceId, String platform, String pushToken, String msisdn) throws SQLException, DBUtilException {
+    public void addClient(String clientDeviceId, String platform, String pushToken, String msisdn) throws
+            SQLException, DBUtilException {
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
-        String query = "INSERT INTO clients (client_device_id,platform,push_token,date_time,msisdn) VALUES ('" + clientDeviceId + "','" + platform + "','" + pushToken + "','" + timeStamp + "','" + msisdn + "');";
+        String query = "INSERT INTO clients (client_device_id,platform,push_token,date_time,msisdn) VALUES ('" +
+                clientDeviceId + "','" + platform + "','" + pushToken + "','" + timeStamp + "','" + msisdn + "');";
         executeUpdate(query);
     }
 
@@ -71,7 +73,7 @@ public class DBConnection {
      *
      * @param msisdn mobile number
      * @return boolean indicating the transaction is success ,failure or error
-     * @throws SQLException SQLException
+     * @throws SQLException    SQLException
      * @throws DBUtilException DBUtilsException
      */
     public boolean isExist(String msisdn) throws SQLException, DBUtilException {
@@ -109,8 +111,8 @@ public class DBConnection {
      * @param msisdn mobile number
      * @return clientID
      * @throws EmptyResultSetException EmptyResultSetException
-     * @throws SQLException SQLException
-     * @throws DBUtilException DBUtilException
+     * @throws SQLException            SQLException
+     * @throws DBUtilException         DBUtilException
      */
     public ClientDetails getClientDetails(String msisdn) throws EmptyResultSetException, SQLException, DBUtilException {
 
@@ -157,14 +159,16 @@ public class DBConnection {
      * @param clientDeviceId device id of the client
      * @param refID          ref id
      * @param message        message
-     * @throws SQLException SQLException
+     * @throws SQLException    SQLException
      * @throws DBUtilException DBUtilException
      */
-    public void authenticateClient(String refID, String clientDeviceId, String message) throws SQLException, DBUtilException {
+    public void authenticateClient(String refID, String clientDeviceId, String message) throws SQLException,
+            DBUtilException {
 
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
 
-        String query = "INSERT INTO messages (ref_id,client_device_id,message,req_date_time,status)VALUES ('" + refID + "','" + clientDeviceId + "','" + message + "','" + timeStamp + "','P');";
+        String query = "INSERT INTO messages (ref_id,client_device_id,message,req_date_time,status)VALUES ('" + refID
+                + "','" + clientDeviceId + "','" + message + "','" + timeStamp + "','P');";
         executeUpdate(query);
     }
 
@@ -173,7 +177,7 @@ public class DBConnection {
      *
      * @param refID  ref id
      * @param status status
-     * @throws SQLException SQLException
+     * @throws SQLException    SQLException
      * @throws DBUtilException DBUtilException
      */
     public void updateMessageTable(String refID, char status) throws SQLException, DBUtilException {
@@ -185,7 +189,7 @@ public class DBConnection {
      * Delete already registered clients form the db
      *
      * @param msisdn mobile number
-     * @throws SQLException SQLException
+     * @throws SQLException    SQLException
      * @throws DBUtilException DBUtilException
      */
     public void removeClient(String msisdn) throws SQLException, DBUtilException {
@@ -197,7 +201,7 @@ public class DBConnection {
      * Execute the query
      *
      * @param query query to execute
-     * @throws SQLException SQLException
+     * @throws SQLException    SQLException
      * @throws DBUtilException DBUtilException
      */
     private void executeUpdate(String query) throws SQLException, DBUtilException {
@@ -223,9 +227,10 @@ public class DBConnection {
 
     /**
      * Close the database connection.
+     *
      * @param connection Connection instance used by the method call
-     * @param statement prepared Statement used by the method call
-     * @param resultSet result set which is used by the method call
+     * @param statement  prepared Statement used by the method call
+     * @param resultSet  result set which is used by the method call
      */
     public void close(Connection connection, PreparedStatement statement, ResultSet resultSet) {
 

@@ -16,7 +16,7 @@
 
 package com.wso2telco.gsma.authenticators.exception;
 
-public class SaaException extends Exception{
+public class SaaException extends Exception {
 
     public SaaException() {
         super("Error occurred in smart phone authenticator");

@@ -41,14 +41,19 @@ import java.util.Map;
  */
 public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandler {
 
-    /** The log. */
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(DefaultStepBasedSequenceHandler.class);
     private static final String HEADER_X_FORWARDED_FOR = "X-FORWARDED-FOR";
     private static final int MAX_NO_OF_STEPS = 30;
 
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl.DefaultStepBasedSequenceHandler#handle(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
+     * @see org.wso2.carbon.identity.application.authentication.framework.handler.sequence.impl
+     * .DefaultStepBasedSequenceHandler#handle(javax.servlet.http.HttpServletRequest, javax.servlet.http
+     * .HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context
+     * .AuthenticationContext)
      */
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
@@ -86,7 +91,7 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
                 if (context.isRequestAuthenticated()) {
                     if (log.isDebugEnabled()) {
                         log.debug("Step " + stepConfig.getOrder()
-                                          + " is completed. Going to get the next one.");
+                                + " is completed. Going to get the next one.");
                     }
 
                     currentStep = context.getCurrentStep() + 1;
@@ -97,7 +102,7 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
 
                     if (log.isDebugEnabled()) {
                         log.debug("Authentication has failed in the Step "
-                                          + (context.getCurrentStep()));
+                                + (context.getCurrentStep()));
                     }
 
                     // if the step contains multiple login options, we
@@ -199,9 +204,9 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
         writeLogHistory(request, context);
 
         boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled();
-        if(dataPublisherEnabled) {
+        if (dataPublisherEnabled) {
             publishAuthEndpointData(request, context);
-            if(context.isRequestAuthenticated()) {
+            if (context.isRequestAuthenticated()) {
                 DataPublisherUtil.updateAndPublishUserStatus(
                         (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.LOGIN_SUCCESS,
@@ -250,8 +255,8 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
         try {
             String ipAddress = retrieveIPAddress(request);
             DbTracelog.LogHistory(context.getRequestType(), context.isRequestAuthenticated(),
-                                  context.getSequenceConfig().getApplicationId(), authenticatedUser,
-                                  authenticators, ipAddress);
+                    context.getSequenceConfig().getApplicationId(), authenticatedUser,
+                    authenticators, ipAddress);
         } catch (LogHistoryException ex) {
             log.error("Error occured while Login SP LogHistory", ex);
         }

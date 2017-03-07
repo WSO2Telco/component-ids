@@ -20,7 +20,7 @@ import java.rmi.RemoteException;
 
 
 public class LoginAdminServiceClient {
-	private final String serviceName = "AuthenticationAdmin";
+    private final String serviceName = "AuthenticationAdmin";
     private AuthenticationAdminStub authenticationAdminStub;
     private String endPoint;
 
@@ -28,14 +28,14 @@ public class LoginAdminServiceClient {
 
     public LoginAdminServiceClient(String backEndUrl) throws AxisFault {
         //String path = "D:/currLife/is/wso2is-5.0.0/repository/resources/security/"
-       //         + "wso2carbon.jks";
-        
-      //  System.setProperty("javax.net.ssl.trustStore", path);
-      //  System.setProperty("javax.net.ssl.trustStorePassword", "wso2carbon");
-        
+        //         + "wso2carbon.jks";
+
+        //  System.setProperty("javax.net.ssl.trustStore", path);
+        //  System.setProperty("javax.net.ssl.trustStorePassword", "wso2carbon");
+
         this.endPoint = backEndUrl + "/services/" + serviceName;
         authenticationAdminStub = new AuthenticationAdminStub(endPoint);
-        
+
     }
 
     public String authenticate(String userName, String password)
@@ -51,7 +51,7 @@ public class LoginAdminServiceClient {
                     .getServiceContext();
             sessionCookie = (String) serviceContext
                     .getProperty(HTTPConstants.COOKIE_STRING);
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug(sessionCookie);
             }
         }
@@ -63,41 +63,44 @@ public class LoginAdminServiceClient {
             LogoutAuthenticationExceptionException {
         authenticationAdminStub.logout();
     }
-    
-    public String LoginUser(String userName,String password) throws RemoteUserStoreManagerServiceUserStoreExceptionException{
+
+    public String LoginUser(String userName, String password) throws
+            RemoteUserStoreManagerServiceUserStoreExceptionException {
         String sessionKey = null;
-        
-        //String path = "/home/gayan/Documents/Dev/GSMA/IS_OpenId/testSetup1908/wso2is-5.0.0/repository/resources/security/"
+
+        //String path = "/home/gayan/Documents/Dev/GSMA/IS_OpenId/testSetup1908/wso2is-5.0.0/repository/resources
+        // /security/"
         //        + "wso2carbon.jks";
-        
+
         try {
-				String adminURL = DataHolder.getInstance().getMobileConnectConfig().getAdminUrl();
-                LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
-                String sessionCookie = lAdmin.authenticate(DataHolder.getInstance().getMobileConnectConfig().getAdminUsername(),
-                        DataHolder.getInstance().getMobileConnectConfig().getAdminPassword());
-                ClaimManagementClient claimManager = new ClaimManagementClient(adminURL,sessionCookie);
+            String adminURL = DataHolder.getInstance().getMobileConnectConfig().getAdminUrl();
+            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
+            String sessionCookie = lAdmin.authenticate(DataHolder.getInstance().getMobileConnectConfig()
+                            .getAdminUsername(),
+                    DataHolder.getInstance().getMobileConnectConfig().getAdminPassword());
+            ClaimManagementClient claimManager = new ClaimManagementClient(adminURL, sessionCookie);
 
         } catch (AxisFault e) {
-                log.error(e);
+            log.error(e);
         } catch (RemoteException e) {
-                log.error(e);
+            log.error(e);
         } catch (LoginAuthenticationExceptionException e) {
-                log.error(e);
-        } 
+            log.error(e);
+        }
         return sessionKey;
-        
+
     }
-    
-    public void setPIN(String pin){
+
+    public void setPIN(String pin) {
         ServiceClient serviceClient;
         Options option;
-        
-        
+
+
         SetUserClaimValues claimAdmin = new SetUserClaimValues();
-        
+
         //String username = claimAdmin.getUserName();
-        
-       // Options option
+
+        // Options option
         //claimAdmin.setClaims(param);
     }
 

@@ -18,24 +18,23 @@ import org.apache.axis2.client.ServiceClient;
 //import org.wso2.
 
 
-        
 public class LoginAdminServiceClient {
     private static Log log = LogFactory.getLog(LoginAdminServiceClient.class);
 
-	private final String serviceName = "AuthenticationAdmin";
+    private final String serviceName = "AuthenticationAdmin";
     private AuthenticationAdminStub authenticationAdminStub;
     private String endPoint;
 
     public LoginAdminServiceClient(String backEndUrl) throws AxisFault {
         //String path = "D:/currLife/is/wso2is-5.0.0/repository/resources/security/"
-       //         + "wso2carbon.jks";
-        
-      //  System.setProperty("javax.net.ssl.trustStore", path);
-      //  System.setProperty("javax.net.ssl.trustStorePassword", "wso2carbon");
-        
+        //         + "wso2carbon.jks";
+
+        //  System.setProperty("javax.net.ssl.trustStore", path);
+        //  System.setProperty("javax.net.ssl.trustStorePassword", "wso2carbon");
+
         this.endPoint = backEndUrl + "/services/" + serviceName;
         authenticationAdminStub = new AuthenticationAdminStub(endPoint);
-        
+
     }
 
     public String authenticate(String userName, String password)
@@ -51,7 +50,7 @@ public class LoginAdminServiceClient {
                     .getServiceContext();
             sessionCookie = (String) serviceContext
                     .getProperty(HTTPConstants.COOKIE_STRING);
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug(sessionCookie);
             }
         }
@@ -63,17 +62,20 @@ public class LoginAdminServiceClient {
             LogoutAuthenticationExceptionException {
         authenticationAdminStub.logout();
     }
-    
-    public String LoginUser(String userName,String password) throws RemoteUserStoreManagerServiceUserStoreExceptionException{
+
+    public String LoginUser(String userName, String password) throws
+            RemoteUserStoreManagerServiceUserStoreExceptionException {
         String sessionKey = null;
-        
-        //String path = "/home/gayan/Documents/Dev/GSMA/IS_OpenId/testSetup1908/wso2is-5.0.0/repository/resources/security/"
+
+        //String path = "/home/gayan/Documents/Dev/GSMA/IS_OpenId/testSetup1908/wso2is-5.0.0/repository/resources
+        // /security/"
         //        + "wso2carbon.jks";
 
         try {
             String adminURL = FileUtil.getApplicationProperty("isadminurl");
             LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
-            String sessionCookie = lAdmin.authenticate(FileUtil.getApplicationProperty("adminusername"), FileUtil.getApplicationProperty("adminpassword"));
+            String sessionCookie = lAdmin.authenticate(FileUtil.getApplicationProperty("adminusername"), FileUtil
+                    .getApplicationProperty("adminpassword"));
             ClaimManagementClient claimManager = new ClaimManagementClient(adminURL, sessionCookie);
             claimManager.setClaim();
         } catch (AxisFault e) {
@@ -84,19 +86,19 @@ public class LoginAdminServiceClient {
             log.error(e);
         }
         return sessionKey;
-        
+
     }
-    
-    public void setPIN(String pin){
+
+    public void setPIN(String pin) {
         ServiceClient serviceClient;
         Options option;
-        
-        
+
+
         SetUserClaimValues claimAdmin = new SetUserClaimValues();
-        
+
         //String username = claimAdmin.getUserName();
-        
-       // Options option
+
+        // Options option
         //claimAdmin.setClaims(param);
     }
 

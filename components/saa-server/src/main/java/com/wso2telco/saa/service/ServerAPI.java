@@ -91,7 +91,8 @@ public class ServerAPI {
         }
 
         log.info("sending response back");
-        response = "{\"success\" :\"" + success + "\",\"failure\" :\"" + failure + "\",\"result\" : {\"message\" :\"" + responseMessage + "\"}}";
+        response = "{\"success\" :\"" + success + "\",\"failure\" :\"" + failure + "\",\"result\" : {\"message\" :\""
+                + responseMessage + "\"}}";
         return Response.ok(response, MediaType.APPLICATION_JSON).build();
     }
 
@@ -100,7 +101,7 @@ public class ServerAPI {
      * Request comes from SAA Adapter to authenticate the Service Provider.
      *
      * @param messageDetails message details
-     * @param msisdn msisdn of the client
+     * @param msisdn         msisdn of the client
      * @return success or failure indicating the client is authenticated or not to the SAA adapter.
      */
     @POST
@@ -125,7 +126,8 @@ public class ServerAPI {
             clientDetailsArray = dbConnection.getClientDetails(msisdn);
 
             if (clientDetailsArray != null) {
-                pushMessageDetails = "{\"platform\" :\"" + clientDetailsArray.getPlatform() + "\",\"pushToken\" :\"" + clientDetailsArray.getPushToken() + "\",\"data\" : " + messageDetails + "}";
+                pushMessageDetails = "{\"platform\" :\"" + clientDetailsArray.getPlatform() + "\",\"pushToken\" :\""
+                        + clientDetailsArray.getPushToken() + "\",\"data\" : " + messageDetails + "}";
 
                 dbConnection.authenticateClient(refId, clientDetailsArray.getDeviceId(), messageDetails);
 
@@ -158,7 +160,8 @@ public class ServerAPI {
             responseMessage = "Authentication Unsuccessful";
         }
 
-        response = "{\"success\" :\"" + success + "\",\"failure\" :\"" + failure + "\",\"result\" : {\"message\" :\"" + responseMessage + "\"}}";
+        response = "{\"success\" :\"" + success + "\",\"failure\" :\"" + failure + "\",\"result\" : {\"message\" :\""
+                + responseMessage + "\"}}";
         log.info(response);
         return Response.ok(response, MediaType.APPLICATION_JSON).build();
     }
@@ -204,7 +207,7 @@ public class ServerAPI {
      * InBound from SAA Client
      *
      * @param messageDetails message details
-     * @param msisdn msisdn of the client
+     * @param msisdn         msisdn of the client
      * @return success or failure indicating the client is authenticated or not to the SAA Client.
      * @throws ClassNotFoundException on error
      */
@@ -212,7 +215,8 @@ public class ServerAPI {
     @Path("api/v1/clients/{msisdn}/auth_response")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response authenticateClientBySAAClient(@PathParam("msisdn") String msisdn, String messageDetails) throws ClassNotFoundException {
+    public Response authenticateClientBySAAClient(@PathParam("msisdn") String msisdn, String messageDetails) throws
+            ClassNotFoundException {
 
         log.info("Inside auth_response API method");
         JSONObject requestInfoObj = new JSONObject(messageDetails);
@@ -252,7 +256,8 @@ public class ServerAPI {
             responseMessage = "Error in sending authorization response";
         }
 
-        response = "{\"success\" :\"" + success + "\",\"failure\" :\"" + failure + "\",\"result\" : {\"message\" :\"" + responseMessage + "\"}}";
+        response = "{\"success\" :\"" + success + "\",\"failure\" :\"" + failure + "\",\"result\" : {\"message\" :\""
+                + responseMessage + "\"}}";
         log.info("response sent");
         return Response.ok(response, MediaType.APPLICATION_JSON).build();
     }
@@ -264,13 +269,14 @@ public class ServerAPI {
      * @param msisdn MSISDN of the client
      * @return registred or notRegistred indicating the client registred or not in the SAA Server database.
      * @throws ClassNotFoundException ClassNotFound Exception
-     * @throws SQLException SQLException
-     * @throws DBUtilException DBUtilException
+     * @throws SQLException           SQLException
+     * @throws DBUtilException        DBUtilException
      */
     @GET
     @Path("api/v1/clients/{msisdn}/is_registered")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response isRegistered(@PathParam("msisdn") String msisdn) throws ClassNotFoundException, SQLException, DBUtilException {
+    public Response isRegistered(@PathParam("msisdn") String msisdn) throws ClassNotFoundException, SQLException,
+            DBUtilException {
         dbConnection = DBConnection.getInstance();
         String response = "{\"registered\" :\"" + !dbConnection.isExist(msisdn) + "\"}";
         return Response.ok(response, MediaType.APPLICATION_JSON).build();

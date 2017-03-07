@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
- * 
+ *
  * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -40,35 +40,50 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
- 
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class UserInfoScopeTest.
  */
 @Ignore
 public class UserInfoScopeTest {
 
-    /** The log. */
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(UserInfoScopeTest.class);
-    
-    /** The scope configs. */
+
+    /**
+     * The scope configs.
+     */
     private ScopeConfigs scopeConfigs;
-    
-    /** The client_id. */
+
+    /**
+     * The client_id.
+     */
     private String client_id = "izbtbCFWzsVNtXT8Sdg0QuP9Lg4a";
-    
-    /** The client_secret. */
+
+    /**
+     * The client_secret.
+     */
     private String client_secret = "KLm_CYBd93KWFowB3kb_y0Q5Iy8a";
-    
-    /** The admin url. */
+
+    /**
+     * The admin url.
+     */
     private String adminUrl = "https://localhost:9443";
-    
-    /** The jks file path. */
-    private String jksFilePath = "/home/nipuni/Nipuni/dev-service/dialog-axiata/support/MIFE-470/wso2is-5.0.0/repository/resources/security/wso2carbon.jks";
+
+    /**
+     * The jks file path.
+     */
+    private String jksFilePath = "/home/nipuni/Nipuni/dev-service/dialog-axiata/support/MIFE-470/wso2is-5.0.0" +
+            "/repository/resources/security/wso2carbon.jks";
 
 
-    /** The scopes. */
+    /**
+     * The scopes.
+     */
     HashMap<String, Scope> scopes = new HashMap<String, Scope>();
 
     /**
@@ -154,7 +169,8 @@ public class UserInfoScopeTest {
         String outputString;
         DataInputStream curlIn = null;
         String access_token = null;
-        String command = "curl -X POST -H Content-Type:application/x-www-form-urlencoded " + adminUrl + "/oauth2/token --insecure --data" +
+        String command = "curl -X POST -H Content-Type:application/x-www-form-urlencoded " + adminUrl +
+                "/oauth2/token --insecure --data" +
                 " client_id=" + client_id + "&" +
                 "client_secret=" + client_secret + "&grant_type=client_credentials&scope=" + scope;
         try {
@@ -169,8 +185,8 @@ public class UserInfoScopeTest {
         } catch (IOException e) {
             log.error(e);
         } catch (JSONException e) {
-			log.error(e);
-		}
+            log.error(e);
+        }
         return access_token;
 
     }
@@ -237,37 +253,37 @@ public class UserInfoScopeTest {
     /**
      * Checks if is scope valid.
      *
-     * @param scope the scope
+     * @param scope    the scope
      * @param response the response
      * @return true, if is scope valid
      */
     private boolean isScopeValid(String scope, String response) {
         boolean isValid = true;
         JSONObject obj;
-		try {
-			obj = new JSONObject(response);
-		
-        if (obj.toString().equals("{}")) {
-            log.info("No claims have not null values in the scope : " + scope);
-            return true;
-        }
+        try {
+            obj = new JSONObject(response);
 
-        Iterator keys = obj.keys();
-        List xmlScopeList = scopes.get(scope).getClaims().getClaimValues();
-
-        while (keys.hasNext()) {
-            String key = (String) keys.next();
-            if (!xmlScopeList.contains(key)) {
-                log.info("Response contains a claim value that is not belongs to scope " + scope);
-                isValid = false;
-                break;
+            if (obj.toString().equals("{}")) {
+                log.info("No claims have not null values in the scope : " + scope);
+                return true;
             }
 
+            Iterator keys = obj.keys();
+            List xmlScopeList = scopes.get(scope).getClaims().getClaimValues();
+
+            while (keys.hasNext()) {
+                String key = (String) keys.next();
+                if (!xmlScopeList.contains(key)) {
+                    log.info("Response contains a claim value that is not belongs to scope " + scope);
+                    isValid = false;
+                    break;
+                }
+
+            }
+        } catch (JSONException e) {
+            log.error(e);
+            return false;
         }
-		} catch (JSONException e) {
-			log.error(e);
-			return false;
-		}
         return isValid;
 
     }

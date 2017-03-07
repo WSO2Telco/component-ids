@@ -106,7 +106,7 @@ public class DataPublisherUtil {
  */
 
     public static String getSessionID(HttpServletRequest request) {
-            return request.getParameter("sessionDataKey");
+        return request.getParameter("sessionDataKey");
     }
 
     /**
@@ -211,7 +211,7 @@ public class DataPublisherUtil {
 
 
         IdsAgent.getInstance().publish(USER_STATUS_META_STREAM_NAME, USER_STATUS_META_STREAM_VERSION,
-                                       System.currentTimeMillis(), userstatusData.toArray());
+                System.currentTimeMillis(), userstatusData.toArray());
     }
 
     /**
@@ -268,12 +268,13 @@ public class DataPublisherUtil {
         userStatusMetaData.add(System.currentTimeMillis());
 
         IdsAgent.getInstance().publish(USER_STATUS_STREAM_NAME,
-                                       USER_STATUS_STREAM_VERSION, System.currentTimeMillis(),
-                                       userStatusMetaData.toArray());
+                USER_STATUS_STREAM_VERSION, System.currentTimeMillis(),
+                userStatusMetaData.toArray());
     }
 
     /**
      * construct and publish TokenEndpointData event
+     *
      * @param tokenMap
      */
     public static void publishTokenEndpointData(Map<String, String> tokenMap) {
@@ -350,16 +351,19 @@ public class DataPublisherUtil {
                 System.currentTimeMillis(), tokenEndpointData.toArray());
     }
 
-    public static Map<String, String> getAuthMapWithInitialData(HttpServletRequest request, AuthenticationContext context) {
+    public static Map<String, String> getAuthMapWithInitialData(HttpServletRequest request, AuthenticationContext
+            context) {
 
         Map<String, String> authMap = new HashMap<String, String>();
         authMap.put("RequestType", "GET");
         authMap.put("AuthenticatorStartTime", String.valueOf(new java.util.Date().getTime()));
-        authMap.put("Operator", context.getProperty("operator") == null ? null : (String) context.getProperty("operator"));
+        authMap.put("Operator", context.getProperty("operator") == null ? null : (String) context.getProperty
+                ("operator"));
         authMap.put("AcrValue", String.valueOf(context.getProperty("acr") == null ? null : context.getProperty("acr")));
         authMap.put("RequestUrl", request.getRequestURI());
         authMap.put("HTTPMethod", "GET");
-        authMap.put("AppID", context.getSequenceConfig() == null ? null : context.getSequenceConfig().getApplicationId());
+        authMap.put("AppID", context.getSequenceConfig() == null ? null : context.getSequenceConfig()
+                .getApplicationId());
         authMap.put("Scope", request.getParameter("scope"));
         authMap.put("State", request.getParameter("state"));
         authMap.put("Nonce", request.getParameter("nonce"));
@@ -540,18 +544,17 @@ public class DataPublisherUtil {
     public static void setContextData(AuthenticationContext context, HttpServletRequest request) {
 
 
-        if(request.getParameter("telco_scope")!=null){
-            context.setProperty("telco_scope",request.getParameter("telco_scope") );
-        }
-        else {
-            context.setProperty("telco_scope","openid" );
+        if (request.getParameter("telco_scope") != null) {
+            context.setProperty("telco_scope", request.getParameter("telco_scope"));
+        } else {
+            context.setProperty("telco_scope", "openid");
         }
 
-        if(request.getParameter("operator")!=null){
-            context.setProperty("operator",request.getParameter("operator") );
+        if (request.getParameter("operator") != null) {
+            context.setProperty("operator", request.getParameter("operator"));
         }
-        if(request.getParameter("msisdn")!=null) {
-            context.setProperty("msisdn",request.getParameter("msisdn"));
+        if (request.getParameter("msisdn") != null) {
+            context.setProperty("msisdn", request.getParameter("msisdn"));
         }
         String sessionId = getSessionID(request);
         context.setProperty(TRANSACTION_ID, sessionId);
@@ -614,7 +617,7 @@ public class DataPublisherUtil {
     }
 
     public static void updateAndPublishUserStatus(UserStatus userStatus, UserState userState, String comment,
-            String msisdn) {
+                                                  String msisdn) {
         boolean dataPublishingEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher()
                 .isEnabled();
         if (dataPublishingEnabled) {
@@ -628,7 +631,7 @@ public class DataPublisherUtil {
     }
 
     public static void updateAndPublishUserStatus(UserStatus userStatus, UserState userState, String comment,
-            String msisdn, int isNewUser) {
+                                                  String msisdn, int isNewUser) {
         boolean dataPublishingEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher()
                 .isEnabled();
         if (dataPublishingEnabled) {

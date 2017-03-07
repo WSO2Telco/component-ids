@@ -101,7 +101,7 @@ public class Endpoints {
             //Load operator properties.
             operatorPropertiesMap = new HashMap<String, MobileConnectConfig.OPERATOR>();
             List<MobileConnectConfig.OPERATOR> operators = mobileConnectConfigs.getHEADERENRICH().getOperators();
-            for (MobileConnectConfig.OPERATOR op: operators) {
+            for (MobileConnectConfig.OPERATOR op : operators) {
                 operatorPropertiesMap.put(op.getOperatorName(), op);
             }
         } catch (SQLException e) {
@@ -115,7 +115,8 @@ public class Endpoints {
     @Path("/oauth2/authorize/operator/{operatorName}")
     public void RedirectToAuthorizeEndpoint(@Context HttpServletRequest httpServletRequest, @Context
             HttpServletResponse httpServletResponse, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
-                                            @PathParam("operatorName") String operatorName, String jsonBody) throws Exception {
+                                            @PathParam("operatorName") String operatorName, String jsonBody) throws
+            Exception {
 
         log.info("Request processing started from proxy");
 
@@ -145,7 +146,8 @@ public class Endpoints {
         DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.PROXY_PROCESSING, null);
 
 
-        if (!configurationService.getDataHolder().getMobileConnectConfig().isSpValidationDisabled() && !isValidScope(scopeName, clientId)) {
+        if (!configurationService.getDataHolder().getMobileConnectConfig().isSpValidationDisabled() && !isValidScope
+                (scopeName, clientId)) {
             String errMsg = "Scope [ " + scopeName + " ] is not allowed for client [ " + clientId + " ]";
             log.error(errMsg);
             DataPublisherUtil.updateAndPublishUserStatus(
@@ -177,7 +179,8 @@ public class Endpoints {
                     authorizeUrlProperty = mobileConnectConfigs.getAuthProxy().getAuthorizeURL();
                 } else {
                     String errMsg = "mobile-connect.xml could not be found";
-                    DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.CONFIGURATION_ERROR,errMsg);
+                    DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState
+                            .CONFIGURATION_ERROR, errMsg);
 
                     throw new FileNotFoundException(errMsg);
                 }
@@ -190,7 +193,8 @@ public class Endpoints {
                     if (log.isDebugEnabled()) {
                         for (String httpHeader : httpHeaders.getRequestHeaders().keySet()) {
                             if (log.isDebugEnabled()) {
-                                log.debug("Header : " + httpHeader + " Value: " + httpHeaders.getRequestHeader(httpHeader));
+                                log.debug("Header : " + httpHeader + " Value: " + httpHeaders.getRequestHeader
+                                        (httpHeader));
                             }
                         }
                     }
@@ -215,10 +219,13 @@ public class Endpoints {
                     operatorScopeWithClaims = queryParams.get(AuthProxyConstants.SCOPE).get(0);
 
                     // Check if scope list contains openid scope, and append if it does not contain
-                    if(queryParams.containsKey(AuthProxyConstants.SCOPE) && queryParams.get(AuthProxyConstants.SCOPE).get(0) != null){
-                        List<String> scopes = new ArrayList<>(Arrays.asList(queryParams.get(AuthProxyConstants.SCOPE).get(0).split(" ")));
-                        if(!scopes.contains(AuthProxyConstants.SCOPE_OPENID)) {
-                            queryParams.get(AuthProxyConstants.SCOPE).add(0, queryParams.get(AuthProxyConstants.SCOPE).get(0) + " " + AuthProxyConstants.SCOPE_OPENID);
+                    if (queryParams.containsKey(AuthProxyConstants.SCOPE) && queryParams.get(AuthProxyConstants
+                            .SCOPE).get(0) != null) {
+                        List<String> scopes = new ArrayList<>(Arrays.asList(queryParams.get(AuthProxyConstants.SCOPE)
+                                .get(0).split(" ")));
+                        if (!scopes.contains(AuthProxyConstants.SCOPE_OPENID)) {
+                            queryParams.get(AuthProxyConstants.SCOPE).add(0, queryParams.get(AuthProxyConstants
+                                    .SCOPE).get(0) + " " + AuthProxyConstants.SCOPE_OPENID);
                         }
                     }
 
@@ -253,14 +260,15 @@ public class Endpoints {
                     redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
 
                     DataPublisherUtil.updateAndPublishUserStatus(
-                            userStatus,DataPublisherUtil.UserState.PROXY_REQUEST_FORWARDED_TO_IS, "Redirect URL : " + redirectURL);
+                            userStatus, DataPublisherUtil.UserState.PROXY_REQUEST_FORWARDED_TO_IS, "Redirect URL : "
+                                    + redirectURL);
                 }
-            } catch(Exception e){
+            } catch (Exception e) {
                 log.error("Exception : " + e.getMessage());
                 //todo: dynamically set error description depending on scope parameters
                 redirectURL = redirectURL + "?error=access_denied&error_description=" + e.getMessage();
                 DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.OTHER_ERROR,
-                                                             e.getMessage());
+                        e.getMessage());
             }
 
             if (log.isDebugEnabled()) {
@@ -292,9 +300,9 @@ public class Endpoints {
      * @param msisdnHeader
      * @param scope
      * @param redirectUrlInfo
+     * @return MSISDN extracted from login-hint
      * @throws AuthenticationFailedException
      * @throws ConfigurationException
-     * @return MSISDN extracted from login-hint
      */
     private void validateAndSetScopeParameters(String loginHint, String msisdnHeader, String scope,
                                                RedirectUrlInfo redirectUrlInfo, UserStatus userStatus)
@@ -302,42 +310,43 @@ public class Endpoints {
         //TODO: get all scope related params. This should be move to a initialization method or add to cache later
         ScopeParam scopeParam = getScopeParam(scope, userStatus);
         // show t&c page on authenticators depending on this scope specific variable
-        
-        if(scopeParam == null) {
-        	  String errMsg = "Invalid scope config - " + scope;
 
-              DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.CONFIGURATION_ERROR,
-                                                           errMsg);
+        if (scopeParam == null) {
+            String errMsg = "Invalid scope config - " + scope;
 
-              throw new AuthenticationFailedException(errMsg);
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.CONFIGURATION_ERROR,
+                    errMsg);
+
+            throw new AuthenticationFailedException(errMsg);
         }
-        
-        
+
+
         redirectUrlInfo.setShowTnc(scopeParam.isTncVisible());
         redirectUrlInfo.setHeaderMismatchResult(scopeParam.getMsisdnMismatchResult());
         redirectUrlInfo.setHeFailureResult(scopeParam.getHeFailureResult());
-        
-        String verifiedLoginHint = null;
-        
-        if (scopeParam.isLoginHintMandatory() && StringUtils.isEmpty(loginHint)) {
-        	  String errMsg = "Login Hint parameter cannot be empty for scope : " + scope;
-              DataPublisherUtil.updateAndPublishUserStatus(userStatus,
-                                                           DataPublisherUtil.UserState.LOGIN_HINT_INVALID,errMsg);
 
-              throw new AuthenticationFailedException(errMsg);
+        String verifiedLoginHint = null;
+
+        if (scopeParam.isLoginHintMandatory() && StringUtils.isEmpty(loginHint)) {
+            String errMsg = "Login Hint parameter cannot be empty for scope : " + scope;
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                    DataPublisherUtil.UserState.LOGIN_HINT_INVALID, errMsg);
+
+            throw new AuthenticationFailedException(errMsg);
         }
-        
+
         if (scopeParam.isHeaderMsisdnMandatory() && StringUtils.isEmpty(msisdnHeader)) {
             String errMsg = "MSISDN header not found for scope : " + scope;
 
             DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.MSISDN_INVALID,
-                                                         errMsg);
+                    errMsg);
 
             throw new AuthenticationFailedException(errMsg);
         }
 
         if (StringUtils.isNotEmpty(loginHint)) {
-        	verifiedLoginHint = retunFormatVerfiedPlainTextLoginHint(loginHint, scopeParam.getLoginHintFormat(), userStatus);
+            verifiedLoginHint = retunFormatVerfiedPlainTextLoginHint(loginHint, scopeParam.getLoginHintFormat(),
+                    userStatus);
         }
 
         if (StringUtils.isNotEmpty(msisdnHeader)) {
@@ -345,35 +354,37 @@ public class Endpoints {
                 String errMsg = "Invalid msisdn header format - " + msisdnHeader;
 
                 DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.MSISDN_INVALID,
-                                                             errMsg);
+                        errMsg);
 
                 throw new AuthenticationFailedException(errMsg);
             }
-            
-            if(StringUtils.isNotEmpty(verifiedLoginHint)) {
-            	  if (ScopeParam.msisdnMismatchResultTypes.ERROR_RETURN.equals(scopeParam.getMsisdnMismatchResult())) {
-                      if (!verifiedLoginHint.equals(msisdnHeader)) {
-                          DataPublisherUtil.updateAndPublishUserStatus(userStatus,
-                                                                       DataPublisherUtil.UserState.LOGIN_HINT_MISMATCH,
-                                                                       null);
 
-                          throw new AuthenticationFailedException(
-                                  "login hint is not matching with the header msisdn");
-                      }
-                  }
+            if (StringUtils.isNotEmpty(verifiedLoginHint)) {
+                if (ScopeParam.msisdnMismatchResultTypes.ERROR_RETURN.equals(scopeParam.getMsisdnMismatchResult())) {
+                    if (!verifiedLoginHint.equals(msisdnHeader)) {
+                        DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                DataPublisherUtil.UserState.LOGIN_HINT_MISMATCH,
+                                null);
+
+                        throw new AuthenticationFailedException(
+                                "login hint is not matching with the header msisdn");
+                    }
+                }
             }
         }
-        
+
     }
 
     /**
      * Get the scope param object
+     *
      * @param scope
      * @return
      * @throws AuthenticationFailedException
      * @throws ConfigurationException
      */
-    private ScopeParam getScopeParam(String scope, UserStatus userStatus) throws AuthenticationFailedException, ConfigurationException {
+    private ScopeParam getScopeParam(String scope, UserStatus userStatus) throws AuthenticationFailedException,
+            ConfigurationException {
         Map scopeDetail;
         try {
             scopeDetail = DBUtils.getScopeParams(scope);
@@ -387,7 +398,7 @@ public class Endpoints {
         if (scopeDetail == null || scopeDetail.isEmpty()) {
             String errMsg = "Please configure Scope related Parameters properly in scope_parameter table";
             DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.CONFIGURATION_ERROR,
-                                                         errMsg);
+                    errMsg);
 
             throw new ConfigurationException(errMsg);
         }
@@ -401,27 +412,29 @@ public class Endpoints {
      *
      * @param loginHint
      * @param loginHintAllowedFormatDetailsList
-     * @throws AuthenticationFailedException
      * @return MSISDN extracted from login-hint
+     * @throws AuthenticationFailedException
      */
-    private  String retunFormatVerfiedPlainTextLoginHint(String loginHint,
-                                                                 List<LoginHintFormatDetails>
-                                                                         loginHintAllowedFormatDetailsList, UserStatus userStatus)
+    private String retunFormatVerfiedPlainTextLoginHint(String loginHint,
+                                                        List<LoginHintFormatDetails>
+                                                                loginHintAllowedFormatDetailsList, UserStatus
+                                                                userStatus)
             throws AuthenticationFailedException {
         boolean isValidFormatType = false; //msisdn/loginhint should be a either of defined formats
 
         String plainTextLoginHint = null;
         for (LoginHintFormatDetails loginHintFormatDetails : loginHintAllowedFormatDetailsList) {
-            
+
             switch (loginHintFormatDetails.getFormatType()) {
                 case PLAINTEXT:
                     if (log.isDebugEnabled()) {
                         log.debug("Plain text login hint : " + plainTextLoginHint);
                     }
-                    if (StringUtils.isNotEmpty(loginHint) && (!loginHint.startsWith(LOGIN_HINT_ENCRYPTED_PREFIX) && !loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX))) {
+                    if (StringUtils.isNotEmpty(loginHint) && (!loginHint.startsWith(LOGIN_HINT_ENCRYPTED_PREFIX) &&
+                            !loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX))) {
                         plainTextLoginHint = loginHint;
                         isValidFormatType = true;
-                    }  
+                    }
                     break;
                 case ENCRYPTED:
                     String decryptAlgorithm = loginHintFormatDetails.getDecryptAlgorithm();
@@ -461,22 +474,22 @@ public class Endpoints {
                     log.warn("Invalid Login Hint format - " + loginHintFormatDetails.getFormatType());
                     break;
             }
-            
-            if(isValidFormatType) {
-            	break;
+
+            if (isValidFormatType) {
+                break;
             }
 
         }
-        
+
         //msisdn/loginhint should be a either of defined formats
         if (!isValidFormatType || !validateMsisdnFormat(plainTextLoginHint)) {
             DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.LOGIN_HINT_INVALID,
-                                                         null);
+                    null);
 
             throw new AuthenticationFailedException(
                     "login hint is malformat");
         }
-        
+
         return plainTextLoginHint;
     }
 
@@ -587,7 +600,7 @@ public class Endpoints {
 
     private String getIpAddress(HttpHeaders httpHeaders, String operatorName) {
         String ipAddress = null;
-            MobileConnectConfig.OPERATOR operatorProperties = operatorPropertiesMap.get(operatorName);
+        MobileConnectConfig.OPERATOR operatorProperties = operatorPropertiesMap.get(operatorName);
         String ipHeaderName = mobileConnectConfigs.getHEADERENRICH().getIPHeaderName();
         if (StringUtils.isNotEmpty(ipHeaderName) && operatorProperties != null) {
             boolean isRequiredIpValidation = "true".equalsIgnoreCase(operatorProperties.getIpValidation());
@@ -600,7 +613,8 @@ public class Endpoints {
         return ipAddress;
     }
 
-    private String constructRedirectUrl(RedirectUrlInfo redirectUrlInfo,UserStatus userStatus) throws ConfigurationException {
+    private String constructRedirectUrl(RedirectUrlInfo redirectUrlInfo, UserStatus userStatus) throws
+            ConfigurationException {
         String redirectURL = null;
         String authorizeUrl = redirectUrlInfo.getAuthorizeUrl();
         String queryString = redirectUrlInfo.getQueryString();
@@ -615,17 +629,17 @@ public class Endpoints {
 
         String transactionId = redirectUrlInfo.getTransactionId();
         if (authorizeUrl != null) {
-            redirectURL = authorizeUrl + queryString  + "&" + AuthProxyConstants.OPERATOR + "=" +
+            redirectURL = authorizeUrl + queryString + "&" + AuthProxyConstants.OPERATOR + "=" +
                     operatorName + "&" + AuthProxyConstants.TELCO_SCOPE + "=" + telcoScope + "&" +
                     AuthProxyConstants.SHOW_TNC + "=" + isShowTnc + "&" + AuthProxyConstants.HEADER_MISMATCH_RESULT +
                     "=" + headerMismatchResult + "&" + AuthProxyConstants.HE_FAILURE_RESULT +
                     "=" + heFailureResult;
 
-            if(msisdnHeader != null && StringUtils.isNotEmpty(msisdnHeader)){
+            if (msisdnHeader != null && StringUtils.isNotEmpty(msisdnHeader)) {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.MSISDN_HEADER + "=" + msisdnHeader;
             }
 
-            if(loginHintMsisdn != null && !StringUtils.isEmpty(loginHintMsisdn)){
+            if (loginHintMsisdn != null && !StringUtils.isEmpty(loginHintMsisdn)) {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.LOGIN_HINT_MSISDN +
                         "=" + loginHintMsisdn;
             }
@@ -635,14 +649,14 @@ public class Endpoints {
                 redirectURL += "&" + AuthProxyConstants.IP_ADDRESS + "=" + ipAddress;
             }
 
-            if(StringUtils.isNotEmpty(transactionId)){
+            if (StringUtils.isNotEmpty(transactionId)) {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.TRANSACTION_ID +
                         "=" + transactionId;
             }
         } else {
             String errMsg = "AuthorizeURL could not be found in mobile-connect.xml";
             DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.CONFIGURATION_ERROR,
-                                                         errMsg);
+                    errMsg);
 
             throw new ConfigurationException(errMsg);
         }

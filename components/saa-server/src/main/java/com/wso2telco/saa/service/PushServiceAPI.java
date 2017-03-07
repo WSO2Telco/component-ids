@@ -48,8 +48,8 @@ public class PushServiceAPI {
     /**
      * OutBound to Push Service*
      *
-     * @param pushMessageData  Message details to pass to the fcm
-     * @param msisdn  msisdn of the client user
+     * @param pushMessageData Message details to pass to the fcm
+     * @param msisdn          msisdn of the client user
      * @return successful message
      */
     @POST
@@ -97,7 +97,8 @@ public class PushServiceAPI {
                 HttpResponse httpResponse = client.execute(post);
                 success_failure = getJsonObject(httpResponse);
 
-                pushMessageResponse = "{\"success\" :\"" + success_failure[0] + "\",\"failure\" :\"" + success_failure[1] + "\"}";
+                pushMessageResponse = "{\"success\" :\"" + success_failure[0] + "\",\"failure\" :\"" +
+                        success_failure[1] + "\"}";
             } else
                 pushMessageResponse = "{\"success\" :\"" + 0 + "\",\"failure\" :\"" + 1 + "\"}";
         } catch (SQLException | IOException | DBUtilException | EmptyResultSetException | ClassNotFoundException e) {

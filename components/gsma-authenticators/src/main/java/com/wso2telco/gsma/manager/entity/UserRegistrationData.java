@@ -17,8 +17,8 @@ public class UserRegistrationData {
     private String hashPin;
 
 
-
-	public UserRegistrationData(String userName, String msisdn, String openId, String password, String claim, String domain, String params, boolean updateProfile) {
+    public UserRegistrationData(String userName, String msisdn, String openId, String password, String claim, String
+            domain, String params, boolean updateProfile) {
         this.userName = userName;
         this.msisdn = msisdn;
         this.openId = openId;
@@ -27,35 +27,31 @@ public class UserRegistrationData {
         this.domain = domain;
         this.fieldValues = params;
         this.updateProfile = updateProfile;
-        
+
         userRegistrationTime = System.currentTimeMillis();
     }
-    
-    
 
 
     public String getHashPin() {
-		return hashPin;
-	}
+        return hashPin;
+    }
 
 
-
-
-	public void setHashPin(String hashPin) {
-		this.hashPin = hashPin;
-	}
+    public void setHashPin(String hashPin) {
+        this.hashPin = hashPin;
+    }
 
     public boolean isUpdateProfile() {
-		return updateProfile;
-	}
+        return updateProfile;
+    }
 
 
-	public void setUpdateProfile(boolean updateProfile) {
-		this.updateProfile = updateProfile;
-	}
+    public void setUpdateProfile(boolean updateProfile) {
+        this.updateProfile = updateProfile;
+    }
 
 
-	public String getUserName() {
+    public String getUserName() {
         return userName;
     }
 

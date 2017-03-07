@@ -11,7 +11,7 @@ public class ScopeValidationResult {
         this.redirectionURL = redirectionURL;
     }
 
-    public  ScopeValidationResult(boolean isValidationFail){
+    public ScopeValidationResult(boolean isValidationFail) {
         this.isValidationFail = isValidationFail;
     }
 

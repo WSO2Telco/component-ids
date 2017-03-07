@@ -5,20 +5,20 @@ import java.sql.Timestamp;
 public class UserStatus {
 
 
-    private int id ;
+    private int id;
     private Timestamp time;
     private String status;
-    private String  msisdn;
-    private String  state;
-    private String  nonce;
-    private String  scope;
-    private String  acrValue;
+    private String msisdn;
+    private String state;
+    private String nonce;
+    private String scope;
+    private String acrValue;
     private String sessionId;
     private int isMsisdnHeader;
     private String ipHeader;
     private int isNewUser;
     private String loginHint;
-    private String  operator;
+    private String operator;
     private String userAgent;
     private String comment;
     private String consumerKey;
@@ -179,20 +179,20 @@ public class UserStatus {
     }
 
     public static class UserStatusBuilder {
-        private int id ;
+        private int id;
         private Timestamp time;
         private String status;
-        private String  msisdn;
-        private String  state;
-        private String  nonce;
-        private String  scope;
-        private String  acrValue;
+        private String msisdn;
+        private String state;
+        private String nonce;
+        private String scope;
+        private String acrValue;
         private String sessionId;
         private int isMsisdnHeader;
         private String ipHeader;
         private int isNewUser;
         private String loginHint;
-        private String  operator;
+        private String operator;
         private String userAgent;
         private String comment;
         private String consumerKey;
@@ -208,8 +208,7 @@ public class UserStatus {
         public UserStatus build() {
             if (msisdn != null && !msisdn.isEmpty()) {
                 setIsMsisdnHeader(1);
-            }
-            else {
+            } else {
                 setIsMsisdnHeader(0);
             }
             return new UserStatus(this);

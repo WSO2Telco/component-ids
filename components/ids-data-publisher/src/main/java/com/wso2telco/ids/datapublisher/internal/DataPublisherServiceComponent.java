@@ -26,7 +26,7 @@ import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 
 @Component(name = "com.wso2telco.ids.datapublisher.internal.DataPublisherServiceComponent",
-           immediate = true)
+        immediate = true)
 @Reference(
         name = "application.mgt.service",
         referenceInterface = ApplicationManagementService.class,

@@ -3,15 +3,15 @@ package com.wso2telco;
 
 public class AuthenticationData {
 
-    private  String tokenID;
-    private  String clientId;
-    private  String redirectUri;
-    private  String scope;
-    private  String type;
-    private  String authenticators;
-    private  String msisdn;
+    private String tokenID;
+    private String clientId;
+    private String redirectUri;
+    private String scope;
+    private String type;
+    private String authenticators;
+    private String msisdn;
     private int acrValues;
-    private  String responseType;
+    private String responseType;
     private int status;
     private String state;
     private String nonce;
@@ -106,11 +106,11 @@ public class AuthenticationData {
         this.acrValues = acrValues;
     }
 
-	public String getMsisdn() {
-		return msisdn;
-	}
+    public String getMsisdn() {
+        return msisdn;
+    }
 
-	public void setMsisdn(String msisdn) {
-		this.msisdn = msisdn;
-	}
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
 }

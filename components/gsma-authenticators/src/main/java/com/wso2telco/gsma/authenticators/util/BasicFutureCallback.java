@@ -11,53 +11,52 @@ import java.io.IOException;
 
 public class BasicFutureCallback implements FutureCallback<HttpResponse> {
 
-	
-	private static Log log = LogFactory.getLog(BasicFutureCallback.class);
-	protected HttpPost postRequest = new HttpPost();
-	protected CloseableHttpAsyncClient client;
-	
-	
-	
-	public void cancelled() {
-		 log.warn("Operation cancelled while calling end point - " +
-				 this.getPostRequest().getURI().getSchemeSpecificPart());
-		 closeClient();
-	}
 
-	public void completed(HttpResponse response) {
-		if ((response.getStatusLine().getStatusCode() == 200)) {
-			log.info("Success Request - " + postRequest.getURI().getSchemeSpecificPart());
+    private static Log log = LogFactory.getLog(BasicFutureCallback.class);
+    protected HttpPost postRequest = new HttpPost();
+    protected CloseableHttpAsyncClient client;
 
-		} else {
-			log.error("Failed Request - " + postRequest.getURI().getSchemeSpecificPart());
-		}
-		 closeClient();
-	}
 
-	public void failed(Exception exception) {
-		 log.error("Error occurred while calling end point - " + postRequest.getURI().getSchemeSpecificPart() +
-                 "; Error - " + exception);
-		 closeClient();
-	}
+    public void cancelled() {
+        log.warn("Operation cancelled while calling end point - " +
+                this.getPostRequest().getURI().getSchemeSpecificPart());
+        closeClient();
+    }
 
-	public HttpPost getPostRequest() {
-		return postRequest;
-	}
+    public void completed(HttpResponse response) {
+        if ((response.getStatusLine().getStatusCode() == 200)) {
+            log.info("Success Request - " + postRequest.getURI().getSchemeSpecificPart());
 
-	public void setPostRequest(HttpPost postRequest) {
-		this.postRequest = postRequest;
-	}
+        } else {
+            log.error("Failed Request - " + postRequest.getURI().getSchemeSpecificPart());
+        }
+        closeClient();
+    }
 
-	public void setClient(CloseableHttpAsyncClient client) {
-		this.client = client;
-	}
-	
-	protected void closeClient(){
-		try {
-			client.close();
-		} catch (IOException e) {
-			log.error("Error closing async client", e);
-		}
-	}
+    public void failed(Exception exception) {
+        log.error("Error occurred while calling end point - " + postRequest.getURI().getSchemeSpecificPart() +
+                "; Error - " + exception);
+        closeClient();
+    }
+
+    public HttpPost getPostRequest() {
+        return postRequest;
+    }
+
+    public void setPostRequest(HttpPost postRequest) {
+        this.postRequest = postRequest;
+    }
+
+    public void setClient(CloseableHttpAsyncClient client) {
+        this.client = client;
+    }
+
+    protected void closeClient() {
+        try {
+            client.close();
+        } catch (IOException e) {
+            log.error("Error closing async client", e);
+        }
+    }
 
 }

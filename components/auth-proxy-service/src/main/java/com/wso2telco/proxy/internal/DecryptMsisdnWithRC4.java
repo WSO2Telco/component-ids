@@ -33,7 +33,7 @@ import java.security.NoSuchAlgorithmException;
 public class DecryptMsisdnWithRC4 implements MSISDNDecryption {
     public String decryptMsisdn(String encryptedText, String decryptionKey)
             throws Base64DecoderException, UnsupportedEncodingException, NoSuchAlgorithmException,
-                   NoSuchPaddingException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+            NoSuchPaddingException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         byte[] decodedText = Base64.decode(encryptedText);
         byte[] bytesofkey = decryptionKey.getBytes(AuthProxyConstants.UTF_ENCODER);
         MessageDigest md5digest = MessageDigest.getInstance(AuthProxyConstants.MD5_DIGEST);

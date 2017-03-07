@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
- * 
+ *
  * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,29 +35,34 @@ import java.net.URLEncoder;
 import java.util.Map;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class MePinQuery.
  */
 public class MePinQuery {
 
-    /** The log. */
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(MePinQuery.class);
 //    private MobileConnectConfig.MePinConfig mePinConfig;
 
     /**
- * Creates the transaction.
- *
- * @param mepinID the mepin id
- * @param sessionID the session id
- * @param serviceProvider the service provider
- * @param confirmation_policy the confirmation_policy
- * @return the json object
- * @throws IOException Signals that an I/O exception has occurred.
- * @throws XPathExpressionException the x path expression exception
- * @throws SAXException the SAX exception
- * @throws ParserConfigurationException the parser configuration exception
- */
-public JsonObject createTransaction(String mepinID, String sessionID, String serviceProvider, String confirmation_policy) throws IOException, XPathExpressionException, SAXException, ParserConfigurationException {
+     * Creates the transaction.
+     *
+     * @param mepinID             the mepin id
+     * @param sessionID           the session id
+     * @param serviceProvider     the service provider
+     * @param confirmation_policy the confirmation_policy
+     * @return the json object
+     * @throws IOException                  Signals that an I/O exception has occurred.
+     * @throws XPathExpressionException     the x path expression exception
+     * @throws SAXException                 the SAX exception
+     * @throws ParserConfigurationException the parser configuration exception
+     */
+    public JsonObject createTransaction(String mepinID, String sessionID, String serviceProvider, String
+            confirmation_policy) throws IOException, XPathExpressionException, SAXException,
+            ParserConfigurationException {
 //        mePinConfig = DataHolder.getInstance().getMobileConnectConfig().getMePinConfig();
 
         log.info("Started handling transaction creation");
@@ -68,17 +73,19 @@ public JsonObject createTransaction(String mepinID, String sessionID, String ser
         readMobileConnectConfigResult = readMobileConnectConfig.query("MePIN");
         String url = readMobileConnectConfigResult.get("Endpoint");//mePinConfig.getEndpoint();
 
-        if(log.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
             log.debug("MePIN URL: " + url);
         }
 
         String identifier = sessionID;
-        String short_message = readMobileConnectConfigResult.get("ShortMessageText");//"Confirm Authentication";//mePinConfig.getShortMessageText();
+        String short_message = readMobileConnectConfigResult.get("ShortMessageText");//"Confirm Authentication";
+        // mePinConfig.getShortMessageText();
 //        String header = mePinConfig.getHeaderText() + " " + serviceProvider;
         String header = readMobileConnectConfigResult.get("HeaderText") + " " + serviceProvider;
         String message = readMobileConnectConfigResult.get("MessageText") + " " + serviceProvider;
 //        String message = mePinConfig.getMessageText() + " " + serviceProvider;
-        String client_id = readMobileConnectConfigResult.get("ClientID");//"815ed87f78f81f4e108650f0cbb98f46";//mePinConfig.getClientID();
+        String client_id = readMobileConnectConfigResult.get("ClientID");//"815ed87f78f81f4e108650f0cbb98f46";
+        // mePinConfig.getClientID();
         String account = mepinID;
         String expiry_time = "60"; //expiry time in seconds
         String listenerWebappHost = readMobileConnectConfigResult.get("ListenerWebappHost");
@@ -102,34 +109,35 @@ public JsonObject createTransaction(String mepinID, String sessionID, String ser
                 URLEncoder.encode(callback_url, charset),
                 URLEncoder.encode(confirmation_policy, charset)
         );
-        
+
         if (log.isDebugEnabled()) {
             log.debug("MePin query: " + query);
         }
         String response = postRequest(url, query, charset);
 
         JsonObject responseJson = new JsonParser().parse(response).getAsJsonObject();
-        
+
         if (log.isDebugEnabled()) {
             log.debug("MePin JSON Response: " + responseJson);
         }
-        
+
         return responseJson;
     }
 
     /**
      * Post request.
      *
-     * @param url the url
-     * @param query the query
+     * @param url     the url
+     * @param query   the query
      * @param charset the charset
      * @return the string
-     * @throws IOException Signals that an I/O exception has occurred.
-     * @throws XPathExpressionException the x path expression exception
-     * @throws SAXException the SAX exception
+     * @throws IOException                  Signals that an I/O exception has occurred.
+     * @throws XPathExpressionException     the x path expression exception
+     * @throws SAXException                 the SAX exception
      * @throws ParserConfigurationException the parser configuration exception
      */
-    private String postRequest(String url, String query, String charset) throws IOException, XPathExpressionException, SAXException, ParserConfigurationException {
+    private String postRequest(String url, String query, String charset) throws IOException,
+            XPathExpressionException, SAXException, ParserConfigurationException {
 
         HttpsURLConnection connection = (HttpsURLConnection) new URL(url).openConnection();
 
@@ -139,7 +147,7 @@ public JsonObject createTransaction(String mepinID, String sessionID, String ser
         connection.setDoOutput(true); // Triggers POST.
         connection.setRequestProperty("Accept-Charset", charset);
         connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=" + charset);
-        connection.setRequestProperty("Authorization", "Basic "+readMobileConnectConfigResult.get("AuthToken"));
+        connection.setRequestProperty("Authorization", "Basic " + readMobileConnectConfigResult.get("AuthToken"));
 //        connection.setRequestProperty("Authorization", "Basic "+mePinConfig.getAuthToken());
 
         OutputStream output = connection.getOutputStream();

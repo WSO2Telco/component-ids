@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 public class SMSApprovalRequestForwardingFilter implements Filter {
 
     public void init(FilterConfig filterConfig) throws ServletException {
-       // Doesn't need implementation
+        // Doesn't need implementation
     }
 
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
