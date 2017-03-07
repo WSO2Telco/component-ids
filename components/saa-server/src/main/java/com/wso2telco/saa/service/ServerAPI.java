@@ -58,7 +58,7 @@ public class ServerAPI {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response registerClient(@HeaderParam("msisdn") String msisdn, String clientData) {
-        log.info("Inside registerClient API");
+        log.info("Calling registerClient API by client with MSISDN: "+msisdn);
 
         int success = 0;
         int failure = 0;
@@ -73,7 +73,7 @@ public class ServerAPI {
             String platform = requestInfoObj.getString("platform");
             String pushToken = requestInfoObj.getString("pushToken");
 
-            log.info("checking client exists");
+            log.info("Check the client exist for client with msisdn:"+msisdn);
             isAvailable = dbConnection.isExist(msisdn);
             if (isAvailable) {
                 dbConnection.addClient(clientDeviceID, platform, pushToken, msisdn);
@@ -84,7 +84,7 @@ public class ServerAPI {
                 responseMessage = "Device Already registered";
             }
         } catch (Exception e) {
-            log.info("error occurred while checking availability");
+            log.info("Error occurred while checking availability for the client with MSISDN:"+msisdn);
             log.error("Exception Occurred " + e);
             failure = 1;
             responseMessage = "Error in Registration";
@@ -108,7 +108,7 @@ public class ServerAPI {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response authenticateClient(@PathParam("msisdn") String msisdn, String messageDetails) {
-        log.info("Inside authenticate Client");
+        log.info("Calling authenticateClient API by client with MSISDN:"+msisdn);
 
         int success = 0;
         int failure = 0;
@@ -214,7 +214,7 @@ public class ServerAPI {
     @Produces(MediaType.APPLICATION_JSON)
     public Response authenticateClientBySAAClient(@PathParam("msisdn") String msisdn, String messageDetails) throws ClassNotFoundException {
 
-        log.info("Inside auth_response API method");
+        log.info("Calling authenticateClientBySAAClient API by client with MSISDN:"+msisdn);
         JSONObject requestInfoObj = new JSONObject(messageDetails);
 
         int success = 0;
