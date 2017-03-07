@@ -135,6 +135,9 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         ScopeParam.heFailureResults heFailureResult = ScopeParam.heFailureResults.valueOf(
                 request.getParameter(Constants.HE_FAILURE_RESULT));
 
+        //todo:change this
+        ScopeParam.msisdnMismatchResultTypes s = ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK_TRUST_LOGINHINT;
+
         context.setProperty(Constants.IS_SHOW_TNC, isShowTnc);
         context.setProperty(Constants.HEADER_MISMATCH_RESULT, headerMismatchResult);
         context.setProperty(Constants.HE_FAILURE_RESULT, heFailureResult);
@@ -144,11 +147,10 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.LOGIN_HINT_MSISDN, loginHintMsisdn);
         context.setProperty(Constants.IP_ADDRESS, ipAddress);
 
-        //Retrieve propt data from DB
-        PromptData promptData = DBUtils.getPromptData(request.getParameter(Constants.SCOPE));
+        // set this depending on prompt variable
+        Boolean isFrorceOffnet = true;
 
-
-        String flowType = getFlowType(msisdnHeader, loginHintMsisdn, headerMismatchResult);
+        String flowType = getFlowType(msisdnHeader, loginHintMsisdn, headerMismatchResult, isFrorceOffnet);
 
         //Can we find out the MSISDN here
 
@@ -159,7 +161,18 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
             msisdnToBeDecrypted = msisdnHeader;
         } else {
             //RULE: Trust msisdn header or login hint depending on scope parameter configuration
-            if (StringUtils.isNotEmpty(msisdnHeader) && StringUtils.isNotEmpty(loginHintMsisdn)) {
+            if (isFrorceOffnet){
+                //todo:from force offnet configurations
+                if(true) {
+                    //set msisdn to login hint
+                    if (s.equals(ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK_TRUST_LOGINHINT)) {
+                        msisdnToBeDecrypted = loginHintMsisdn;
+                        msisdnStatus = DataPublisherUtil.UserState.MSISDN_SET_TO_LOGIN_HINT;
+                    }
+                }else{
+                    // don't set msisdn
+                }
+            } else if (StringUtils.isNotEmpty(msisdnHeader) && StringUtils.isNotEmpty(loginHintMsisdn)) {
                 //from offnet fallback due to header mismatch
 
                 //RULE: If offnet, either we can trust sent login hint is not empty
@@ -371,10 +384,16 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
      * @param headerMsisdn         MSISDN provided in header
      * @param loginHintMsisdn      MSISDN provided in login hint
      * @param headerMismatchResult Header mismatch result scope parameter
+     * @param offnet               Force offnet
      * @return
      */
     private String getFlowType(String headerMsisdn, String loginHintMsisdn, ScopeParam.msisdnMismatchResultTypes
-            headerMismatchResult) {
+            headerMismatchResult, Boolean offnet) {
+
+        //RULE : force offnet flow
+        if(offnet){
+            return "offnet";
+        }
 
         //RULE 1: check if LOA is in any form of offnet fallback
         if (ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK.equals(headerMismatchResult) ||
