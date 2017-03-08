@@ -200,7 +200,6 @@ public class Endpoints {
                     }
                 }
                 ipAddress = getIpAddress(httpHeaders, operatorName);
-                queryParams.putSingle(AuthProxyConstants.PROMPT, AuthProxyConstants.LOGIN);
 
                 //Validate with Scope wise parameters and throw exceptions
                 validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo, userStatus);
@@ -227,6 +226,12 @@ public class Endpoints {
                             queryParams.get(AuthProxyConstants.SCOPE).add(0, queryParams.get(AuthProxyConstants
                                     .SCOPE).get(0) + " " + AuthProxyConstants.SCOPE_OPENID);
                         }
+                    }
+
+                    List<String> promptValues = queryParams.get(AuthProxyConstants.PROMPT);
+                    if(promptValues != null && !promptValues.isEmpty()) {
+                        redirectUrlInfo.setPrompt(promptValues.get(0));
+                        queryParams.remove(AuthProxyConstants.PROMPT);
                     }
 
                     queryString = processQueryString(queryParams, queryString);
@@ -623,6 +628,7 @@ public class Endpoints {
         String operatorName = redirectUrlInfo.getOperatorName();
         String telcoScope = redirectUrlInfo.getTelcoScope();
         String ipAddress = redirectUrlInfo.getIpAddress();
+        String prompt = redirectUrlInfo.getPrompt();
         boolean isShowTnc = redirectUrlInfo.isShowTnc();
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
         ScopeParam.heFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
@@ -652,6 +658,11 @@ public class Endpoints {
             if (StringUtils.isNotEmpty(transactionId)) {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.TRANSACTION_ID +
                         "=" + transactionId;
+            }
+
+            if(StringUtils.isNotEmpty(prompt)){
+                redirectURL = redirectURL + "&" + AuthProxyConstants.TELCO_PROMPT +
+                        "=" + prompt;
             }
         } else {
             String errMsg = "AuthorizeURL could not be found in mobile-connect.xml";

@@ -33,6 +33,11 @@ public class RedirectUrlInfo {
     private ScopeParam.msisdnMismatchResultTypes headerMismatchResult;
     private ScopeParam.heFailureResults heFailureResult;
     private String transactionId;
+    private String prompt;
+
+    public void setPrompt(String prompt) { this.prompt = prompt; }
+
+    public String getPrompt() { return prompt; }
 
     public String getQueryString() {
         return queryString;

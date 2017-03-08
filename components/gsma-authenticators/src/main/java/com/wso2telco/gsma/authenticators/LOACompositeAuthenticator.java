@@ -25,7 +25,6 @@ import com.wso2telco.gsma.authenticators.model.PromptData;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.DecryptionAES;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
-import com.wso2telco.ids.datapublisher.util.DBUtil;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -144,22 +143,43 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.LOGIN_HINT_MSISDN, loginHintMsisdn);
         context.setProperty(Constants.IP_ADDRESS, ipAddress);
 
-        //Retrieve propt data from DB
-        PromptData promptData = DBUtils.getPromptData(request.getParameter(Constants.SCOPE));
+        // set prompt variable default to false
+        Boolean isFrorceOffnetDueToPromptParameter = false;
+        PromptData promptData = null;
 
+        // RULE 1: change the flow due to prompt parameter only on HE scenarios
+        if(StringUtils.isNotEmpty(msisdnHeader)) {
+            promptData = DBUtils.getPromptData(request.getParameter(Constants.SCOPE),
+                    request.getParameter(Constants.PROMPT), StringUtils.isNotEmpty(loginHintMsisdn));
+            // RULE 2: put on offnet flow if prompt config is offnet, otherwise go in normal HE flow
+            if (promptData.getBehaviour() != null && (promptData.getBehaviour() == PromptData.behaviorTypes.OFFNET
+                    || promptData.getBehaviour() == PromptData.behaviorTypes.OFFNET_TRUST_LOGIN_HINT)) {
+                isFrorceOffnetDueToPromptParameter = true;
+            }
+        }
 
-        String flowType = getFlowType(msisdnHeader, loginHintMsisdn, headerMismatchResult);
+        String flowType = getFlowType(msisdnHeader,
+                loginHintMsisdn,
+                headerMismatchResult,
+                isFrorceOffnetDueToPromptParameter);
 
         //Can we find out the MSISDN here
-
         String msisdnToBeDecrypted = "";
         //Following variable is for data publishing purposes.
         DataPublisherUtil.UserState msisdnStatus = DataPublisherUtil.UserState.MSISDN_SET_TO_HEADER;
         if ("onnet".equals(flowType)) {
             msisdnToBeDecrypted = msisdnHeader;
         } else {
-            //RULE: Trust msisdn header or login hint depending on scope parameter configuration
-            if (StringUtils.isNotEmpty(msisdnHeader) && StringUtils.isNotEmpty(loginHintMsisdn)) {
+            //RULE: Trust msisdn header or login hint depending on scope parameter configuration or prompt param
+            if (isFrorceOffnetDueToPromptParameter){
+                //set msisdn to login hint
+                if (promptData.getBehaviour() == PromptData.behaviorTypes.OFFNET_TRUST_LOGIN_HINT) {
+                        msisdnToBeDecrypted = loginHintMsisdn;
+                        msisdnStatus = DataPublisherUtil.UserState.MSISDN_SET_TO_LOGIN_HINT;
+                }else{
+                    // don't set msisdn
+                }
+            } else if (StringUtils.isNotEmpty(msisdnHeader) && StringUtils.isNotEmpty(loginHintMsisdn)) {
                 //from offnet fallback due to header mismatch
 
                 //RULE: If offnet, either we can trust sent login hint is not empty
@@ -371,10 +391,16 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
      * @param headerMsisdn         MSISDN provided in header
      * @param loginHintMsisdn      MSISDN provided in login hint
      * @param headerMismatchResult Header mismatch result scope parameter
+     * @param offnet               Force offnet
      * @return
      */
     private String getFlowType(String headerMsisdn, String loginHintMsisdn, ScopeParam.msisdnMismatchResultTypes
-            headerMismatchResult) {
+            headerMismatchResult, Boolean offnet) {
+
+        //RULE : force offnet flow
+        if(offnet){
+            return "offnet";
+        }
 
         //RULE 1: check if LOA is in any form of offnet fallback
         if (ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK.equals(headerMismatchResult) ||
