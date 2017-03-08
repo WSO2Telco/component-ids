@@ -19,7 +19,9 @@ package com.wso2telco.gsma.authenticators.model;
 
 public class PromptData {
     public enum behaviorTypes {
-        TRUST_MSISDN;
+        OFFNET_TRUST_LOGIN_HINT,
+        ONNET,
+        OFFNET
     }
 
     ;

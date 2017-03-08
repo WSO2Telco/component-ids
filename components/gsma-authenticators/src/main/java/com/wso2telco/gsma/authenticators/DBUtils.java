@@ -25,7 +25,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
-import javax.naming.ConfigurationException;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -828,20 +827,24 @@ public class DBUtils {
      * Get prompt data
      *
      * @param scope
+     * @param prompt
+     * @param isLoginHintExists
      * @return PromptData
      */
-    public static PromptData getPromptData(String scope) {
+    public static PromptData getPromptData(String scope, String prompt, Boolean isLoginHintExists) {
         PromptData promptData = new PromptData();
         Connection connection = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
 
-        String sql = "SELECT * FROM prompt_configuration WHERE scope = ?";
+        String sql = "SELECT * FROM prompt_configuration WHERE scope = ? AND prompt_value = ? AND is_login_hint_exists = ?";
 
         try {
             connection = getConnectDBConnection();
             ps = connection.prepareStatement(sql);
             ps.setString(1, scope);
+            ps.setString(2, prompt);
+            ps.setBoolean(3, isLoginHintExists);
             rs = ps.executeQuery();
             while (rs.next()) {
                 promptData.setScope(rs.getString("scope"));
