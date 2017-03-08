@@ -286,13 +286,7 @@ public class ServerAPI {
      * InBound from SAA Client
      *
      * @param msisdn MSISDN of the client
-     *               <<<<<<< Updated upstream
      * @return registered or not Registered indicating the client registered or not in the SAA Server database.
-     * >>>>>>> Stashed changes
-     * @throws ClassNotFoundException ClassNotFound Exception
-     * @throws SQLException           SQLException
-     * @throws DBUtilException        DBUtilException
-     *                                =======
      */
     @GET
     @Path("api/v1/clients/{" + MSISDN + "}/is_registered")
