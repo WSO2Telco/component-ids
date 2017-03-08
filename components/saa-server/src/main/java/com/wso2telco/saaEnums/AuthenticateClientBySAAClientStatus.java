@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.exception;
+package com.wso2telco.saaEnums;
 
-public class EmptyResultSetException extends Exception {
-
-    public EmptyResultSetException(String message) {
-        super(message);
-    }
-
-    public EmptyResultSetException(String message, Throwable cause) {
-        super(message, cause);
-    }
+/**
+ * Include the states of Authentication by client side
+ */
+public enum AuthenticateClientBySAAClientStatus {
+    STATUS_UPDATED,
+    INVALID_REFERENCE_ID,
+    ERROR_IN_SENDING_AUTHORIZATION_RESPONSE
 }

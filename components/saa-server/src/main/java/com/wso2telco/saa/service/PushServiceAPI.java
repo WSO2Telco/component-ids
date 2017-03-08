@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com)
+ * Copyright (c) 2015-2017, WSO2.Telco Inc. (http://www.wso2telco.com)
  *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@ package com.wso2telco.saa.service;
 
 import com.google.gson.Gson;
 import com.wso2telco.core.dbutils.DBUtilException;
+import com.wso2telco.entity.AuthenticationMessageDetail;
 import com.wso2telco.entity.ClientDetails;
-import com.wso2telco.entity.Data;
-import com.wso2telco.entity.Fcm;
+import com.wso2telco.entity.FirebaseCloudMessageDetails;
 import com.wso2telco.exception.EmptyResultSetException;
 import com.wso2telco.util.DBConnection;
 import org.apache.commons.logging.Log;
@@ -41,9 +41,21 @@ import java.sql.SQLException;
 @Path("/pushServiceAPI/")
 public class PushServiceAPI {
 
+    private static final String FCM_URL = "https://fcm.googleapis.com/fcm/send";
+    private static final String MSISDN = "msisdn";
+    private static final String DATA = "data";
+    private static final String MESSAGE = "message";
+    private static final String APPLICATION_NAME = "applicationName";
+    private static final String REFERENCE = "referenceID";
+    private static final String ACR = "acr";
+    private static final String SP_LOGO_URL = "spImgUrl";
+    private static final String FCM_KEY = "key=AIzaSyCIqO7iVo2djUVRIKh-DUe1kn3zODTzcDg";
+    private static final String SUCCESS = "success";
+    private static final String FAILURE = "failure";
+
     private Log log = LogFactory.getLog(PushServiceAPI.class);
     private DBConnection dbConnection = null;
-    public static final String FCM_URL = "https://fcm.googleapis.com/fcm/send";
+
 
     /**
      * OutBound to Push Service*
@@ -53,14 +65,15 @@ public class PushServiceAPI {
      * @return successful message
      */
     @POST
-    @Path("client/{msisdn}/send")
+    @Path("client/{" + MSISDN + "}/send")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response sendPushNotification(@PathParam("msisdn") String msisdn, String pushMessageData) {
+    public Response sendPushNotification(@PathParam(MSISDN) String msisdn, String pushMessageData) {
 
+        //// TODO: 3/6/17 Remove Success or Failure variables and keep one variable- status
         JSONObject pushMessageObj = new JSONObject(pushMessageData);
-        JSONObject messageData = pushMessageObj.getJSONObject("data");
-        String pushMessageResponse;
+        JSONObject messageData = pushMessageObj.getJSONObject(DATA);
+        JSONObject pushMessageResponse = new JSONObject();
         int[] success_failure;
 
         try {
@@ -68,73 +81,72 @@ public class PushServiceAPI {
             ClientDetails clientDetails = dbConnection.getClientDetails(msisdn);
             if (clientDetails != null) {
                 String pushToken = clientDetails.getPushToken();
-                String message = messageData.getString("message");
-                String applicationName = messageData.getString("applicationName");
-                String referenceId = messageData.getString("ref");
-                String acr = messageData.getString("acr");
-                String spImageUrl = messageData.getString("spImgUrl");
+                String message = messageData.getString(MESSAGE);
+                String applicationName = messageData.getString(APPLICATION_NAME);
+                String referenceId = messageData.getString(REFERENCE);
+                String acr = messageData.getString(ACR);
+                String spImageUrl = messageData.getString(SP_LOGO_URL);
 
-                Data data = new Data();
+                AuthenticationMessageDetail data = new AuthenticationMessageDetail();
                 data.setMsg(message);
                 data.setSp(applicationName);
                 data.setRef(referenceId);
                 data.setAcr(acr);
                 data.setSp_url(spImageUrl);
 
-                Fcm fcm = new Fcm();
-                fcm.setTo(pushToken);
-                fcm.setData(data);
+                FirebaseCloudMessageDetails firebaseCloudMessageDetails = new FirebaseCloudMessageDetails();
+                firebaseCloudMessageDetails.setTo(pushToken);
+                firebaseCloudMessageDetails.setData(data);
 
                 DefaultHttpClient client = new DefaultHttpClient();
                 HttpPost post = new HttpPost(FCM_URL);
 
-                post.setHeader("Authorization", "key=AIzaSyCIqO7iVo2djUVRIKh-DUe1kn3zODTzcDg");
+                post.setHeader("Authorization", FCM_KEY);
                 post.setHeader("Content-Type", MediaType.APPLICATION_JSON);
 
-                StringEntity requestEntity = new StringEntity(new Gson().toJson(fcm), ContentType.APPLICATION_JSON);
+                StringEntity requestEntity = new StringEntity(new Gson().toJson(firebaseCloudMessageDetails), ContentType.APPLICATION_JSON);
                 post.setEntity(requestEntity);
 
                 HttpResponse httpResponse = client.execute(post);
                 success_failure = getJsonObject(httpResponse);
 
-                pushMessageResponse = "{\"success\" :\"" + success_failure[0] + "\",\"failure\" :\"" +
-                        success_failure[1] + "\"}";
-            } else
-                pushMessageResponse = "{\"success\" :\"" + 0 + "\",\"failure\" :\"" + 1 + "\"}";
+                pushMessageResponse.put(SUCCESS, success_failure[0]);
+                pushMessageResponse.put(FAILURE, success_failure[1]);
+
+            } else {
+                pushMessageResponse.put(SUCCESS, 0);
+                pushMessageResponse.put(FAILURE, 1);
+            }
         } catch (SQLException | IOException | DBUtilException | EmptyResultSetException | ClassNotFoundException e) {
-            log.error("Exception " + e);
-            pushMessageResponse = "{\"success\" :\"" + 0 + "\",\"failure\" :\"" + 1 + "\"}";
+            log.error("Error occurred in sending message through Firebase Cloud Messaging Service for the client with MSISDN:" + msisdn + "error:" + e.getMessage());
+            pushMessageResponse.put(SUCCESS, 0);
+            pushMessageResponse.put(FAILURE, 1);
         }
-        return Response.ok(pushMessageResponse, MediaType.APPLICATION_JSON).build();
+        return Response.ok(pushMessageResponse.toString(), MediaType.APPLICATION_JSON).build();
     }
 
     private int[] getJsonObject(HttpResponse response) throws IOException {
-        BufferedReader rd = null;
+
+        BufferedReader bufferedReader;
         StringBuffer result = new StringBuffer();
-        String line = "";
+        String bufferReaderLine;
         int[] success_failure = new int[2];
 
         try {
-            rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-            while ((line = rd.readLine()) != null) {
-                result.append(line);
+            bufferedReader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+            while ((bufferReaderLine = bufferedReader.readLine()) != null) {
+                result.append(bufferReaderLine);
             }
 
-            JSONObject o = new JSONObject(result.toString());
-            if (o.get("success") != null) {
-                success_failure[0] = (int) o.get("success");
-                success_failure[1] = (int) o.get("failure");
+            JSONObject responseObject = new JSONObject(result.toString());
+            if (responseObject.get(SUCCESS) != null) {
+                success_failure[0] = (int) responseObject.get(SUCCESS);
+                success_failure[1] = (int) responseObject.get(FAILURE);
             }
             return success_failure;
-        } catch (UnsupportedOperationException e) {
-            log.error("UnsupportedOperationException " + e);
+        } catch (UnsupportedOperationException | IOException | JSONException e) {
+            log.error("Error in reading the FireBase Cloud Messaging Service Response.Error:" + e.getMessage());
             throw new UnsupportedOperationException(e.getMessage());
-        } catch (IOException e) {
-            log.error("IOException " + e);
-            throw new IOException(e.getMessage());
-        } catch (JSONException e) {
-            log.error("JSONException " + e);
-            throw new JSONException(e.getMessage());
         }
     }
 }

@@ -13,15 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.exception;
+package com.wso2telco.entity;
 
-public class EmptyResultSetException extends Exception {
+/*
+*This Class use for the JSON Mapping for FireBase Cloud messaging API
+ */
+public class FirebaseCloudMessageDetails {
 
-    public EmptyResultSetException(String message) {
-        super(message);
+    //The pushToken ID of the Receiver
+    private String to;
+
+    //Message Details to pass
+    private AuthenticationMessageDetail data;
+
+    public String getTo() {
+        return to;
     }
 
-    public EmptyResultSetException(String message, Throwable cause) {
-        super(message, cause);
+    public void setTo(String to) {
+        this.to = to;
+    }
+
+    public AuthenticationMessageDetail getData() {
+        return data;
+    }
+
+    public void setData(AuthenticationMessageDetail data) {
+        this.data = data;
     }
 }

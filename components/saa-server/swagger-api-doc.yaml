@@ -7,9 +7,9 @@ info:
 paths:
 
   /services/serverAPI/api/v1/clients:
-  
+
     post:
-    
+
       description: |
         Register's clients with the SAA server
       consumes:
@@ -32,12 +32,12 @@ paths:
         "200":
           description: successful operation
           schema:
-            $ref: "#/definitions/AuthenticationResponse" 
-            
+            $ref: "#/definitions/AuthenticationResponse"
+
   /services/serverAPI/api/v1/clients/{msisdn}/authenticate:
-    
+
     post:
-      
+
       description: |
         Authenticates user when called by SmartPhoneAppAuthenticator fron Identity Server
       consumes:
@@ -61,9 +61,9 @@ paths:
           description: successful operation
           schema:
             $ref: "#/definitions/AuthenticationResponse"
-            
+
   /services/serverAPI/api/v1/clients/{msisdn}/auth_response:
-    
+
     post:
       description: |
         Authenticates user when called by Smart Phone client
@@ -88,7 +88,7 @@ paths:
           description: successful operation
           schema:
             $ref: "#/definitions/AuthenticationResponse"
-    
+
   /services/serverAPI/api/v1/clients/{msisdn}/is_registered:
     get:
       description: Checks whether the client is registered in SAA server
@@ -105,7 +105,7 @@ paths:
           description: successful operation
           schema:
             $ref: "#/definitions/IsRegisteredResponse"
-                  
+
   /services/serverAPI/api/v1/clients/{msisdn}/unregisterClient:
     delete:
       description: Removed registered client from SAA server
@@ -122,7 +122,7 @@ paths:
           description: successful operation
           schema:
             $ref: "#/definitions/RemoveClientResponse"
-    
+
 definitions:
   Client:
     type: object
@@ -133,7 +133,7 @@ definitions:
         type: string
       pushToken:
         type: string
-        
+
   AuthenticationResponse:
     type: object
     properties:
@@ -143,7 +143,7 @@ definitions:
         type: integer
       result:
         type: string
-        
+
   IdsAuthenticationRequest:
     type: object
     properties:
@@ -151,34 +151,33 @@ definitions:
         type: string
       applicationName:
         type: string
-      ref:
+      referenceID:
         type: string
       acr:
         type: integer
       spImgUrl:
         type: string
-        
+
   SmartPhoneAuthenticationRequest:
     type: object
     properties:
       status:
         type: integer
-      refId:
+      referenceID:
         type: string
-        
+
   IsRegisteredResponse:
     type: object
     properties:
       isRegistered:
         type: boolean
-  
+
   RemoveClientResponse:
     type: object
     properties:
       removeClient:
         type: string
-      
-  
-  
-  
-        
+
+
+
+

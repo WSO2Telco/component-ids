@@ -19,7 +19,7 @@ Expected Output:
   "success": "1",
   "failure": "0",
   "result": {
-    "message": "Device registered"
+    "message": "DEVICE_REGISTERED"
   }
 }
 
@@ -27,7 +27,15 @@ Expected Output:
   "success": "0",
   "failure": "1",
   "result": {
-    "message": "Device Already registered"
+    "message": "DEVICE_ALREADY_REGISTERED"
+  }
+}
+
+{
+  "success": "0",
+  "failure": "1",
+  "result": {
+    "message": "ERROR_IN_REGISTRATION"
   }
 }
 
@@ -40,7 +48,7 @@ Input:
 {
     "message" : "Login to Spark Connect",
     "applicationName" : "Spark Connect",
-    "ref" : "340943904904904343904",
+    "referenceID" : "340943904904904343904",
     "acr" : "1",
     "spImgUrl" : "http://www.easy/logo.gif"
 }
@@ -50,7 +58,15 @@ Expected Output:
   "success": "0",
   "failure": "1",
   "result": {
-    "message": "Authentication Unsuccessful"
+    "message": "AUTHENTICATION_NOT_SUCCESSFULL"
+  }
+}
+
+{
+  "success": "0",
+  "failure": "1",
+  "result": {
+    "message": "INVALID_REGISTRATION"
   }
 }
 
@@ -58,7 +74,7 @@ Expected Output:
   "success": "1",
   "failure": "0",
   "result": {
-    "message": "Message pushed"
+    "message": "MESSAGE_PUSHED"
   }
 }
 
@@ -70,7 +86,7 @@ EndPoint : saaserver/services/serverAPI/api/v1/clients/918908098908/auth_respons
 Input:
 {
     "status" : "1",
-    "refId" : "34094390490490434390"
+    "referenceID" : "34094390490490434390"
 }
 
 Expected Output:
@@ -78,7 +94,23 @@ Expected Output:
   "success": "1",
   "failure": "0",
   "result": {
-    "message": "Status Updated"
+    "message": "STATUS_UPDATED"
+  }
+}
+
+{
+  "success": "0",
+  "failure": "1",
+  "result": {
+    "message": "INVALID_REFERENCE_ID"
+  }
+}
+
+{
+  "success": "0",
+  "failure": "1",
+  "result": {
+    "message": "ERROR_IN_SENDING_AUTHORIZATION_RESPONSE"
   }
 }
 
@@ -91,6 +123,8 @@ EndPoint : saaserver/services/serverAPI/api/v1/clients/{msisdn}/is_registered
 Expected Output:
 {"isRegistered" :"true"}
 
+{"isRegistered" :"ERROR_IN_AUTHORIZING_BY_CLIENT"}
+
 -----------------------------------------------------------------------------------------------------------------------------------------------
 
 To remove/Unregistered the registered client from the database.
@@ -98,8 +132,9 @@ EndPoint : saaserver/services/serverAPI/api/v1/clients/{msisdn}/unregisterClient
 (DELETE Method)
 
 Expected Output:
-{"removeClient" :"msisdn is not registered in the database"}
-or
-{"removeClient" :"SUCCESS"}
-or
-{"removeClient" :"FAILURE"}
+{"removeClient" :" CLIENT_NOT_REGISTERED_IN_THE_DATABASE"}
+
+{"removeClient" :"SUCCESSFULLY_REMOVED"}
+
+{"removeClient" :"ERROR_IN_REMOVING_CLIENT"}
+

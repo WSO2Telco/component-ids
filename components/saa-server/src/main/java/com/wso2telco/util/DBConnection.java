@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com)
+ * Copyright (c) 2015-2017, WSO2.Telco Inc. (http://www.wso2telco.com)
  *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,12 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+//// TODO: 3/6/17 Make a separate database util class to work with databases and connections
 public class DBConnection {
+
+    private static final String CLIENT_DEVICE_ID = "client_device_id";
+    private static final String PLATFORM = "platform";
+    private static final String PUSH_TOKEN = "push_token";
 
     private static Log logger = LogFactory.getLog(DBConnection.class);
     private static DBConnection instance = null;
@@ -60,12 +65,32 @@ public class DBConnection {
      * @throws SQLException    SQLException
      * @throws DBUtilException DbUtilException
      */
-    public void addClient(String clientDeviceId, String platform, String pushToken, String msisdn) throws
-            SQLException, DBUtilException {
+
+    public void addClient(String clientDeviceId, String platform, String pushToken, String msisdn) throws SQLException, DBUtilException {
+
+        Connection connection = null;
+        PreparedStatement statement = null;
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
-        String query = "INSERT INTO clients (client_device_id,platform,push_token,date_time,msisdn) VALUES ('" +
-                clientDeviceId + "','" + platform + "','" + pushToken + "','" + timeStamp + "','" + msisdn + "');";
-        executeUpdate(query);
+        String query = "INSERT INTO clients (client_device_id,platform,push_token,date_time,msisdn) VALUES (?,?,?,?,?);";
+
+        try {
+            connection = getConnection();
+            statement = connection.prepareStatement(query);
+            statement.setString(1, clientDeviceId);
+            statement.setString(2, platform);
+            statement.setString(3, pushToken);
+            statement.setString(4, timeStamp);
+            statement.setString(5, msisdn);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            logger.error("Error occurred while inserting client details for Client Id : " + clientDeviceId + ".Error:" + e);
+            throw new SQLException(e.getMessage(), e);
+        } catch (DBUtilException e) {
+            logger.error("Error occurred while inserting client details for Client Id : " + clientDeviceId + ".Error:" + e);
+            throw new DBUtilException(e.getMessage(), e);
+        } finally {
+            close(connection, statement);
+        }
     }
 
     /**
@@ -76,29 +101,29 @@ public class DBConnection {
      * @throws SQLException    SQLException
      * @throws DBUtilException DBUtilsException
      */
-    public boolean isExist(String msisdn) throws SQLException, DBUtilException {
+    public boolean isClientExist(String msisdn) throws SQLException, DBUtilException {
 
         Connection connection = null;
         PreparedStatement statement = null;
         ResultSet resultSet = null;
 
-        String query = "SELECT * FROM clients where msisdn=" + msisdn + ";";
+        String query = "SELECT * FROM clients where msisdn=?;";
         try {
             connection = getConnection();
             statement = connection.prepareStatement(query);
-            resultSet = statement.executeQuery(query);
+            statement.setString(1, msisdn);
+            resultSet = statement.executeQuery();
 
-            if (!resultSet.next()) {
+            if (resultSet.next()) {
                 return true;
             } else {
                 return false;
             }
-
         } catch (SQLException e) {
-            logger.info("SQLException occurred " + e);
+            logger.error("Error occurred while checking the MSISDN : " + msisdn + ".Error:" + e);
             throw new SQLException(e.getMessage(), e);
         } catch (DBUtilException e) {
-            logger.info("DBUtilException occurred " + e);
+            logger.error("Error occurred while checking the MSISDN : " + msisdn + ".Error:" + e);
             throw new DBUtilException(e.getMessage(), e);
         } finally {
             close(connection, statement, resultSet);
@@ -116,37 +141,31 @@ public class DBConnection {
      */
     public ClientDetails getClientDetails(String msisdn) throws EmptyResultSetException, SQLException, DBUtilException {
 
-        logger.info("getting client details");
         Connection connection = null;
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         ClientDetails clientDetails = new ClientDetails();
 
-        String query = "SELECT client_device_id,platform,push_token FROM clients WHERE msisdn='" + msisdn + "';";
+        String query = "SELECT client_device_id,platform,push_token FROM clients WHERE msisdn=?;";
         try {
             connection = getConnection();
             statement = connection.prepareStatement(query);
-            resultSet = statement.executeQuery(query);
+            statement.setString(1, msisdn);
+            resultSet = statement.executeQuery();
 
-            logger.info("Result set: " + resultSet.toString());
             if (resultSet.next()) {
-                logger.info(resultSet.getString(1));
-                logger.info(resultSet.getString(2));
-                logger.info(resultSet.getString(3));
-
-                clientDetails.setDeviceId(resultSet.getString("client_device_id"));
-                clientDetails.setPlatform(resultSet.getString("platform"));
-                clientDetails.setPushToken(resultSet.getString("push_token"));
+                clientDetails.setDeviceId(resultSet.getString(CLIENT_DEVICE_ID));
+                clientDetails.setPlatform(resultSet.getString(PLATFORM));
+                clientDetails.setPushToken(resultSet.getString(PUSH_TOKEN));
                 return clientDetails;
             } else {
-                logger.error("Error occurred Result Set is null!!!!");
                 throw new EmptyResultSetException("Result Set is empty");
             }
         } catch (SQLException e) {
-            logger.error("SQLException occurred !!!" + e);
+            logger.error("Error occurred while taking client details for Client with MSISDN : " + msisdn + ".Error:" + e);
             throw new SQLException(e.getMessage(), e);
         } catch (DBUtilException e) {
-            logger.error("DBUtilException occurred !!!" + e);
+            logger.error("Error occurred while taking client details for Client with MSISDN : " + msisdn + ".Error:" + e);
             throw new DBUtilException(e.getMessage(), e);
         } finally {
             close(connection, statement, resultSet);
@@ -165,11 +184,30 @@ public class DBConnection {
     public void authenticateClient(String refID, String clientDeviceId, String message) throws SQLException,
             DBUtilException {
 
+        Connection connection = null;
+        PreparedStatement statement = null;
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
 
-        String query = "INSERT INTO messages (ref_id,client_device_id,message,req_date_time,status)VALUES ('" + refID
-                + "','" + clientDeviceId + "','" + message + "','" + timeStamp + "','P');";
-        executeUpdate(query);
+        String query = "INSERT INTO messages (ref_id,client_device_id,message,req_date_time,status)VALUES (?,?,?,?,'P');";
+
+        try {
+            connection = getConnection();
+            statement = connection.prepareStatement(query);
+            statement.setString(1, refID);
+            statement.setString(2, clientDeviceId);
+            statement.setString(3, message);
+            statement.setString(4, timeStamp);
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            logger.error("Error occurred while authenticating Client with ClientDevice : " + clientDeviceId + ".Error:" + e);
+            throw new SQLException(e.getMessage(), e);
+        } catch (DBUtilException e) {
+            logger.error("Error occurred while authenticating Client with ClientDevice : " + clientDeviceId + ".Error:" + e);
+            throw new DBUtilException(e.getMessage(), e);
+        } finally {
+            close(connection, statement);
+        }
     }
 
     /**
@@ -181,8 +219,28 @@ public class DBConnection {
      * @throws DBUtilException DBUtilException
      */
     public void updateMessageTable(String refID, char status) throws SQLException, DBUtilException {
-        String query = "UPDATE messages SET status='" + status + "' where ref_id='" + refID + "';";
-        executeUpdate(query);
+
+        Connection connection = null;
+        PreparedStatement statement = null;
+
+        String query = "UPDATE messages SET status=? where ref_id=?;";
+
+        try {
+            connection = getConnection();
+            statement = connection.prepareStatement(query);
+            statement.setString(1, String.valueOf(status));
+            statement.setString(2, refID);
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            logger.error("Error occurred while updating status of ReferenceID : " + refID + ".Error:" + e);
+            throw new SQLException(e.getMessage(), e);
+        } catch (DBUtilException e) {
+            logger.error("Error occurred while updating status of ReferenceID : " + refID + ".Error:" + e);
+            throw new DBUtilException(e.getMessage(), e);
+        } finally {
+            close(connection, statement);
+        }
     }
 
     /**
@@ -193,35 +251,25 @@ public class DBConnection {
      * @throws DBUtilException DBUtilException
      */
     public void removeClient(String msisdn) throws SQLException, DBUtilException {
-        String query = "DELETE FROM clients WHERE msisdn='" + msisdn + "';";
-        executeUpdate(query);
-    }
-
-    /**
-     * Execute the query
-     *
-     * @param query query to execute
-     * @throws SQLException    SQLException
-     * @throws DBUtilException DBUtilException
-     */
-    private void executeUpdate(String query) throws SQLException, DBUtilException {
 
         Connection connection = null;
         PreparedStatement statement = null;
-        ResultSet resultSet = null;
+
+        String query = "DELETE FROM clients WHERE msisdn=?;";
 
         try {
             connection = getConnection();
             statement = connection.prepareStatement(query);
+            statement.setString(1, msisdn);
             statement.executeUpdate();
         } catch (SQLException e) {
-            logger.error("SQLException occurred " + e);
-            throw new SQLException(e);
+            logger.error("Error occurred while removing the Client with MSISDN : " + msisdn + ".Error:" + e);
+            throw new SQLException(e.getMessage(), e);
         } catch (DBUtilException e) {
-            logger.error("DBUtilException occurred " + e);
-            throw new DBUtilException(e);
+            logger.error("Error occurred while removing the Client with MSISDN : " + msisdn + ".Error:" + e);
+            throw new DBUtilException(e.getMessage(), e);
         } finally {
-            close(connection, statement, resultSet);
+            close(connection, statement);
         }
     }
 
@@ -242,7 +290,25 @@ public class DBConnection {
             if (connection != null)
                 connection.close();
         } catch (Exception e) {
-            logger.error("Error occurred " + e);
+            logger.error("Error occurred while Closing the Connection");
+        }
+    }
+
+    /**
+     * Close the database connection.
+     *
+     * @param connection Connection instance used by the method call
+     * @param statement  prepared Statement used by the method call
+     */
+    public void close(Connection connection, PreparedStatement statement) {
+
+        try {
+            if (statement != null)
+                statement.close();
+            if (connection != null)
+                connection.close();
+        } catch (Exception e) {
+            logger.error("Error occurred while Closing the Connection");
         }
     }
 }

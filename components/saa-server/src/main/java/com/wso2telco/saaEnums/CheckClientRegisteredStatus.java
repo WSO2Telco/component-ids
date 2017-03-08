@@ -13,15 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.exception;
+package com.wso2telco.saaEnums;
 
-public class EmptyResultSetException extends Exception {
-
-    public EmptyResultSetException(String message) {
-        super(message);
-    }
-
-    public EmptyResultSetException(String message, Throwable cause) {
-        super(message, cause);
-    }
+/**
+ * Include the states of check client availability
+ */
+public enum CheckClientRegisteredStatus {
+    ERROR_IN_AUTHORIZING_BY_CLIENT
 }
