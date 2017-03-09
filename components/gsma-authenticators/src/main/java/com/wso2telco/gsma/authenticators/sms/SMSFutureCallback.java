@@ -27,10 +27,10 @@ public class SMSFutureCallback extends BasicFutureCallback {
 
     private UserStatus userStatus;
 
-    SMSFutureCallback() {
+    public SMSFutureCallback() {
     }
 
-    SMSFutureCallback(UserStatus userStatus) {
+    public SMSFutureCallback(UserStatus userStatus) {
         this.userStatus = userStatus;
     }
 

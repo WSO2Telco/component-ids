@@ -69,7 +69,7 @@ public class SendSMS {
      * @return the string
      * @throws IOException Signals that an I/O exception has occurred.
      */
-    protected String sendSMS(String msisdn, String message, String operator, BasicFutureCallback futureCallback)
+    public String sendSMS(String msisdn, String message, String operator, BasicFutureCallback futureCallback)
             throws IOException {
         String returnString = null;
 

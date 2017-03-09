@@ -16,10 +16,12 @@
 package com.wso2telco.gsma.authenticators.ussd;
 
 import com.wso2telco.Util;
+import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.PinConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.config.util.PinConfigUtil;
+import com.wso2telco.core.sp.config.utils.exception.DataAccessException;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
@@ -27,10 +29,7 @@ import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.ussd.command.PinLoginUssdCommand;
 import com.wso2telco.gsma.authenticators.ussd.command.PinRegistrationUssdCommand;
 import com.wso2telco.gsma.authenticators.ussd.command.UssdCommand;
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
-import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
-import com.wso2telco.gsma.authenticators.util.UserProfileManager;
+import com.wso2telco.gsma.authenticators.util.*;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.lang.StringUtils;
@@ -605,6 +604,14 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             new UserProfileManager().createUserProfileLoa3(msisdn, operator, challengeAnswer1, challengeAnswer2,
                     pinConfig.getRegisteredPin());
 
+            MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
+            if (!smsConfig.getWelcomeMessageDisabled()) {
+                try {
+                    WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
+                } catch (DataAccessException | IOException e) {
+                    log.error("Welcome SMS sending failed", e);
+                }
+            }
         } else {
             String errMsg = "Authentication failed for due to mismatch in entered and confirmed pin";
             DataPublisherUtil.updateAndPublishUserStatus(userStatus,

@@ -28,10 +28,7 @@ import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.cryptosystem.AESencrp;
-import com.wso2telco.gsma.authenticators.util.Application;
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
-import com.wso2telco.gsma.authenticators.util.UserProfileManager;
+import com.wso2telco.gsma.authenticators.util.*;
 import com.wso2telco.gsma.shorten.SelectShortUrl;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
@@ -247,7 +244,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 
                     MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
                     if (!smsConfig.getWelcomeMessageDisabled()) {
-                        handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
+                        WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
                     }
                 }
             }
@@ -272,72 +269,6 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 
         if (rememberMe != null && "on".equals(rememberMe)) {
             context.setRememberMe(true);
-        }
-    }
-
-    private void handleWelcomeSms(AuthenticationContext context, UserStatus userStatus, String msisdn, String operator,
-                                  MobileConnectConfig.SMSConfig smsConfig) throws DataAccessException, IOException {
-
-        BasicFutureCallback futureCallback = userStatus != null ? new SMSFutureCallback(userStatus.cloneUserStatus()) : new SMSFutureCallback();
-
-        List<OperatorSmsConfig> operatorSmsConfigs = smsConfig.getOperatorSmsConfigs();
-
-        SendSMS sendSMS = new SendSMS();
-
-        boolean isWelcomeSmsDisabledForOperator = false;
-        OperatorSmsConfig operatorSmsConfig = null;
-
-        for (OperatorSmsConfig config : operatorSmsConfigs) {
-
-            isWelcomeSmsDisabledForOperator = config.getName().equals(operator) && config.isDisabled();
-
-            if (!isWelcomeSmsDisabledForOperator) {
-                operatorSmsConfig = config;
-                break;
-            }
-        }
-        if (!isWelcomeSmsDisabledForOperator) {
-
-            Map<String, String> welcomeSMSConfig = spConfigService.getWelcomeSMSConfig(context.getRelyingParty());
-
-            String welcomeSmsDisabledForAllSps = welcomeSMSConfig.get(ConfigKey.ALL);
-            if (welcomeSmsDisabledForAllSps != null) {
-
-                if ("false".equalsIgnoreCase(welcomeSmsDisabledForAllSps)) {
-                    sendWelcomeSms(msisdn, operator, futureCallback, sendSMS, operatorSmsConfig, welcomeSMSConfig,
-                            context.getRelyingParty());
-                } else {
-                    log.info("Welcome Sms disabled for all operators for client id [ " + context.getRelyingParty() +
-                            " ]");
-                }
-            } else {
-                sendWelcomeSms(msisdn, operator, futureCallback, sendSMS, operatorSmsConfig, welcomeSMSConfig,
-                        context.getRelyingParty());
-            }
-        } else {
-            log.info("Welcome Sms disabled for operator [ msisdn : " + msisdn + " , operator : " +
-                    operator + " ]");
-        }
-    }
-
-    private void sendWelcomeSms(String msisdn, String operator, BasicFutureCallback futureCallback, SendSMS sendSMS,
-                                OperatorSmsConfig operatorSmsConfig, Map<String, String> welcomeSMSConfig, String
-                                        clientId) throws IOException {
-
-        String welcomeSmsDisabledForCurrentSp = welcomeSMSConfig.get(operator.trim());
-
-        if (welcomeSmsDisabledForCurrentSp != null && "false"
-                .equalsIgnoreCase(welcomeSmsDisabledForCurrentSp)) {
-
-            if (operatorSmsConfig != null) {
-                log.info("Sending Welcome sms [ msisdn : " + msisdn + " , operator : " + operator + " ]");
-
-                sendSMS.sendSMS(msisdn, operatorSmsConfig.getMessage(), operator, futureCallback);
-            } else {
-                log.error("No Welcome Sms has been configured in mobile-connect.xml for operator [ " + operator + "] ");
-            }
-        } else {
-            log.info("Welcome message is disabled [ client id :" + clientId + " , operator : " + operator + " ]");
         }
     }
 
