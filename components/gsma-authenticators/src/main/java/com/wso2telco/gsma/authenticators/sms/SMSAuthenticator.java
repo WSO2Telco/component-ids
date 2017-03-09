@@ -275,7 +275,9 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         }
     }
 
-    private void handleWelcomeSms(AuthenticationContext context, UserStatus userStatus, String msisdn, String operator, MobileConnectConfig.SMSConfig smsConfig) throws DataAccessException, IOException {
+    private void handleWelcomeSms(AuthenticationContext context, UserStatus userStatus, String msisdn, String operator,
+                                  MobileConnectConfig.SMSConfig smsConfig) throws DataAccessException, IOException {
+
         BasicFutureCallback futureCallback = userStatus != null ? new SMSFutureCallback(userStatus.cloneUserStatus()) : new SMSFutureCallback();
 
         List<OperatorSmsConfig> operatorSmsConfigs = smsConfig.getOperatorSmsConfigs();
@@ -334,8 +336,8 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             } else {
                 log.error("No Welcome Sms has been configured in mobile-connect.xml for operator [ " + operator + "] ");
             }
-        }else {
-            log.info("Welcome message is disabled [ client id :" + clientId + " , operoator : " + operator + " ]");
+        } else {
+            log.info("Welcome message is disabled [ client id :" + clientId + " , operator : " + operator + " ]");
         }
     }
 
