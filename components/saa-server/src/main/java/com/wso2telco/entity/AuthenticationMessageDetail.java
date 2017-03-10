@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com)
+ * Copyright (c) 2015-2017, WSO2.Telco Inc. (http://www.wso2telco.com)
  *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,24 @@
  ******************************************************************************/
 package com.wso2telco.entity;
 
-public class Data {
+/**
+ * This class includes the message details sent by the Fire base Cloud Messaging(fcm) to the registered clients for authentication
+ */
+public class AuthenticationMessageDetail {
 
+    //The message to Pass
     private String msg;
 
+    //Service Provider Name
     private String sp;
 
+    //Reference ID for the message
     private String ref;
 
+    //ACR Value
     private String acr;
 
+    //URL for the Service Provider Image
     private String sp_url;
 
     public String getMsg() {
