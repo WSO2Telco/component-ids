@@ -20,13 +20,11 @@ import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.sp.config.utils.exception.DataAccessException;
 import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.IPRangeChecker;
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import com.wso2telco.gsma.authenticators.util.DecryptionAES;
-import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
-import com.wso2telco.gsma.authenticators.util.UserProfileManager;
+import com.wso2telco.gsma.authenticators.util.*;
 import com.wso2telco.gsma.manager.client.ClaimManagementClient;
 import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
@@ -365,10 +363,18 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                         // authenticators from step map
                         try {
                             new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
+
+                            MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
+                            if (!smsConfig.getWelcomeMessageDisabled()) {
+                                WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
+                            }
+
                         } catch (RemoteException | UserRegistrationAdminServiceIdentityException e) {
                             DataPublisherUtil.updateAndPublishUserStatus(userStatus,
                                     DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL, e.getMessage());
                             throw new AuthenticationFailedException(e.getMessage(), e);
+                        } catch (DataAccessException | IOException e) {
+                            log.error("Welcome SMS sending failed", e);
                         }
                     } else {
                         // login flow

@@ -16,8 +16,10 @@
 package com.wso2telco.gsma.authenticators.ussd;
 
 import com.wso2telco.Util;
+import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.sp.config.utils.exception.DataAccessException;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
@@ -27,6 +29,7 @@ import com.wso2telco.gsma.authenticators.ussd.command.RegistrationUssdCommand;
 import com.wso2telco.gsma.authenticators.ussd.command.UssdCommand;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.UserProfileManager;
+import com.wso2telco.gsma.authenticators.util.WelcomeSmsUtil;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.logging.Log;
@@ -256,13 +259,13 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
         String sessionDataKey = request.getParameter("sessionDataKey");
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
         String msisdn = (String) context.getProperty(Constants.MSISDN);
-        String openator = (String) context.getProperty(Constants.OPERATOR);
+        String operator = (String) context.getProperty(Constants.OPERATOR);
 
         if (log.isDebugEnabled()) {
             log.debug("SessionDataKey : " + sessionDataKey);
             log.debug("Registering : " + isRegistering);
             log.debug("MSISDN : " + msisdn);
-            log.debug("Operator : " + openator);
+            log.debug("Operator : " + operator);
         }
 
         try {
@@ -271,7 +274,12 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             if (responseStatus != null && responseStatus.equalsIgnoreCase(UserResponse.APPROVED.toString())) {
 
                 if (isRegistering) {
-                    new UserProfileManager().createUserProfileLoa2(msisdn, openator, Constants.SCOPE_MNV);
+                    new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
+
+                    MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
+                    if (!smsConfig.getWelcomeMessageDisabled()) {
+                        WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
+                    }
                 }
             } else {
                 log.info("Authentication failed. Consent not provided.");
@@ -292,6 +300,8 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
                     .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.USSD_AUTH_PROCESSING_FAIL,
                             e.getMessage());
             throw new AuthenticationFailedException("Error occurred while creating user profile", e);
+        } catch (DataAccessException | IOException e) {
+            log.error("Welcome SMS sending failed" ,e);
         }
         AuthenticationContextHelper.setSubject(context, msisdn);
 
