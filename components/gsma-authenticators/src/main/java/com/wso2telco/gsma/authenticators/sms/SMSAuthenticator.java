@@ -163,14 +163,6 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             String client_id = paramMap.get(Constants.CLIENT_ID);
             String operator = (String) context.getProperty(Constants.OPERATOR);
 
-            // prepare the USSD message from template
-            HashMap<String, String> variableMap = new HashMap<String, String>();
-            variableMap.put("application", application.changeApplicationName(context.getSequenceConfig()
-                    .getApplicationConfig().getApplicationName()));
-            variableMap.put("link", messageURL);
-            String messageText = OutboundMessage.prepare(client_id, OutboundMessage.MessageType.SMS_LOGIN, variableMap,
-                    operator);
-
             if (smsConfig.isShortUrl()) {
                 // If a URL shortening service is enabled, then we need to encrypt the context identifier, create the
                 // message URL and shorten it.
@@ -186,6 +178,14 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                 messageURL += hashForContextId;
                 DBUtils.insertHashKeyContextIdentifierMapping(hashForContextId, context.getContextIdentifier());
             }
+
+            // prepare the USSD message from template
+            HashMap<String, String> variableMap = new HashMap<String, String>();
+            variableMap.put("application", application.changeApplicationName(context.getSequenceConfig()
+                    .getApplicationConfig().getApplicationName()));
+            variableMap.put("link", messageURL);
+            String messageText = OutboundMessage.prepare(client_id, OutboundMessage.MessageType.SMS_LOGIN, variableMap,
+                    operator);
 
             if (log.isDebugEnabled()) {
                 log.debug("Message URL: " + messageURL);

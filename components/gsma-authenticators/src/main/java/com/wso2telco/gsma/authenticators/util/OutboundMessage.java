@@ -83,26 +83,34 @@ public class OutboundMessage {
 
     static {
         ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
-        for (MobileConnectConfig.OperatorSpecificMessage osm : ussdConfig.getOperatorSpecificMessages()
-                .getOperatorSpecificMessage()) {
-            operatorSpecificMessageMap.put(osm.getOperator(), osm);
+        smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
+
+        if(ussdConfig != null && ussdConfig.getOperatorSpecificMessages() != null) {
+            for (MobileConnectConfig.OperatorSpecificMessage osm : ussdConfig.getOperatorSpecificMessages()
+                    .getOperatorSpecificMessage()) {
+                operatorSpecificMessageMap.put(osm.getOperator(), osm);
+            }
         }
 
-        for (MobileConnectConfig.OperatorSpecificMessage osm : ussdConfig.getOperatorSpecificPinMessages()
-                .getOperatorSpecificPinMessage()) {
-            operatorSpecificPinMessageMap.put(osm.getOperator(), osm);
+        if(ussdConfig != null && ussdConfig.getOperatorSpecificPinMessages() != null) {
+            for (MobileConnectConfig.OperatorSpecificMessage osm : ussdConfig.getOperatorSpecificPinMessages()
+                    .getOperatorSpecificPinMessage()) {
+                operatorSpecificPinMessageMap.put(osm.getOperator(), osm);
+            }
         }
 
-        for (MobileConnectConfig.OperatorSpecificMessage osm : smsConfig.getOperatorSpecificMessages()
-                .getOperatorSpecificMessage()) {
-            operatorSpecificSmsMessageMap.put(osm.getOperator(), osm);
+        if(smsConfig != null && smsConfig.getOperatorSpecificMessages() != null) {
+            for (MobileConnectConfig.OperatorSpecificMessage osm : smsConfig.getOperatorSpecificMessages()
+                    .getOperatorSpecificMessage()) {
+                operatorSpecificSmsMessageMap.put(osm.getOperator(), osm);
+            }
         }
     }
 
     /**
-     * Prepare the USSD/SMS message from database config table for service provider, operator specific message or default
-     * message stored in mobile-connect.xml. Message template can have ${variable} and relevant data to apply to the
-     * template should be passed with map parameter.
+     * Prepare the USSD/SMS message from database config table for service provider, operator specific message or
+     * default message stored in mobile-connect.xml. Message template can have ${variable} and relevant data to apply
+     * to the template should be passed with map parameter.
      *
      * @param clientId    sp client id
      * @param messageType ussd/sms message type
