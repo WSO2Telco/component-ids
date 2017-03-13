@@ -406,13 +406,13 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         if (ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK.equals(headerMismatchResult) ||
                 ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK_TRUST_HEADER.equals(headerMismatchResult) ||
                 ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK_TRUST_LOGINHINT.equals(headerMismatchResult)) {
-            //RULE 1.1: if header MSISDN is not empty and LOGIN HINT is empty OR header MSISDN and LOGIN HINT is
+            //RULE 1.1: if header MSISDN is not empty and USSD_LOGIN HINT is empty OR header MSISDN and USSD_LOGIN HINT is
             // equal, [onnet]
             if (StringUtils.isNotEmpty(headerMsisdn) && (StringUtils.isEmpty(loginHintMsisdn) || headerMsisdn.equals
                     (loginHintMsisdn))) {
                 return "onnet";
             } else {
-                //RULE 1.3: if header MSISDN is empty or LOGIN HINT is not empty and not equal, [offnet]
+                //RULE 1.3: if header MSISDN is empty or USSD_LOGIN HINT is not empty and not equal, [offnet]
                 return "offnet";
             }
         }
