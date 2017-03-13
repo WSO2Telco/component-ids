@@ -17,22 +17,17 @@ package com.wso2telco.gsma.authenticators.sms;
 
 import com.wso2telco.Util;
 import com.wso2telco.core.config.model.MobileConnectConfig;
-import com.wso2telco.core.config.model.OperatorSmsConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.sp.config.utils.exception.DataAccessException;
 import com.wso2telco.core.sp.config.utils.service.SpConfigService;
 import com.wso2telco.core.sp.config.utils.service.impl.SpConfigServiceImpl;
-import com.wso2telco.core.sp.config.utils.util.ConfigKey;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.cryptosystem.AESencrp;
-import com.wso2telco.gsma.authenticators.util.Application;
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
-import com.wso2telco.gsma.authenticators.util.UserProfileManager;
+import com.wso2telco.gsma.authenticators.util.*;
 import com.wso2telco.gsma.shorten.SelectShortUrl;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
@@ -56,7 +51,6 @@ import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.List;
 
 
 // TODO: Auto-generated Javadoc
