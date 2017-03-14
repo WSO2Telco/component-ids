@@ -291,6 +291,7 @@ public class DBUtils {
                     scopeParamsMap.put("scope", results.getString("scope"));
 
                     ScopeParam parameters = new ScopeParam();
+                    parameters.setScope(results.getString("scope"));
                     parameters.setLoginHintMandatory(results.getBoolean("is_login_hint_mandatory"));
                     parameters.setHeaderMsisdnMandatory(results.getBoolean("is_header_msisdn_mandatory"));
                     parameters.setMsisdnMismatchResult(ScopeParam.msisdnMismatchResultTypes.valueOf(results.getString(

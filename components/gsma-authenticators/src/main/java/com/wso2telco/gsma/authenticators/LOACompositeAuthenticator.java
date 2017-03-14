@@ -147,9 +147,11 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         Boolean isFrorceOffnetDueToPromptParameter = false;
         PromptData promptData = null;
 
+        String[] scopes = request.getParameter(Constants.SCOPE).split(" ");
+
         // RULE 1: change the flow due to prompt parameter only on HE scenarios
         if(StringUtils.isNotEmpty(msisdnHeader)) {
-            promptData = DBUtils.getPromptData(request.getParameter(Constants.SCOPE),
+            promptData = DBUtils.getPromptData(scopes[0],
                     request.getParameter(Constants.PROMPT), StringUtils.isNotEmpty(loginHintMsisdn));
             // RULE 2: put on offnet flow if prompt config is offnet, otherwise go in normal HE flow
             if (promptData.getBehaviour() != null && (promptData.getBehaviour() == PromptData.behaviorTypes.OFFNET
