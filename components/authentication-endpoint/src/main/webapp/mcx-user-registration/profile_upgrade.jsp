@@ -195,7 +195,7 @@
                     </a>
                 </div>
                 <div class="grid__item one-half">
-                    <button type="button" id="validate-btn1" onclick="registration()" name="action" value="yes"
+                    <button type="button" id="validate-btn1" onclick="flow()" name="action" value="yes"
                             class="btn btn--full btn--fill btn--large btn--color">
                         Yes
                     </button>
@@ -206,36 +206,6 @@
 </div>
 <script type="text/javascript">
 
-
-    /*
-     * geting acr code from acr value and make the register page template according to acr *code
-     *USSDAuthenticator ==>
-     * Display Slider
-     * Display message for new account
-     * Display term and condition
-     * Display button validate-btn1
-     * Yes = call flow then register
-     *USSDPinAuthenticator ==>
-     * Display Slider
-     * Hide term and condition
-     * Display message for new account
-     * Display button validate-btn1
-     * Yes = call flow
-     *   Hide slider
-     *   Hide message for new account
-     *   Hide button validate-btn1
-     *   Display Header ussdpin_header
-     *   Display chllenge queqtion form
-     *   Display button validate-btn2
-     *   Yes = call registration
-     *
-     * if updateProfile = true
-     *   Hide Header ussdpin_header
-     *   Display Header ussdpin_header_update
-     *   Display chllenge queqtion form
-     *   Display button validate-btn2
-     *   Yes = call registration
-     */
     $('#validate-btn1').click(function (event) {
         event.preventDefault();
         //do your action goes below
@@ -279,7 +249,6 @@
     }
 
     if ('<%=updateProfile%>' == "true") {
-        flow();
         term_ussd_pin.style.display = 'none';
         term_ussd.style.display = 'none';
     }
@@ -290,32 +259,11 @@
      */
     function flow() {
 
-        /*
-         * USSD Registration or USSD Pin Registration page 1
-         * click on YES button
-         */
-        /*if (acr_code == "USSDPinAuthenticator") {
-            term_ussd_pin.style.display = 'block';
-            term_ussd.style.display = 'none';
-            slider.style.display = 'none';
-            questions.style.display = 'block';
-            msg.style.display = 'none';
-            btn1.style.display = 'none';
-            btn2.style.display = 'block';
-
-        } else {
-            registration();
-        }*/
-        registration();
-    }
-
-    function proceedRegistration() {
         $('#selfReg').parsley().validate();
         if (true === $('#selfReg').parsley().isValid()) {
             registration();
         }
     }
-
 </script>
 </body>
 
