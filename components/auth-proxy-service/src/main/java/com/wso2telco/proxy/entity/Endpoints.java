@@ -202,11 +202,11 @@ public class Endpoints {
                 ipAddress = getIpAddress(httpHeaders, operatorName);
 
                 //Validate with Scope wise parameters and throw exceptions
-                validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo, userStatus);
+                ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo, userStatus);
 
                 String loginhint_msisdn = null;
                 try {
-                    loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeName, userStatus);
+                    loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam);
                 } catch (Exception e) {
                     log.debug("Error retrieving loginhint msisdn : " + e);
                 }
@@ -309,7 +309,7 @@ public class Endpoints {
      * @throws AuthenticationFailedException
      * @throws ConfigurationException
      */
-    private void validateAndSetScopeParameters(String loginHint, String msisdnHeader, String scope,
+    private ScopeParam validateAndSetScopeParameters(String loginHint, String msisdnHeader, String scope,
                                                RedirectUrlInfo redirectUrlInfo, UserStatus userStatus)
             throws AuthenticationFailedException, ConfigurationException {
         //TODO: get all scope related params. This should be move to a initialization method or add to cache later
@@ -378,6 +378,7 @@ public class Endpoints {
             }
         }
 
+        return scopeParam;
     }
 
     /**
@@ -499,12 +500,10 @@ public class Endpoints {
     }
 
 
-    private String retreiveLoginHintMsisdn(String loginHint, String scope, UserStatus userStatus)
+    private String retreiveLoginHintMsisdn(String loginHint, ScopeParam scopeParam)
             throws AuthenticationFailedException, ConfigurationException {
         boolean isValidFormatType = false; //msisdn/loginhint should be a either of defined formats
         String msisdn = null;
-
-        ScopeParam scopeParam = getScopeParam(scope, userStatus);
 
         for (LoginHintFormatDetails loginHintFormatDetails : scopeParam.getLoginHintFormat()) {
             switch (loginHintFormatDetails.getFormatType()) {

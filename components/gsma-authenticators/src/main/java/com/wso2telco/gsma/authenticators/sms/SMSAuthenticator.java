@@ -15,14 +15,13 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.sms;
 
+import com.wso2telco.Util;
 import com.wso2telco.core.config.model.MobileConnectConfig;
-import com.wso2telco.core.config.model.OperatorSmsConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.sp.config.utils.exception.DataAccessException;
 import com.wso2telco.core.sp.config.utils.service.SpConfigService;
 import com.wso2telco.core.sp.config.utils.service.impl.SpConfigServiceImpl;
-import com.wso2telco.core.sp.config.utils.util.ConfigKey;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
@@ -50,7 +49,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 
@@ -156,11 +155,13 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 
             MobileConnectConfig connectConfig = configurationService.getDataHolder().getMobileConnectConfig();
             MobileConnectConfig.SMSConfig smsConfig = connectConfig.getSmsConfig();
-            String messageText = smsConfig.getMessageContentFirst() + " " + application
-                    .changeApplicationName(context.getSequenceConfig().getApplicationConfig().getApplicationName())
-                    + smsConfig.getMessage() + "\n" + smsConfig.getMessageContentLast();
+
             String encryptedContextIdentifier = AESencrp.encrypt(context.getContextIdentifier());
             String messageURL = connectConfig.getSmsConfig().getAuthUrl() + Constants.AUTH_URL_ID_PREFIX;
+
+            Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
+            String client_id = paramMap.get(Constants.CLIENT_ID);
+            String operator = (String) context.getProperty(Constants.OPERATOR);
 
             if (smsConfig.isShortUrl()) {
                 // If a URL shortening service is enabled, then we need to encrypt the context identifier, create the
@@ -177,18 +178,25 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                 messageURL += hashForContextId;
                 DBUtils.insertHashKeyContextIdentifierMapping(hashForContextId, context.getContextIdentifier());
             }
-            String operator = (String) context.getProperty("operator");
+
+            // prepare the USSD message from template
+            HashMap<String, String> variableMap = new HashMap<String, String>();
+            variableMap.put("application", application.changeApplicationName(context.getSequenceConfig()
+                    .getApplicationConfig().getApplicationName()));
+            variableMap.put("link", messageURL);
+            String messageText = OutboundMessage.prepare(client_id, OutboundMessage.MessageType.SMS_LOGIN, variableMap,
+                    operator);
 
             if (log.isDebugEnabled()) {
                 log.debug("Message URL: " + messageURL);
-                log.debug("Message: " + messageText + "\n" + messageURL);
+                log.debug("Message: " + messageText);
                 log.debug("Operator: " + operator);
             }
 
             DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
             BasicFutureCallback futureCallback =
                     userStatus != null ? new SMSFutureCallback(userStatus.cloneUserStatus()) : new SMSFutureCallback();
-            String smsResponse = new SendSMS().sendSMS(msisdn, messageText + "\n" + messageURL, operator,
+            String smsResponse = new SendSMS().sendSMS(msisdn, messageText, operator,
                     futureCallback);
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&authenticators=" +
                     getName() + ":" + "LOCAL" + retryParam);

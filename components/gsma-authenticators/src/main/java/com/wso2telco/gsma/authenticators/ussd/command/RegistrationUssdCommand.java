@@ -24,7 +24,7 @@ import com.wso2telco.gsma.authenticators.model.OutboundUSSDMessageRequest;
 import com.wso2telco.gsma.authenticators.model.ResponseRequest;
 import com.wso2telco.gsma.authenticators.ussd.USSDRequest;
 import com.wso2telco.gsma.authenticators.util.Application;
-import com.wso2telco.gsma.authenticators.util.USSDOutboundMessage;
+import com.wso2telco.gsma.authenticators.util.OutboundMessage;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -71,7 +71,7 @@ public class RegistrationUssdCommand extends UssdCommand {
         // prepare the USSD message from template
         HashMap<String, String> variableMap = new HashMap<String, String>();
         variableMap.put("application", application.changeApplicationName(serviceProvider));
-        String message = USSDOutboundMessage.prepare(client_id, USSDOutboundMessage.MessageType.REGISTRATION,
+        String message = OutboundMessage.prepare(client_id, OutboundMessage.MessageType.USSD_REGISTRATION,
                 variableMap, operator);
 
         if (log.isDebugEnabled()) {

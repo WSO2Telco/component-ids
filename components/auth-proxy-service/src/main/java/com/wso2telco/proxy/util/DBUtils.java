@@ -271,23 +271,49 @@ public class DBUtils {
             }
             results = ps.executeQuery();
 
+            Boolean mainScopeFound = false;
+            List<String> scopeValuesFromDatabase = new ArrayList<>();
+
             while (results.next()) {
-                scopeParamsMap.put("scope", results.getString("scope"));
+                Boolean isMultiscope = results.getBoolean("is_multiscope");
+                scopeValuesFromDatabase.add(results.getString("scope"));
 
-                ScopeParam parameters = new ScopeParam();
-                parameters.setLoginHintMandatory(results.getBoolean("is_login_hint_mandatory"));
-                parameters.setHeaderMsisdnMandatory(results.getBoolean("is_header_msisdn_mandatory"));
-                parameters.setMsisdnMismatchResult(ScopeParam.msisdnMismatchResultTypes.valueOf(results.getString(
-                        "msisdn_mismatch_result")));
-                parameters.setHeFailureResult(ScopeParam.heFailureResults.valueOf(results.getString(
-                        "he_failure_result")));
-                parameters.setTncVisible(results.getBoolean("is_tnc_visible"));
-                parameters.setLoginHintFormat(getLoginHintFormatTypeDetails(results.getInt("param_id"), conn));
+                if(!isMultiscope) {
+                    //throw error if multiple main scopes found
+                    if (mainScopeFound) {
+                        throw new ConfigurationException("Multiple main scopes found");
+                    }
 
-                scopeParamsMap.put("params", parameters);
+                    //mark as main scope found
+                    mainScopeFound = true;
+
+
+                    scopeParamsMap.put("scope", results.getString("scope"));
+
+                    ScopeParam parameters = new ScopeParam();
+                    parameters.setLoginHintMandatory(results.getBoolean("is_login_hint_mandatory"));
+                    parameters.setHeaderMsisdnMandatory(results.getBoolean("is_header_msisdn_mandatory"));
+                    parameters.setMsisdnMismatchResult(ScopeParam.msisdnMismatchResultTypes.valueOf(results.getString(
+                            "msisdn_mismatch_result")));
+                    parameters.setHeFailureResult(ScopeParam.heFailureResults.valueOf(results.getString(
+                            "he_failure_result")));
+                    parameters.setTncVisible(results.getBoolean("is_tnc_visible"));
+                    parameters.setLoginHintFormat(getLoginHintFormatTypeDetails(results.getInt("param_id"), conn));
+
+                    scopeParamsMap.put("params", parameters);
+                }
+            }
+
+            //validate all scopes and compare with scopes fetched from database
+            for(String scopeToValidate : scopeValues){
+                if(!scopeValuesFromDatabase.contains(scopeToValidate)){
+                    throw new ConfigurationException("One or more scopes are not valid");
+                }
             }
         } catch (SQLException e) {
             handleException("Error occurred while getting scope parameters from the database", e);
+        } catch (ConfigurationException e) {
+            handleException(e.getMessage(), e);
         } catch (NamingException e) {
             log.error("Naming exception ", e);
         } finally {

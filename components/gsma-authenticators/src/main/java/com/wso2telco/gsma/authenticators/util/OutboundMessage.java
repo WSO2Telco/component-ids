@@ -27,18 +27,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Represents the static method to prepare USSD outbound message for a given SP app.
+ * Represents the static method to prepare USSD/SMS outbound message for a given SP app.
  */
-public class USSDOutboundMessage {
+public class OutboundMessage {
 
     /**
      * Message type enum
      */
     public enum MessageType {
-        LOGIN,
-        REGISTRATION,
-        PIN_LOGIN,
-        PIN_REGISTRATION
+        USSD_LOGIN,
+        USSD_REGISTRATION,
+        USSD_PIN_LOGIN,
+        USSD_PIN_REGISTRATION,
+        SMS_LOGIN,
+        SMS_REGISTRATION
     }
 
     /**
@@ -57,6 +59,11 @@ public class USSDOutboundMessage {
     private static MobileConnectConfig.USSDConfig ussdConfig;
 
     /**
+     * Temporary reference for sms config
+     */
+    private static MobileConnectConfig.SMSConfig smsConfig;
+
+    /**
      * Map to store operator specific messages loaded from config file
      */
     private static HashMap<String, MobileConnectConfig.OperatorSpecificMessage> operatorSpecificMessageMap = new
@@ -68,26 +75,45 @@ public class USSDOutboundMessage {
     private static HashMap<String, MobileConnectConfig.OperatorSpecificMessage> operatorSpecificPinMessageMap = new
             HashMap<>();
 
+    /**
+     * Map to store operator specific SMS messages loaded from config file
+     */
+    private static HashMap<String, MobileConnectConfig.OperatorSpecificMessage> operatorSpecificSmsMessageMap = new
+            HashMap<>();
+
     static {
         ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
-        for (MobileConnectConfig.OperatorSpecificMessage osm : ussdConfig.getOperatorSpecificMessages()
-                .getOperatorSpecificMessage()) {
-            operatorSpecificMessageMap.put(osm.getOperator(), osm);
+        smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
+
+        if(ussdConfig != null && ussdConfig.getOperatorSpecificMessages() != null) {
+            for (MobileConnectConfig.OperatorSpecificMessage osm : ussdConfig.getOperatorSpecificMessages()
+                    .getOperatorSpecificMessage()) {
+                operatorSpecificMessageMap.put(osm.getOperator(), osm);
+            }
         }
 
-        for (MobileConnectConfig.OperatorSpecificMessage osm : ussdConfig.getOperatorSpecificPinMessages()
-                .getOperatorSpecificPinMessage()) {
-            operatorSpecificPinMessageMap.put(osm.getOperator(), osm);
+        if(ussdConfig != null && ussdConfig.getOperatorSpecificPinMessages() != null) {
+            for (MobileConnectConfig.OperatorSpecificMessage osm : ussdConfig.getOperatorSpecificPinMessages()
+                    .getOperatorSpecificPinMessage()) {
+                operatorSpecificPinMessageMap.put(osm.getOperator(), osm);
+            }
+        }
+
+        if(smsConfig != null && smsConfig.getOperatorSpecificMessages() != null) {
+            for (MobileConnectConfig.OperatorSpecificMessage osm : smsConfig.getOperatorSpecificMessages()
+                    .getOperatorSpecificMessage()) {
+                operatorSpecificSmsMessageMap.put(osm.getOperator(), osm);
+            }
         }
     }
 
     /**
-     * Prepare the USSD message from database config table for service provider, operator specific message or default
-     * message stored in mobile-connect.xml. Message template can have ${variable} and relevant data to apply to the
-     * template should be passed with map parameter.
+     * Prepare the USSD/SMS message from database config table for service provider, operator specific message or
+     * default message stored in mobile-connect.xml. Message template can have ${variable} and relevant data to apply
+     * to the template should be passed with map parameter.
      *
      * @param clientId    sp client id
-     * @param messageType ussd message type
+     * @param messageType ussd/sms message type
      * @param map         additional variable data map for the message template
      * @param operator    operator name
      * @return prepared ussd message
@@ -110,68 +136,96 @@ public class USSDOutboundMessage {
 
         // Load operator specific message from hash map
         if (operator != null) {
-            if (messageType == MessageType.LOGIN || messageType == MessageType.REGISTRATION) {
+            if (messageType == MessageType.USSD_LOGIN || messageType == MessageType.USSD_REGISTRATION) {
                 operatorSpecificMessage = operatorSpecificMessageMap.get(operator);
             }
 
-            if (messageType == MessageType.PIN_LOGIN || messageType == MessageType.PIN_REGISTRATION) {
+            if (messageType == MessageType.USSD_PIN_LOGIN || messageType == MessageType.USSD_PIN_REGISTRATION) {
                 operatorSpecificMessage = operatorSpecificPinMessageMap.get(operator);
+            }
+
+            if (messageType == MessageType.SMS_LOGIN || messageType == MessageType.SMS_REGISTRATION) {
+                operatorSpecificMessage = operatorSpecificSmsMessageMap.get(operator);
             }
 
             data.put("operator", operator);
         }
 
         // RULE 1 : first try to get login/registration messages from sp config table
-        if (messageType == MessageType.LOGIN) {
+        if (messageType == MessageType.USSD_LOGIN) {
             template = spConfigService.getUSSDLoginMessage(clientId);
         }
 
-        if (messageType == MessageType.REGISTRATION) {
+        if (messageType == MessageType.USSD_REGISTRATION) {
             template = spConfigService.getUSSDRegistrationMessage(clientId);
         }
 
-        if (messageType == MessageType.PIN_LOGIN) {
+        if (messageType == MessageType.USSD_PIN_LOGIN) {
             template = spConfigService.getUSSDPinLoginMessage(clientId);
         }
 
-        if (messageType == MessageType.PIN_REGISTRATION) {
+        if (messageType == MessageType.USSD_PIN_REGISTRATION) {
             template = spConfigService.getUSSDPinRegistrationMessage(clientId);
+        }
+
+        if (messageType == MessageType.SMS_LOGIN) {
+            template = spConfigService.getSMSLoginMessage(clientId);
+        }
+
+        if (messageType == MessageType.SMS_REGISTRATION) {
+            template = spConfigService.getSMSRegistrationMessage(clientId);
         }
 
         if (template == null) {
             // RULE 2 : if message template is not found, try loading them from operator specific config from xml
             if (operatorSpecificMessage != null) {
-                if (messageType == MessageType.LOGIN) {
+                if (messageType == MessageType.USSD_LOGIN) {
                     template = operatorSpecificMessage.getLoginMessage();
                 }
 
-                if (messageType == MessageType.REGISTRATION) {
+                if (messageType == MessageType.USSD_REGISTRATION) {
                     template = operatorSpecificMessage.getRegistrationMessage();
                 }
 
-                if (messageType == MessageType.PIN_LOGIN) {
+                if (messageType == MessageType.USSD_PIN_LOGIN) {
                     template = operatorSpecificMessage.getLoginMessage();
                 }
 
-                if (messageType == MessageType.PIN_REGISTRATION) {
+                if (messageType == MessageType.USSD_PIN_REGISTRATION) {
+                    template = operatorSpecificMessage.getRegistrationMessage();
+                }
+
+                if (messageType == MessageType.SMS_LOGIN) {
+                    template = operatorSpecificMessage.getLoginMessage();
+                }
+
+                if (messageType == MessageType.SMS_REGISTRATION) {
                     template = operatorSpecificMessage.getRegistrationMessage();
                 }
             } else {
                 // RULE 3 : if no operator specific message is found, try loading from common messages
-                if (messageType == MessageType.LOGIN) {
+                if (messageType == MessageType.USSD_LOGIN) {
                     template = ussdConfig.getUssdLoginMessage();
                 }
 
-                if (messageType == MessageType.REGISTRATION) {
+                if (messageType == MessageType.USSD_REGISTRATION) {
                     template = ussdConfig.getUssdRegistrationMessage();
                 }
 
-                if (messageType == MessageType.PIN_LOGIN) {
+                if (messageType == MessageType.USSD_PIN_LOGIN) {
                     template = ussdConfig.getPinLoginMessage();
                 }
 
-                if (messageType == MessageType.PIN_REGISTRATION) {
+                if (messageType == MessageType.USSD_PIN_REGISTRATION) {
                     template = ussdConfig.getPinRegistrationMessage();
+                }
+
+                if (messageType == MessageType.SMS_LOGIN) {
+                    template = smsConfig.getLoginMessage();
+                }
+
+                if (messageType == MessageType.SMS_REGISTRATION) {
+                    template = smsConfig.getRegistrationMessage();
                 }
             }
         }
