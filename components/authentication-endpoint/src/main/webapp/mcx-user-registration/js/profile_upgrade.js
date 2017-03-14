@@ -105,10 +105,10 @@ function registration() {
     if (sessionDataKey) {
         //we can remove this code.
     } else {
-        acr_code = "USSDAuthenticator";
+
     }
 
-    if (acr_code == "USSDPinAuthenticator") {
+    if (document.getElementsByName('challengeQuestion1')) {
 
         selectQ1 = document.getElementsByName('challengeQuestion1')[0];
         challengeQ1 = selectQ1.options[selectQ1.selectedIndex].value;

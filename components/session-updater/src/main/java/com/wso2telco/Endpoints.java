@@ -32,6 +32,8 @@ import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.util.Constants;
 import com.wso2telco.util.DbUtil;
 import org.apache.axis2.AxisFault;
+import org.apache.commons.lang.IncompleteArgumentException;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.client.HttpClient;
@@ -501,6 +503,13 @@ public class Endpoints {
         AuthenticationDetails authenticationDetails = new Gson().fromJson(request, AuthenticationDetails.class);
         String sessionId = authenticationDetails.getSessionId();
         AuthenticationContext authenticationContext = getAuthenticationContext(sessionId);
+
+        if(StringUtils.isEmpty(authenticationDetails.getChallengeQuestion1()) ||
+                StringUtils.isEmpty(authenticationDetails.getChallengeQuestion2()) ||
+                StringUtils.isEmpty(authenticationDetails.getChallengeAnswer1()) ||
+                StringUtils.isEmpty(authenticationDetails.getChallengeAnswer2())){
+            throw new IncompleteArgumentException("All inputs must be completed before saving user challenges");
+        }
 
         authenticationContext.setProperty(Constants.CHALLENGE_QUESTION_1, authenticationDetails.getChallengeQuestion1
                 ());
