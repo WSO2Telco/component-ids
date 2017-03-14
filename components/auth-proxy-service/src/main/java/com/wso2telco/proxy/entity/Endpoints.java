@@ -202,7 +202,8 @@ public class Endpoints {
                 ipAddress = getIpAddress(httpHeaders, operatorName);
 
                 //Validate with Scope wise parameters and throw exceptions
-                ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo, userStatus);
+                ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo,
+                        userStatus);
 
                 String loginhint_msisdn = null;
                 try {
@@ -223,8 +224,8 @@ public class Endpoints {
                         List<String> scopes = new ArrayList<>(Arrays.asList(queryParams.get(AuthProxyConstants.SCOPE)
                                 .get(0).split(" ")));
                         if (!scopes.contains(AuthProxyConstants.SCOPE_OPENID)) {
-                            queryParams.get(AuthProxyConstants.SCOPE).add(0, queryParams.get(AuthProxyConstants
-                                    .SCOPE).get(0) + " " + AuthProxyConstants.SCOPE_OPENID);
+                            queryParams.get(AuthProxyConstants.SCOPE)
+                                    .add(0, scopeParam.getScope() + " " + AuthProxyConstants.SCOPE_OPENID);
                         }
                     }
 
