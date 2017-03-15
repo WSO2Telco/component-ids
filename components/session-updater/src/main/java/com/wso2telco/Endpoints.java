@@ -1188,6 +1188,7 @@ public class Endpoints {
     public Response smsConfirm(@QueryParam("id") String sessionID)
             throws SQLException {
         String responseString;
+        log.info("Processing sms confirmation");
         if (configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig().getIsShortUrl()) {
             // If a URL shortening service is enabled, that means, the id query parameter is the encrypted context
             // identifier. Therefore, to get the actual context identifier, we can decrypt the value of id query param.
@@ -1226,15 +1227,16 @@ public class Endpoints {
             responseString = " You are successfully authenticated via mobile-connect";
         } else if (userStatus.equalsIgnoreCase("EXPIRED")) {
             status = "EXPIRED";
-            responseString = " You are token expired";
+            responseString = " Your token is expired";
         } else {
             status = "EXPIRED";
-            responseString = " You are token already approved";
+            responseString = " Your token has already approved";
         }
 
         responseString = "{" + "\"status\":\"" + status + "\","
                 + "\"text\":\"" + responseString + "\"" + "}";
 
+        log.info("Sending sms confirmation response" + responseString);
         return Response.status(200).entity(responseString).build();
     }
 
