@@ -38,7 +38,8 @@
                     type: "GET",
                     url: url,
                     success: function (result) {
-                        finalResult = result.status;
+                        var json = JSON.parse(result);
+                        finalResult = json.status;
 
                         if (finalResult != "APPROVED") {
                             $('#failedImage').show();
