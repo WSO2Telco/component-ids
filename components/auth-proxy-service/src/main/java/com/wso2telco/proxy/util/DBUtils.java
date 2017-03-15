@@ -366,9 +366,16 @@ public class DBUtils {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
+
+        String[] scopeValues = scopeName.split("\\s+|\\+");
+        StringBuilder params = new StringBuilder("?");
+        for (int i = 1; i < scopeValues.length; i++) {
+            params.append(",?");
+        }
+
         String queryToGetOperatorProperty =
                 "SELECT COUNT(*) AS record_count FROM `sp_configuration` WHERE `client_id`=? AND `config_key`=? AND " +
-                        "`config_value`=?";
+                        "`config_value` in (" + params + ")";
         boolean isSPAllowedScope = false;
 
         try {
@@ -376,11 +383,14 @@ public class DBUtils {
             preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
             preparedStatement.setString(1, clientId);
             preparedStatement.setString(2, "scope");
-            preparedStatement.setString(3, scopeName);
+
+            for (int i = 0; i < scopeValues.length; i++) {
+                preparedStatement.setString(i + 3, scopeValues[i]);
+            }
 
             resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                isSPAllowedScope = resultSet.getInt("record_count") > 0 ? true : false;
+                isSPAllowedScope = resultSet.getInt("record_count") == scopeValues.length;
             }
         } catch (SQLException e) {
             handleException(
