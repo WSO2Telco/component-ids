@@ -225,7 +225,7 @@ public class Endpoints {
                                 .get(0).split(" ")));
                         if (!scopes.contains(AuthProxyConstants.SCOPE_OPENID)) {
                             queryParams.get(AuthProxyConstants.SCOPE)
-                                    .add(0, scopeParam.getScope() + " " + AuthProxyConstants.SCOPE_OPENID);
+                                    .set(0, scopeName + " " + AuthProxyConstants.SCOPE_OPENID);
                         }
                     }
 
