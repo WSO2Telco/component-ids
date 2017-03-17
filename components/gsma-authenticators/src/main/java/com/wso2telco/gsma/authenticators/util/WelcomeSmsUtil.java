@@ -77,19 +77,18 @@ public class WelcomeSmsUtil {
                                         clientId) throws IOException {
 
         String welcomeSmsDisabledForCurrentSp = welcomeSMSConfig.get(operator.trim());
-
-        if (welcomeSmsDisabledForCurrentSp != null && "false"
-                .equalsIgnoreCase(welcomeSmsDisabledForCurrentSp)) {
-
-            if (operatorSmsConfig != null) {
-                log.info("Sending Welcome sms [ msisdn : " + msisdn + " , operator : " + operator + " ]");
-
-                sendSMS.sendSMS(msisdn, operatorSmsConfig.getMessage(), operator, futureCallback);
-            } else {
-                log.error("No Welcome Sms has been configured in mobile-connect.xml for operator [ " + operator + "] ");
-            }
+        
+        if (welcomeSmsDisabledForCurrentSp != null) {	
+        	 if ("false".equalsIgnoreCase(welcomeSmsDisabledForCurrentSp)) {
+        		 log.info("Sending Welcome sms [ msisdn : " + msisdn + " , operator : " + operator + " ]");
+                 sendSMS.sendSMS(msisdn, operatorSmsConfig.getMessage(), operator, futureCallback);
+        	 } else {
+        		 log.info("Welcome message is disabled [ client id :" + clientId + " , operator : " + operator + " ]");
+        	 }  
         } else {
-            log.info("Welcome message is disabled [ client id :" + clientId + " , operator : " + operator + " ]");
+        	 log.info("Sending Welcome sms [ msisdn : " + msisdn + " , operator : " + operator + " ]");
+             sendSMS.sendSMS(msisdn, operatorSmsConfig.getMessage(), operator, futureCallback);
         }
+               
     }
 }
