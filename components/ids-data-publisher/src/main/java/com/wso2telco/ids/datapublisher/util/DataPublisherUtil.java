@@ -685,7 +685,9 @@ public class DataPublisherUtil {
         MSISDN_SET_TO_LOGIN_HINT,
         MSISDN_SET_TO_HEADER,
         MSISDN_SET_TO_USER_INPUT,
-        MSISDN_CLEARED
+        MSISDN_CLEARED,
+        REDIRECT_TO_CONSENT_PAGE,
+        REG_CONSENT_AGREED
 
     }
 }
