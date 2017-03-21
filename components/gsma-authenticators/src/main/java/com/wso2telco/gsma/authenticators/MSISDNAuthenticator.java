@@ -141,6 +141,12 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
 
+            DataPublisherUtil
+                    .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
+                            .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
+                            .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
+
+
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
                     request.getParameter("redirect_uri") + "&authenticators="
                     + getName() + ":" + "LOCAL" + retryParam);
@@ -198,6 +204,12 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     // Change behaviour depending on user action
                     switch (userAction) {
                         case Constants.USER_ACTION_REG_CONSENT:
+
+                            DataPublisherUtil
+                                    .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
+                                            .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
+                                            .REG_CONSENT_AGREED, "Consent approved");
+
                             //User agreed to registration consent
                             break;
                         case Constants.USER_ACTION_REG_REJECTED:
