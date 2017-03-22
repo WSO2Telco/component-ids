@@ -129,9 +129,9 @@ public class Endpoints {
 
 
         //maintain userstatus related to request for data publishing purpose
-        UserStatus userStatus = DataPublisherUtil.buildUserStatusFromRequest(httpServletRequest);
+        UserStatus userStatus = DataPublisherUtil.buildUserStatusFromRequest(httpServletRequest, null);
         //check for forwarded trn Id
-        String transactionId = DataPublisherUtil.getSessionID(httpServletRequest);
+        String transactionId = DataPublisherUtil.getSessionID(httpServletRequest, null);
         if (StringUtils.isEmpty(transactionId)) {
             //generate new trn id
             transactionId = UUID.randomUUID().toString();

@@ -111,7 +111,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.SELECTED_LOA, request.getParameter(Constants.PARAM_ACR));
 
         if (dataPublisherEnabled) {
-            UserStatus userStatus = DataPublisherUtil.buildUserStatusFromRequest(request);
+            UserStatus userStatus = DataPublisherUtil.buildUserStatusFromRequest(request, context);
             context.addParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM, userStatus);
             userStatus.setStatus(DataPublisherUtil.UserState.AUTH_INITIAL_STEP.name());
             DataPublisherUtil.publishUserStatusMetaData(userStatus);
