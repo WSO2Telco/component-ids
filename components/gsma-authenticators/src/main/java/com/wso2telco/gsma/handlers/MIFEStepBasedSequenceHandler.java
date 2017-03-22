@@ -322,7 +322,7 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
         if (authMap.get("AcrValue") == null) {
             authMap.put("AcrValue", request.getParameter("acr_values"));
         }
-        authMap.put("SessionId", DataPublisherUtil.getSessionID(request));
+        authMap.put("SessionId", DataPublisherUtil.getSessionID(request, context));
         DataPublisherUtil.publishAuthEndpointData(authMap);
     }
 }

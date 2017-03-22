@@ -3,6 +3,7 @@ package com.wso2telco.ids.datapublisher.util;
 import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.ids.datapublisher.IdsAgent;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.CarbonContext;
@@ -43,9 +44,9 @@ public class DataPublisherUtil {
         applicationManagementService = applicationMgtService;
     }
 
-    public static UserStatus buildUserStatusFromRequest(HttpServletRequest request) {
+    public static UserStatus buildUserStatusFromRequest(HttpServletRequest request, AuthenticationContext context) {
         UserStatus.UserStatusBuilder userStatusBuilder = new UserStatus
-                .UserStatusBuilder(getSessionID(request));
+                .UserStatusBuilder(getSessionID(request, context));
         String appId = null;
         try {
             appId = applicationManagementService != null ?
@@ -105,7 +106,12 @@ public class DataPublisherUtil {
     }
  */
 
-    public static String getSessionID(HttpServletRequest request) {
+    public static String getSessionID(HttpServletRequest request, AuthenticationContext context) {
+        if (context != null) {
+            if (StringUtils.isNotEmpty(context.getContextIdentifier())) {
+                return context.getContextIdentifier();
+            }
+        }
         return request.getParameter("sessionDataKey");
     }
 
@@ -556,53 +562,11 @@ public class DataPublisherUtil {
         if (request.getParameter("msisdn") != null) {
             context.setProperty("msisdn", request.getParameter("msisdn"));
         }
-        String sessionId = getSessionID(request);
+        String sessionId = getSessionID(request, context);
         context.setProperty(TRANSACTION_ID, sessionId);
 
     }
 
-
-    public static void publishDataForHESkipFlow(HttpServletRequest request) {
-        UserStatus uStatus = buildUserStatusFromRequest(request);
-        uStatus.setIsNewUser(1);
-
-        if (uStatus.getIsMsisdnHeader() == 1) {
-            uStatus.setStatus(UserState.HE_AUTH_SUCCESS.name());
-            //start publishing to meta
-            publishUserStatusMetaData(uStatus);
-            //end publishing
-            //saveUSSD(uStatus);
-            publishUserStatusData(uStatus);
-        } else {
-            uStatus.setStatus(UserState.HE_AUTH_PROCESSING_FAIL.name());
-
-            //start publishing to meta
-            publishUserStatusMetaData(uStatus);
-            //end publishing
-
-            //saveUSSD(uStatus);
-            publishUserStatusData(uStatus);
-
-            uStatus.setStatus(UserState.MSISDN_AUTH_PROCESSING_FAIL.name());
-            //saveUSSD(uStatus);
-            publishUserStatusData(uStatus);
-        }
-    }
-
-    public static void publishInvalidRequest(HttpServletRequest request) {
-
-        UserStatus uStatus = buildUserStatusFromRequest(request);
-        uStatus.setStatus(UserState.INVALID_REQUEST.name());
-
-        uStatus.setComment("Invalid Request");
-
-
-        //start publishing to meta
-        publishUserStatusMetaData(uStatus);
-        //end publishing
-        //saveUSSD(uStatus);
-        publishUserStatusData(uStatus);
-    }
 
     public static void updateAndPublishUserStatus(UserStatus userStatus, UserState userState, String comment) {
         boolean dataPublishingEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher()
