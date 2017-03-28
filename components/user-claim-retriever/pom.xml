@@ -68,6 +68,21 @@
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.wso2telco.core</groupId>
+			<artifactId>config-util</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.wso2telco.core</groupId>
+			<artifactId>dbutils</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
+
 	</dependencies>
 
 	<build>

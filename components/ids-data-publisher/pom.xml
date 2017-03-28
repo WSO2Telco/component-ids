@@ -69,27 +69,47 @@
             <artifactId>org.wso2.carbon.databridge.agent</artifactId>
             <version>${carbon.analytics.common.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity</groupId>
+            <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.wso2telco.core</groupId>
+            <artifactId>config-util</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
-                <artifactId>maven-scr-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
                 <extensions>true</extensions>
+                <version>${maven.bundle.plugin.version}</version>
                 <configuration>
                     <instructions>
-                        <Bundle-Vendor>WSO2Telco</Bundle-Vendor>
-                        <Bundle-SymbolicName>${project.artifactId}</Bundle-SymbolicName>
-                        <Export-Package>com.wso2telco.ids.datapublisher.*</Export-Package>
+                        <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Name>${project.artifactId}</Bundle-Name>
+                        <Export-Package>com.wso2telco.ids.datapublisher.*
+                        </Export-Package>
                         <Import-Package></Import-Package>
                         <DynamicImport-Package>*</DynamicImport-Package>
                     </instructions>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-scr-plugin</artifactId>
+                <version>1.9.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-scr-scrdescriptor</id>
+                        <goals>
+                            <goal>scr</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

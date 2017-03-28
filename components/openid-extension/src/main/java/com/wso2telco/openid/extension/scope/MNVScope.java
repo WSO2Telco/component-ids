@@ -22,7 +22,7 @@ import java.util.Map;
 
 public class MNVScope extends Scope {
 
-    public MNVScope(ScopeDTO scopeDTO){
+    public MNVScope(ScopeDTO scopeDTO) {
         super(scopeDTO);
     }
 
@@ -32,21 +32,21 @@ public class MNVScope extends Scope {
         ScopeValidationResult scopeValidationResult;
         Map<String, String> queryParameters;
 
-        if(getScopeDTO().getMsisdn() == null && (loginHint != null || loginHint.isEmpty())){
+        if (getScopeDTO().getMsisdn() == null && (loginHint != null || loginHint.isEmpty())) {
             isOffNet = true;
             scopeValidationResult = new ScopeValidationResult(false);
-        }else if(loginHint == null || loginHint.isEmpty()){
+        } else if (loginHint == null || loginHint.isEmpty()) {
             queryParameters = new HashMap<>();
             queryParameters.put("error", "access_denied");
             queryParameters.put("state", state);
             scopeValidationResult = new ScopeValidationResult(true, createRedirectURL(callBackURL, queryParameters));
-        }else if (!loginHint.equals(getScopeDTO().getMsisdn())){
+        } else if (!loginHint.equals(getScopeDTO().getMsisdn())) {
             queryParameters = new HashMap<>();
             queryParameters.put("error", "access_denied");
             queryParameters.put("state", state);
             queryParameters.put("error_description", "MSISDN_mismatch");
             scopeValidationResult = new ScopeValidationResult(true, createRedirectURL(callBackURL, queryParameters));
-        }else {
+        } else {
             scopeValidationResult = new ScopeValidationResult(false);
         }
 

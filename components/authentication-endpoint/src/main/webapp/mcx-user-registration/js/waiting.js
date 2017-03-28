@@ -9,6 +9,10 @@ var hasResponse = false;
 var isTimeout = false;
 var status='pending';
 var sessionId;
+var STATUS_PIN_FAIL ="FAILED_ATTEMPTS";
+var STATUS_PENDING = "PENDING";
+var STATUS_APPROVED = "APPROVED";
+
 console.log(" timeout : " +timeout+" pollingInterval : " +pollingInterval+" timeRemaining : " +timeRemaining+" hasResponse : " +hasResponse+" isTimeout : " +isTimeout+" status : " +status);
 
 var pollingVar = setInterval(pollForStatus, pollingInterval);
@@ -44,7 +48,7 @@ console.log("waiting");
 /*
  * Handle polling termination and form submit.
  */
- function handleTermination() {
+ function handleTermination(cancelButton) {
 
  	window.clearInterval(pollingVar);
  	var STATUS_PENDING = "pending";
@@ -56,8 +60,8 @@ console.log("waiting");
  	$('#sms_fallback').hide();
 
  	setTimeout(function(){
- 		redirectBack();
- 	}, 5000);
+ 		redirectBack(cancelButton);
+ 	}, 500);
 
 
 
@@ -68,13 +72,13 @@ console.log("waiting");
  */
 
  
- function redirectBack() {
+ function redirectBack(cancelButton) {
     // Get the value of the 'loginRequestURL' cookie
     var loginURL = decodeURIComponent(document.cookie.replace(new RegExp("(?:(?:^|.*;)\\s*" + "loginRequestURL" + "\\s*\\=\\s*([^;]*).*$)|^.*$"), "$1")) || null;
 
 
     if(tokenVal){
-    	selfAuthorize();
+    	selfAuthorize(cancelButton);
     }else{
 
     	if(isTimeout){
@@ -92,46 +96,18 @@ console.log("waiting");
 /*
  * Invoke the endpoint for self authenticate.
  */
- function selfAuthorize(){
- 	var callbackURL;
- 	var acr;
- 	var authendpoint;
- 	var token;
- 	var scope;
- 	var id=tokenVal;
- 	var state;
- 	var nonce;
- 	var username=msisdn;
- 	var url = "/user-registration/webresources/endpoint/user/authenticate/get?tokenid="+ id;
+ function selfAuthorize(cancelButton){
+	 var commonAuthURL;
+	 var action = "userRespondedOrTimeout";
+	 if(cancelButton){
+		 action = "userCanceled";
+	 }
 
-	 //delete old code after refactor complete
- 	//$.ajax({
- 	//	type: "GET",
- 	//	url:url,
- 	//	async: false,
- 	//	dataType: 'json',
- 	//	success:function(result){
- 	//		if(result != null) {
- 	//			scope = result.scope;
- 	//			callbackURL = result.redirectUri;
- 	//			state= result.state;
- 	//			nonce=result.nonce;
- 	//			clientkey = result.clientId;
- 	//			acr = result.acrValues;
- 	//			authendpoint = "/oauth2/authorize";
- 	//			token = result.tokenID;
- 	//		}
- 	//	}});
-console.log("Inside selfAuthorize------------------------------------------------");
-
- 	//var url = authendpoint + "?scope="+encodeURIComponent(scope)+"&response_type=code&redirect_uri="
- 	//+ encodeURIComponent(callbackURL) + "&client_id=" + clientkey + "&acr_values="
- 	//+ acr+"&tokenid="+token+"&msisdn="+username+"&state="+state+"&nonce="+nonce + "&operator="+values["operator"];
-	 var commonAuthURL = "/commonauth/?sessionDataKey=" + tokenVal
+	 commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
 		 + "&msisdn=" + msisdn
-		 + "&operator=" + values["operator"];
+		 + "&action=" + action + "&canHandle=true";
 
- 	window.location = commonAuthURL;
+	 window.location = commonAuthURL;
  }
 
  function deleteUser(sessionId){
@@ -157,7 +133,6 @@ console.log("Inside selfAuthorize-----------------------------------------------
  function checkUSSDResponseStatus() {
  	
  	sessionId=tokenVal;
-console.log("Inside checkUSSDResponseStatus-------------------------------");
  	var url = "/sessionupdater/tnspoints/endpoint/registration/ussd/status?sessionId=" + sessionId;
 
  	var STATUS_APPROVED = "Approved";
@@ -168,15 +143,18 @@ console.log("Inside checkUSSDResponseStatus-------------------------------");
  		async: false,
 		cache: false,
  		success:function(result){
- 			if(result != null) {
- 				var responseStatus = result.status; 
+			if(result != null) {
+				var responseStatus = result.status;
+				status = result.status;
 
- 				if(responseStatus != null && responseStatus.toUpperCase() == STATUS_APPROVED.toUpperCase()) {
- 					status = result.status;
- 					console.log("status : "+status);
- 					hasResponse = true;
- 				}
- 			}
+				if(responseStatus != null && responseStatus.toUpperCase() != STATUS_PENDING) {
+					hasResponse = true;
+					status = result.status;
+				}else if (responseStatus != null && responseStatus.toUpperCase() == STATUS_PIN_FAIL){
+					hasResponse = true;
+					status = STATUS_PIN_FAIL;
+				}
+			}
  		}});
 
  }
@@ -195,18 +173,13 @@ console.log("Inside checkUSSDResponseStatus-------------------------------");
  * when sms registration starts clear the polling values.
  * if the status is still pending, start the sms registration.
  */
- function handleTerminationSms() {
+ function handleTerminationSms(key) {
  	window.clearInterval(pollingVar);
  	var STATUS_PENDING = "pending";
  	console.log(status +" = " +STATUS_PENDING);
  	if(status==STATUS_PENDING){
  		console.log('changed the flow');
- 		console.log(" timeout : " +timeout+" pollingInterval : " +pollingInterval+" timeRemaining : " +timeRemaining+" hasResponse : " +hasResponse+" isTimeout : " +isTimeout+" status : " +status);
- 		smsClick=true;
- 		token=values["token"];
- 		acr=values["acr"];
- 		operator=values["operator"];
- 		registration();
+		window.location = "/commonauth?sessionDataKey="+key+"&smsrequested=true";
 
  	}else{
  		/*when sms link clicked if already registered using ussd*/

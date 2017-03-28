@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
- * 
+ *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,48 +17,62 @@ package com.wso2telco.entity;
 
 import java.sql.Date;
 
- 
+
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class LoginHistory.
  */
 public class LoginHistory {
-    
-    /** The application id. */
+
+    /**
+     * The application id.
+     */
     private String applicationId;
-    
-    /** The auth user. */
+
+    /**
+     * The auth user.
+     */
     private String authUser;
-    
-    /** The authenticated. */
+
+    /**
+     * The authenticated.
+     */
     private String authenticated;
-    
-    /** The authenticators. */
+
+    /**
+     * The authenticators.
+     */
     private String authenticators;
-    
-    /** The auth ipaddress. */
+
+    /**
+     * The auth ipaddress.
+     */
     private String authIpaddress;
-    
-    /** The created date. */
+
+    /**
+     * The created date.
+     */
     private String createdDate;
 
     /**
      * Instantiates a new login history.
      *
      * @param applicationId the application id
-     * @param authUser the auth user
+     * @param authUser      the auth user
      * @param authenticated the authenticated
      * @param authIpaddress the auth ipaddress
-     * @param createdDate the created date
+     * @param createdDate   the created date
      */
-    public LoginHistory(String applicationId, String authUser, String authenticated, String authIpaddress, String createdDate) {
+    public LoginHistory(String applicationId, String authUser, String authenticated, String authIpaddress, String
+            createdDate) {
         this.applicationId = applicationId;
         this.authUser = authUser;
         this.authenticated = authenticated;
         this.authIpaddress = authIpaddress;
         this.createdDate = createdDate;
-    }   
-    
+    }
+
     /**
      * Gets the application id.
      *
@@ -101,7 +115,7 @@ public class LoginHistory {
      * @return the authenticated
      */
     public String getAuthenticated() {
-        return ( authenticated.equalsIgnoreCase("1") ? "SUCCESS" : "FAILED");
+        return (authenticated.equalsIgnoreCase("1") ? "SUCCESS" : "FAILED");
     }
 
     /**
@@ -166,5 +180,5 @@ public class LoginHistory {
     public void setCreatedDate(String createdDate) {
         this.createdDate = createdDate;
     }
-    
+
 }

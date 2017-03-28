@@ -34,7 +34,9 @@ public class EncryptAES {
     private static MobileConnectConfig mobileConnectConfigs = null;
     private static String encryptionKey = null;
 
-    /** The Configuration service */
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     static {
@@ -50,11 +52,16 @@ public class EncryptAES {
      *
      * @param plainText the plain text.
      * @return encrypted value of input parameter.
-     * @throws Exception the exception.
+     * @throws ConfigurationException    on errors
+     * @throws NoSuchPaddingException    on errors
+     * @throws NoSuchAlgorithmException  on errors
+     * @throws InvalidKeyException       on errors
+     * @throws BadPaddingException       on errors
+     * @throws IllegalBlockSizeException on errors
      */
     public static String encrypt(String plainText)
             throws ConfigurationException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
-                   BadPaddingException, IllegalBlockSizeException {
+            BadPaddingException, IllegalBlockSizeException {
         if (encryptionKey != null) {
             byte[] encryptionKeyByteValue = encryptionKey.getBytes();
             SecretKey secretKey = new SecretKeySpec(encryptionKeyByteValue, AuthProxyConstants.ASE_KEY);

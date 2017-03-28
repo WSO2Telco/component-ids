@@ -47,7 +47,6 @@
         <![endif]-->
         <script type="text/javascript" src="mcresources/js/vendor/modernizr.js"></script>
         <%
-System.out.println("waiting.jsp-----------------------------------------");
         String acr = request.getParameter("http://wso2.org/claims/loa")!= null ?  request.getParameter("http://wso2.org/claims/loa") : "";
         String sessionDataKey = request.getParameter("sessionDataKey")!= null ?  request.getParameter("sessionDataKey") : "";
         String operator = request.getParameter("operator")!= null ?  request.getParameter("operator") : "";
@@ -140,10 +139,7 @@ System.out.println("waiting.jsp-----------------------------------------");
       Your mobile session is about to&nbsp;timeout.
       <br>Check your&nbsp;device.
     </div>
-    <div align="center" id ="sms_fallback" style="display:block">
-      <p>No message arrived? <br><u><a onclick="sendSms()" style="cursor: pointer;">Click to get a text message instead.</a><u></p>
-    </div>
-    <a onclick="cancelProcessToRegister('<%=sessionDataKey%>')" class="btn btn--outline btn--full btn--large">
+    <a onclick="cancelProcessToRegister()" class="btn btn--outline btn--full btn--large">
       Cancel
     </a>
   </main>
@@ -174,16 +170,6 @@ System.out.println("waiting.jsp-----------------------------------------");
   <%--instruction_USSDAuthenticator.style.display = 'none';--%>
   <%--instruction_SMSAuthenticator.style.display = 'block';--%>
 <%--}--%>
-
-function sendSms(){
-
-  e1.style.display = 'none';
-  console.log(isTimeout);
-
-  isTimeout = true;
-  handleTerminationSms();
-
-}
 
 </script>
 </body>

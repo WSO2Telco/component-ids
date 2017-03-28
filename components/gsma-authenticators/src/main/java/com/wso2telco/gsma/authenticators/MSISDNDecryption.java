@@ -27,5 +27,5 @@ import java.security.NoSuchAlgorithmException;
 public interface MSISDNDecryption {
     String decryptMsisdn(String encryptedText, String decryptionKey)
             throws Base64DecoderException, UnsupportedEncodingException, NoSuchAlgorithmException,
-                   NoSuchPaddingException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException;
+            NoSuchPaddingException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException;
 }

@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.wso2telco.gsma.authenticators.internal ;
+package com.wso2telco.gsma.authenticators.internal;
 
 import com.wso2telco.core.config.model.Authentication;
 import com.wso2telco.core.config.model.AuthenticationLevel;
@@ -53,66 +53,64 @@ import java.util.Map;
 
 /**
  * This is one of the first bundles that start in Carbon.
- * <p/>
  * ServerConfiguration object is not available to this bundle.
  * Therefore we read properties but do not keep a reference to it.
  */
 public class Activator implements BundleActivator {
     private static final Log log = LogFactory.getLog(Activator.class);
 
-	/** The Configuration service */
-	private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+    /**
+     * The Configuration service
+     */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
 
-	public void startDeploy(BundleContext bundleContext) throws Exception {
-    	
-    	if(log.isDebugEnabled()){
-    	log.debug("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH__________0001");
-    	}
-    	
-    	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
-                 new PinAuthenticator(), null);
+    public void startDeploy(BundleContext bundleContext) throws Exception {
 
-    	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
-                 new HeaderEnrichmentAuthenticator(), null);
-    	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
-                 new LOACompositeAuthenticator(), null);
-    	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
-                 new OpCoCompositeAuthenticator(), null);
-    	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
-                 new MSISDNAuthenticator(), null);
-    	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
-                 new GSMAMSISDNAuthenticator(), null);
-    	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
-                 new USSDAuthenticator(), null);
-    	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
-                 new USSDPinAuthenticator(), null);
-    	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
-                 new SMSAuthenticator(), null);
-    	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
-                 new MSSAuthenticator(), null);
-    	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
-                 new MSSPinAuthenticator(), null);
-    	bundleContext.registerService(ApplicationAuthenticator.class.getName(),
-                 new SelfAuthenticator(), null);
+        if (log.isDebugEnabled()) {
+            log.debug("Start deploying...");
+        }
 
-    	if (log.isDebugEnabled()) {
-    	 log.debug("Authenticators registered");
-    	}
-    	
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new PinAuthenticator(), null);
+
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new HeaderEnrichmentAuthenticator(), null);
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new LOACompositeAuthenticator(), null);
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new OpCoCompositeAuthenticator(), null);
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new MSISDNAuthenticator(), null);
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new GSMAMSISDNAuthenticator(), null);
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new USSDAuthenticator(), null);
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new USSDPinAuthenticator(), null);
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new SMSAuthenticator(), null);
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new MSSAuthenticator(), null);
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new MSSPinAuthenticator(), null);
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new SelfAuthenticator(), null);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Authenticators registered");
+        }
+
         AuthenticationLevels authenticationLevels = ConfigLoader.getInstance().getAuthenticationLevels();
         configurationService.getDataHolder().setAuthenticationLevels(authenticationLevels);
 
-        configurationService.getDataHolder().setMobileConnectConfig(ConfigLoader.getInstance().getMobileConnectConfig());
+        configurationService.getDataHolder().setMobileConnectConfig(ConfigLoader.getInstance().getMobileConnectConfig
+                ());
         Map<String, MIFEAuthentication> authenticationMap = loadMIFEAuthenticatorMap(authenticationLevels);
         configurationService.getDataHolder().setAuthenticationLevelMap(authenticationMap);
-         if (log.isDebugEnabled()) {
-         log.debug("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH__________0003");
-         }
-         
-         if (log.isDebugEnabled()) {
-             log.debug("Custom Application Authenticator bundle is activated");
-         }
+        if (log.isDebugEnabled()) {
+            log.debug("Custom Application Authenticator bundle is activated");
+        }
     }
 
     public String getName() {
@@ -123,34 +121,34 @@ public class Activator implements BundleActivator {
 
     }
 
-	public void start(BundleContext context) throws Exception {
-		startDeploy(context);
-	}
+    public void start(BundleContext context) throws Exception {
+        startDeploy(context);
+    }
 
-	private Map<String, MIFEAuthentication> loadMIFEAuthenticatorMap(AuthenticationLevels authenticationLevels) {
-		Map<String, MIFEAuthentication> authenticatorMap = new HashMap<>();
-		List<AuthenticationLevel> authenticationLevelList = authenticationLevels.getAuthenticationLevelList();
-		for (AuthenticationLevel authenticationLevel : authenticationLevelList) {
-			MIFEAuthentication mifeAuthentication = new MIFEAuthentication();
-			String authenticationLevelValue = authenticationLevel.getLevel();
-			Authentication authentication = authenticationLevel.getAuthentication();
-			Authenticators authenticators = authentication.getAuthenticators();
-			String levelToFallBack = authentication.getLevelToFallback();
-			List<Authenticator> authenticatorList = authenticators.getAuthenticators();
-			List<MIFEAuthentication.MIFEAbstractAuthenticator> mifeAuthenticationList = new ArrayList<>();
-			for (Authenticator authenticator : authenticatorList) {
-				MIFEAuthentication.MIFEAbstractAuthenticator mifeAuthenticator = new MIFEAuthentication
-						.MIFEAbstractAuthenticator();
-				mifeAuthenticator.setAuthenticator(authenticator.getAuthenticatorName());
-				mifeAuthenticator.setOnFailAction(authenticator.getOnfail());
-				mifeAuthenticator.setSupportFlow(authenticator.getSupportiveFlow());
-				mifeAuthenticationList.add(mifeAuthenticator);
-			}
-			mifeAuthentication.setLevelToFail(levelToFallBack);
-			mifeAuthentication.setAuthenticatorList(mifeAuthenticationList);
-			authenticatorMap.put(authenticationLevelValue, mifeAuthentication);
-		}
-		return  authenticatorMap;
-	}
+    private Map<String, MIFEAuthentication> loadMIFEAuthenticatorMap(AuthenticationLevels authenticationLevels) {
+        Map<String, MIFEAuthentication> authenticatorMap = new HashMap<>();
+        List<AuthenticationLevel> authenticationLevelList = authenticationLevels.getAuthenticationLevelList();
+        for (AuthenticationLevel authenticationLevel : authenticationLevelList) {
+            MIFEAuthentication mifeAuthentication = new MIFEAuthentication();
+            String authenticationLevelValue = authenticationLevel.getLevel();
+            Authentication authentication = authenticationLevel.getAuthentication();
+            Authenticators authenticators = authentication.getAuthenticators();
+            String levelToFallBack = authentication.getLevelToFallback();
+            List<Authenticator> authenticatorList = authenticators.getAuthenticators();
+            List<MIFEAuthentication.MIFEAbstractAuthenticator> mifeAuthenticationList = new ArrayList<>();
+            for (Authenticator authenticator : authenticatorList) {
+                MIFEAuthentication.MIFEAbstractAuthenticator mifeAuthenticator = new MIFEAuthentication
+                        .MIFEAbstractAuthenticator();
+                mifeAuthenticator.setAuthenticator(authenticator.getAuthenticatorName());
+                mifeAuthenticator.setOnFailAction(authenticator.getOnfail());
+                mifeAuthenticator.setSupportFlow(authenticator.getSupportiveFlow());
+                mifeAuthenticationList.add(mifeAuthenticator);
+            }
+            mifeAuthentication.setLevelToFail(levelToFallBack);
+            mifeAuthentication.setAuthenticatorList(mifeAuthenticationList);
+            authenticatorMap.put(authenticationLevelValue, mifeAuthentication);
+        }
+        return authenticatorMap;
+    }
 
 }

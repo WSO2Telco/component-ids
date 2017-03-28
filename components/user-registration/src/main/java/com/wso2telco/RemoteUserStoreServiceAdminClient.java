@@ -30,15 +30,16 @@ public class RemoteUserStoreServiceAdminClient {
     public void setUserClaim(String userName, String claimURI, String claimValue, String profileName) throws
             RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException {
 
-            remoteUserStoreManagerServiceStub.setUserClaimValue(userName, claimURI, claimValue, profileName);
+        remoteUserStoreManagerServiceStub.setUserClaimValue(userName, claimURI, claimValue, profileName);
     }
 
-    public void setUserClaims(String userName, ClaimValue[] claimValues, String profileName ) throws
+    public void setUserClaims(String userName, ClaimValue[] claimValues, String profileName) throws
             RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException {
-            remoteUserStoreManagerServiceStub.setUserClaimValues(userName, claimValues, profileName);
+        remoteUserStoreManagerServiceStub.setUserClaimValues(userName, claimValues, profileName);
     }
 
-    public boolean isExistingUser(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+    public boolean isExistingUser(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException,
+            RemoteException {
         return remoteUserStoreManagerServiceStub.isExistingUser(username);
     }
 

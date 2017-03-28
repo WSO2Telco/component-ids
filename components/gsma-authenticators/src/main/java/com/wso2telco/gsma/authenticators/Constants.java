@@ -201,11 +201,6 @@ public final class Constants {
     public static final String USER_PROFILE_UPDATE_REQUIRED = "userProfileUpdateRequired";
 
     /**
-     * The Constant to hold the user existence flag in authentication context
-     */
-    public static final String IS_USER_EXISTS = "isUserExists";
-
-    /**
      * The Constant to hold the msisdn
      */
     public static final String MSISDN = "msisdn";
@@ -215,7 +210,7 @@ public final class Constants {
      */
     public static final String CONSENT_JSP = "/mcx-user-registration/auth_consent";
 
-    public static final String REGISTRATION_JSP = "/mcx-user-registration/auth_registration";
+    public static final String REGISTRATION_WAITING_JSP = "/mcx-user-registration/auth_registration";
 
     public static final String PIN_REGISTRATION_WAITING_JSP = "/mcx-user-registration/auth_registration_pin";
 
@@ -223,11 +218,17 @@ public final class Constants {
 
     public static final String PIN_RESET_JSP = "/mcx-user-registration/auth_registration_pin_reset";
 
+    public static final String PIN_REGISTRATION_JSP = "/mcx-user-registration/auth_pin_registration";
+
+    public static final String SAA_WAITING_JSP = "/mcx-user-registration/auth_registration_saa_waiting";
+
     public static final String REDIRECT_URI = "redirectURI";
 
     public static final String COMMON_AUTH_HANDLED = "commonAuthHandled";
 
     public static final String IS_REGISTERING = "isRegistering";
+
+    public static final String REDIRECT_CONSENT = "redirectConsent";
 
     public static final String TOKEN = "token";
 
@@ -277,6 +278,14 @@ public final class Constants {
 
     public static final String IS_PROFILE_UPGRADE = "isLoaUpgrade";
 
+    public static final String IS_PROFILE_UPGRADED = "profileUpgraded";
+
+    public static final String HE_INITIATE_TRIGGERED = "HEInitiateTriggered";
+
+    public static final String IS_SECURITY_QUESTIONS_SHOWN = "securityQuestionsShown";
+
+    public static final String IS_SECURITY_QUESTIONS_ANSWERED = "securityQuestionsAnswered";
+
     public static final String LOA2 = "2";
 
     public static final String LOA3 = "3";
@@ -291,7 +300,7 @@ public final class Constants {
 
     public static final String SAA_ENPOINT = "Endpoint";
 
-    public static final String TRANSACTION_ID = "TransactionId";
+    public static final String TRANSACTION_ID = "transactionId";
 
     public static final String USER_STATUS_STREAM_NAME = "com.wso2telco.userstatus";
 
@@ -300,7 +309,6 @@ public final class Constants {
     public static final String USER_STATUS_META_STREAM_NAME = "com.wso2telco.userstatus.meta";
 
     public static final String USER_STATUS_META_STREAM_VERSION = "1.0.0";
-
 
     public static final String USER_CHALLENGE_SEPARATOR = "!";
 
@@ -340,4 +348,51 @@ public final class Constants {
 
     public static final String CLIENT_ID = "client_id";
 
+    public static final String IS_TERMINATED = "isTerminated";
+
+    public static final String TERMINATE_BY_REMOVE_FOLLOWING_STEPS = "removeFollowingSteps";
+
+    public static final String ACTION = "action";
+
+    public static final String SELECTED_LOA = "selectedLOA";
+
+    public static final String IP_ADDRESS = "ipAddress";
+
+    public static final String AUTH_URL_ID_PREFIX = "?id=";
+
+    public static final String HE_FAILURE_RESULT = "heFailureResult";
+
+    public static final String INVALIDATE_QUERY_STRING_MSISDN = "InvalidateMSISDN";
+
+    public static final String LOGIN_HINT_MSISDN = "loginhintMsisdn";
+
+    public static final String UNTRUST_MSISDN = "UNTRUST_MSISDN";
+
+    public static final String TRUST_HEADER_MSISDN = "TRUST_HEADER_MSISDN";
+
+    public static final String TRUST_LOGINHINT_MSISDN = "TRUST_LOGINHINT_MSISDN";
+
+    public static final String BREAK = "BREAK";
+
+    public static final String USER_STATUS_DATA_PUBLISHING_PARAM = "UserStatusForDataPublishing";
+
+    public static final String AUTH_ENDPOINT_DATA_PUBLISHING_PARAM = "AuthMapForDataPublishing";
+
+    public static final String USER_ACTION_REG_CONSENT = "RegConsent";
+
+    public static final String USER_ACTION_REG_REJECTED = "RegRejected";
+
+    public static final String USER_ACTION_UPGRADE_CONSENT = "UpgradeConsent";
+
+    public static final String USER_ACTION_UPGRADE_REJECTED = "UpgradeRejected";
+
+    public static final String USER_ACTION_USER_REJECTED = "userRejected";
+
+    public static final String USER_ACTION_USER_CANCELED = "userCanceled";
+
+    public static final String USER_ACTION_USER_TIMEOUT = "userTimeout";
+
+    public static final String SCOPE = "scope";
+
+    public static final String PROMPT = "telco_prompt";
 }

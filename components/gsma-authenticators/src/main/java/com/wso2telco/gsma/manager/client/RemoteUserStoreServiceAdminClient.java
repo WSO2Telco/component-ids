@@ -43,44 +43,43 @@ public class RemoteUserStoreServiceAdminClient {
         remoteUserStoreManagerServiceStub.setUserClaimValues(userName, claimValues, profileName);
     }
 
-    public boolean isExistingUser(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+    public boolean isExistingUser(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException,
+            RemoteException {
         return remoteUserStoreManagerServiceStub.isExistingUser(username);
     }
 
-    public String getCurrentPin(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
-        return remoteUserStoreManagerServiceStub.getUserClaimValue(username, Constants.PIN_CLAIM, UserCoreConstants.DEFAULT_PROFILE);
+    public String getCurrentPin(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException,
+            RemoteException {
+        return remoteUserStoreManagerServiceStub.getUserClaimValue(username, Constants.PIN_CLAIM, UserCoreConstants
+                .DEFAULT_PROFILE);
     }
 
-    public String getCurrentLoa(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
-        return remoteUserStoreManagerServiceStub.getUserClaimValue(username, Constants.LOA_CLAIM, UserCoreConstants.DEFAULT_PROFILE);
+    public String getCurrentLoa(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException,
+            RemoteException {
+        return remoteUserStoreManagerServiceStub.getUserClaimValue(username, Constants.LOA_CLAIM, UserCoreConstants
+                .DEFAULT_PROFILE);
     }
 
-    public String getChallengeQuestionAndAnswer1(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+    public String getChallengeQuestionAndAnswer1(String username) throws
+            RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
         return remoteUserStoreManagerServiceStub.getUserClaimValue(username, Constants.CHALLENGE_QUESTION_1_CLAIM,
                 UserCoreConstants.DEFAULT_PROFILE);
     }
 
-    public String getChallengeQuestionAndAnswer2(String username) throws RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
+    public String getChallengeQuestionAndAnswer2(String username) throws
+            RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
 
 
         return remoteUserStoreManagerServiceStub.getUserClaimValue(username, Constants.CHALLENGE_QUESTION_2_CLAIM,
                 UserCoreConstants.DEFAULT_PROFILE);
     }
 
-    static {
-        try {
-            String adminURL = DataHolder.getInstance().getMobileConnectConfig().getAdminUrl();
-            LoginAdminServiceClient lAdmin = new LoginAdminServiceClient(adminURL);
-            String sessionCookie = lAdmin.authenticate(DataHolder.getInstance().getMobileConnectConfig().getAdminUsername(),
-                    DataHolder.getInstance().getMobileConnectConfig().getAdminPassword());
-            claimManagementClient = new ClaimManagementClient(adminURL, sessionCookie);
+    public ClaimValue[] getChallengeQuestionAndAnswers(String username) throws
+            RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException {
 
-        } catch (AxisFault e) {
-            e.printStackTrace();
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        } catch (LoginAuthenticationExceptionException e) {
-            e.printStackTrace();
-        }
+        String[] claims = {Constants.CHALLENGE_QUESTION_1_CLAIM, Constants.CHALLENGE_QUESTION_2_CLAIM};
+        return remoteUserStoreManagerServiceStub.getUserClaimValuesForClaims(username, claims, UserCoreConstants
+                .DEFAULT_PROFILE);
     }
+
 }

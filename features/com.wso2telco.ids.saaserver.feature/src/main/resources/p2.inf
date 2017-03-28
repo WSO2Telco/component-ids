@@ -1,0 +1,2 @@
+instructions.configure = \
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/com.wso2telco.ids.saaserver_${feature.version}/generated/saaserver.war,target:${installFolder}/../../deployment/server/webapps/saaserver.war,overwrite:true);

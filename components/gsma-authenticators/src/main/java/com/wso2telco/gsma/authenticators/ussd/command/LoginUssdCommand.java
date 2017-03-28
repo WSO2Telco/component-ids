@@ -24,7 +24,7 @@ import com.wso2telco.gsma.authenticators.model.OutboundUSSDMessageRequest;
 import com.wso2telco.gsma.authenticators.model.ResponseRequest;
 import com.wso2telco.gsma.authenticators.ussd.USSDRequest;
 import com.wso2telco.gsma.authenticators.util.Application;
-import com.wso2telco.gsma.authenticators.util.USSDOutboundMessage;
+import com.wso2telco.gsma.authenticators.util.OutboundMessage;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -34,17 +34,22 @@ public class LoginUssdCommand extends UssdCommand {
 
     private Application application = new Application();
 
-    /** The logger */
+    /**
+     * The logger
+     */
     private static Log log = LogFactory.getLog(LoginUssdCommand.class);
 
-    /** The Configuration service */
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
 
     @Override
     protected String getUrl(String msisdn) {
 
-        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
+        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig()
+                .getUssdConfig();
 
         String url = ussdConfig.getEndpoint();
         if (url.endsWith("/")) {
@@ -58,18 +63,21 @@ public class LoginUssdCommand extends UssdCommand {
     }
 
     @Override
-    protected USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String operator) {
-        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
+    protected USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String operator,
+                                         String client_id) {
+        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig()
+                .getUssdConfig();
 
         USSDRequest ussdRequest = new USSDRequest();
 
         // prepare the USSD message from template
         HashMap<String, String> variableMap = new HashMap<String, String>();
         variableMap.put("application", application.changeApplicationName(serviceProvider));
-        String message = USSDOutboundMessage.prepare(USSDOutboundMessage.MessageType.LOGIN, variableMap, operator);
+        String message = OutboundMessage.prepare(client_id, OutboundMessage.MessageType.USSD_LOGIN, variableMap,
+                operator);
 
-        if(log.isInfoEnabled()){
-            log.info("massage:" + message);
+        if (log.isDebugEnabled()) {
+            log.debug("Message : " + message);
         }
 
         OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
@@ -80,7 +88,8 @@ public class LoginUssdCommand extends UssdCommand {
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
         ResponseRequest responseRequest = new ResponseRequest();
-        responseRequest.setNotifyURL(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getLoginNotifyUrl());
+        responseRequest.setNotifyURL(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig()
+                .getLoginNotifyUrl());
         responseRequest.setCallbackData("");
 
         outboundUSSDMessageRequest.setResponseRequest(responseRequest);

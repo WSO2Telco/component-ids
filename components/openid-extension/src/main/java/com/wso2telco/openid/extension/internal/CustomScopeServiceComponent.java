@@ -20,22 +20,19 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
 
-/**
- * @scr.component name="com.wso2telco.openid.extension.internal.CustomScopeServiceComponent" immediate="true"
- */
 public class CustomScopeServiceComponent {
 
     private static BundleContext bundleContext;
     private static Log log = LogFactory.getLog(CustomScopeServiceComponent.class);
 
     protected void activate(ComponentContext context) {
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("CustomScopeServiceComponent activated");
         }
     }
 
     protected void deactivate(ComponentContext context) {
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("CustomScopeServiceComponent deactivated");
         }
     }

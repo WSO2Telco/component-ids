@@ -18,7 +18,7 @@ package com.wso2telco.gsma.authenticators;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.MSISDNHeader;
-import com.wso2telco.gsma.authenticators.model.UserStatus;
+import com.wso2telco.gsma.authenticators.model.PromptData;
 import com.wso2telco.gsma.authenticators.ussd.Pinresponse;
 import com.wso2telco.gsma.authenticators.util.TableName;
 import org.apache.commons.logging.Log;
@@ -66,7 +66,6 @@ public class DBUtils {
         }
 
 
-
         String dataSourceName = null;
         try {
             Context ctx = new InitialContext();
@@ -108,13 +107,9 @@ public class DBUtils {
         //String sql = "SELECT SessionID, Status FROM clientstatus WHERE SessionID=?";
         StringBuilder sql = new StringBuilder();
 
-        sql.append("SELECT SessionID, Status FROM ");
-        sql.append(TableName.CLIENT_STATUS);
-        sql.append(" WHERE SessionID=?");
-
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " for sessionDataKey : " + sessionDataKey);
-        }
+        sql.append("SELECT status FROM ");
+        sql.append(TableName.REG_STATUS);
+        sql.append(" WHERE uuid=?");
 
         String userResponse = null;
         try {
@@ -123,10 +118,11 @@ public class DBUtils {
             ps.setString(1, sessionDataKey);
             results = ps.executeQuery();
             while (results.next()) {
-                userResponse = results.getString("Status");
+                userResponse = results.getString("status");
             }
         } catch (SQLException e) {
-            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " from the database", e);
+            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey
+                    + " from the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
         }
@@ -151,10 +147,6 @@ public class DBUtils {
         sql.append(TableName.CLIENT_STATUS);
         sql.append(" WHERE SessionID=?");
 
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " for sessionDataKey : " + sessionDataKey);
-        }
-
         String userResponse = null;
         try {
             conn = getConnectDBConnection();
@@ -165,7 +157,8 @@ public class DBUtils {
                 userResponse = results.getString("Status");
             }
         } catch (SQLException e) {
-            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " from the database", e);
+            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " " +
+                    "from the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
         }
@@ -180,7 +173,7 @@ public class DBUtils {
      * @return the user response
      * @throws AuthenticatorException the authenticator exception
      */
-    public static String getUserRegistrationResponse(String sessionDataKey) throws AuthenticatorException {
+    public static String getAuthFlowStatus(String sessionDataKey) throws AuthenticatorException {
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet results = null;
@@ -190,10 +183,6 @@ public class DBUtils {
         sql.append("SELECT uuid, status FROM ");
         sql.append(TableName.REG_STATUS);
         sql.append(" WHERE uuid=?");
-
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " for sessionDataKey : " + sessionDataKey);
-        }
 
         String userResponse = null;
         try {
@@ -205,7 +194,8 @@ public class DBUtils {
                 userResponse = results.getString("status");
             }
         } catch (SQLException e) {
-            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " from the database", e);
+            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " " +
+                    "from the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
         }
@@ -230,10 +220,6 @@ public class DBUtils {
         sql.append(TableName.CLIENT_STATUS);
         sql.append(" WHERE SessionID=?");
 
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " for sessionDataKey : " + sessionDataKey);
-        }
-
         Pinresponse pinresponse = new Pinresponse();
 
         try {
@@ -246,7 +232,8 @@ public class DBUtils {
                 pinresponse.setUserPin(results.getString("pin"));
             }
         } catch (SQLException e) {
-            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " from the database", e);
+            handleException("Error occured while getting User Response for SessionDataKey: " + sessionDataKey + " " +
+                    "from the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
         }
@@ -262,7 +249,8 @@ public class DBUtils {
      * @return the string
      * @throws AuthenticatorException the authenticator exception
      */
-    public static String insertUserResponse(String sessionDataKey, String responseStatus) throws AuthenticatorException {
+    public static String insertUserResponse(String sessionDataKey, String responseStatus) throws
+            AuthenticatorException {
         Connection conn = null;
         PreparedStatement ps = null;
         //String sql = "INSERT INTO clientstatus (SessionID, Status) VALUES (?,?)";
@@ -271,11 +259,6 @@ public class DBUtils {
         sql.append("INSERT INTO ");
         sql.append(TableName.CLIENT_STATUS);
         sql.append(" (SessionID, Status) VALUES (?,?)");
-
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " to Insert sessionDataKey : " + sessionDataKey
-                    + "and responseStatus " + responseStatus);
-        }
 
         String userResponse = null;
         try {
@@ -287,7 +270,8 @@ public class DBUtils {
             SessionExpire sessionExpire = new SessionExpire(sessionDataKey);
             sessionExpire.start();
         } catch (SQLException e) {
-            handleException("Error occured while inserting User Response for SessionDataKey: " + sessionDataKey + " to the database", e);
+            handleException("Error occured while inserting User Response for SessionDataKey: " + sessionDataKey + " " +
+                    "to the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, null, ps);
         }
@@ -313,11 +297,6 @@ public class DBUtils {
         sql.append(TableName.REG_STATUS);
         sql.append(" (uuid, status) VALUES (?,?)");
 
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " to Insert sessionDataKey : " + sessionDataKey
-                    + "and responseStatus " + responseStatus);
-        }
-
         String userResponse = null;
         try {
             conn = getConnectDBConnection();
@@ -328,7 +307,8 @@ public class DBUtils {
             SessionExpire sessionExpire = new SessionExpire(sessionDataKey);
             sessionExpire.start();
         } catch (SQLException e) {
-            handleException("Error occured while inserting User Response for SessionDataKey: " + sessionDataKey + " to the database", e);
+            handleException("Error occured while inserting User Response for SessionDataKey: " + sessionDataKey + " " +
+                    "to the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, null, ps);
         }
@@ -355,7 +335,8 @@ public class DBUtils {
      * @return the string
      * @throws AuthenticatorException the authenticator exception
      */
-    public static String updateUserResponse(String sessionDataKey, String responseStatus) throws AuthenticatorException {
+    public static String updateUserResponse(String sessionDataKey, String responseStatus) throws
+            AuthenticatorException {
         Connection conn = null;
         PreparedStatement ps = null;
         //String sql = "update  clientstatus set Status=? WHERE SessionID=?";
@@ -365,11 +346,6 @@ public class DBUtils {
         sql.append("UPDATE  ");
         sql.append(TableName.CLIENT_STATUS);
         sql.append(" set Status=? WHERE SessionID=?");
-
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " to Update sessionDataKey : " + sessionDataKey
-                    + "and responseStatus " + responseStatus);
-        }
 
         try {
             conn = getConnectDBConnection();
@@ -409,10 +385,6 @@ public class DBUtils {
         sql.append(" from ");
         sql.append(TableName.AUTHENTICATED_LOGIN);
         sql.append(" where tokenID=?");
-
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " for TokenId " + tokenID);
-        }
 
         try {
             connection = getConnectDBConnection();
@@ -463,10 +435,6 @@ public class DBUtils {
         sql.append(TableName.AUTHENTICATED_LOGIN);
         sql.append(" WHERE tokenID=?");
 
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + "to Delete tokenId " + tokenId);
-        }
-
         try {
             try {
                 connection = getConnectDBConnection();
@@ -484,10 +452,12 @@ public class DBUtils {
         }
     }
 
-    static int saveRequestType(String msisdn, Integer requestType) throws SQLException, NamingException, AuthenticatorException {
+    static int saveRequestType(String msisdn, Integer requestType) throws SQLException, NamingException,
+            AuthenticatorException {
         Connection connection = null;
 //        String sql = "insert into pendingussd (msisdn, requesttype) values (?,?)";
-        String sql = "insert into pendingussd (msisdn, requesttype) values (?,?) ON DUPLICATE KEY UPDATE requesttype=VALUES(requesttype)";
+        String sql = "insert into pendingussd (msisdn, requesttype) values (?,?) ON DUPLICATE KEY UPDATE " +
+                "requesttype=VALUES(requesttype)";
         try {
             connection = getConnectDBConnection();
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -496,7 +466,7 @@ public class DBUtils {
             ps.executeUpdate();
             return 1;
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while saving request type ", e);
         } finally {
             if (connection != null) {
                 connection.close();
@@ -505,7 +475,8 @@ public class DBUtils {
         return -1;
     }
 
-    public static String insertRegistrationStatus(String username, String status, String uuid) throws SQLException, AuthenticatorException {
+    public static String insertAuthFlowStatus(String username, String status, String uuid) throws SQLException,
+            AuthenticatorException {
 
         Connection connection = null;
         PreparedStatement ps = null;
@@ -547,7 +518,8 @@ public class DBUtils {
         }
     }
 
-    public static void updateAuthenticateData(String msisdn, String status) throws SQLException, AuthenticatorException {
+    public static void updateAuthenticateData(String msisdn, String status) throws SQLException,
+            AuthenticatorException {
         Connection connection = null;
         PreparedStatement ps = null;
         String sql =
@@ -594,7 +566,8 @@ public class DBUtils {
         return noOfAttempts;
     }
 
-    public static void updateMultiplePasswordNoOfAttempts(String username, int attempts) throws SQLException, AuthenticatorException {
+    public static void updateMultiplePasswordNoOfAttempts(String username, int attempts) throws SQLException,
+            AuthenticatorException {
 
         Connection connection = null;
         PreparedStatement ps = null;
@@ -656,7 +629,8 @@ public class DBUtils {
         }
     }
 
-    public static void insertPinAttempt(String msisdn, int attempts, String sessionId) throws SQLException, AuthenticatorException {
+    public static void insertPinAttempt(String msisdn, int attempts, String sessionId) throws SQLException,
+            AuthenticatorException {
 
         Connection connection = null;
         PreparedStatement ps = null;
@@ -687,10 +661,11 @@ public class DBUtils {
      * @throws SQLException
      * @throws NamingException
      */
+    @Deprecated
     private static List<MSISDNHeader> getMSISDNPropertiesByOperatorId(int operatorId, String operatorName,
                                                                       Connection connection) throws
-                                                                                             SQLException,
-                                                                                             AuthenticatorException {
+            SQLException,
+            AuthenticatorException {
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         List<MSISDNHeader> msisdnHeaderList = new ArrayList<MSISDNHeader>();
@@ -721,56 +696,63 @@ public class DBUtils {
 
     public static Set<String> getAllowedAuthenticatorSetForMNO(String mobileNetworkOperator)
             throws AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT *");
         sql.append(" from ");
         sql.append(TableName.ALLOWED_AUTHENTICATORS_MNO);
         sql.append(" where mobile_network_operator=?");
 
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " for mobile network operator " + mobileNetworkOperator);
-        }
-
         Set<String> authenticatorSet = new HashSet<>();
-        try (Connection connection = getConnectDBConnection()) {
-            PreparedStatement ps = connection.prepareStatement(sql.toString());
+        try {
+            connection = getConnectDBConnection();
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, mobileNetworkOperator);
-            ResultSet rs = ps.executeQuery();
+            rs = ps.executeQuery();
             while (rs.next()) {
                 authenticatorSet.add(rs.getString("allowed_authenticator"));
             }
         } catch (SQLException e) {
             handleException("Error occurred while retrieving allowed authenticators for " + mobileNetworkOperator, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, ps);
         }
         return authenticatorSet;
     }
 
     public static Set<String> getAllowedAuthenticatorSetForSP(String serviceProvider)
             throws AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
         StringBuilder sql = new StringBuilder();
         sql.append("SELECT *");
         sql.append(" from ");
         sql.append(TableName.ALLOWED_AUTHENTICATORS_SP);
         sql.append(" where client_id=?");
 
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql + " for service provider " + serviceProvider);
-        }
-
         Set<String> authenticatorSet = new HashSet<>();
-        try (Connection connection = getConnectDBConnection()) {
-            PreparedStatement ps = connection.prepareStatement(sql.toString());
+        try {
+            connection = getConnectDBConnection();
+            ps = connection.prepareStatement(sql.toString());
             ps.setString(1, serviceProvider);
-            ResultSet rs = ps.executeQuery();
+            rs = ps.executeQuery();
             while (rs.next()) {
                 authenticatorSet.add(rs.getString("allowed_authenticator"));
             }
         } catch (SQLException e) {
             handleException("Error occurred while retrieving allowed authenticators for " + serviceProvider, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, rs, ps);
         }
         return authenticatorSet;
     }
 
+    /*
     public static int saveStatusData(UserStatus userStatus) throws SQLException,AuthenticatorException {
         Connection conn = null;
         PreparedStatement ps = null;
@@ -778,8 +760,10 @@ public class DBUtils {
         try {
             conn = getConnectDBConnection();
 
-            String ADD_USER_STATUS =  " INSERT INTO USER_STATUS (Time, Status, Msisdn, State, Nonce, Scope, AcrValue, SessionId, IsMsisdnHeader, IpHeader," +
-                    "IsNewUser, LoginHint, Operator, UserAgent, Comment, ConsumerKey) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            String ADD_USER_STATUS =  " INSERT INTO USER_STATUS (Time, Status, Msisdn, State, Nonce, Scope, AcrValue,
+             SessionId, IsMsisdnHeader, IpHeader," +
+                    "IsNewUser, LoginHint, Operator, UserAgent, Comment, ConsumerKey) values (?,?,?,?,?,?,?,?,?,?,?,
+                    ?,?,?,?,?)";
 
             ps = conn.prepareStatement(ADD_USER_STATUS);
 
@@ -804,10 +788,76 @@ public class DBUtils {
             ps.executeUpdate();
             return 1;
         } catch (SQLException e) {
-            handleException("Error occured while inserting User status for SessionDataKey: " + userStatus.getSessionId() + " to the database", e);
+            handleException("Error occured while inserting User status for SessionDataKey: " + userStatus
+            .getSessionId() + " to the database", e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(conn, null, ps);
         }
         return -1;
     }
+*/
+
+
+    public static void insertHashKeyContextIdentifierMapping(String hashKey, String contextIdentifier)
+            throws AuthenticatorException {
+        String sql = "insert into sms_hashkey_contextid_mapping(hashkey, contextid) values  (?,?);";
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query " + sql + " for hash key " + hashKey + " and context identifier "
+                    + contextIdentifier);
+        }
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+        try {
+            connection = getConnectDBConnection();
+            ps = connection.prepareStatement(sql.toString());
+            ps.setString(1, hashKey);
+            ps.setString(2, contextIdentifier);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            handleException(e.getMessage(), e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, null, ps);
+        }
+    }
+
+
+    /**
+     * Get prompt data
+     *
+     * @param scope
+     * @param prompt
+     * @param isLoginHintExists
+     * @return PromptData
+     */
+    public static PromptData getPromptData(String scope, String prompt, Boolean isLoginHintExists) {
+        PromptData promptData = new PromptData();
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        String sql = "SELECT * FROM prompt_configuration WHERE scope = ? AND prompt_value = ? AND is_login_hint_exists = ?";
+
+        try {
+            connection = getConnectDBConnection();
+            ps = connection.prepareStatement(sql);
+            ps.setString(1, scope);
+            ps.setString(2, prompt);
+            ps.setBoolean(3, isLoginHintExists);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                promptData.setScope(rs.getString("scope"));
+                promptData.setLoginHintExists(rs.getBoolean("is_login_hint_exists"));
+                promptData.setPromptValue(rs.getString("prompt_value"));
+                promptData.setBehaviour(PromptData.behaviorTypes.valueOf(rs.getString("behaviour")));
+            }
+        } catch (SQLException ex) {
+            handleException("Error while retrieving Propmt Data ", ex);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, rs, ps);
+            return promptData;
+        }
+    }
+
 }

@@ -10,6 +10,8 @@ import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComp
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceStub;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
@@ -22,7 +24,6 @@ import java.rmi.RemoteException;
 //import org.wso2.carbon.um.ws.api.stub.getC
 
 /**
- *
  * @author tharanga_07219
  */
 public class ClaimManagementClient {
@@ -30,19 +31,21 @@ public class ClaimManagementClient {
     private SetUserClaimValues setUserClaim;
     private String endPoint;
     private RemoteUserStoreManagerServiceStub remoteUser;
-    
+
+    private static final Log log = LogFactory.getLog(ClaimManagementClient.class);
+
     public ClaimManagementClient(String backEndUrl, String sessionCookie)
             throws AxisFault {
-         this.endPoint = backEndUrl + "/services/" + serviceName;
-           remoteUser = new RemoteUserStoreManagerServiceStub(endPoint);
-        
-     
+        this.endPoint = backEndUrl + "/services/" + serviceName;
+        remoteUser = new RemoteUserStoreManagerServiceStub(endPoint);
+
+
         // Authenticate Your stub from sessionCooke
         ServiceClient serviceClient = null;
         Options option;
-        
+
         serviceClient = remoteUser._getServiceClient();
-        
+
         option = serviceClient.getOptions();
         option.setManageSession(true);
         option.setProperty(
@@ -50,13 +53,17 @@ public class ClaimManagementClient {
                 sessionCookie);
         remoteUser._getServiceClient().setOptions(option);
     }
-    
-    public void setClaim() throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException{
-        System.out.println("Remote User "
-                + remoteUser.getProfileNames(DataHolder.getInstance().getMobileConnectConfig().getAdminUrl()));
+
+    public void setClaim() throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException {
+        if (log.isDebugEnabled()) {
+            log.debug("Remote User "
+                    + remoteUser.getProfileNames(DataHolder.getInstance().getMobileConnectConfig().getAdminUrl()));
+        }
     }
 
-    public String getRegisteredLOA(String msisdn) throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException, AuthenticationFailedException, UserStoreException {
+    public String getRegisteredLOA(String msisdn) throws RemoteException,
+            RemoteUserStoreManagerServiceUserStoreExceptionException, AuthenticationFailedException,
+            UserStoreException {
 
         int tenantId = -1234;
         UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService()

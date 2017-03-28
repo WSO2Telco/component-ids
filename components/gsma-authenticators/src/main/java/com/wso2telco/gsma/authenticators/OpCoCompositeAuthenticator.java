@@ -57,30 +57,38 @@ import java.util.Set;
 
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class OpCoCompositeAuthenticator.
  */
 public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
         LocalApplicationAuthenticator {
 
-    /** The Constant serialVersionUID. */
+    /**
+     * The Constant serialVersionUID.
+     */
     private static final long serialVersionUID = -7533605620408092358L;
 
-    /** The log. */
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(OpCoCompositeAuthenticator.class);
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
+     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
+     * .servlet.http.HttpServletRequest)
      */
     public boolean canHandle(HttpServletRequest request) {
         return true;
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#process(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
+     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#process(javax
+     * .servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application
+     * .authentication.framework.context.AuthenticationContext)
      */
     public AuthenticatorFlowStatus process(HttpServletRequest request,
-            HttpServletResponse response, AuthenticationContext context)
+                                           HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
         if (!canHandle(request)) {
             return AuthenticatorFlowStatus.INCOMPLETE;
@@ -89,12 +97,12 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
         List<IdentityProvider> idPs = null;
 
         try {
-			idPs = IdentityProviderManager.getInstance().getIdPs(
-			        MultitenantUtils.getTenantDomain(request));
-		} catch (IdentityProviderManagementException e) {
-			// TODO Auto-generated catch block
-			log.error("Error Ocured " + e);
-		}
+            idPs = IdentityProviderManager.getInstance().getIdPs(
+                    MultitenantUtils.getTenantDomain(request));
+        } catch (IdentityProviderManagementException e) {
+            // TODO Auto-generated catch block
+            log.error("Error Ocured " + e);
+        }
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         Map<Integer, StepConfig> stepMap = sequenceConfig.getStepMap();
@@ -128,14 +136,14 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
         IdentityProvider federatedIDP = getFederatedIDP(idPs, incomingUser);
 
         // Set login_hint and acr_values params to idp configuration
-                ExternalIdPConfig idPConfigByName = null;
-		try {
-			idPConfigByName = ConfigurationFacade.getInstance().getIdPConfigByName(
-			        federatedIDP.getIdentityProviderName(), context.getTenantDomain());
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			log.error("Error Ocured " + e);
-		}
+        ExternalIdPConfig idPConfigByName = null;
+        try {
+            idPConfigByName = ConfigurationFacade.getInstance().getIdPConfigByName(
+                    federatedIDP.getIdentityProviderName(), context.getTenantDomain());
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            log.error("Error Ocured " + e);
+        }
         FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = idPConfigByName
                 .getIdentityProvider().getFederatedAuthenticatorConfigs();
 
@@ -160,7 +168,10 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
         // System.out.println("encryptedLoginHint_OPCO: " + encryptedLoginHint);
         // String loginHint = "&login_hint="
         // +
-        // "pYPBEVtqmD8wCvyrsCHvDqJtLPyi2TuX7q1zJQYEsEXQr8jH+JN4z4/yPYJXYV4y172rOwHn16FZIAVbefMVJvIqF+3BdC8vur8n6wRac5oTAanf08m4hM/P6a2ixbKlCDikRnYTGG/cd0F98XVrq6euvGE/0NrJxOAt+kJGF4HXwJEUb4wltH87bh4RW8Mg9MRQVITEVxumYJyck/O8NVkw5SX8Mrulonw/1d8LQk3t6eCRnWfHH7ycWWRg9UtD0oN1ACR47N1F6j8pScejHP1pGMRHlSw0MztNfo7AZaVKOnAGafpi2MhhET7QVOTL1YDAYYZUBZY1IKjOdFtMIQ==";
+        // "pYPBEVtqmD8wCvyrsCHvDqJtLPyi2TuX7q1zJQYEsEXQr8jH+JN4z4/yPYJXYV4y172rOwHn16FZIAVbefMVJvIqF
+        // +3BdC8vur8n6wRac5oTAanf08m4hM/P6a2ixbKlCDikRnYTGG/cd0F98XVrq6euvGE/0NrJxOAt
+        // +kJGF4HXwJEUb4wltH87bh4RW8Mg9MRQVITEVxumYJyck/O8NVkw5SX8Mrulonw
+        // /1d8LQk3t6eCRnWfHH7ycWWRg9UtD0oN1ACR47N1F6j8pScejHP1pGMRHlSw0MztNfo7AZaVKOnAGafpi2MhhET7QVOTL1YDAYYZUBZY1IKjOdFtMIQ==";
         String loginHint = "login_hint=" + encryptedLoginHint;
 
         // Retrieve entry LOA
@@ -199,7 +210,7 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
     /**
      * Gets the federated idp.
      *
-     * @param idPs the id ps
+     * @param idPs         the id ps
      * @param incomingUser the incoming user
      * @return the federated idp
      * @throws AuthenticationFailedException the authentication failed exception
@@ -247,7 +258,7 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
     /**
      * Gets the provider brand.
      *
-     * @param mcc the mcc
+     * @param mcc     the mcc
      * @param endUser the end user
      * @return the provider brand
      */
@@ -270,7 +281,8 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
      * @throws AuthenticationFailedException the authentication failed exception
      */
     private String encryptLoginHint(String loginHint) throws AuthenticationFailedException {
-        String RANDOM_ADDON = "TheServingOperatorthencanrecognizetheyhavereceivedanencryptedMSISDNanddecryptthestringusingitsprivatekeywichisnotknowntotheOneAPI";
+        String RANDOM_ADDON =
+                "TheServingOperatorthencanrecognizetheyhavereceivedanencryptedMSISDNanddecryptthestringusingitsprivatekeywichisnotknowntotheOneAPI";
         String feedData = loginHint + "|" + RANDOM_ADDON;
 
         byte[] dataToEncrypt = feedData.getBytes();
@@ -298,7 +310,8 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
     private PublicKey readPublicKeyFromFile(String fileName) throws AuthenticationFailedException {
         try {
             String publicK = readStringKey(fileName);
-            byte[] keyBytes = Base64.decodeBase64(publicK.getBytes());;
+            byte[] keyBytes = Base64.decodeBase64(publicK.getBytes());
+            ;
             X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             return keyFactory.generatePublic(spec);
@@ -329,7 +342,7 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
             }
             reader.close();
         } catch (Exception e) {
-        	log.error("Error Ocured " + e);
+            log.error("Error Ocured " + e);
         } finally {
             if (reader != null) {
                 reader = null;
@@ -348,7 +361,8 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
      */
     public String getContextIdentifier(HttpServletRequest request) {
         return null;
@@ -376,7 +390,8 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#getConfigurationProperties()
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .ApplicationAuthenticator#getConfigurationProperties()
      */
     public List<Property> getConfigurationProperties() {
         return new ArrayList<Property>();

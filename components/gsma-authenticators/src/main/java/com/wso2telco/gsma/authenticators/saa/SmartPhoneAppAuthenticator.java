@@ -17,16 +17,18 @@
 package com.wso2telco.gsma.authenticators.saa;
 
 import com.google.gson.Gson;
-import com.wso2telco.core.config.ReadMobileConnectConfig;
+import com.wso2telco.Util;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.sp.config.utils.service.SpConfigService;
+import com.wso2telco.core.sp.config.utils.service.impl.SpConfigServiceImpl;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
-import com.wso2telco.gsma.authenticators.Utility;
 import com.wso2telco.gsma.authenticators.exception.SaaException;
-import com.wso2telco.gsma.authenticators.model.UserState;
-import com.wso2telco.gsma.authenticators.model.UserStatus;
-import com.wso2telco.core.sp.config.utils.service.SpConfigService;
-import com.wso2telco.core.sp.config.utils.service.impl.SpConfigServiceImpl;
+import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.ids.datapublisher.model.UserStatus;
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -40,7 +42,6 @@ import org.apache.http.util.EntityUtils;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
@@ -50,7 +51,6 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
@@ -58,12 +58,13 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
 
     private static Log log = LogFactory.getLog(SmartPhoneAppAuthenticator.class);
 
-    private static final String IS_ERROR_OCCURRED = "isErrorOccurred";
+    private static final String IS_FLOW_COMPLETED = "isFlowCompleted";
     private static final String PIN_CLAIM = "http://wso2.org/claims/pin";
     private static final String MSISDN = "msisdn";
     private static final String CLIENT_ID = "relyingParty";
     private static final String ACR = "acr_values";
     private SpConfigService spConfigService = new SpConfigServiceImpl();
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     @Override
     public boolean canHandle(HttpServletRequest request) {
@@ -80,9 +81,9 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
         } else {
             super.process(request, response, context);
 
-            boolean isErrorOccurred = (boolean) context.getProperty(IS_ERROR_OCCURRED);
+            boolean isFlowCompleted = (boolean) context.getProperty(IS_FLOW_COMPLETED);
 
-            if (isErrorOccurred) {
+            if (isFlowCompleted) {
                 return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
             } else {
                 return AuthenticatorFlowStatus.INCOMPLETE;
@@ -95,31 +96,33 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        log.info("Initiating smart phone authentication");
+        log.info("Initiating authentication request");
 
-        boolean isErrorOccurred = false;
+        boolean isFlowCompleted = false;
 
-        String retryParam = "";
         String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
                 context.getCallerSessionKey(), context.getContextIdentifier());
 
-        Map<String, String> paramMap = createQueryParamMap(queryParams);
+        Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
         ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
 
         String msisdn = (String) context.getProperty(MSISDN);
         String clientId = paramMap.get(CLIENT_ID);
         String applicationName = applicationConfig.getApplicationName();
 
-        String url = ReadMobileConnectConfig.readSaaConfig(Constants.SAA_ENPOINT) + "/services/serverAPI/api/v1/clients/"
-                + msisdn + "/authenticate";
+        if (log.isDebugEnabled()) {
+            log.debug("MSISDN : " + msisdn);
+            log.debug("Client ID : " + clientId);
+            log.debug("Application name : " + applicationName);
+        }
+
+        String url = configurationService.getDataHolder().getMobileConnectConfig().getSaaConfig()
+                .getAuthenticationEndpoint().replace("{msisdn}", msisdn);
 
         handleRetry(request, context, msisdn);
         try {
-            if (!context.isRetrying()) {
-                DBUtils.insertUserResponse(context.getContextIdentifier(), String.valueOf(SmartPhoneAppAuthenticator.UserResponse.PENDING));
-            } else {
-                retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
-            }
+            DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
+
             fallbackIfMsisdnNotRegistered(msisdn);
 
             SaaRequest saaRequest = createSaaRequest(paramMap, clientId, applicationName);
@@ -130,30 +133,33 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
 
         } catch (IOException e) {
             log.info("Error occurred while posting data to SAA server", e);
-            isErrorOccurred = true;
+            isFlowCompleted = true;
         } catch (SaaException e) {
             log.info("SAA server returned invalid http status", e);
-            isErrorOccurred = true;
+            isFlowCompleted = true;
         } catch (AuthenticatorException e) {
             log.info("Error occurred while retrieving authentication details form database", e);
-            isErrorOccurred = true;
+            isFlowCompleted = true;
         } catch (Exception e) {
             log.info("Error occurred", e);
-            isErrorOccurred = true;
+            isFlowCompleted = true;
         } finally {
-            handleRedirect(response, context, isErrorOccurred, retryParam);
+            handleRedirect(response, context, isFlowCompleted);
         }
     }
 
-    private void handleRedirect(HttpServletResponse response, AuthenticationContext context, boolean isErrorOccurred, String retryParam) throws AuthenticationFailedException {
+    private void handleRedirect(HttpServletResponse response, AuthenticationContext context, boolean isFlowCompleted)
+            throws AuthenticationFailedException {
 
-        String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
-        context.setProperty(IS_ERROR_OCCURRED, isErrorOccurred);
+        String loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+                Constants.SAA_WAITING_JSP;
+        context.setProperty(IS_FLOW_COMPLETED, isFlowCompleted);
 
-        if (!isErrorOccurred) {
-            String redirectUrl = response.encodeRedirectURL(loginPage + ("?" + context.getQueryParams())) + "&scope=" + (String) context.getProperty("scope")
+        if (!isFlowCompleted) {
+            String redirectUrl = response.encodeRedirectURL(loginPage + ("?" + context.getQueryParams())) + "&scope="
+                    + (String) context.getProperty("scope")
                     + "&redirect_uri=" + context.getProperty("redirectURI")
-                    + "&authenticators=" + getName() + ":" + "LOCAL" + retryParam + Utility.getMultiScopeQueryParam(context);
+                    + "&authenticators=" + getName() + ":" + "LOCAL";
 
             log.info("Sent request to the SAA server successfully. Redirecting to [ " + redirectUrl + " ] ");
 
@@ -170,8 +176,8 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
     private void fallbackIfMsisdnNotRegistered(String msisdn) throws IOException, SaaException {
         HttpClient httpClient = new DefaultHttpClient();
 
-        String url = ReadMobileConnectConfig.readSaaConfig(Constants.SAA_ENPOINT) + "/services/serverAPI/api/v1/clients/" +
-                msisdn + "/is_registered";
+        String url = configurationService.getDataHolder().getMobileConnectConfig().getSaaConfig()
+                .getRegistrationEndpoint().replace("{msisdn}", msisdn);
 
         HttpGet httpGet = new HttpGet(url);
 
@@ -195,7 +201,8 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
         HttpResponse httpResponse = httpClient.execute(httpPost);
 
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            log.error("SAA server replied with invalid HTTP status [ " + httpResponse.getStatusLine().getStatusCode() + "] ");
+            log.error("SAA server replied with invalid HTTP status [ " + httpResponse.getStatusLine().getStatusCode()
+                    + "] ");
 
             throw new SaaException("Error occurred while posting data to SAA server");
         }
@@ -203,39 +210,20 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
 
     private void handleRetry(HttpServletRequest request, AuthenticationContext context, String msisdn) {
         if (context.isRetrying()) {
-            UserStatus uStatus = new UserStatus();
-
-            Utility.setValueFromContext(request, context, uStatus);
-            uStatus.setStatus(UserState.MSISDN_AUTH_PROCESSING_FAIL.name());
+            UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
+            String comment = null;
             if (msisdn != null && !msisdn.isEmpty()) {
-                uStatus.setComment("Initializing Failed");
-                uStatus.setIsNewUser(1);
-                uStatus.setIsMsisdnHeader(1);
-            } else {
-                uStatus.setIsMsisdnHeader(0);
-
+                comment = "Initializing Failed";
+                userStatus.setIsNewUser(1);
             }
-            Utility.saveUSSD(uStatus);
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                    DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING_FAIL,
+                    comment);
         }
     }
 
-    private Map<String, String> createQueryParamMap(String params) {
-        String[] queryParams = params.split("&");
-        Map<String, String> paramMap = new HashMap<>();
-
-        for (String queryParam : queryParams) {
-            String[] param = queryParam.split("=");
-            String key = param[0];
-            String value = null;
-            if (param.length > 1) {
-                value = param[1];
-            }
-            paramMap.put(key, value);
-        }
-        return paramMap;
-    }
-
-    private SaaRequest createSaaRequest(Map<String, String> paramMap, String clientId, String applicationName) throws Exception {
+    private SaaRequest createSaaRequest(Map<String, String> paramMap, String clientId, String applicationName) throws
+            Exception {
         SaaRequest saaRequest = new SaaRequest();
         saaRequest.setApplicationName(applicationName);
         saaRequest.setMessage(spConfigService.getSaaMessage(clientId));
@@ -250,6 +238,9 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
+        AuthenticationContextHelper.setSubject(context, (String) context.getProperty(Constants.MSISDN));
+        context.setProperty(IS_FLOW_COMPLETED, true);
+        context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
     }
 
     @Override

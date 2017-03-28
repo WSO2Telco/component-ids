@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
- * 
+ *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,85 +29,91 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class DbUtil.
  */
 public class DbUtil {
 
-/** The Constant log. */
-private static final Log log = LogFactory.getLog(DbUtil.class);
-	
-	/** The Constant connectDataSourceName. */
-	private static final String connectDataSourceName = "jdbc/CONNECT_DB";
-	
-	/** The connect datasource. */
-	private static volatile DataSource connectDatasource = null;
-	
-	/**
-	 * Initialize data source.
-	 *
-	 * @throws Exception the exception
-	 */
-	public static void initializeDataSource() throws Exception {
-		getConnectDataSource();
-		
-	}
-	
-	/**
-	 * Gets the connect data source.
-	 *
-	 * @return the connect data source
-	 * @throws Exception the exception
-	 */
-	public static void getConnectDataSource() throws Exception {
-		if (connectDatasource != null) {
-			return;
-		}
-		if (connectDataSourceName != null) {
-			try {
-				Context ctx = new InitialContext();
-				connectDatasource = (DataSource) ctx
-						.lookup(connectDataSourceName);
-			} catch (NamingException e) {
-				throw new Exception("Error while looking up the data " + "source: "
-								+ connectDataSourceName);
-			}
-		}
-	}
-	
-	/**
-	 * Gets the connect db connection.
-	 *
-	 * @return the connect db connection
-	 * @throws SQLException the SQL exception
-	 * @throws Exception the exception
-	 */
-	public static Connection getConnectDBConnection() throws SQLException, Exception {
-		initializeDataSource();
-		if (connectDatasource != null) {
-			return connectDatasource.getConnection();
-		} else {
-			throw new SQLException(
-					"Connect Datasource not initialized properly.");
-		}
-	}
-	
-	/**
-	 * Close all connections.
-	 *
-	 * @param preparedStatement the prepared statement
-	 * @param connection the connection
-	 * @param resultSet the result set
-	 */
-	public static void closeAllConnections(PreparedStatement preparedStatement, 
-			Connection connection, ResultSet resultSet) {
-		
-		closeConnection(connection);
-		closeStatement(preparedStatement);
-		closeResultSet(resultSet);
-	}
-	
-     
+    /**
+     * The Constant log.
+     */
+    private static final Log log = LogFactory.getLog(DbUtil.class);
+
+    /**
+     * The Constant connectDataSourceName.
+     */
+    private static final String connectDataSourceName = "jdbc/CONNECT_DB";
+
+    /**
+     * The connect datasource.
+     */
+    private static volatile DataSource connectDatasource = null;
+
+    /**
+     * Initialize data source.
+     *
+     * @throws Exception the exception
+     */
+    public static void initializeDataSource() throws Exception {
+        getConnectDataSource();
+
+    }
+
+    /**
+     * Gets the connect data source.
+     *
+     * @throws Exception the exception
+     */
+    public static void getConnectDataSource() throws Exception {
+        if (connectDatasource != null) {
+            return;
+        }
+        if (connectDataSourceName != null) {
+            try {
+                Context ctx = new InitialContext();
+                connectDatasource = (DataSource) ctx
+                        .lookup(connectDataSourceName);
+            } catch (NamingException e) {
+                throw new Exception("Error while looking up the data " + "source: "
+                        + connectDataSourceName);
+            }
+        }
+    }
+
+    /**
+     * Gets the connect db connection.
+     *
+     * @return the connect db connection
+     * @throws SQLException the SQL exception
+     * @throws Exception    the exception
+     */
+    public static Connection getConnectDBConnection() throws SQLException, Exception {
+        initializeDataSource();
+        if (connectDatasource != null) {
+            return connectDatasource.getConnection();
+        } else {
+            throw new SQLException(
+                    "Connect Datasource not initialized properly.");
+        }
+    }
+
+    /**
+     * Close all connections.
+     *
+     * @param preparedStatement the prepared statement
+     * @param connection        the connection
+     * @param resultSet         the result set
+     */
+    public static void closeAllConnections(PreparedStatement preparedStatement,
+                                           Connection connection, ResultSet resultSet) {
+
+        closeConnection(connection);
+        closeStatement(preparedStatement);
+        closeResultSet(resultSet);
+    }
+
+
     /**
      * Close connection.
      *
@@ -118,13 +124,13 @@ private static final Log log = LogFactory.getLog(DbUtil.class);
             try {
                 dbConnection.close();
             } catch (SQLException e) {
-                log.warn("Database error. Could not close database connection. Continuing with " +
+                log.error("Database error. Could not close database connection. Continuing with " +
                         "others. - " + e.getMessage(), e);
             }
         }
     }
 
-     
+
     /**
      * Close result set.
      *
@@ -135,13 +141,13 @@ private static final Log log = LogFactory.getLog(DbUtil.class);
             try {
                 resultSet.close();
             } catch (SQLException e) {
-                log.warn("Database error. Could not close ResultSet  - " + e.getMessage(), e);
+                log.error("Database error. Could not close ResultSet  - " + e.getMessage(), e);
             }
         }
 
     }
 
-     
+
     /**
      * Close statement.
      *
@@ -152,7 +158,7 @@ private static final Log log = LogFactory.getLog(DbUtil.class);
             try {
                 preparedStatement.close();
             } catch (SQLException e) {
-                log.warn("Database error. Could not close PreparedStatement. Continuing with" +
+                log.error("Database error. Could not close PreparedStatement. Continuing with" +
                         " others. - " + e.getMessage(), e);
             }
         }
