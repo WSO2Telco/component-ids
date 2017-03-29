@@ -102,7 +102,7 @@ function deleteUser(sessionId) {
 function checkUSSDResponseStatus() {
 
     sessionId = tokenVal;
-    console.log("Inside checkUSSDResponseStatus-------------------------------");
+    console.log("Inside check saa status -------------------------------");
     var url = "/sessionupdater/tnspoints/endpoint/saa/status?sessionId=" + sessionId;
 
     var STATUS_APPROVED = "Approved";
