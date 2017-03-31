@@ -37,6 +37,16 @@
 
 <body>
 
+<%
+    //Support DAS oidc login functionality
+    String referer = request.getHeader("referer");
+    if(referer != null){
+        if(referer.indexOf("authenticationendpoint") == -1){
+             response.sendRedirect(referer);
+        }
+    }
+%>
+
 <script type="text/javascript">
     function approved() {
         document.getElementById('consent').value = "approve";
