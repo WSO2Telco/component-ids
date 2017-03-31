@@ -155,24 +155,26 @@ public class Endpoints {
     @Consumes("application/json")
     @Produces("application/json")
     public Response saaUpdateStatus(String jsonBody) {
-        log.info("Received SAA update status request");
+        log.info("Received SAA update status request " + jsonBody);
 
         SaaStatusRequest saaStatusRequest = new Gson().fromJson(jsonBody, SaaStatusRequest.class);
-
+        SaaResponse saaResponse;
         Response response;
 
         try {
             DatabaseUtils.updateStatus(saaStatusRequest.getSessionDataKey(), saaStatusRequest.getStatus());
 
-            SaaResponse saaResponse = new SaaResponse(saaStatusRequest.getSessionDataKey(), Constants.STATUS_SUCCESS);
+            saaResponse = new SaaResponse(saaStatusRequest.getSessionDataKey(), Constants.STATUS_SUCCESS);
             response = Response.status(Response.Status.ACCEPTED)
                     .entity(new Gson().toJson(saaResponse)).build();
         } catch (SQLException e) {
 
-            SaaResponse saaResponse = new SaaResponse(saaStatusRequest.getSessionDataKey(), Constants.STATUS_FAILED);
+            saaResponse = new SaaResponse(saaStatusRequest.getSessionDataKey(), Constants.STATUS_FAILED);
             response = Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                     .entity(new Gson().toJson(saaResponse)).build();
+            log.error("Error occurred while updating status for saa", e);
         }
+        log.info("Updated saa status " + saaResponse);
         return response;
     }
 
@@ -504,10 +506,10 @@ public class Endpoints {
         String sessionId = authenticationDetails.getSessionId();
         AuthenticationContext authenticationContext = getAuthenticationContext(sessionId);
 
-        if(StringUtils.isEmpty(authenticationDetails.getChallengeQuestion1()) ||
+        if (StringUtils.isEmpty(authenticationDetails.getChallengeQuestion1()) ||
                 StringUtils.isEmpty(authenticationDetails.getChallengeQuestion2()) ||
                 StringUtils.isEmpty(authenticationDetails.getChallengeAnswer1()) ||
-                StringUtils.isEmpty(authenticationDetails.getChallengeAnswer2())){
+                StringUtils.isEmpty(authenticationDetails.getChallengeAnswer2())) {
             throw new IncompleteArgumentException("All inputs must be completed before saving user challenges");
         }
 
