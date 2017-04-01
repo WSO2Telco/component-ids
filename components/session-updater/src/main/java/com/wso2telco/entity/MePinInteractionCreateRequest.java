@@ -45,11 +45,33 @@ public class MePinInteractionCreateRequest {
     @SerializedName("expiry_time")
     private int expiryTimeInSeconds;
 
+    @SerializedName("resource_url")
+    private String resourceUrl;
+
     @SerializedName("confirmation_policy")
     private String confirmationPolicy;
 
+    @SerializedName("resource_params")
+    private MePinInteractionRequestResourceParams mePinInteractionRequestResourceParams;
+
     public String getInteractionType() {
         return interactionType;
+    }
+
+    public String getResourceUrl() {
+        return resourceUrl;
+    }
+
+    public void setResourceUrl(String resourceUrl) {
+        this.resourceUrl = resourceUrl;
+    }
+
+    public MePinInteractionRequestResourceParams getMePinInteractionRequestResourceParams() {
+        return mePinInteractionRequestResourceParams;
+    }
+
+    public void setMePinInteractionRequestResourceParams(MePinInteractionRequestResourceParams mePinInteractionRequestResourceParams) {
+        this.mePinInteractionRequestResourceParams = mePinInteractionRequestResourceParams;
     }
 
     public void setInteractionType(String interactionType) {

@@ -1364,12 +1364,25 @@ public class Endpoints {
             mePinInteractionCreateRequest.setIdentifier(mePinResponse.getMePinId());
             mePinInteractionCreateRequest.setAction("interactions/create");
             mePinInteractionCreateRequest.setAppId("bcb54836a5a71b698844e8c1923f8a42");
-            mePinInteractionCreateRequest.setInteractionType("webview");
+            mePinInteractionCreateRequest.setInteractionType("deeplinking");
             mePinInteractionCreateRequest.setMePinId(mePinResponse.getMePinId());
             mePinInteractionCreateRequest.setPublicKeyHash(publicKeyHash);
             mePinInteractionCreateRequest.setShortMessage("Short Message");
             mePinInteractionCreateRequest.setExpiryTimeInSeconds(60);
             mePinInteractionCreateRequest.setInteractionUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
+            mePinInteractionCreateRequest.setResourceUrl("mepin://authenticator/set_enrollment_status");
+
+            MePinInteractionRequestResourceParams mePinInteractionRequestResourceParams = new MePinInteractionRequestResourceParams();
+            mePinInteractionRequestResourceParams.setEnrollmentStatus("ok");
+            mePinInteractionRequestResourceParams.setHelpUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
+            mePinInteractionRequestResourceParams.setPrivacyPolicyUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
+            mePinInteractionRequestResourceParams.setServicesUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
+            mePinInteractionRequestResourceParams.setTermsOfServiceUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
+            mePinInteractionRequestResourceParams.setServiceProviderLogo("");
+
+            mePinInteractionCreateRequest.setMePinInteractionRequestResourceParams(mePinInteractionRequestResourceParams);
+
+            log.info("xxxxxxxxxxxxx json : " + new Gson().toJson(mePinInteractionCreateRequest));
 
             log.info("Preparing interaction request");
             HttpPost postInteractionCreate = new HttpPost(interactionCreateUrl);
