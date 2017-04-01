@@ -196,6 +196,30 @@ public class DbUtil {
         }
     }
 
+    public static void insertMePinData(String msisdn, String mePinId) throws SQLException,
+            AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+
+        String sql = "insert into mepin_accounts(user_id, mepin_id) values  (?,?);";
+
+        connection = getConnectDBConnection();
+
+        ps = connection.prepareStatement(sql);
+
+        ps.setString(1, msisdn);
+        ps.setString(2, mePinId);
+        ps.execute();
+
+        if (ps != null) {
+            ps.close();
+        }
+        if (connection != null) {
+            connection.close();
+        }
+    }
+
     public static String getContextIDForHashKey(String hashKey) throws AuthenticatorException, SQLException {
         String sessionDataKey = null;
 
@@ -231,4 +255,6 @@ public class DbUtil {
         log.error(msg, t);
         throw new AuthenticatorException(msg, t);
     }
+
+
 }

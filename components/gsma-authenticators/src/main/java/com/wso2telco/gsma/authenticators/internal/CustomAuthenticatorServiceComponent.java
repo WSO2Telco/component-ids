@@ -18,6 +18,7 @@ package com.wso2telco.gsma.authenticators.internal;
 
 import com.wso2telco.gsma.authenticators.*;
 import com.wso2telco.gsma.authenticators.headerenrich.HeaderEnrichmentAuthenticator;
+import com.wso2telco.gsma.authenticators.mepin.MePinAuthenticator;
 import com.wso2telco.gsma.authenticators.saa.SmartPhoneAppAuthenticator;
 import com.wso2telco.gsma.authenticators.sms.SMSAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDAuthenticator;
@@ -82,6 +83,8 @@ public class CustomAuthenticatorServiceComponent {
                 new USSDAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new SmartPhoneAppAuthenticator(), null);
+        ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
+                new MePinAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new USSDPinAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),

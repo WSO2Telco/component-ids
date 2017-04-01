@@ -36,10 +36,23 @@ import org.apache.commons.lang.IncompleteArgumentException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.conn.ssl.X509HostnameVerifier;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.SingleClientConnManager;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
@@ -51,6 +64,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.mgt.stub.UserIdentityManagementAdminServiceIdentityMgtServiceExceptionException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
+import javax.net.ssl.*;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -60,13 +74,17 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
+import java.net.URL;
 import java.rmi.RemoteException;
+import java.security.KeyManagementException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.sql.Date;
 import java.sql.SQLException;
 import java.text.ParseException;
@@ -1242,27 +1260,171 @@ public class Endpoints {
         return Response.status(200).entity(responseString).build();
     }
 
+    @POST
+    @Path("/mepin/enroll")
+    @Consumes("application/x-www-form-urlencoded")
+    public Response mepinEnroll(MultivaluedMap<String, String> multivaluedMap) {
+
+        MobileConnectConfig.MePinConfig mePinConfig = configurationService.getDataHolder().getMobileConnectConfig().getMePinConfig();
+        String username = mePinConfig.getUsername();
+        String password = mePinConfig.getPassword();
+        String authEndPoint = mePinConfig.getAuthEndPoint();
+
+        String publicKeyHash = multivaluedMap.getFirst("public_key_hash");
+        String data = multivaluedMap.getFirst("data");
+
+        MePinResponse mePinResponse = new MePinResponse();
+        log.info("Received data [ hash : " + publicKeyHash + " , data : " + data + " ,url :  " + authEndPoint + "]");
+        MePinData mePinData = new Gson().fromJson(data, MePinData.class);
+
+        try {
+            List<NameValuePair> params = new ArrayList<>();
+//            params.add(new BasicNameValuePair("mepin_data", "{'action':'sdk/link','public_key_hash':'" + publicKeyHash
+//                    + "'}"));
+            params.add(new BasicNameValuePair("mepin_data", "{\"action\":\"sdk/link\",\"public_key_hash\":\"" +
+                    publicKeyHash + "\"}"));
+
+            String authHeader = username + ":" + password;
+            HttpPost httpPost = new HttpPost(authEndPoint);
+            String encoding = Base64.getEncoder().encodeToString(authHeader.getBytes("utf-8"));
+
+            SSLContext sslContext = SSLContext.getInstance("SSL");
+
+            sslContext.init(null, new TrustManager[]{new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    System.out.println("getAcceptedIssuers =============");
+                    return null;
+                }
+
+                public void checkClientTrusted(X509Certificate[] certs,
+                                               String authType) {
+                    System.out.println("checkClientTrusted =============");
+                }
+
+                public void checkServerTrusted(X509Certificate[] certs,
+                                               String authType) {
+                    System.out.println("checkServerTrusted =============");
+                }
+            }}, new SecureRandom());
+
+            SSLSocketFactory sf = new SSLSocketFactory(sslContext);
+            sf.setHostnameVerifier(new X509HostnameVerifier() {
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+
+                public void verify(String host, String[] cns, String[] subjectAlts) throws SSLException {
+                }
+
+                public void verify(String host, X509Certificate cert) throws SSLException {
+                }
+
+                public void verify(String host, SSLSocket ssl) throws IOException {
+                }
+            });
+
+
+            Scheme httpsScheme = new Scheme("https", 443, sf);
+            SchemeRegistry schemeRegistry = new SchemeRegistry();
+            schemeRegistry.register(httpsScheme);
+
+            ClientConnectionManager cm = new SingleClientConnManager(schemeRegistry);
+            HttpClient httpClient = new DefaultHttpClient(cm);
+
+            httpPost.setHeader("Authorization", "Basic " + encoding);
+
+            httpPost.setEntity(new UrlEncodedFormEntity(params));
+
+            HttpResponse response = httpClient.execute(httpPost);
+
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+
+            StringBuilder result = new StringBuilder();
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                result.append(line);
+            }
+            bufferedReader.close();
+
+            mePinResponse = new Gson().fromJson(result.toString(), MePinResponse.class);
+
+            log.info("Me pin response : " + mePinResponse);
+            if ("ok".equalsIgnoreCase(mePinResponse.getStatus())) {
+                String msisdn = mePinData.getMsisdn();
+                if ("+".equals(msisdn.substring(0, 1))) {
+                    msisdn = msisdn.substring(1, msisdn.length());
+                }
+                DbUtil.insertMePinData(msisdn, mePinResponse.getMePinId());
+            }
+
+            String interactionCreateUrl = "http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration" +
+                    "/auth_registration_mepin_complete";
+
+            MePinInteractionCreateRequest mePinInteractionCreateRequest = new MePinInteractionCreateRequest();
+            mePinInteractionCreateRequest.setIdentifier(mePinResponse.getMePinId());
+            mePinInteractionCreateRequest.setAction("interactions/create");
+            mePinInteractionCreateRequest.setAppId("bcb54836a5a71b698844e8c1923f8a42");
+            mePinInteractionCreateRequest.setInteractionType("webview");
+            mePinInteractionCreateRequest.setMePinId(mePinResponse.getMePinId());
+            mePinInteractionCreateRequest.setPublicKeyHash(publicKeyHash);
+            mePinInteractionCreateRequest.setShortMessage("Short Message");
+            mePinInteractionCreateRequest.setExpiryTimeInSeconds(60);
+            mePinInteractionCreateRequest.setInteractionUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
+
+            log.info("Preparing interaction request");
+            HttpPost postInteractionCreate = new HttpPost(interactionCreateUrl);
+            postInteractionCreate.setHeader("Authorization", "Basic " + encoding);
+
+            List<NameValuePair> interactionParams = new ArrayList<>();
+            interactionParams.add(new BasicNameValuePair("mepin_data", new Gson().toJson(mePinInteractionCreateRequest)));
+
+            postInteractionCreate.setEntity(new UrlEncodedFormEntity(interactionParams));
+
+            log.info("Executing interaction request");
+            HttpResponse interactionResponse = httpClient.execute(httpPost);
+
+            BufferedReader bfInteractionCreate = new BufferedReader(new InputStreamReader(interactionResponse.getEntity()
+                    .getContent()));
+
+            StringBuilder resultInteractionCreate = new StringBuilder();
+            String lineInteractionCreate;
+            while ((lineInteractionCreate = bfInteractionCreate.readLine()) != null) {
+                resultInteractionCreate.append(lineInteractionCreate);
+            }
+            bfInteractionCreate.close();
+
+            MePinInteractionCreateResponse mePinInteractionCreateResponse = new Gson().fromJson(resultInteractionCreate.toString(), MePinInteractionCreateResponse.class);
+
+            log.info("xxxxxxxxxxxxx");
+            log.info(mePinInteractionCreateResponse);
+        } catch (IOException e) {
+            log.error("Error occurred while seding response to me pin", e);
+        } catch (SQLException e) {
+            log.error("SQL error Error occurred while seding response to me pin", e);
+        } catch (AuthenticatorException e) {
+            log.error("Auth error Error occurred while seding response to me pin", e);
+        } catch (NoSuchAlgorithmException e) {
+            log.error("Auth error Error occurred while seding response to me pin", e);
+        } catch (KeyManagementException e) {
+            log.error("Auth error Error occurred while seding response to me pin", e);
+        }
+        return Response.status(HttpStatus.SC_OK).entity(new Gson().toJson(mePinResponse)).build();
+    }
+
     /**
      * Mepin confirm.
      *
-     * @param identifier        the identifier
-     * @param transactionId     the transaction id
-     * @param allow             the allow
-     * @param transactionStatus the transaction status
+     * @param transactionId the transaction id
      * @return the response
      * @throws SQLException the SQL exception
      */
     @POST
     @Path("/mepin/response")
     @Consumes("application/x-www-form-urlencoded")
-    public Response mepinConfirm(@FormParam("identifier") String identifier, @FormParam("transaction_id") String
-            transactionId, @FormParam("allow") String allow, @FormParam("transaction_status") String
-                                         transactionStatus) throws SQLException {
+    public Response mepinConfirm(@FormParam("transaction_id") String transactionId) throws SQLException {
 
         if (log.isDebugEnabled()) {
             log.debug("MePIN transactionID : " + transactionId);
-            log.debug("MePIN identifier : " + identifier);
-            log.debug("MePIN transactionStatus : " + transactionStatus);
         }
 
         MePinStatusRequest mePinStatus = new MePinStatusRequest(transactionId);
