@@ -1387,13 +1387,14 @@ public class Endpoints {
             mePinInteractionCreateRequest.setInteractionUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
             mePinInteractionCreateRequest.setResourceUrl("mepin://authenticator/set_enrollment_status");
 
+
             MePinInteractionRequestResourceParams mePinInteractionRequestResourceParams = new MePinInteractionRequestResourceParams();
             mePinInteractionRequestResourceParams.setEnrollmentStatus("ok");
             mePinInteractionRequestResourceParams.setHelpUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
             mePinInteractionRequestResourceParams.setPrivacyPolicyUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
             mePinInteractionRequestResourceParams.setServicesUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
             mePinInteractionRequestResourceParams.setTermsOfServiceUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
-            mePinInteractionRequestResourceParams.setServiceProviderLogo("");
+            mePinInteractionRequestResourceParams.setServiceProviderLogo("http://res.cloudinary.com/dyftvc4kh/image/upload/v1491160602/ws_np2ygq.png");
 
             mePinInteractionCreateRequest.setMePinInteractionRequestResourceParams(mePinInteractionRequestResourceParams);
 
@@ -1547,7 +1548,7 @@ public class Endpoints {
 
             String sessionId = DbUtil.getSessionId(transactionId);
 
-            if("Completed".equalsIgnoreCase(mePinTransactionStatusResponse.getStatus())){
+            if("Completed".equalsIgnoreCase(mePinTransactionStatusResponse.getTransactionStatus())){
                 DbUtil.updateRegistrationStatus(sessionId, "APPROVED");
             }else {
                 DbUtil.updateRegistrationStatus(sessionId, "EXPIRED");

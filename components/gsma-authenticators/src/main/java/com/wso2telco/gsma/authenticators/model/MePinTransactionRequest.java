@@ -17,18 +17,21 @@ public class MePinTransactionRequest {
     @SerializedName("mepin_id")
     private String mePinId;
 
-    @SerializedName("u2f_user_id")
-    private String u2fUserId;
-
-    @SerializedName("oath_user_id")
-    private String authUserId;
-
     @SerializedName("short_message")
     private String shortMessage;
 
     private String header;
 
     private String message;
+
+    @SerializedName("logo_url")
+    private String logoUrl;
+
+    @SerializedName("sp_name")
+    private String spName;
+
+    @SerializedName("bg_image_url")
+    private String bgImageName;
 
     @SerializedName("sp_icon")
     private String spIcon;
@@ -79,22 +82,6 @@ public class MePinTransactionRequest {
         this.mePinId = mePinId;
     }
 
-    public String getU2fUserId() {
-        return u2fUserId;
-    }
-
-    public void setU2fUserId(String u2fUserId) {
-        this.u2fUserId = u2fUserId;
-    }
-
-    public String getAuthUserId() {
-        return authUserId;
-    }
-
-    public void setAuthUserId(String authUserId) {
-        this.authUserId = authUserId;
-    }
-
     public String getShortMessage() {
         return shortMessage;
     }
@@ -141,5 +128,29 @@ public class MePinTransactionRequest {
 
     public void setConfirmationPolicy(String confirmationPolicy) {
         this.confirmationPolicy = confirmationPolicy;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
+    }
+
+    public String getSpName() {
+        return spName;
+    }
+
+    public void setSpName(String spName) {
+        this.spName = spName;
+    }
+
+    public String getBgImageName() {
+        return bgImageName;
+    }
+
+    public void setBgImageName(String bgImageName) {
+        this.bgImageName = bgImageName;
     }
 }

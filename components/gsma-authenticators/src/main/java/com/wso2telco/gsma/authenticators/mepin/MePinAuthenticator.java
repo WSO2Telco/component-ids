@@ -33,6 +33,7 @@ import com.wso2telco.gsma.authenticators.model.MePinTransactionResponse;
 import com.wso2telco.gsma.authenticators.saa.IsRegisteredResponse;
 import com.wso2telco.gsma.authenticators.saa.SaaRequest;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.gsma.authenticators.util.UserProfileManager;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.logging.Log;
@@ -63,6 +64,7 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 
 import javax.net.ssl.*;
 import javax.servlet.http.HttpServletRequest;
@@ -70,6 +72,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.rmi.RemoteException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.*;
@@ -169,11 +172,14 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
             mePinTransactionRequest.setHeader("Header");
             mePinTransactionRequest.setMessage("Message");
             mePinTransactionRequest.setExpiryTimeInSeconds(60);
+            mePinTransactionRequest.setLogoUrl("");
+            mePinTransactionRequest.setSpName("");
+            mePinTransactionRequest.setBgImageName("");
 
             if (acr == 2) {
                 mePinTransactionRequest.setConfirmationPolicy("mepin_swipe");
             } else if (acr == 3) {
-                mePinTransactionRequest.setAuthUserId("mepin_fp");
+                mePinTransactionRequest.setConfirmationPolicy("mepin_fp");
             }
 
             String authHeader = username + ":" + password;
@@ -365,8 +371,30 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
         AuthenticationContextHelper.setSubject(context, (String) context.getProperty(Constants.MSISDN));
         context.setProperty(IS_FLOW_COMPLETED, true);
         context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+        int acr = (int) context.getProperty(Constants.ACR);
+        String msisdn = (String) context.getProperty(Constants.MSISDN);
+        String operator = (String) context.getProperty(Constants.OPERATOR);
+        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+
+        log.info("Msisdn : " + msisdn + " operator : " + operator + " acr : " + acr);
 
 
+        if(isRegistering){
+            UserProfileManager userProfileManager = new UserProfileManager();
+
+            try {
+                if (acr == 2) {
+                    userProfileManager.createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
+                } else if (acr == 3) {
+                    userProfileManager.createUserProfileLoa3(msisdn, operator, "", "", "");
+                }
+            } catch (UserRegistrationAdminServiceIdentityException e) {
+                throw new AuthenticationFailedException("Error occurred while creating profile");
+            } catch (RemoteException e) {
+                throw new AuthenticationFailedException("Error occurred while creating profile");
+            }
+
+        }
     }
 
     @Override
