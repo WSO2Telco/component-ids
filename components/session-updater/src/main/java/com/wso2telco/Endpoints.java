@@ -40,6 +40,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
@@ -1355,20 +1356,29 @@ public class Endpoints {
                 if ("+".equals(msisdn.substring(0, 1))) {
                     msisdn = msisdn.substring(1, msisdn.length());
                 }
-                DbUtil.insertMePinData(msisdn, mePinResponse.getMePinId());
+
+                String mePinId = DbUtil.getMePinId(msisdn);
+                if (mePinId != null) {
+                    DbUtil.updateMePinData(msisdn, mePinResponse.getMePinId());
+                } else {
+                    DbUtil.insertMePinData(msisdn, mePinResponse.getMePinId());
+                }
             }
 
-            String interactionCreateUrl = "http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration" +
-                    "/auth_registration_mepin_complete";
+            String interactionCreateUrl = configurationService.getDataHolder().getMobileConnectConfig()
+                    .getMePinConfig().getAuthEndPoint();
 
             MePinInteractionCreateRequest mePinInteractionCreateRequest = new MePinInteractionCreateRequest();
 
             Hashids hashids = new Hashids(UUID.randomUUID().toString(), 32);
             String idetifier = hashids.encode(new java.util.Date().getTime());
 
-            mePinInteractionCreateRequest.setIdentifier(idetifier);
+            Random randomno = new Random();
+            long value = randomno.nextLong();
+            mePinInteractionCreateRequest.setIdentifier(Long.toString(value));
+
             mePinInteractionCreateRequest.setAction("interactions/create");
-            mePinInteractionCreateRequest.setAppId("bcb54836a5a71b698844e8c1923f8a42");
+            mePinInteractionCreateRequest.setAppId("5497e675-ecb8-45e2-83c7-a9b12d3f290e");
             mePinInteractionCreateRequest.setInteractionType("deeplinking");
             mePinInteractionCreateRequest.setMePinId(mePinResponse.getMePinId());
             mePinInteractionCreateRequest.setPublicKeyHash(publicKeyHash);
@@ -1387,19 +1397,20 @@ public class Endpoints {
 
             mePinInteractionCreateRequest.setMePinInteractionRequestResourceParams(mePinInteractionRequestResourceParams);
 
-            log.info("xxxxxxxxxxxxx json : " + new Gson().toJson(mePinInteractionCreateRequest));
+            String value1 = new Gson().toJson(mePinInteractionCreateRequest);
+            log.info("xxxxxxxxxxxxx json : " + value1);
 
             log.info("Preparing interaction request");
             HttpPost postInteractionCreate = new HttpPost(interactionCreateUrl);
             postInteractionCreate.setHeader("Authorization", "Basic " + encoding);
 
             List<NameValuePair> interactionParams = new ArrayList<>();
-            interactionParams.add(new BasicNameValuePair("mepin_data", new Gson().toJson(mePinInteractionCreateRequest)));
+            interactionParams.add(new BasicNameValuePair("mepin_data", value1));
 
             postInteractionCreate.setEntity(new UrlEncodedFormEntity(interactionParams));
 
             log.info("Executing interaction request");
-            HttpResponse interactionResponse = httpClient.execute(httpPost);
+            HttpResponse interactionResponse = httpClient.execute(postInteractionCreate);
 
             BufferedReader bfInteractionCreate = new BufferedReader(new InputStreamReader(interactionResponse.getEntity()
                     .getContent()));
@@ -1414,7 +1425,7 @@ public class Endpoints {
             MePinInteractionCreateResponse mePinInteractionCreateResponse = new Gson().fromJson(resultInteractionCreate.toString(), MePinInteractionCreateResponse.class);
 
             log.info("xxxxxxxxxxxxx");
-            log.info(new Gson().toJson(mePinInteractionCreateResponse));
+            log.info(new Gson().toJson(resultInteractionCreate.toString()));
         } catch (IOException e) {
             log.error("Error occurred while seding response to me pin", e);
         } catch (SQLException e) {
@@ -1432,23 +1443,130 @@ public class Endpoints {
     /**
      * Mepin confirm.
      *
-     * @param transactionId the transaction id
      * @return the response
      * @throws SQLException the SQL exception
      */
     @POST
     @Path("/mepin/response")
     @Consumes("application/x-www-form-urlencoded")
-    public Response mepinConfirm(@FormParam("transaction_id") String transactionId) throws SQLException {
+    public Response mepinConfirm(MultivaluedMap<String, String> multivaluedMap) throws SQLException {
 
-        if (log.isDebugEnabled()) {
-            log.debug("MePIN transactionID : " + transactionId);
+        String transactionId = multivaluedMap.getFirst("transaction_id");
+        log.info("MePIN transactionID : " + transactionId);
+
+//        MePinStatusRequest mePinStatus = new MePinStatusRequest(transactionId);
+//        FutureTask<String> futureTask = new FutureTask<String>(mePinStatus);
+//        ExecutorService executor = Executors.newFixedThreadPool(1);
+//        executor.execute(futureTask);
+
+        MobileConnectConfig.MePinConfig mePinConfig = configurationService.getDataHolder().getMobileConnectConfig().getMePinConfig();
+        String username = mePinConfig.getUsername();
+        String password = mePinConfig.getPassword();
+        String authEndPoint = mePinConfig.getAuthEndPoint();
+
+        String authHeader = username + ":" + password;
+        HttpPost httpPost = new HttpPost(authEndPoint);
+
+        try {
+            String encoding = Base64.getEncoder().encodeToString(authHeader.getBytes("utf-8"));
+
+            SSLContext sslContext = SSLContext.getInstance("SSL");
+
+            sslContext.init(null, new TrustManager[]{new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    System.out.println("getAcceptedIssuers =============");
+                    return null;
+                }
+
+                public void checkClientTrusted(X509Certificate[] certs,
+                                               String authType) {
+                    System.out.println("checkClientTrusted =============");
+                }
+
+                public void checkServerTrusted(X509Certificate[] certs,
+                                               String authType) {
+                    System.out.println("checkServerTrusted =============");
+                }
+            }}, new SecureRandom());
+
+            SSLSocketFactory sf = new SSLSocketFactory(sslContext);
+            sf.setHostnameVerifier(new X509HostnameVerifier() {
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+
+                public void verify(String host, String[] cns, String[] subjectAlts) throws SSLException {
+                }
+
+                public void verify(String host, X509Certificate cert) throws SSLException {
+                }
+
+                public void verify(String host, SSLSocket ssl) throws IOException {
+                }
+            });
+
+
+            Scheme httpsScheme = new Scheme("https", 443, sf);
+            SchemeRegistry schemeRegistry = new SchemeRegistry();
+            schemeRegistry.register(httpsScheme);
+
+            ClientConnectionManager cm = new SingleClientConnManager(schemeRegistry);
+            HttpClient httpClient = new DefaultHttpClient(cm);
+
+            httpPost.setHeader("Authorization", "Basic " + encoding);
+            List<NameValuePair> params = new ArrayList<>();
+
+            MePinTransactionStatusRequest mePinTransactionStatusRequest = new MePinTransactionStatusRequest();
+            mePinTransactionStatusRequest.setAction("transactions/get");
+//            mePinTransactionStatusRequest.setAppId("bcb54836a5a71b698844e8c1923f8a42");
+            mePinTransactionStatusRequest.setAppId("5497e675-ecb8-45e2-83c7-a9b12d3f290e");
+            mePinTransactionStatusRequest.setTransactionId(transactionId);
+
+            String jsonData = new Gson().toJson(mePinTransactionStatusRequest);
+
+            params.add(new BasicNameValuePair("mepin_data", jsonData));
+
+            httpPost.setEntity(new UrlEncodedFormEntity(params));
+
+            log.info("yyyy : " + jsonData);
+
+            HttpResponse transactionStatusResponse = httpClient.execute(httpPost);
+
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(transactionStatusResponse.getEntity().getContent()));
+
+            StringBuilder transactionStatusResult = new StringBuilder();
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                transactionStatusResult.append(line);
+            }
+
+            log.info("xxxxxxxxxx " + transactionStatusResult.toString());
+            bufferedReader.close();
+
+            MePinTransactionStatusResponse mePinTransactionStatusResponse = new Gson().fromJson(transactionStatusResult.toString(), MePinTransactionStatusResponse.class);
+
+            String sessionId = DbUtil.getSessionId(transactionId);
+
+            if("Completed".equalsIgnoreCase(mePinTransactionStatusResponse.getStatus())){
+                DbUtil.updateRegistrationStatus(sessionId, "APPROVED");
+            }else {
+                DbUtil.updateRegistrationStatus(sessionId, "EXPIRED");
+            }
+
+        } catch (KeyManagementException e) {
+            log.error("Error occurred", e);
+        } catch (UnsupportedEncodingException e) {
+            log.error("Error occurred", e);
+        } catch (ClientProtocolException e) {
+            log.error("Error occurred", e);
+        } catch (IOException e) {
+            log.error("Error occurred", e);
+        } catch (AuthenticatorException e) {
+            log.error("Error occurred", e);
+        } catch (NoSuchAlgorithmException e) {
+            log.error("Error occurred", e);
         }
 
-        MePinStatusRequest mePinStatus = new MePinStatusRequest(transactionId);
-        FutureTask<String> futureTask = new FutureTask<String>(mePinStatus);
-        ExecutorService executor = Executors.newFixedThreadPool(1);
-        executor.execute(futureTask);
 
         return Response.status(200).build();
     }

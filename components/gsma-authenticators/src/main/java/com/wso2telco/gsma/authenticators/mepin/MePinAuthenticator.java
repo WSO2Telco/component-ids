@@ -159,7 +159,8 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
 
             mePinTransactionRequest.setMePinId(mePinId);
             mePinTransactionRequest.setAction("transactions/create");
-            mePinTransactionRequest.setAppId("bcb54836a5a71b698844e8c1923f8a42");
+//            mePinTransactionRequest.setAppId("bcb54836a5a71b698844e8c1923f8a42");
+            mePinTransactionRequest.setAppId("5497e675-ecb8-45e2-83c7-a9b12d3f290e");
             mePinTransactionRequest.setIdentifier(idetifier);
             mePinTransactionRequest
                     .setCallbackUrl("http://52.53.173.127:9763/sessionupdater/tnspoints/endpoint/mepin/response");
@@ -230,6 +231,8 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
             params.add(new BasicNameValuePair("mepin_data", jsonData));
             httpPost.setEntity(new UrlEncodedFormEntity(params));
 
+            log.info("yyyy : " + jsonData);
+
             HttpResponse transactionCreateResponse = httpClient.execute(httpPost);
 
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(transactionCreateResponse.getEntity().getContent()));
@@ -239,11 +242,14 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
             while ((line = bufferedReader.readLine()) != null) {
                 transactionCreateResult.append(line);
             }
+
+            log.info("xxxxxxxxxx " + transactionCreateResult.toString());
             bufferedReader.close();
 
             MePinTransactionResponse mePinTransactionResponse = new Gson().fromJson(transactionCreateResult.toString(), MePinTransactionResponse.class);
 
-            System.out.println(mePinTransactionResponse);
+            DBUtils.insertMePinTrnsaction(context.getContextIdentifier(), mePinTransactionResponse.getTransactionId()
+                    , mePinId);
         } catch (AuthenticatorException e) {
             log.info("Error occurred while retrieving authentication details form database", e);
             isFlowCompleted = true;

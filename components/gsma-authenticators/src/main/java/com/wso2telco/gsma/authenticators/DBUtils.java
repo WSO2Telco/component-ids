@@ -152,6 +152,29 @@ public class DBUtils {
         return mePinId;
     }
 
+    public static String insertMePinTrnsaction(String sessionId, String transactionId, String mePinId) throws
+            AuthenticatorException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet results = null;
+        String sql = "insert INTO mepin_transactions(session_id, transaction_id, mepin_id) VALUES (?,?,?)";
+
+        try {
+            conn = getConnectDBConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, sessionId);
+            ps.setString(2, transactionId);
+            ps.setString(3, mePinId);
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            handleException("Error occurred while getting me pin response", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
+        }
+        return mePinId;
+    }
+
     /**
      * Gets the user response for login.
      *
