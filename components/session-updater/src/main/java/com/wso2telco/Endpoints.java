@@ -53,6 +53,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
+import org.hashids.Hashids;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
@@ -1361,7 +1362,11 @@ public class Endpoints {
                     "/auth_registration_mepin_complete";
 
             MePinInteractionCreateRequest mePinInteractionCreateRequest = new MePinInteractionCreateRequest();
-            mePinInteractionCreateRequest.setIdentifier(mePinResponse.getMePinId());
+
+            Hashids hashids = new Hashids(UUID.randomUUID().toString(), 32);
+            String idetifier = hashids.encode(new java.util.Date().getTime());
+
+            mePinInteractionCreateRequest.setIdentifier(idetifier);
             mePinInteractionCreateRequest.setAction("interactions/create");
             mePinInteractionCreateRequest.setAppId("bcb54836a5a71b698844e8c1923f8a42");
             mePinInteractionCreateRequest.setInteractionType("deeplinking");
@@ -1409,7 +1414,7 @@ public class Endpoints {
             MePinInteractionCreateResponse mePinInteractionCreateResponse = new Gson().fromJson(resultInteractionCreate.toString(), MePinInteractionCreateResponse.class);
 
             log.info("xxxxxxxxxxxxx");
-            log.info(mePinInteractionCreateResponse);
+            log.info(new Gson().toJson(mePinInteractionCreateResponse));
         } catch (IOException e) {
             log.error("Error occurred while seding response to me pin", e);
         } catch (SQLException e) {

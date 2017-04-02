@@ -54,6 +54,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.hashids.Hashids;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -153,10 +154,13 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
                 throw new MePinException("No me pin registration found");
             }
 
+            Hashids hashids = new Hashids(UUID.randomUUID().toString(), 31);
+            String idetifier = hashids.encode(new java.util.Date().getTime());
+
             mePinTransactionRequest.setMePinId(mePinId);
             mePinTransactionRequest.setAction("transactions/create");
             mePinTransactionRequest.setAppId("bcb54836a5a71b698844e8c1923f8a42");
-            mePinTransactionRequest.setIdentifier(UUID.randomUUID().toString());
+            mePinTransactionRequest.setIdentifier(idetifier);
             mePinTransactionRequest
                     .setCallbackUrl("http://52.53.173.127:9763/sessionupdater/tnspoints/endpoint/mepin/response");
             mePinTransactionRequest.setIdentifier(mePinId);
