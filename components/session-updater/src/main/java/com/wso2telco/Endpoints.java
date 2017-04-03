@@ -1394,7 +1394,7 @@ public class Endpoints {
             mePinInteractionRequestResourceParams.setPrivacyPolicyUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
             mePinInteractionRequestResourceParams.setServicesUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
             mePinInteractionRequestResourceParams.setTermsOfServiceUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
-            mePinInteractionRequestResourceParams.setServiceProviderLogo("http://res.cloudinary.com/dyftvc4kh/image/upload/v1491160602/ws_np2ygq.png");
+            mePinInteractionRequestResourceParams.setServiceProviderLogo("http://res.cloudinary.com/dyftvc4kh/image/upload/v1491196994/singtel_new_logo_khcrku.png");
 
             mePinInteractionCreateRequest.setMePinInteractionRequestResourceParams(mePinInteractionRequestResourceParams);
 

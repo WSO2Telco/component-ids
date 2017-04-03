@@ -169,16 +169,18 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
                     .setCallbackUrl("http://52.53.173.127:9763/sessionupdater/tnspoints/endpoint/mepin/response");
             mePinTransactionRequest.setIdentifier(mePinId);
             mePinTransactionRequest.setShortMessage("Short message");
-            mePinTransactionRequest.setHeader("Header");
-            mePinTransactionRequest.setMessage("Message");
+            mePinTransactionRequest.setHeader("Welcome to MobileConnect");
+
             mePinTransactionRequest.setExpiryTimeInSeconds(60);
             mePinTransactionRequest.setLogoUrl("");
             mePinTransactionRequest.setSpName("");
             mePinTransactionRequest.setBgImageName("");
 
             if (acr == 2) {
+                mePinTransactionRequest.setMessage("Please swipe to authenticate");
                 mePinTransactionRequest.setConfirmationPolicy("mepin_swipe");
             } else if (acr == 3) {
+                mePinTransactionRequest.setMessage("Please provide fingerprint to authenticate");
                 mePinTransactionRequest.setConfirmationPolicy("mepin_fp");
             }
 
