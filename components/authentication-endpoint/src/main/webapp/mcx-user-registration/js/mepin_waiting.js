@@ -55,11 +55,7 @@ function handleTermination() {
     //$('.page__header').hide();
     $('#sms_fallback').hide();
 
-    setTimeout(function () {
-        callCommonAuth();
-    }, 5000);
-
-
+    callCommonAuth();
 }
 
 /*
@@ -69,8 +65,8 @@ function handleTermination() {
 
 function callCommonAuth() {
     var commonAuthURL;
-
-    if (hasResponse) {
+    var STATUS_APPROVED = "Approved";
+    if (hasResponse && status.toUpperCase() == STATUS_APPROVED.toUpperCase()) {
         commonAuthURL = "/commonauth/?sessionDataKey=" + tokenVal + "&isTerminated=false";
     } else {
         commonAuthURL = "/commonauth/?sessionDataKey=" + tokenVal + "&isTerminated=true";
@@ -106,6 +102,7 @@ function checkUSSDResponseStatus() {
     var url = "/sessionupdater/tnspoints/endpoint/saa/status?sessionId=" + sessionId;
 
     var STATUS_APPROVED = "Approved";
+    var STATUS_EXPIRED = "EXPIRED";
 
     $.ajax({
         type: "GET",
@@ -117,6 +114,11 @@ function checkUSSDResponseStatus() {
                 var responseStatus = result.status;
 
                 if (responseStatus != null && responseStatus.toUpperCase() == STATUS_APPROVED.toUpperCase()) {
+                    status = result.status;
+                    console.log("status : " + status);
+                    hasResponse = true;
+                }
+                if (responseStatus != null && responseStatus.toUpperCase() == STATUS_EXPIRED.toUpperCase()) {
                     status = result.status;
                     console.log("status : " + status);
                     hasResponse = true;

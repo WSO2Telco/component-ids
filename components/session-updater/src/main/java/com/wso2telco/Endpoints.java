@@ -1382,7 +1382,7 @@ public class Endpoints {
             mePinInteractionCreateRequest.setInteractionType("deeplinking");
             mePinInteractionCreateRequest.setMePinId(mePinResponse.getMePinId());
             mePinInteractionCreateRequest.setPublicKeyHash(publicKeyHash);
-            mePinInteractionCreateRequest.setShortMessage("Short Message");
+            mePinInteractionCreateRequest.setShortMessage("Enrollment Completed");
             mePinInteractionCreateRequest.setExpiryTimeInSeconds(60);
             mePinInteractionCreateRequest.setInteractionUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
             mePinInteractionCreateRequest.setResourceUrl("mepin://authenticator/set_enrollment_status");
