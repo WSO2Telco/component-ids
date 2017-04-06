@@ -1405,7 +1405,7 @@ public class Endpoints {
                         ".com/wso2telco/image/upload/v1491478695/m1_logo_sumxgc.jpg");
 
             } else if ("starhub".equals(operator)) {
-                mePinInteractionRequestResourceParams.setServiceProviderLogo("http://http://res.cloudinary" +
+                mePinInteractionRequestResourceParams.setServiceProviderLogo("http://res.cloudinary" +
                         ".com/wso2telco/image/upload/v1491478967/starhub_logo_ennat8.jpg");
             }
 

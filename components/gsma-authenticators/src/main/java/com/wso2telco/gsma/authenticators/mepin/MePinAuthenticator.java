@@ -168,7 +168,7 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
             mePinTransactionRequest
                     .setCallbackUrl("http://52.53.173.127:9763/sessionupdater/tnspoints/endpoint/mepin/response");
             mePinTransactionRequest.setIdentifier(mePinId);
-            mePinTransactionRequest.setShortMessage("Enrollment Completed");
+            mePinTransactionRequest.setShortMessage("Pending authentication request");
             mePinTransactionRequest.setHeader("Welcome to MobileConnect");
 
             mePinTransactionRequest.setExpiryTimeInSeconds(60);
