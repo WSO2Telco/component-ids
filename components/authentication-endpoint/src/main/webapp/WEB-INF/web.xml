@@ -141,6 +141,16 @@
     </servlet>
 
     <servlet>
+        <servlet-name>auth_registration_mepin_waiting</servlet-name>
+        <jsp-file>/mcx-user-registration/mepin_waiting.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>auth_registration_mepin_complete</servlet-name>
+        <jsp-file>/mcx-user-registration/mepin_complete.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>oauth2_logout_consent.do</servlet-name>
         <jsp-file>/oauth2_logout_consent.jsp</jsp-file>
     </servlet>
@@ -274,6 +284,16 @@
     <servlet-mapping>
         <servlet-name>auth_registration_saa_waiting</servlet-name>
         <url-pattern>/mcx-user-registration/auth_registration_saa_waiting</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>auth_registration_mepin_waiting</servlet-name>
+        <url-pattern>/mcx-user-registration/auth_registration_mepin_waiting</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>auth_registration_mepin_complete</servlet-name>
+        <url-pattern>/mcx-user-registration/auth_registration_mepin_complete</url-pattern>
     </servlet-mapping>
 
 

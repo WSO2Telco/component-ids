@@ -222,6 +222,8 @@ public final class Constants {
 
     public static final String SAA_WAITING_JSP = "/mcx-user-registration/auth_registration_saa_waiting";
 
+    public static final String ME_PIN_WAITING_JSP = "/mcx-user-registration/auth_registration_mepin_waiting";
+
     public static final String REDIRECT_URI = "redirectURI";
 
     public static final String COMMON_AUTH_HANDLED = "commonAuthHandled";
@@ -294,7 +296,11 @@ public final class Constants {
 
     public static final String SAA_AUTHENTICATOR_NAME = "SmartPhoneAppAuthenticator";
 
+    public static final String ME_PIN_AUTHENTICATOR_NAME = "MePinAuthenticator";
+
     public static final String SAA_AUTHENTICATOR_FRIENDLY_NAME = "saa";
+
+    public static final String ME_PIN_AUTHENTICATOR_FRIENDLY_NAME = "mepin";
 
     public static final String SAA_AUTHENTICATOR_STATUS = "SmartPhoneAppAuthenticatorStatus";
 

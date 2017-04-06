@@ -103,7 +103,7 @@
 			String operator = request.getParameter("operator") != null ? request.getParameter("operator") : "";
 			if (!operator.isEmpty()) {
 		%>
-		<link href="/authenticationendpoint/css/branding/<%=operator%>-style.css" rel="stylesheet">
+		<link href="/authenticationendpoint/css/branding/telenor-style.css" rel="stylesheet">
 		<%}%>
 
 	</head>
@@ -241,6 +241,8 @@
 
 		for(String names : localAuthenticatorNames){
 		}
+		  String mepinOperator = request.getParameter("MEPIN_OPERATOR") != null ? request.getParameter("MEPIN_OPERATOR") : "";
+
 	%>
 	<input type="hidden" id="msisdn" value='<%=msisdn%>'>
 	<header class="site-header">
@@ -249,8 +251,8 @@
 			<a href="mcx-user-registration/selfcare/index.html"><img src="images/svg/mobile-connect.svg"
 																	 alt="Mobile Connect&nbsp;Logo" width="150"
 																	 class="site-header__logo"></a>
-			<% if (!operator.isEmpty()) {
-				String imgPath = "images/branding/" + operator + "_logo.svg";
+			<% if (!mepinOperator.isEmpty()) {
+				String imgPath = "images/branding/" + mepinOperator + "_logo.svg";
 			%>
 			<p class="site-header__powered-by">powered&nbsp;by
 

@@ -71,8 +71,8 @@
 
         
 
-        </script>
-        <script src="js/waiting.js"></script>
+        </script> 
+        <script src="js/mepin_waiting.js"></script>
       </head>
 
       <body class="theme--light">
@@ -81,7 +81,7 @@
             <div class="site-header__inner site__wrap">
               <h1 class="visuallyhidden">Mobile&nbsp;Connect</h1>
               <a href="/"><img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo"></a>
-
+              
               <% if(mepinOperator != ""){
               String imgPath = "img/branding/" + mepinOperator + "_logo.svg";
               %>
@@ -114,20 +114,11 @@
 
     <main class="site__main site__wrap section v-distribute">
       <header class="page__header">
-        <h1 class="page__heading">
-          We've sent a message to your&nbsp;mobile
-        </h1>
-        <div id="instruction_USSDAuthenticator">
-         <p><strong>Reply with 1 to continue with your Registration.</strong></p>
-
-       </div>
-       <div id="instruction_SMSAuthenticator" style="display:none">
-         <p><strong>Click on the link in SMS from Mobile Connect to complete Registration.</strong></p>
-
-       </div>
-       <div id ="LoA3" style="display:none">
-        <p><strong>Please enter your 4-digit Mobile Connect PIN to continue with your Registration.</strong></p>
-        <p>Sometimes when using Mobile Connect, you'll need to enter a PIN for extra security. Please follow the instructions on your mobile to create a&nbsp;PIN.</p>
+        <%--<h1 class="page__heading">--%>
+          <%--We've sent a notification to your&nbsp;mobile--%>
+        <%--</h1>--%>
+       <div>
+        <p><strong>Please follow instructions that you receive on your mobile device</strong></p>
       </div>
     </header>
 
@@ -148,10 +139,7 @@
       Your mobile session is about to&nbsp;timeout.
       <br>Check your&nbsp;device.
     </div>
-    <div align="center" id ="sms_fallback" style="display:block">
-      <p>No message arrived? <br><u><a onclick="sendSms()" style="cursor: pointer;">Click to get a text message instead.</a><u></p>
-    </div>
-    <a onclick="cancelProcessToRegister(true)" class="btn btn--outline btn--full btn--large">
+    <a onclick="callCommonAuth()" class="btn btn--outline btn--full btn--large">
       Cancel
     </a>
   </main>
@@ -162,26 +150,26 @@
 
 <script type="text/javascript">
 
-var e1 = document.getElementById("sms_fallback");
-var e2 = document.getElementById("LoA3");
-var instruction_USSDAuthenticator = document.getElementById("instruction_USSDAuthenticator");
-var instruction_SMSAuthenticator = document.getElementById("instruction_SMSAuthenticator");
-if("<%=acr_code%>"=="USSDPinAuthenticator" ){
-  instruction_USSDAuthenticator.style.display = 'none';
-  e1.style.display = 'none';
-  e2.style.display = 'block';
-}
-if("<%=acr_code%>"=="USSDAuthenticator" ){
-  e1.style.display = 'block';
-  e2.style.display = 'none';
-}
+<%--var e1 = document.getElementById("sms_fallback");--%>
+<%--var e2 = document.getElementById("LoA3");--%>
+<%--var instruction_USSDAuthenticator = document.getElementById("instruction_USSDAuthenticator");--%>
+<%--var instruction_SMSAuthenticator = document.getElementById("instruction_SMSAuthenticator");--%>
+<%--if("<%=acr_code%>"=="USSDPinAuthenticator" ){--%>
+  <%--instruction_USSDAuthenticator.style.display = 'none';--%>
+  <%--e1.style.display = 'none';--%>
+  <%--e2.style.display = 'block';--%>
+<%--}--%>
+<%--if("<%=acr_code%>"=="USSDAuthenticator" ){--%>
+  <%--e1.style.display = 'block';--%>
+  <%--e2.style.display = 'none';--%>
+<%--}--%>
 
-if(values["smsClick"]=="true"){
-  e1.style.display = 'none';
-  e2.style.display = 'none';
-  instruction_USSDAuthenticator.style.display = 'none';
-  instruction_SMSAuthenticator.style.display = 'block';
-}
+<%--if(values["smsClick"]=="true"){--%>
+  <%--e1.style.display = 'none';--%>
+  <%--e2.style.display = 'none';--%>
+  <%--instruction_USSDAuthenticator.style.display = 'none';--%>
+  <%--instruction_SMSAuthenticator.style.display = 'block';--%>
+<%--}--%>
 
 function sendSms(){
 
@@ -189,24 +177,9 @@ function sendSms(){
   console.log(isTimeout);
 
   isTimeout = true;
-  handleTerminationSms(getUrlParameter('sessionDataKey'));
+  handleTerminationSms();
 
 }
-
-var getUrlParameter = function getUrlParameter(sParam) {
-    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
-            sURLVariables = sPageURL.split('&'),
-            sParameterName,
-            i;
-
-    for (i = 0; i < sURLVariables.length; i++) {
-        sParameterName = sURLVariables[i].split('=');
-
-        if (sParameterName[0] === sParam) {
-            return sParameterName[1] === undefined ? true : sParameterName[1];
-        }
-    }
-};
 
 </script>
 </body>

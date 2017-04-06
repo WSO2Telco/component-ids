@@ -434,6 +434,11 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
                         context.getSequenceConfig().setCompleted(true);
                     }
                 }
+
+                if(onFailProperty.equals("continue") && Boolean.TRUE.equals(context.getProperty(Constants.IS_TERMINATED))){
+                    context.setRequestAuthenticated(false);
+                    context.getSequenceConfig().setCompleted(true);
+                }
             } catch (NullPointerException e1) {
                 // Possible exception during dashboard login
                 removeAllFollowingSteps(context, currentStep);

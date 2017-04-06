@@ -1,4 +1,8 @@
 $(document).ready(function(){
+
+    //hide operator image from msisdn page
+    $(".brandLogo").hide();
+
 	// The template code
 	var templateSource = $("#results-template").html();
 
