@@ -196,6 +196,102 @@ public class DbUtil {
         }
     }
 
+    public static String getMePinId(String msisdn) throws AuthenticatorException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet results = null;
+        String sql = "SELECT mepin_id FROM mepin_accounts WHERE user_id=?";
+
+        String mePinId = null;
+        try {
+            conn = getConnectDBConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, msisdn);
+            results = ps.executeQuery();
+            while (results.next()) {
+                mePinId = results.getString("mepin_id");
+            }
+        } catch (SQLException e) {
+            handleException("Error occurred while getting me pin response", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
+        }
+        return mePinId;
+    }
+
+    public static String getSessionId(String transactionId) throws AuthenticatorException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet results = null;
+        String sql = "SELECT session_id FROM mepin_transactions WHERE transaction_id=?";
+
+        String mePinId = null;
+        try {
+            conn = getConnectDBConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, transactionId);
+            results = ps.executeQuery();
+            while (results.next()) {
+                mePinId = results.getString("session_id");
+            }
+        } catch (SQLException e) {
+            handleException("Error occurred while getting me pin response", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
+        }
+        return mePinId;
+
+    }
+
+    public static void insertMePinData(String msisdn, String mePinId) throws SQLException,
+            AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+
+        String sql = "insert into mepin_accounts(user_id, mepin_id) values  (?,?);";
+
+        connection = getConnectDBConnection();
+
+        ps = connection.prepareStatement(sql);
+
+        ps.setString(1, msisdn);
+        ps.setString(2, mePinId);
+        ps.execute();
+
+        if (ps != null) {
+            ps.close();
+        }
+        if (connection != null) {
+            connection.close();
+        }
+    }
+
+    public static void updateMePinData(String msisdn, String mePinId) throws SQLException,
+            AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+
+        String sql = "update mepin_accounts set mepin_id = ? where user_id = ?;";
+
+        connection = getConnectDBConnection();
+
+        ps = connection.prepareStatement(sql);
+
+        ps.setString(1, mePinId);
+        ps.setString(2, msisdn);
+        ps.execute();
+
+        if (ps != null) {
+            ps.close();
+        }
+        if (connection != null) {
+            connection.close();
+        }
+    }
+
+
     public static String getContextIDForHashKey(String hashKey) throws AuthenticatorException, SQLException {
         String sessionDataKey = null;
 
@@ -231,4 +327,6 @@ public class DbUtil {
         log.error(msg, t);
         throw new AuthenticatorException(msg, t);
     }
+
+
 }

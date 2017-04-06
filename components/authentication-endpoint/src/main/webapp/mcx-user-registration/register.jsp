@@ -1,4 +1,4 @@
-<!doctype html>
+    <!doctype html>
 <!--
 /*******************************************************************************
 * Copyright (c) 2016, WSO2.Telco Inc. (http://www.wso2telco.com)
@@ -78,11 +78,18 @@
         String authenticators = request.getParameter("authenticators");
         String imgPath = "";
         String termsConditionsPath = "";
+
+        String mepinOperator = request.getParameter("MEPIN_OPERATOR") != null ? request.getParameter("MEPIN_OPERATOR") : "";
+
+        if (mepinOperator != "") {
+            imgPath = "img/branding/" + mepinOperator + "_logo.svg";
+        }
+
         if (operator != "") {
-            imgPath = "images/branding/" + operator + "_logo.svg";
+            //imgPath = "img/branding/" + operator + "_logo.svg";
             termsConditionsPath = "html/terms-conditions/" + operator + "-terms-conditions.html";
     %>
-    <link href="css/branding/<%=operator%>-style.css" rel="stylesheet">
+    <link href="css/branding/telenor-style.css" rel="stylesheet">
     <%
         }
     %>

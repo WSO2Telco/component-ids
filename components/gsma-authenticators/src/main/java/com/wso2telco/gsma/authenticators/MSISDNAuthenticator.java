@@ -11,11 +11,12 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the zLicense.
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
 import com.wso2telco.Util;
+import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
@@ -146,10 +147,11 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                             .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
                             .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
 
+            String msisdn = (String) context.getProperty(Constants.MSISDN);
 
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
                     request.getParameter("redirect_uri") + "&authenticators="
-                    + getName() + ":" + "LOCAL" + retryParam);
+                    + getName() + ":" + "LOCAL" + retryParam + "&MEPIN_OPERATOR=" + getMePinOperator(msisdn));
         } catch (IOException e) {
             log.error("Error occurred while redirecting request", e);
             DataPublisherUtil
@@ -158,6 +160,20 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                             .MSISDN_AUTH_PROCESSING_FAIL, e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
+    }
+
+    private String getMePinOperator(String msisdn){
+
+        MobileConnectConfig.MePinConfig mePinConfig = configurationService.getDataHolder().getMobileConnectConfig()
+                .getMePinConfig();
+
+        MobileConnectConfig.TestMsisdn[] testMsisdns = mePinConfig.getTestMsisdns().getMsisdn();
+        for (int i = 0; i < testMsisdns.length; i++) {
+            if (testMsisdns[i].getMsisdn().equals(msisdn)) {
+                return testMsisdns[i].getOperator();
+            }
+        }
+        return null;
     }
 
     /* (non-Javadoc)
