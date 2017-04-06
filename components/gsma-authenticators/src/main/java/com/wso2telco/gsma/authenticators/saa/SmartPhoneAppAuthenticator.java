@@ -238,12 +238,16 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        if(request.getParameter("isTerminated") != null && "true".equals(request.getParameter("isTerminated"))){
-            throw new AuthenticationFailedException("Request timed out");
-        }
+
         AuthenticationContextHelper.setSubject(context, (String) context.getProperty(Constants.MSISDN));
-        context.setProperty(IS_FLOW_COMPLETED, true);
-        context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+
+        if("true".equals(request.getParameter(Constants.IS_TERMINATED))){
+            context.setProperty(Constants.IS_TERMINATED, true);
+            throw new AuthenticationFailedException("Authenticator is terminated");
+        }else {
+            context.setProperty(IS_FLOW_COMPLETED, true);
+            context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+        }
     }
 
     @Override
