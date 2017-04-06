@@ -54,11 +54,12 @@
         String acr_code = request.getParameter("acr_code")!= null ?  request.getParameter("acr_code") : "";
         // Boolean smsClick = Boolean.valueOf(request.getParameter("smsClick"))!= null ?  Boolean.valueOf(request.getParameter("smsClick")) : false;
         String smsClick = request.getParameter("smsClick")!= null ?  request.getParameter("smsClick") : "false";
+        String mepinOperator = request.getParameter("MEPIN_OPERATOR") != null ? request.getParameter("MEPIN_OPERATOR") : "";
 
 
         if(operator != ""){
         %>
-        <link href="css/branding/<%=operator%>-style.css" rel="stylesheet">
+        <link href="css/branding/telenor-style.css" rel="stylesheet">
         <%}%>
         <script type="text/javascript">
         var values = {};
@@ -81,8 +82,8 @@
               <h1 class="visuallyhidden">Mobile&nbsp;Connect</h1>
               <a href="/"><img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo"></a>
               
-              <% if(operator != ""){ 
-              String imgPath = "img/branding/" + operator + "_logo.svg";
+              <% if(mepinOperator != ""){
+              String imgPath = "img/branding/" + mepinOperator + "_logo.svg";
               %>
               <p class="site-header__powered-by">powered&nbsp;by      
               </p>

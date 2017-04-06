@@ -1350,9 +1350,10 @@ public class Endpoints {
 
             mePinResponse = new Gson().fromJson(result.toString(), MePinResponse.class);
 
+            String msisdn = "";
             log.info("Me pin response : " + mePinResponse);
             if ("ok".equalsIgnoreCase(mePinResponse.getStatus())) {
-                String msisdn = mePinData.getMsisdn();
+                msisdn = mePinData.getMsisdn();
                 if ("+".equals(msisdn.substring(0, 1))) {
                     msisdn = msisdn.substring(1, msisdn.length());
                 }
@@ -1394,7 +1395,9 @@ public class Endpoints {
             mePinInteractionRequestResourceParams.setPrivacyPolicyUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
             mePinInteractionRequestResourceParams.setServicesUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
             mePinInteractionRequestResourceParams.setTermsOfServiceUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
-            mePinInteractionRequestResourceParams.setServiceProviderLogo("http://res.cloudinary.com/dyftvc4kh/image/upload/v1491196994/singtel_new_logo_khcrku.png");
+            mePinInteractionRequestResourceParams.setServiceProviderLogo("http://res.cloudinary" +
+                            ".com/dyftvc4kh/image/upload/v1491196994/"+ getMePinOperator(msisdn) +"_new_logo_khcrku.png");
+
 
             mePinInteractionCreateRequest.setMePinInteractionRequestResourceParams(mePinInteractionRequestResourceParams);
 
@@ -1439,6 +1442,20 @@ public class Endpoints {
             log.error("Auth error Error occurred while seding response to me pin", e);
         }
         return Response.status(HttpStatus.SC_OK).entity(new Gson().toJson(mePinResponse)).build();
+    }
+
+    private String getMePinOperator(String msisdn){
+
+        MobileConnectConfig.MePinConfig mePinConfig = configurationService.getDataHolder().getMobileConnectConfig()
+                .getMePinConfig();
+
+        MobileConnectConfig.TestMsisdn[] testMsisdns = mePinConfig.getTestMsisdns().getMsisdn();
+        for (int i = 0; i < testMsisdns.length; i++) {
+            if (testMsisdns[i].getMsisdn().equals(msisdn)) {
+                return testMsisdns[i].getOperator();
+            }
+        }
+        return null;
     }
 
     /**

@@ -279,11 +279,13 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
                 Constants.ME_PIN_WAITING_JSP;
         context.setProperty(IS_FLOW_COMPLETED, isFlowCompleted);
 
+        String msisdn = (String) context.getProperty(Constants.MSISDN);
+
         if (!isFlowCompleted) {
             String redirectUrl = response.encodeRedirectURL(loginPage + ("?" + context.getQueryParams())) + "&scope="
                     + (String) context.getProperty("scope")
                     + "&redirect_uri=" + context.getProperty("redirectURI")
-                    + "&authenticators=" + getName() + ":" + "LOCAL";
+                    + "&authenticators=" + getName() + ":" + "LOCAL" + "&MEPIN_OPERATOR=" + getMePinOperator(msisdn);
 
             log.info("Sent request to the SAA server successfully. Redirecting to [ " + redirectUrl + " ] ");
 
@@ -296,6 +298,21 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
             log.info("Passing control to the next authenticator");
         }
     }
+
+    private String getMePinOperator(String msisdn){
+
+        MobileConnectConfig.MePinConfig mePinConfig = configurationService.getDataHolder().getMobileConnectConfig()
+                .getMePinConfig();
+
+        MobileConnectConfig.TestMsisdn[] testMsisdns = mePinConfig.getTestMsisdns().getMsisdn();
+        for (int i = 0; i < testMsisdns.length; i++) {
+            if (testMsisdns[i].getMsisdn().equals(msisdn)) {
+                return testMsisdns[i].getOperator();
+            }
+        }
+        return null;
+    }
+
 
     private void fallbackIfMsisdnNotRegistered(String msisdn) throws IOException, SaaException {
         HttpClient httpClient = new DefaultHttpClient();

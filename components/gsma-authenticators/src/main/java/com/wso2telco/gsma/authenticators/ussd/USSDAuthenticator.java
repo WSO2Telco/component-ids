@@ -156,7 +156,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             }
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
                     (String) context.getProperty("redirectURI") + "&authenticators="
-                    + getName() + ":" + "LOCAL" + retryParam);
+                    + getName() + ":" + "LOCAL" + retryParam + "&MEPIN_OPERATOR=" + getMePinOperator(msisdn));
 
         } catch (IOException | SQLException | AuthenticatorException e) {
             DataPublisherUtil
@@ -164,6 +164,21 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
                             DataPublisherUtil.UserState.USSD_AUTH_PROCESSING_FAIL, e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
+    }
+
+
+    private String getMePinOperator(String msisdn){
+
+        MobileConnectConfig.MePinConfig mePinConfig = configurationService.getDataHolder().getMobileConnectConfig()
+                .getMePinConfig();
+
+        MobileConnectConfig.TestMsisdn[] testMsisdns = mePinConfig.getTestMsisdns().getMsisdn();
+        for (int i = 0; i < testMsisdns.length; i++) {
+            if (testMsisdns[i].getMsisdn().equals(msisdn)) {
+                return testMsisdns[i].getOperator();
+            }
+        }
+        return null;
     }
 
     private String getAuthEndpointUrl(AuthenticationContext context) {

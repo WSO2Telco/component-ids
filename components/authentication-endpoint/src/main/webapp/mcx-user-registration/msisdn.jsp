@@ -21,7 +21,7 @@
             <li>
                <label for="msisdn">{{msdin-entry-mobile-label}}</label>
                <input type="tel"  id="msisdn" onfocus="this.value = this.value;" name="msisdn" autofocus required
-                      pattern="^\d{11}$" data-parsley-error-message="{{msdin-entry-phone-number-error}}">{{set_msisdn
+                      data-parsley-error-message="{{msdin-entry-phone-number-error}}">{{set_msisdn
                 this}}</input>
             </li>
             <li>
