@@ -125,7 +125,7 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
 
             fallbackIfMsisdnNotRegistered(msisdn);
 
-            SaaRequest saaRequest = createSaaRequest(paramMap, clientId, applicationName);
+            SaaRequest saaRequest = createSaaRequest(paramMap, clientId, applicationName, context.getContextIdentifier());
 
             StringEntity postData = new StringEntity(new Gson().toJson(saaRequest));
 
@@ -222,14 +222,14 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
         }
     }
 
-    private SaaRequest createSaaRequest(Map<String, String> paramMap, String clientId, String applicationName) throws
-            Exception {
+    private SaaRequest createSaaRequest(Map<String, String> paramMap, String clientId, String applicationName, String
+            sessionId) throws Exception {
         SaaRequest saaRequest = new SaaRequest();
         saaRequest.setApplicationName(applicationName);
         saaRequest.setMessage(spConfigService.getSaaMessage(clientId));
         saaRequest.setAcr(paramMap.get(ACR));
         saaRequest.setSpImgUrl(spConfigService.getSaaImageUrl(clientId));
-        saaRequest.setRef("21231231231231");// TODO: 11/25/16 add correct value for the ref parameter
+        saaRequest.setReferenceID(sessionId);
         return saaRequest;
     }
 
@@ -238,6 +238,9 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
+        if(request.getParameter("isTerminated") != null && "true".equals(request.getParameter("isTerminated"))){
+            throw new AuthenticationFailedException("Request timed out");
+        }
         AuthenticationContextHelper.setSubject(context, (String) context.getProperty(Constants.MSISDN));
         context.setProperty(IS_FLOW_COMPLETED, true);
         context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
