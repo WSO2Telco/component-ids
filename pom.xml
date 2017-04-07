@@ -76,6 +76,7 @@
         <module>components/saa-server</module>
 		<module>features</module>
         <module>components/openid-extension</module>
+        <module>components/self-service-portal</module>
     </modules>
 
 	<scm>
