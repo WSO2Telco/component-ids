@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
- * 
+ *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,9 +15,9 @@
  ******************************************************************************/
 package com.wso2telco.exception;
 
- 
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class PolicyException.
  */
@@ -27,7 +27,7 @@ public class PolicyException {
      * Instantiates a new policy exception.
      *
      * @param messageId the message id
-     * @param text the text
+     * @param text      the text
      * @param variables the variables
      */
     public PolicyException(String messageId, String text, String variables) {
@@ -35,10 +35,12 @@ public class PolicyException {
         this.text = text;
         this.variables = variables;
     }
-    
-    /** The message id. */
+
+    /**
+     * The message id.
+     */
     private String messageId;
-    
+
     /**
      * Gets the message id.
      *
@@ -56,8 +58,10 @@ public class PolicyException {
     public void setMessageId(String messageId) {
         this.messageId = messageId;
     }
-    
-    /** The text. */
+
+    /**
+     * The text.
+     */
     private String text;
 
     /**
@@ -77,8 +81,10 @@ public class PolicyException {
     public void setText(String text) {
         this.text = text;
     }
-    
-    /** The variables. */
+
+    /**
+     * The variables.
+     */
     private String variables;
 
     /**

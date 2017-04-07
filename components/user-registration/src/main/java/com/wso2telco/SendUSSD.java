@@ -21,27 +21,26 @@ public class SendUSSD {
     //private MobileConnectConfig.USSDConfig ussdConfig;
     private static String CONST_MTINIT = "mtinit";
 
-    protected String sendUSSD(String msisdn, String sessionID, int noOfAttempts,String action, String operator) throws IOException {
-       // ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
+    protected String sendUSSD(String msisdn, String sessionID, int noOfAttempts, String action, String operator)
+            throws IOException {
+        // ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
         //FileUtil.getApplicationPropery("ussdsend");
-        
+
         USSDRequest req = new USSDRequest();
 
         OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
         outboundUSSDMessageRequest.setAddress("tel:+" + msisdn);
         outboundUSSDMessageRequest.setShortCode(FileUtil.getApplicationProperty("shortcode"));
         outboundUSSDMessageRequest.setKeyword(FileUtil.getApplicationProperty("keyword"));
-        
-        if (noOfAttempts == 1){
+
+        if (noOfAttempts == 1) {
             outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("message"));
-        }
-        else if(noOfAttempts == 2){
+        } else if (noOfAttempts == 2) {
             outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("retry_message"));
-        }
-        else{
+        } else {
             outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("error_message"));
         }
-        
+
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
         ResponseRequest responseRequest = new ResponseRequest();
@@ -50,8 +49,8 @@ public class SendUSSD {
         responseRequest.setCallbackData("");
 
         outboundUSSDMessageRequest.setResponseRequest(responseRequest);
-        
-        
+
+
         outboundUSSDMessageRequest.setUssdAction(action);
 
         req.setOutboundUSSDMessageRequest(outboundUSSDMessageRequest);
@@ -61,58 +60,67 @@ public class SendUSSD {
 
 
         String endpoint = FileUtil.getApplicationProperty("ussdsend");
-        
+
         endpoint = endpoint + "/tel:+" + msisdn;
 
-        log.info("USSD request -->" + reqString);
+        if (log.isDebugEnabled()) {
+            log.debug("USSD request : " + reqString);
+        }
         String returnString = postRequest(endpoint, reqString, operator);
-        log.info("Returned from Backend = " + returnString);
-        
+        if (log.isDebugEnabled()) {
+            log.debug("Response from Backend :" + returnString);
+        }
         return returnString;
     }
 
     protected String sendUSSDPush(String msisdn, String sessionID, String action, String operator) throws IOException {
         // ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
-    	log.info("USSD Push request with tel:"+msisdn);
-         
-         USSDRequest req = new USSDRequest();
+        if (log.isDebugEnabled()) {
+            log.debug("USSD Push request with tel:" + msisdn);
+        }
+        USSDRequest req = new USSDRequest();
 
-         OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
-         outboundUSSDMessageRequest.setAddress("tel:+" + msisdn);
-         outboundUSSDMessageRequest.setShortCode(FileUtil.getApplicationProperty("shortcode"));
-         outboundUSSDMessageRequest.setKeyword(FileUtil.getApplicationProperty("keyword"));         
-         outboundUSSDMessageRequest.setClientCorrelator(sessionID);    
-         outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("ussdPushMessage")+"\n1. OK\n2. Cancel");
-         
-
-         ResponseRequest responseRequest = new ResponseRequest();
-
-         responseRequest.setNotifyURL(FileUtil.getApplicationProperty("ussdPushNotifyUrl"));
-         responseRequest.setCallbackData("");
-
-         outboundUSSDMessageRequest.setResponseRequest(responseRequest);
-         
-         
-         outboundUSSDMessageRequest.setUssdAction(action);
-
-         req.setOutboundUSSDMessageRequest(outboundUSSDMessageRequest);
-
-         Gson gson = new GsonBuilder().serializeNulls().create();
-         String reqString = gson.toJson(req);
+        OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
+        outboundUSSDMessageRequest.setAddress("tel:+" + msisdn);
+        outboundUSSDMessageRequest.setShortCode(FileUtil.getApplicationProperty("shortcode"));
+        outboundUSSDMessageRequest.setKeyword(FileUtil.getApplicationProperty("keyword"));
+        outboundUSSDMessageRequest.setClientCorrelator(sessionID);
+        outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("ussdPushMessage") + "\n1. " +
+                "OK\n2. Cancel");
 
 
-         String endpoint = FileUtil.getApplicationProperty("ussdsend");
-         
-         endpoint = endpoint + "/tel:+" + msisdn;
+        ResponseRequest responseRequest = new ResponseRequest();
 
-         log.info("USSD Push request -->" + reqString);
-         String returnString = postRequest(endpoint, reqString, operator);
-         log.info("Returned from Backend = " + returnString);
-         
-         return returnString;
-     }
-    
-    protected String sendUSSD(String msisdn, String sessionID, int noOfAttempts,String action, String ussdSessionID, boolean isResend, String operator) throws IOException {
+        responseRequest.setNotifyURL(FileUtil.getApplicationProperty("ussdPushNotifyUrl"));
+        responseRequest.setCallbackData("");
+
+        outboundUSSDMessageRequest.setResponseRequest(responseRequest);
+
+
+        outboundUSSDMessageRequest.setUssdAction(action);
+
+        req.setOutboundUSSDMessageRequest(outboundUSSDMessageRequest);
+
+        Gson gson = new GsonBuilder().serializeNulls().create();
+        String reqString = gson.toJson(req);
+
+
+        String endpoint = FileUtil.getApplicationProperty("ussdsend");
+
+        endpoint = endpoint + "/tel:+" + msisdn;
+
+        if (log.isDebugEnabled()) {
+            log.debug("USSD Push request : " + reqString);
+        }
+        String returnString = postRequest(endpoint, reqString, operator);
+        if (log.isDebugEnabled()) {
+            log.debug("Response from Backend : " + returnString);
+        }
+        return returnString;
+    }
+
+    protected String sendUSSD(String msisdn, String sessionID, int noOfAttempts, String action, String ussdSessionID,
+                              boolean isResend, String operator) throws IOException {
         // ussdConfig = DataHolder.getInstance().getMobileConnectConfig().getUssdConfig();
         //FileUtil.getApplicationPropery("ussdsend");
 
@@ -124,13 +132,11 @@ public class SendUSSD {
         outboundUSSDMessageRequest.setKeyword(FileUtil.getApplicationProperty("keyword"));
         outboundUSSDMessageRequest.setSessionID(ussdSessionID);
 
-        if (noOfAttempts == 1){
+        if (noOfAttempts == 1) {
             outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("message"));
-        }
-        else if(noOfAttempts == 2){
+        } else if (noOfAttempts == 2) {
             outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("retry_message"));
-        }
-        else{
+        } else {
             outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("error_message"));
         }
 
@@ -158,12 +164,14 @@ public class SendUSSD {
 
 
         String returnString = postRequest(endpoint, reqString, operator);
-        System.out.println("Returned from Backend = " + returnString);
-
+        if (log.isDebugEnabled()) {
+            log.debug("Response : " + returnString);
+        }
         return returnString;
     }
 
-    private static USSDRequest setOutboundUSSDMessageRequest(String msisdn, String sessionID, String action, String notifyUrl, String message, String ussdSessionID) {
+    private static USSDRequest setOutboundUSSDMessageRequest(String msisdn, String sessionID, String action, String
+            notifyUrl, String message, String ussdSessionID) {
         USSDRequest req = new USSDRequest();
 
         OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
@@ -171,9 +179,9 @@ public class SendUSSD {
         outboundUSSDMessageRequest.setShortCode(FileUtil.getApplicationProperty("shortcode"));
         outboundUSSDMessageRequest.setKeyword(FileUtil.getApplicationProperty("keyword"));
         outboundUSSDMessageRequest.setSessionID(ussdSessionID);
-        
+
         outboundUSSDMessageRequest.setOutboundUSSDMessage(message);
-        
+
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
         ResponseRequest responseRequest = new ResponseRequest();
@@ -182,14 +190,15 @@ public class SendUSSD {
         responseRequest.setCallbackData("");
 
         outboundUSSDMessageRequest.setResponseRequest(responseRequest);
-        
-        
+
+
         outboundUSSDMessageRequest.setUssdAction(action);
         req.setOutboundUSSDMessageRequest(outboundUSSDMessageRequest);
         return req;
     }
 
-    private static USSDRequest setOutboundUSSDMessageRequest(String msisdn, String sessionID, String action, String notifyUrl, String message) {
+    private static USSDRequest setOutboundUSSDMessageRequest(String msisdn, String sessionID, String action, String
+            notifyUrl, String message) {
         USSDRequest req = new USSDRequest();
 
         OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
@@ -213,28 +222,25 @@ public class SendUSSD {
         req.setOutboundUSSDMessageRequest(outboundUSSDMessageRequest);
         return req;
     }
-    public static String getJsonPayload(String msisdn, String sessionID, int noOfAttempts, String action, String notifyUrl, String ussdSessionID, boolean isUssdSessionId) {
+
+    public static String getJsonPayload(String msisdn, String sessionID, int noOfAttempts, String action, String
+            notifyUrl, String ussdSessionID, boolean isUssdSessionId) {
         String message = null;
-        if (noOfAttempts == 1){
+        if (noOfAttempts == 1) {
             message = FileUtil.getApplicationProperty("message");
-        }
-        else if(noOfAttempts == 2){
+        } else if (noOfAttempts == 2) {
             message = FileUtil.getApplicationProperty("retry_message");
-        }
-        else if(noOfAttempts == 3){
+        } else if (noOfAttempts == 3) {
             message = FileUtil.getApplicationProperty("pinmismatch");
         }
         //Invalid pin format
-        else if(noOfAttempts == 4){
+        else if (noOfAttempts == 4) {
             message = FileUtil.getApplicationProperty("pinformat");
-        }
-
-        else if(noOfAttempts == 5){
+        } else if (noOfAttempts == 5) {
 
             message = "Thank you";
 
-        }
-        else{
+        } else {
             message = FileUtil.getApplicationProperty("error_message");
         }
         USSDRequest req = setOutboundUSSDMessageRequest(msisdn, sessionID, action, notifyUrl, message, ussdSessionID);
@@ -243,28 +249,24 @@ public class SendUSSD {
         return reqString;
     }
 
-    public static String getJsonPayload(String msisdn, String sessionID, int noOfAttempts, String action, String notifyUrl) {
+    public static String getJsonPayload(String msisdn, String sessionID, int noOfAttempts, String action, String
+            notifyUrl) {
         String message = null;
-        if (noOfAttempts == 1){
+        if (noOfAttempts == 1) {
             message = FileUtil.getApplicationProperty("message");
-        }
-        else if(noOfAttempts == 2){
+        } else if (noOfAttempts == 2) {
             message = FileUtil.getApplicationProperty("retry_message");
-        }
-        else if(noOfAttempts == 3){
+        } else if (noOfAttempts == 3) {
             message = FileUtil.getApplicationProperty("pinmismatch");
         }
         //Invalid pin format
-        else if(noOfAttempts == 4){
+        else if (noOfAttempts == 4) {
             message = FileUtil.getApplicationProperty("pinformat");
-        }
-
-        else if(noOfAttempts == 5){
+        } else if (noOfAttempts == 5) {
 
             message = "Thank you";
 
-        }
-        else{
+        } else {
             message = FileUtil.getApplicationProperty("error_message");
         }
         USSDRequest req = setOutboundUSSDMessageRequest(msisdn, sessionID, action, notifyUrl, message);
@@ -274,24 +276,22 @@ public class SendUSSD {
     }
 
 
-    public static String getJsonPayload(String msisdn, String sessionID, String action, String notifyUrl, String message) {
+    public static String getJsonPayload(String msisdn, String sessionID, String action, String notifyUrl, String
+            message) {
         USSDRequest req = setOutboundUSSDMessageRequest(msisdn, sessionID, action, notifyUrl, message);
         Gson gson = new GsonBuilder().serializeNulls().create();
         String reqString = gson.toJson(req);
         return reqString;
     }
-    
+
     private String postRequest(String url, String requestStr, String operator) throws IOException {
 
         HttpClient client = new DefaultHttpClient();
         HttpPost postRequest = new HttpPost(url);
 
         postRequest.addHeader("accept", "application/json");
-        log.info(" url -->> " +url);
         postRequest.addHeader("Authorization", "Bearer " + FileUtil.getApplicationProperty("accesstoken"));
-        log.info(" token  : " +FileUtil.getApplicationProperty("accesstoken"));
         postRequest.addHeader("operator", operator);
-        log.info(" operator -->> " +operator);
 
         StringEntity input = new StringEntity(requestStr);
         input.setContentType("application/json");
@@ -304,62 +304,67 @@ public class SendUSSD {
             log.error("Error occured while calling end points - " + response.getStatusLine().getStatusCode() + "-" +
                     response.getStatusLine().getReasonPhrase());
         } else {
-        	log.info("Success Request");
+            if (log.isDebugEnabled()) {
+                log.debug("Success Request");
+            }
         }
         String responseStr = null;
         HttpEntity responseEntity = response.getEntity();
         if (responseEntity != null) {
             responseStr = EntityUtils.toString(responseEntity);
-            log.info("Success Response : "+ responseStr);
+            if (log.isDebugEnabled()) {
+                log.debug("Success Response : " + responseStr);
+            }
         }
         return responseStr;
     }
-    
-    protected String sendUSSDLogin(String msisdn, String sessionID, int noOfAttempts,String action, String operator) throws IOException {
-         
-         USSDRequest req = new USSDRequest();
 
-         OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
-         outboundUSSDMessageRequest.setAddress("tel:+" + msisdn);
-         outboundUSSDMessageRequest.setShortCode(FileUtil.getApplicationProperty("shortcode"));
-         outboundUSSDMessageRequest.setKeyword(FileUtil.getApplicationProperty("keyword"));
-         
-         if (noOfAttempts == 1){
-             outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("message"));
-         }
-         else if(noOfAttempts == 2){
-             outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("retry_message"));
-         }
-         else{
-             outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("error_message"));
-         }
-         
-         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
+    protected String sendUSSDLogin(String msisdn, String sessionID, int noOfAttempts, String action, String operator)
+            throws IOException {
 
-         ResponseRequest responseRequest = new ResponseRequest();
+        USSDRequest req = new USSDRequest();
 
-         responseRequest.setNotifyURL(FileUtil.getApplicationProperty("notifyurlLogin"));
-         responseRequest.setCallbackData("");
+        OutboundUSSDMessageRequest outboundUSSDMessageRequest = new OutboundUSSDMessageRequest();
+        outboundUSSDMessageRequest.setAddress("tel:+" + msisdn);
+        outboundUSSDMessageRequest.setShortCode(FileUtil.getApplicationProperty("shortcode"));
+        outboundUSSDMessageRequest.setKeyword(FileUtil.getApplicationProperty("keyword"));
 
-         outboundUSSDMessageRequest.setResponseRequest(responseRequest);
-         
-         
-         outboundUSSDMessageRequest.setUssdAction(action);
+        if (noOfAttempts == 1) {
+            outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("message"));
+        } else if (noOfAttempts == 2) {
+            outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("retry_message"));
+        } else {
+            outboundUSSDMessageRequest.setOutboundUSSDMessage(FileUtil.getApplicationProperty("error_message"));
+        }
 
-         req.setOutboundUSSDMessageRequest(outboundUSSDMessageRequest);
+        outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
-         Gson gson = new GsonBuilder().serializeNulls().create();
-         String reqString = gson.toJson(req);
+        ResponseRequest responseRequest = new ResponseRequest();
+
+        responseRequest.setNotifyURL(FileUtil.getApplicationProperty("notifyurlLogin"));
+        responseRequest.setCallbackData("");
+
+        outboundUSSDMessageRequest.setResponseRequest(responseRequest);
 
 
-         String endpoint = FileUtil.getApplicationProperty("ussdsend");
-         
-         endpoint = endpoint + "/tel:+" + msisdn;
+        outboundUSSDMessageRequest.setUssdAction(action);
 
-         
-         String returnString = postRequest(endpoint, reqString, operator);
-         System.out.println("Returned from Backend = " + returnString);
-         
-         return returnString;
-     }
+        req.setOutboundUSSDMessageRequest(outboundUSSDMessageRequest);
+
+        Gson gson = new GsonBuilder().serializeNulls().create();
+        String reqString = gson.toJson(req);
+
+
+        String endpoint = FileUtil.getApplicationProperty("ussdsend");
+
+        endpoint = endpoint + "/tel:+" + msisdn;
+
+
+        String returnString = postRequest(endpoint, reqString, operator);
+
+        if (log.isDebugEnabled()) {
+            log.debug("Response : " + returnString);
+        }
+        return returnString;
+    }
 }

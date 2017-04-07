@@ -29,6 +29,8 @@ import javax.servlet.http.HttpServletResponse;
 
 public class AuthenticationEndpoint extends HttpServlet {
 
+    private static Log log = LogFactory.getLog(AuthenticationEndpoint.class);
+
     private static final long serialVersionUID = 1L;
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
@@ -48,7 +50,8 @@ public class AuthenticationEndpoint extends HttpServlet {
                     for (int i = 1; i < authenticatorIdPMapArr.length; i++) {
                         if (idpAuthenticatorMapping.containsKey(authenticatorIdPMapArr[i])) {
                             idpAuthenticatorMapping.put(authenticatorIdPMapArr[i],
-                                    idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," + authenticatorIdPMapArr[0]);
+                                    idpAuthenticatorMapping.get(authenticatorIdPMapArr[i]) + "," +
+                                            authenticatorIdPMapArr[0]);
                         } else {
                             idpAuthenticatorMapping.put(authenticatorIdPMapArr[i], authenticatorIdPMapArr[0]);
                         }
@@ -81,7 +84,7 @@ public class AuthenticationEndpoint extends HttpServlet {
             }
             request.getRequestDispatcher(loadPage).forward(request, response);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e);
             throw new AuthenticationException(e);
         }
 

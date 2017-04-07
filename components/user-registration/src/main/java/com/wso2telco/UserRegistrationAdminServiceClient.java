@@ -19,7 +19,7 @@ public class UserRegistrationAdminServiceClient {
     private static Log log = LogFactory.getLog(UserRegistrationAdminServiceClient.class);
     private UserRegistrationAdminService userRegistrationAdminService;
 
-    public UserRegistrationAdminServiceClient(String backendUrl){
+    public UserRegistrationAdminServiceClient(String backendUrl) {
         try {
             userRegistrationAdminService = new UserRegistrationAdminServiceStub(null, backendUrl);
         } catch (Exception e) {
@@ -31,7 +31,8 @@ public class UserRegistrationAdminServiceClient {
         userRegistrationAdminService.addUser(userDTO);
     }
 
-    public UserFieldDTO[] readUserFieldsForUserRegistration(String dialect) throws UserRegistrationAdminServiceIdentityException, RemoteException {
+    public UserFieldDTO[] readUserFieldsForUserRegistration(String dialect) throws
+            UserRegistrationAdminServiceIdentityException, RemoteException {
         return userRegistrationAdminService.readUserFieldsForUserRegistration(dialect);
     }
 }

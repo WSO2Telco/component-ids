@@ -112,6 +112,7 @@
     <body>
 
 	<%
+
 		String sessionDataKey = request.getParameter("sessionDataKey");
 		AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(sessionDataKey);
 		Object cacheEntryObj = AuthenticationContextCache.getInstance(0).getValueFromCache(cacheKey);

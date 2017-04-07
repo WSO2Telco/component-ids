@@ -17,6 +17,7 @@ import java.util.Map;
 /**
  *
  */
+@Deprecated
 public class ReadMobileConnectConfig {
 
     public Map<String, String> query(String XpathExpression) throws ParserConfigurationException, SAXException,
@@ -37,14 +38,14 @@ public class ReadMobileConnectConfig {
         XPath xpath = xFactory.newXPath();
 
         // compile the XPath expression
-        expr = xpath.compile("//"+ XpathExpression +"/*");
+        expr = xpath.compile("//" + XpathExpression + "/*");
         // run the query and get a nodeset
         Object result = expr.evaluate(doc, XPathConstants.NODESET);
 //        // cast the result to a DOM NodeList
         NodeList nodes = (NodeList) result;
 
         Map<String, String> ConfigfileAttributes = new Hashtable<String, String>();
-        for (int i=0; i<nodes.getLength();i++){
+        for (int i = 0; i < nodes.getLength(); i++) {
             ConfigfileAttributes.put(nodes.item(i).getNodeName(), nodes.item(i).getTextContent());
         }
 
