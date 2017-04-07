@@ -1,0 +1,106 @@
+swagger: '2.0'
+# host: localhost
+# basePath: /api/v1
+info:
+  version: "1.0.0"
+  title: SELF SERVICE PORTAL API
+  description: |
+    Contains back-end API methods of the self service portal of MIG.
+    ## Structure
+
+    ### The Envelope
+    #### SUCCESS RESPONSE
+    Every sucess response is wrapped by an envelope with data parameter which contains the actual response for the request:
+    ```json
+    {
+        "data": {
+          ...
+        }
+    }
+    ```
+
+    #### ERROR RESPONSE
+    Every error response is contained by an envelope:
+    ```json
+    {
+        "error": {
+          "code" : "error_code"
+          "message": "Error message here"
+        }
+    }
+    ```
+    
+
+definitions:
+  ErrorResponseModel:
+    required:
+      - "code"
+      - "message"
+    properties:
+      code:
+        type: "string"
+      message:
+        type: "string"
+        
+  UserInfoModel:
+    required:
+      - "phone"
+    properties:
+      phone:
+        type: "string"
+        
+        
+paths:
+  /auth/callback:
+    get:
+      parameters:
+        - name: code
+          in: query
+          description: | 
+            Authentication code obtained from the initial OAuth flow of MIG product.
+          required: true
+          type: string
+      tags:
+        - Auth
+      description: |
+        Callback URL of the OAuth call from MIG. This API endpoint redirects the request either with
+        success code or error code back to self service portal URL. You can set 
+        redirect URI of the Service Provider in MIG for this API endpoint.
+      responses:
+        307:
+          description: Temporary Redirect
+          schema:
+            properties:
+              acaccess_token:
+                type: string
+                
+  /auth/validate:
+    get:
+      parameters:
+        - name: access_token
+          in: query
+          description: |
+            Access token which should be validated
+          required: false
+          type: string
+      tags:
+        - Auth
+      description: |
+        Validates the access token and returns the response from MIG `userinfo` call
+      responses:
+        200:
+          description: |
+            Successfully validated response
+          schema:
+            $ref: '#/definitions/UserInfoModel'
+        401:
+          description: |
+            Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponseModel'
+            
+# Added by API Auto Mocking Plugin
+host: virtserver.swaggerhub.com
+basePath: /poosathecat/wso2telco_self_service_portal/1.0.0
+schemes:
+ - https
