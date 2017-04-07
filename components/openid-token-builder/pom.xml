@@ -13,7 +13,7 @@
 	<parent>
 		<groupId>com.wso2telco.ids</groupId>
 		<artifactId>component-ids-parent</artifactId>
-		<version>2.0.13</version>
+		<version>2.0.14-SNAPSHOT</version>
 		<relativePath>../../parent/pom.xml</relativePath>
 	</parent>
 
@@ -22,6 +22,10 @@
 	<packaging>bundle</packaging>
 	
 	<name>OpenID Token Builder</name>
+
+	<properties>
+		<maven.javadoc.skip>true</maven.javadoc.skip>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -32,9 +36,14 @@
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.application.common</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>com.wso2telco.core</groupId>
-			<artifactId>dbutils</artifactId>
+		<!--<dependency>-->
+			<!--<groupId>com.wso2telco.core</groupId>-->
+			<!--<artifactId>dbutils</artifactId>-->
+		<!--</dependency>-->
+        <dependency>
+            <groupId>com.wso2telco.core</groupId>
+            <artifactId>config-util</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
@@ -62,18 +71,51 @@
 			<artifactId>org.wso2.carbon.identity.core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.wso2telco.ids</groupId>
-			<artifactId>gsma-authenticator</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.json.wso2</groupId>
 			<artifactId>json</artifactId>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.wso2telco.ids</groupId>
+            <artifactId>ids-data-publisher</artifactId>
+            <version>2.0.14-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+		<dependency>
+			<groupId>com.wso2telco.core</groupId>
+			<artifactId>pcr-service</artifactId>
+			<version>2.0.4-SNAPSHOT</version>
+		</dependency>
+    </dependencies>
 
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.3</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-scr-plugin</artifactId>
+				<version>1.7.2</version>
+				<executions>
+					<execution>
+						<id>generate-scr-scrdescriptor</id>
+						<goals>
+							<goal>scr</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
@@ -83,6 +125,9 @@
 					<instructions>
 						<Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
 						<Bundle-Name>${project.artifactId}</Bundle-Name>
+						<Bundle-Version>${project.version}</Bundle-Version>
+						<Bundle-Description>Open ID Token Builder Bundle</Bundle-Description>
+						<Private-Package>com.wso2telco.internal</Private-Package>
 						<Import-Package>
 							javax.xml.namespace,
 							javax.xml.stream,
@@ -140,10 +185,15 @@
 							org.wso2.carbon.identity.user.profile.mgt;
 							version="${carbon.identity.package.import.version.range}",
 							org.wso2.carbon.idp.mgt;
-							version="${carbon.identity.package.import.version.range}"
+							version="${carbon.identity.package.import.version.range}",
+							com.wso2telco.core.config.*,
+							com.wso2telco.dbutils.*,
+							com.wso2telco.core.pcrservice.*
 						</Import-Package>
 						<Export-Package>
-							com.wso2telco.*
+							com.wso2telco.claimhandler.*, com.wso2telco.dao.*, com.wso2telco.model.*,
+							com.wso2telco.openidtokenbuilder.*, com.wso2telco.reqpathsequencehandler.*,
+							com.wso2telco.transaction.log.*, com.wso2telco.util.*,!com.wso2telco.internal.*
 						</Export-Package>
 						<Embed-Dependency>
 							nimbus-jose-jwt|json-smart;scope=compile|runtime;inline=false
@@ -151,19 +201,6 @@
 						<DynamicImport-Package>*</DynamicImport-Package>
 					</instructions>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-scr-plugin</artifactId>
-				<version>1.9.0</version>
-				<executions>
-					<execution>
-						<id>generate-scr-scrdescriptor</id>
-						<goals>
-							<goal>scr</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>

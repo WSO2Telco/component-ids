@@ -7,46 +7,45 @@ package com.wso2telco;
 import java.util.List;
 
 /**
- *
  * @author Dialog
  */
 public class SendSMS {
-    
+
     private String message = "";
     private List<String> destinationAddresses;
     private String password = "";
     private String applicationId = "";
-    
-    
+
+
     public SendSMS() {
     }
-    
+
     public String getMessage() {
-            return message;
+        return message;
     }
 
     public void setMessage(String message) {
-            this.message = message;
+        this.message = message;
     }
-    
+
     public List<String> getAddress() {
-            return destinationAddresses;
+        return destinationAddresses;
     }
 
     public void setAddress(List<String> destinationAddresses) {
-            this.destinationAddresses = destinationAddresses;
+        this.destinationAddresses = destinationAddresses;
     }
-    
-    
+
+
     public String getPassword() {
-            return password;
+        return password;
     }
 
     public void setPassword(String password) {
-            this.password = password;
+        this.password = password;
     }
-    
-    
+
+
     public String getApplicationId() {
         return applicationId;
     }
@@ -54,6 +53,6 @@ public class SendSMS {
     public void setApplicationId(String applicationId) {
         this.applicationId = applicationId;
     }
-    
-    
+
+
 }

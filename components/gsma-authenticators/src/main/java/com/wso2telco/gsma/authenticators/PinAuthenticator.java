@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
- * 
+ *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,39 +32,49 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
- 
+
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class PinAuthenticator.
  */
 public class PinAuthenticator extends AbstractApplicationAuthenticator
-		implements LocalApplicationAuthenticator {
+        implements LocalApplicationAuthenticator {
 
-	/** The Constant serialVersionUID. */
-	private static final long serialVersionUID = 4438354156955223778L;
-    
-    /** The random. */
+    /**
+     * The Constant serialVersionUID.
+     */
+    private static final long serialVersionUID = 4438354156955223778L;
+
+    /**
+     * The random.
+     */
     private static SecureRandom random = new SecureRandom();
-    
-    /** The log. */
+
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(PinAuthenticator.class);
 
-	/* (non-Javadoc)
-	 * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
-	 */
-	@Override
-	public boolean canHandle(HttpServletRequest request) {
+    /* (non-Javadoc)
+     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
+     * .servlet.http.HttpServletRequest)
+     */
+    @Override
+    public boolean canHandle(HttpServletRequest request) {
         log.info("Pin Authenticator canhandle invoked");
-        
+
         String pin = request.getParameter("pin");
-        if(pin != null) {
-        	return true;
+        if (pin != null) {
+            return true;
         }
         return false;
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#process(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
+     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#process
+     * (javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity
+     * .application.authentication.framework.context.AuthenticationContext)
      */
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request,
@@ -78,13 +88,18 @@ public class PinAuthenticator extends AbstractApplicationAuthenticator
         }
     }
 
-	/* (non-Javadoc)
-	 * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#initiateAuthenticationRequest(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
-	 */
-	@Override
-	protected void initiateAuthenticationRequest(HttpServletRequest request,
-			HttpServletResponse response, AuthenticationContext context)
-			throws AuthenticationFailedException {
+    /* (non-Javadoc)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .AbstractApplicationAuthenticator#initiateAuthenticationRequest(javax.servlet.http.HttpServletRequest, javax
+     * .servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context
+     * .AuthenticationContext)
+     */
+    @Override
+    protected void initiateAuthenticationRequest(HttpServletRequest request,
+                                                 HttpServletResponse response, AuthenticationContext context)
+            throws AuthenticationFailedException {
+
+        log.info("Initiating authentication request");
 
         String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         String queryParams = FrameworkUtils
@@ -93,9 +108,9 @@ public class PinAuthenticator extends AbstractApplicationAuthenticator
                         context.getContextIdentifier());
 
         String pinNo = generatePassword();
-        log.info("=========== Generated PIN# = " + pinNo + " ===========");
         if (log.isDebugEnabled()) {
-            log.debug("=========== Generated PIN# = " + pinNo + " ===========");
+            log.debug("Pin no : " + pinNo);
+            log.debug("Query parameters : " + queryParams);
         }
 
         context.setProperty("pin", pinNo);
@@ -108,22 +123,31 @@ public class PinAuthenticator extends AbstractApplicationAuthenticator
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
 
-            response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&authenticators=" + getName() + ":" + "LOCAL" + retryParam);
+            response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&authenticators=" +
+                    getName() + ":" + "LOCAL" + retryParam);
 
         } catch (IOException e) {
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
-	}
+    }
 
-	/* (non-Javadoc)
-	 * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#processAuthenticationResponse(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
-	 */
-	@Override
-	protected void processAuthenticationResponse(HttpServletRequest request,
-			HttpServletResponse response, AuthenticationContext context)
-			throws AuthenticationFailedException {
+    /* (non-Javadoc)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .AbstractApplicationAuthenticator#processAuthenticationResponse(javax.servlet.http.HttpServletRequest, javax
+     * .servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context
+     * .AuthenticationContext)
+     */
+    @Override
+    protected void processAuthenticationResponse(HttpServletRequest request,
+                                                 HttpServletResponse response, AuthenticationContext context)
+            throws AuthenticationFailedException {
+        log.info("Processing authentication response");
 
         String pin = request.getParameter("pin");
+
+        if (log.isDebugEnabled()) {
+            log.debug("Pin no : " + pin);
+        }
 
         boolean isAuthenticated = false;
 
@@ -131,14 +155,10 @@ public class PinAuthenticator extends AbstractApplicationAuthenticator
         isAuthenticated = context.getProperty("pin").equals(pin);
 
         if (!isAuthenticated) {
-            log.info("Pin Authenticator authentication failed ");
-            if (log.isDebugEnabled()) {
-                log.debug("User authentication failed due to invalid pin.");
-            }
-
+            log.info("Authentication failed. Invalid pin");
             throw new AuthenticationFailedException("Authentication Failed");
         }
-        log.info("Pin Authenticator authentication success");
+        log.info("Authentication success");
         //context.setSubject((String)context.getProperty("BasicAuthSubject"));
 //        AuthenticatedUser user=new AuthenticatedUser();
 //        context.setSubject(user);
@@ -150,42 +170,44 @@ public class PinAuthenticator extends AbstractApplicationAuthenticator
         if (rememberMe != null && "on".equals(rememberMe)) {
             context.setRememberMe(true);
         }
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#retryAuthenticationEnabled()
-	 */
-	@Override
-	protected boolean retryAuthenticationEnabled() {
-		// Deliberately set false
+    }
+
+    /* (non-Javadoc)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .AbstractApplicationAuthenticator#retryAuthenticationEnabled()
+     */
+    @Override
+    protected boolean retryAuthenticationEnabled() {
+        // Deliberately set false
         return false;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
-	 */
-	@Override
-	public String getContextIdentifier(HttpServletRequest request) {
-		return request.getParameter("sessionDataKey");
-	}
+    }
 
-	/* (non-Javadoc)
-	 * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#getFriendlyName()
-	 */
-	@Override
-	public String getFriendlyName() {
-		return Constants.PIN_AUTHENTICATOR_FRIENDLY_NAME;
-	}
+    /* (non-Javadoc)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
+     */
+    @Override
+    public String getContextIdentifier(HttpServletRequest request) {
+        return request.getParameter("sessionDataKey");
+    }
 
-	/* (non-Javadoc)
-	 * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#getName()
-	 */
-	@Override
-	public String getName() {
-		return Constants.PIN_AUTHENTICATOR_NAME;
-	}
+    /* (non-Javadoc)
+     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#getFriendlyName()
+     */
+    @Override
+    public String getFriendlyName() {
+        return Constants.PIN_AUTHENTICATOR_FRIENDLY_NAME;
+    }
 
-     
+    /* (non-Javadoc)
+     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#getName()
+     */
+    @Override
+    public String getName() {
+        return Constants.PIN_AUTHENTICATOR_NAME;
+    }
+
+
     /**
      * Generate password.
      *

@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
- * 
+ *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,22 +30,29 @@ import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
- 
+
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class SelfAuthenticator.
  */
 public class SelfAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
-    
-    /** The Constant serialVersionUID. */
+
+    /**
+     * The Constant serialVersionUID.
+     */
     private static final long serialVersionUID = 6817280268460894001L;
-    
-    /** The log. */
+
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(MSSAuthenticator.class);
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#process(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
+     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#process
+     * (javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity
+     * .application.authentication.framework.context.AuthenticationContext)
      */
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request,
@@ -59,17 +66,26 @@ public class SelfAuthenticator extends AbstractApplicationAuthenticator
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#processAuthenticationResponse(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .AbstractApplicationAuthenticator#processAuthenticationResponse(javax.servlet.http.HttpServletRequest, javax
+     * .servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context
+     * .AuthenticationContext)
      */
     @Override
-    protected void processAuthenticationResponse(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationContext context) throws AuthenticationFailedException {
-        log.info("Self Authenticator authentication Start ");
+    protected void processAuthenticationResponse(HttpServletRequest httpServletRequest, HttpServletResponse
+            httpServletResponse, AuthenticationContext context) throws AuthenticationFailedException {
+
+        log.info("Processing authentication response");
         String msisdn = (String) context.getProperty("msisdn");
         context.setProperty("msisdn", msisdn);
+
+        if (log.isDebugEnabled()) {
+            log.debug("MSISDN : " + msisdn);
+        }
         //AuthenticatedUser user=new AuthenticatedUser();
-        
+
         AuthenticationContextHelper.setSubject(context, msisdn);
-        
+
         //context.setSubject(user);
         String rememberMe = httpServletRequest.getParameter("chkRemember");
         if (rememberMe != null && "on".equals(rememberMe)) {
@@ -78,7 +94,8 @@ public class SelfAuthenticator extends AbstractApplicationAuthenticator
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
+     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
+     * .servlet.http.HttpServletRequest)
      */
     @Override
     public boolean canHandle(HttpServletRequest httpServletRequest) {
@@ -90,7 +107,8 @@ public class SelfAuthenticator extends AbstractApplicationAuthenticator
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
      */
     @Override
     public String getContextIdentifier(HttpServletRequest httpServletRequest) {
@@ -114,7 +132,8 @@ public class SelfAuthenticator extends AbstractApplicationAuthenticator
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#retryAuthenticationEnabled()
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .AbstractApplicationAuthenticator#retryAuthenticationEnabled()
      */
     @Override
     protected boolean retryAuthenticationEnabled() {

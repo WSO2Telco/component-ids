@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
- * 
+ *
  * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,36 +26,49 @@ import org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder;
 
 import com.wso2telco.util.EndpointUtil;
 
- 
+
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class UserInfoEndpointConfig.
  */
 public class UserInfoEndpointConfig {
 
-    /** The log. */
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(UserInfoEndpointConfig.class);
-    
-    /** The config. */
+
+    /**
+     * The config.
+     */
     private static UserInfoEndpointConfig config = new UserInfoEndpointConfig();
-    
-    /** The request validator. */
+
+    /**
+     * The request validator.
+     */
     private static UserInfoRequestValidator requestValidator = null;
-    
-    /** The access token validator. */
+
+    /**
+     * The access token validator.
+     */
     private static UserInfoAccessTokenValidator accessTokenValidator = null;
-    
-    /** The response builder. */
+
+    /**
+     * The response builder.
+     */
     private static UserInfoResponseBuilder responseBuilder = null;
-    
-    /** The claim retriever. */
+
+    /**
+     * The claim retriever.
+     */
     private static UserInfoClaimRetriever claimRetriever = null;
 
     /**
      * Instantiates a new user info endpoint config.
      */
     private UserInfoEndpointConfig() {
-        log.debug("Initializing the UserInfoEndpointConfig singlton");
+        log.debug("Initializing the UserInfoEndpointConfig");
         initUserInfoEndpointConfig();
     }
 

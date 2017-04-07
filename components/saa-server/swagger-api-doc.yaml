@@ -1,0 +1,183 @@
+swagger: '2.0'
+
+info:
+  version: "1.0.0"
+  title: Smart Phone Authenticator Server API
+
+paths:
+
+  /services/serverAPI/api/v1/clients:
+
+    post:
+
+      description: |
+        Register's clients with the SAA server
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Client needed to be added to saa server
+          required: true
+          schema:
+            $ref: "#/definitions/Client"
+        - in: header
+          name: msisdn
+          description: "Mobile number of the client"
+          required: true
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            $ref: "#/definitions/AuthenticationResponse"
+
+  /services/serverAPI/api/v1/clients/{msisdn}/authenticate:
+
+    post:
+
+      description: |
+        Authenticates user when called by SmartPhoneAppAuthenticator fron Identity Server
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description: Details needed by the SAA server to authenticate msisdn from IDS
+          required: true
+          schema:
+            $ref: "#/definitions/IdsAuthenticationRequest"
+        - in: path
+          name: msisdn
+          description: "Mobile number of the client"
+          required: true
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            $ref: "#/definitions/AuthenticationResponse"
+
+  /services/serverAPI/api/v1/clients/{msisdn}/auth_response:
+
+    post:
+      description: |
+        Authenticates user when called by Smart Phone client
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          description:  Details needed by the SAA server to authenticate client from Smart Phone
+          required: true
+          schema:
+            $ref: "#/definitions/SmartPhoneAuthenticationRequest"
+        - in: path
+          name: msisdn
+          description: "Mobile number of the client"
+          required: true
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            $ref: "#/definitions/AuthenticationResponse"
+
+  /services/serverAPI/api/v1/clients/{msisdn}/is_registered:
+    get:
+      description: Checks whether the client is registered in SAA server
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: msisdn
+          description: "Mobile number of the client"
+          required: true
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            $ref: "#/definitions/IsRegisteredResponse"
+
+  /services/serverAPI/api/v1/clients/{msisdn}/unregisterClient:
+    delete:
+      description: Removed registered client from SAA server
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: msisdn
+          description: "Mobile number of the client"
+          required: true
+          type: string
+      responses:
+        "200":
+          description: successful operation
+          schema:
+            $ref: "#/definitions/RemoveClientResponse"
+
+definitions:
+  Client:
+    type: object
+    properties:
+      clientDeviceID:
+        type: string
+      platform:
+        type: string
+      pushToken:
+        type: string
+
+  AuthenticationResponse:
+    type: object
+    properties:
+      success:
+        type: integer
+      failure:
+        type: integer
+      result:
+        type: string
+
+  IdsAuthenticationRequest:
+    type: object
+    properties:
+      message:
+        type: string
+      applicationName:
+        type: string
+      referenceID:
+        type: string
+      acr:
+        type: integer
+      spImgUrl:
+        type: string
+
+  SmartPhoneAuthenticationRequest:
+    type: object
+    properties:
+      status:
+        type: integer
+      referenceID:
+        type: string
+
+  IsRegisteredResponse:
+    type: object
+    properties:
+      isRegistered:
+        type: boolean
+
+  RemoveClientResponse:
+    type: object
+    properties:
+      removeClient:
+        type: string
+
+
+
+

@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
- * 
+ *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,40 +15,49 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.cryptosystem;
 
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.xml.sax.SAXException;
-
-import com.wso2telco.gsma.authenticators.config.ReadMobileConnectConfig;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.security.Key;
 import java.util.Map;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class AESencrp.
  */
 public class AESencrp {
 
-    /** The log. */
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(AESencrp.class);
-	
-    /** The Constant ALGO. */
-    private static final String ALGO = "AES";
-    
-    /** The key. */
-    private static String key;
-    
-    /** The key value. */
-    private static byte[] keyValue ;
 
+    /**
+     * The Constant ALGO.
+     */
+    private static final String ALGO = "AES";
+
+    /**
+     * The key.
+     */
+    private static String key;
+
+    /**
+     * The key value.
+     */
+    private static byte[] keyValue;
+
+    /**
+     * The configuration service that holds the mobile connect configs
+     */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     /**
      * Encrypt.
@@ -92,21 +101,7 @@ public class AESencrp {
      * @throws Exception the exception
      */
     private static Key generateKey() throws Exception {
-        ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
-        Map<String, String> readMobileConnectConfigResult= null;
-        try {
-            readMobileConnectConfigResult = readMobileConnectConfig.query("SMS");
-        } catch (ParserConfigurationException e) {
-            log.error("Error occured during ParseCOnfiguration " + e);
-        } catch (SAXException e) {
-        	log.error("Error occured during processing XML " + e);
-        } catch (IOException e) {
-        	log.error("I/O exception occured " + e);
-        } catch (XPathExpressionException e) {
-            log.error("Error occured in XPath expression " + e);
-        }
-
-        key = readMobileConnectConfigResult.get("AesKey");
+        key = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig().getAesKey();
         keyValue = key.getBytes(Charset.forName("UTF-8"));
         Key key = new SecretKeySpec(keyValue, ALGO);
         return key;

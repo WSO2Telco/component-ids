@@ -18,7 +18,7 @@ public final class CustomJSONUtils {
         JSONObject jsonObject = new JSONObject();
         for (Map.Entry<String, Object> param : params.entrySet()) {
             if (param.getKey() != null && !"".equals(param.getKey()) && param.getValue() != null && !""
-                .equals(param.getValue())) {
+                    .equals(param.getValue())) {
                 jsonObject.put(param.getKey(), param.getValue());
             }
         }
@@ -34,7 +34,7 @@ public final class CustomJSONUtils {
         while (it.hasNext()) {
             Object o = it.next();
             if (o instanceof String) {
-                String key = (String)o;
+                String key = (String) o;
                 params.put(key, obj.get(key));
             }
         }

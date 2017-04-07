@@ -1,12 +1,12 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
- * 
+ * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com)
+ *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,21 +14,6 @@
  * limitations under the License.
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.security.KeyFactory;
-import java.security.PublicKey;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.crypto.Cipher;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
@@ -53,35 +38,57 @@ import org.wso2.carbon.idp.mgt.IdentityProviderManagementException;
 import org.wso2.carbon.idp.mgt.IdentityProviderManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
-import com.wso2telco.mnc.resolver.MNCQueryClient;
-import com.wso2telco.mnc.resolver.MobileNtException;
+import javax.crypto.Cipher;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
- 
+//import com.wso2telco.mnc.resolver.MNCQueryClient;
+//import com.wso2telco.mnc.resolver.MobileNtException;
+
+
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class OpCoCompositeAuthenticator.
  */
 public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
         LocalApplicationAuthenticator {
 
-    /** The Constant serialVersionUID. */
+    /**
+     * The Constant serialVersionUID.
+     */
     private static final long serialVersionUID = -7533605620408092358L;
-    
-    /** The log. */
+
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(OpCoCompositeAuthenticator.class);
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
+     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
+     * .servlet.http.HttpServletRequest)
      */
     public boolean canHandle(HttpServletRequest request) {
         return true;
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#process(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
+     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#process(javax
+     * .servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application
+     * .authentication.framework.context.AuthenticationContext)
      */
     public AuthenticatorFlowStatus process(HttpServletRequest request,
-            HttpServletResponse response, AuthenticationContext context)
+                                           HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
         if (!canHandle(request)) {
             return AuthenticatorFlowStatus.INCOMPLETE;
@@ -90,12 +97,12 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
         List<IdentityProvider> idPs = null;
 
         try {
-			idPs = IdentityProviderManager.getInstance().getIdPs(
-			        MultitenantUtils.getTenantDomain(request));
-		} catch (IdentityProviderManagementException e) {
-			// TODO Auto-generated catch block
-			log.error("Error Ocured " + e);
-		}
+            idPs = IdentityProviderManager.getInstance().getIdPs(
+                    MultitenantUtils.getTenantDomain(request));
+        } catch (IdentityProviderManagementException e) {
+            // TODO Auto-generated catch block
+            log.error("Error Ocured " + e);
+        }
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         Map<Integer, StepConfig> stepMap = sequenceConfig.getStepMap();
@@ -129,14 +136,14 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
         IdentityProvider federatedIDP = getFederatedIDP(idPs, incomingUser);
 
         // Set login_hint and acr_values params to idp configuration
-                ExternalIdPConfig idPConfigByName = null;
-		try {
-			idPConfigByName = ConfigurationFacade.getInstance().getIdPConfigByName(
-			        federatedIDP.getIdentityProviderName(), context.getTenantDomain());
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			log.error("Error Ocured " + e);
-		}
+        ExternalIdPConfig idPConfigByName = null;
+        try {
+            idPConfigByName = ConfigurationFacade.getInstance().getIdPConfigByName(
+                    federatedIDP.getIdentityProviderName(), context.getTenantDomain());
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            log.error("Error Ocured " + e);
+        }
         FederatedAuthenticatorConfig[] federatedAuthenticatorConfigs = idPConfigByName
                 .getIdentityProvider().getFederatedAuthenticatorConfigs();
 
@@ -161,7 +168,10 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
         // System.out.println("encryptedLoginHint_OPCO: " + encryptedLoginHint);
         // String loginHint = "&login_hint="
         // +
-        // "pYPBEVtqmD8wCvyrsCHvDqJtLPyi2TuX7q1zJQYEsEXQr8jH+JN4z4/yPYJXYV4y172rOwHn16FZIAVbefMVJvIqF+3BdC8vur8n6wRac5oTAanf08m4hM/P6a2ixbKlCDikRnYTGG/cd0F98XVrq6euvGE/0NrJxOAt+kJGF4HXwJEUb4wltH87bh4RW8Mg9MRQVITEVxumYJyck/O8NVkw5SX8Mrulonw/1d8LQk3t6eCRnWfHH7ycWWRg9UtD0oN1ACR47N1F6j8pScejHP1pGMRHlSw0MztNfo7AZaVKOnAGafpi2MhhET7QVOTL1YDAYYZUBZY1IKjOdFtMIQ==";
+        // "pYPBEVtqmD8wCvyrsCHvDqJtLPyi2TuX7q1zJQYEsEXQr8jH+JN4z4/yPYJXYV4y172rOwHn16FZIAVbefMVJvIqF
+        // +3BdC8vur8n6wRac5oTAanf08m4hM/P6a2ixbKlCDikRnYTGG/cd0F98XVrq6euvGE/0NrJxOAt
+        // +kJGF4HXwJEUb4wltH87bh4RW8Mg9MRQVITEVxumYJyck/O8NVkw5SX8Mrulonw
+        // /1d8LQk3t6eCRnWfHH7ycWWRg9UtD0oN1ACR47N1F6j8pScejHP1pGMRHlSw0MztNfo7AZaVKOnAGafpi2MhhET7QVOTL1YDAYYZUBZY1IKjOdFtMIQ==";
         String loginHint = "login_hint=" + encryptedLoginHint;
 
         // Retrieve entry LOA
@@ -200,7 +210,7 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
     /**
      * Gets the federated idp.
      *
-     * @param idPs the id ps
+     * @param idPs         the id ps
      * @param incomingUser the incoming user
      * @return the federated idp
      * @throws AuthenticationFailedException the authentication failed exception
@@ -248,17 +258,17 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
     /**
      * Gets the provider brand.
      *
-     * @param mcc the mcc
+     * @param mcc     the mcc
      * @param endUser the end user
      * @return the provider brand
      */
     private String getProviderBrand(String mcc, String endUser) {
-        try {
-            MNCQueryClient mncQueryclient = new MNCQueryClient();
-            return mncQueryclient.QueryNetwork(mcc, endUser);
-        } catch (MobileNtException ex) {
-            log.error("No IDPs brand found for User Mobile", ex);
-        }
+//        try {
+//            MNCQueryClient mncQueryclient = new MNCQueryClient();
+//            return mncQueryclient.QueryNetwork(mcc, endUser);
+//        } catch (MobileNtException ex) {
+//            log.error("No IDPs brand found for User Mobile", ex);
+//        }
 
         return null;
     }
@@ -271,7 +281,8 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
      * @throws AuthenticationFailedException the authentication failed exception
      */
     private String encryptLoginHint(String loginHint) throws AuthenticationFailedException {
-        String RANDOM_ADDON = "TheServingOperatorthencanrecognizetheyhavereceivedanencryptedMSISDNanddecryptthestringusingitsprivatekeywichisnotknowntotheOneAPI";
+        String RANDOM_ADDON =
+                "TheServingOperatorthencanrecognizetheyhavereceivedanencryptedMSISDNanddecryptthestringusingitsprivatekeywichisnotknowntotheOneAPI";
         String feedData = loginHint + "|" + RANDOM_ADDON;
 
         byte[] dataToEncrypt = feedData.getBytes();
@@ -280,7 +291,7 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
             PublicKey pubKey = readPublicKeyFromFile(getPublicKeyFile());
             Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher.init(Cipher.ENCRYPT_MODE, pubKey);
-            encryptedData = cipher.doFinal(dataToEncrypt);            
+            encryptedData = cipher.doFinal(dataToEncrypt);
             return new String(Base64.encodeBase64(encryptedData));
 
         } catch (Exception e) {
@@ -298,8 +309,9 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
      */
     private PublicKey readPublicKeyFromFile(String fileName) throws AuthenticationFailedException {
         try {
-            String publicK = readStringKey(fileName);           
-            byte[] keyBytes = Base64.decodeBase64(publicK.getBytes());;
+            String publicK = readStringKey(fileName);
+            byte[] keyBytes = Base64.decodeBase64(publicK.getBytes());
+            ;
             X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             return keyFactory.generatePublic(spec);
@@ -330,7 +342,7 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
             }
             reader.close();
         } catch (Exception e) {
-        	log.error("Error Ocured " + e);
+            log.error("Error Ocured " + e);
         } finally {
             if (reader != null) {
                 reader = null;
@@ -349,7 +361,8 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
      */
     public String getContextIdentifier(HttpServletRequest request) {
         return null;
@@ -377,7 +390,8 @@ public class OpCoCompositeAuthenticator implements ApplicationAuthenticator,
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#getConfigurationProperties()
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .ApplicationAuthenticator#getConfigurationProperties()
      */
     public List<Property> getConfigurationProperties() {
         return new ArrayList<Property>();

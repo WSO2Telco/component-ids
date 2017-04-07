@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
- * 
+ *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to youunder the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -51,7 +51,8 @@ public class TenantDataManager {
     private static Properties prop;
     private static String carbonLogin = "";
     private static String usernameHeaderName = "";
-    private static List<String> tenantDomainList;;
+    private static List<String> tenantDomainList;
+    ;
     private static boolean isInitialized = false;
 
     private static synchronized void init() {
@@ -60,7 +61,8 @@ public class TenantDataManager {
             if (!isInitialized) {
                 prop = new Properties();
 
-                InputStream inputStream = TenantDataManager.class.getClassLoader().getResourceAsStream("TenantConfig.properties");
+                InputStream inputStream = TenantDataManager.class.getClassLoader().getResourceAsStream("TenantConfig" +
+                        ".properties");
 
                 if (inputStream != null) {
                     prop.load(inputStream);
@@ -98,12 +100,12 @@ public class TenantDataManager {
 
     private static String buildFilePath(String path) throws IOException {
 
-        if(path != null && path.startsWith(".")){ //relative path is given
+        if (path != null && path.startsWith(".")) { //relative path is given
             File currentDirectory = new File(new File(".").getAbsolutePath());
             path = currentDirectory.getCanonicalPath() + File.separator + path;
         }
 
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("File path for KeyStore/TrustStore : " + path);
         }
         return path;
@@ -121,7 +123,7 @@ public class TenantDataManager {
             headerParams.put(usernameHeaderName, carbonLogin);
             return MutualSSLClient.sendGetRequest(url, null, headerParams);
         } catch (Exception e) {
-            log.error("Processing request for " + url + " Failed : " , e);
+            log.error("Processing request for " + url + " Failed : ", e);
             return null;
         }
     }
@@ -223,7 +225,7 @@ public class TenantDataManager {
             }
 
         } catch (Exception e) {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.debug("Retrieving Active Tenant Domains Failed. Ignore this if there are no tenants : ", e);
             }
         }

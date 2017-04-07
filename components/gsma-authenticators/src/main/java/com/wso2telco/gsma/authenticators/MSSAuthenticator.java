@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
- * 
+ *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,6 +15,8 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators;
 
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.MSSRequest;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import org.apache.http.HttpResponse;
@@ -35,22 +37,34 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
- 
+
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class MSSAuthenticator.
  */
 public class MSSAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 
-    /** The Constant serialVersionUID. */
+    /**
+     * The Constant serialVersionUID.
+     */
     private static final long serialVersionUID = 6817280268460894001L;
-    
-    /** The log. */
+
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(MSSAuthenticator.class);
 
+    /**
+     * The Configuration service
+     */
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#process(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
+     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#process
+     * (javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity
+     * .application.authentication.framework.context.AuthenticationContext)
      */
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request,
@@ -65,12 +79,16 @@ public class MSSAuthenticator extends AbstractApplicationAuthenticator
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#initiateAuthenticationRequest(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .AbstractApplicationAuthenticator#initiateAuthenticationRequest(javax.servlet.http.HttpServletRequest, javax
+     * .servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context
+     * .AuthenticationContext)
      */
     @Override
     protected void initiateAuthenticationRequest(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
+        log.info("Initiating authentication request");
 
         String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
 
@@ -79,25 +97,31 @@ public class MSSAuthenticator extends AbstractApplicationAuthenticator
                         context.getCallerSessionKey(),
                         context.getContextIdentifier());
 
+        if (log.isDebugEnabled()) {
+            log.debug("Query parameters : " + queryParams);
+        }
+
         try {
 
             String retryParam = "";
 
             if (context.isRetrying()) {
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
-            }else {
+            } else {
                 // Insert entry to DB only if this is not a retry
-                DBUtils.insertUserResponse(context.getContextIdentifier(), String.valueOf(MSSAuthenticator.UserResponse.PENDING));
+                DBUtils.insertUserResponse(context.getContextIdentifier(), String.valueOf(MSSAuthenticator
+                        .UserResponse.PENDING));
             }
 
             //MSISDN will be saved in the context in the MSISDNAuthenticator
             String msisdn = (String) context.getProperty("msisdn");
-            MSSRequest mssRequest=new MSSRequest();
-            mssRequest.setMsisdnNo("+"+msisdn);
-            mssRequest.setSendString(DataHolder.getInstance().getMobileConnectConfig().getMSS().getMssText());
+            MSSRequest mssRequest = new MSSRequest();
+            mssRequest.setMsisdnNo("+" + msisdn);
+            mssRequest.setSendString(configurationService.getDataHolder().getMobileConnectConfig().getMSS()
+                    .getMssText());
 
-            String contextIdentifier=context.getContextIdentifier();
-            MSSRestClient mssRestClient =new MSSRestClient(contextIdentifier,mssRequest);
+            String contextIdentifier = context.getContextIdentifier();
+            MSSRestClient mssRestClient = new MSSRestClient(contextIdentifier, mssRequest);
             mssRestClient.start();
 
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&authenticators="
@@ -105,7 +129,7 @@ public class MSSAuthenticator extends AbstractApplicationAuthenticator
 
         } catch (IOException e) {
             throw new AuthenticationFailedException(e.getMessage(), e);
-        }catch (AuthenticatorException e) {
+        } catch (AuthenticatorException e) {
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
 
@@ -114,16 +138,25 @@ public class MSSAuthenticator extends AbstractApplicationAuthenticator
 
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#processAuthenticationResponse(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .AbstractApplicationAuthenticator#processAuthenticationResponse(javax.servlet.http.HttpServletRequest, javax
+     * .servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context
+     * .AuthenticationContext)
      */
     @Override
-    protected void processAuthenticationResponse(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationContext context) throws AuthenticationFailedException {
+    protected void processAuthenticationResponse(HttpServletRequest httpServletRequest, HttpServletResponse
+            httpServletResponse, AuthenticationContext context) throws AuthenticationFailedException {
 
         // String msisdn = httpServletRequest.getParameter("msisdn");
-        log.info("MSS PIN Authenticator authentication Start ");
+        log.info("Processing authentication response");
         String sessionDataKey = httpServletRequest.getParameter("sessionDataKey");
         String msisdn = (String) context.getProperty("msisdn");
         boolean isAuthenticated = false;
+
+        if (log.isDebugEnabled()) {
+            log.debug("MSISDN : " + msisdn);
+            log.debug("SessionDataKey : " + sessionDataKey);
+        }
 
         try {
             String responseStatus = DBUtils.getUserResponse(sessionDataKey);
@@ -138,21 +171,18 @@ public class MSSAuthenticator extends AbstractApplicationAuthenticator
         }
 
         if (!isAuthenticated) {
-            log.info("MSS PIN Authenticator authentication failed ");
+            log.info("Authentication failed. MSISDN doesn't exist.");
             context.setProperty("faileduser", msisdn);
-            if (log.isDebugEnabled()) {
-                log.debug("User authentication failed due to not existing user MSISDN.");
-            }
 
             throw new AuthenticationFailedException("Authentication Failed");
         }
-        log.info("MSS PIN Authenticator authentication success for MSISDN - " + msisdn);
+        log.info("Authentication success for MSISDN - " + msisdn);
 
         context.setProperty("msisdn", msisdn);
         //context.setSubject(msisdn);
 //        AuthenticatedUser user=new AuthenticatedUser();
 //		context.setSubject(user);
-        AuthenticationContextHelper.setSubject(context,msisdn);
+        AuthenticationContextHelper.setSubject(context, msisdn);
         String rememberMe = httpServletRequest.getParameter("chkRemember");
 
         if (rememberMe != null && "on".equals(rememberMe)) {
@@ -163,7 +193,8 @@ public class MSSAuthenticator extends AbstractApplicationAuthenticator
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax.servlet.http.HttpServletRequest)
+     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
+     * .servlet.http.HttpServletRequest)
      */
     @Override
     public boolean canHandle(HttpServletRequest httpServletRequest) {
@@ -176,7 +207,8 @@ public class MSSAuthenticator extends AbstractApplicationAuthenticator
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .ApplicationAuthenticator#getContextIdentifier(javax.servlet.http.HttpServletRequest)
      */
     @Override
     public String getContextIdentifier(HttpServletRequest httpServletRequest) {
@@ -200,7 +232,8 @@ public class MSSAuthenticator extends AbstractApplicationAuthenticator
     }
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator#retryAuthenticationEnabled()
+     * @see org.wso2.carbon.identity.application.authentication.framework
+     * .AbstractApplicationAuthenticator#retryAuthenticationEnabled()
      */
     @Override
     protected boolean retryAuthenticationEnabled() {
@@ -219,7 +252,7 @@ public class MSSAuthenticator extends AbstractApplicationAuthenticator
     private String readResponseEntity(HttpResponse httpResponse) throws IOException {
 
         String resp = "";
-        if(httpResponse.getEntity() != null){
+        if (httpResponse.getEntity() != null) {
             BufferedReader rd = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
             String line;
             while ((line = rd.readLine()) != null) {
@@ -236,14 +269,20 @@ public class MSSAuthenticator extends AbstractApplicationAuthenticator
      * The Enum UserResponse.
      */
     private enum UserResponse {
-        
-        /** The pending. */
+
+        /**
+         * The pending.
+         */
         PENDING,
-        
-        /** The approved. */
+
+        /**
+         * The approved.
+         */
         APPROVED,
-        
-        /** The rejected. */
+
+        /**
+         * The rejected.
+         */
         REJECTED
     }
 

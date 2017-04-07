@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
- * 
+ *
  * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,6 +24,7 @@ import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
 import com.wso2telco.util.EndpointUtil;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class ClaimInfoAccessTokenValidator.
  */
@@ -64,7 +65,8 @@ public class ClaimInfoAccessTokenValidator implements UserInfoAccessTokenValidat
             throw new UserInfoEndpointException(OAuthError.ResourceResponse.INVALID_TOKEN,
                     "Access token is not valid. No authorized user found. Invalid grant");
         }
-        OAuth2TokenValidationResponseDTO.AuthorizationContextToken authorizationContextToken = response.new AuthorizationContextToken(accessToken.getTokenType(), accessToken.getIdentifier());
+        OAuth2TokenValidationResponseDTO.AuthorizationContextToken authorizationContextToken = response.new
+                AuthorizationContextToken(accessToken.getTokenType(), accessToken.getIdentifier());
         response.setAuthorizationContextToken(authorizationContextToken);
         return response;
     }
