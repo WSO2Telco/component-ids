@@ -129,6 +129,29 @@ public class DBUtils {
         return userResponse;
     }
 
+    public static String getMePinId(String msisdn) throws AuthenticatorException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet results = null;
+        String sql = "SELECT mepin_id FROM mepin_accounts WHERE user_id=?";
+
+        String mePinId = null;
+        try {
+            conn = getConnectDBConnection();
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, msisdn);
+            results = ps.executeQuery();
+            while (results.next()) {
+                mePinId = results.getString("mepin_id");
+            }
+        } catch (SQLException e) {
+            handleException("Error occurred while getting me pin response", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(conn, results, ps);
+        }
+        return mePinId;
+    }
+
     /**
      * Gets the user response for login.
      *
