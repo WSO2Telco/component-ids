@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-
-package com.wso2telco.ssp.service;
+package com.wso2telco.ssp.api;
 
 import com.sun.jersey.core.util.Base64;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.ssp.utils.Constants;
-import com.wso2telco.ssp.utils.HttpClientProvider;
-import com.wso2telco.ssp.utils.PrepareResponse;
+import com.wso2telco.ssp.model.OrderByType;
+import com.wso2telco.ssp.model.PagedResults;
+import com.wso2telco.ssp.service.DbService;
+import com.wso2telco.ssp.util.Constants;
+import com.wso2telco.ssp.util.HttpClientProvider;
+import com.wso2telco.ssp.util.Pagination;
+import com.wso2telco.ssp.util.PrepareResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -67,20 +70,21 @@ public class Endpoints {
     }
 
 
+    /**
+     * Validates the access token
+     * @param accessToken access token
+     * @return user info response on valid access token
+     * @throws IOException
+     */
     @GET
     @Path("auth/validate")
     @Produces(MediaType.APPLICATION_JSON)
     public Response ValidateToken(@QueryParam("access_token") String accessToken) throws IOException {
-        HttpClient client = HttpClientProvider.GetHttpClient();
-        HttpPost httpPost = new HttpPost("https://localhost:9443/oauth2/userinfo?schema=openid");
 
-        httpPost.setHeader(Constants.HEADER_AUTHORIZATION, "Bearer " + accessToken);
-
-        HttpResponse httpResponse = client.execute(httpPost);
-        String output = IOUtils.toString(httpResponse.getEntity().getContent());
+        String output = getUserInfo(accessToken);
 
         JSONObject outputResponse = new JSONObject(output);
-        if(!outputResponse.isNull("access_token")){
+        if(!outputResponse.isNull("sub")){
             return PrepareResponse.Success(outputResponse);
         }
 
@@ -139,6 +143,57 @@ public class Endpoints {
         }
 
         return PrepareResponse.Redirect(selfServicePortalConfig.getUILoginUrl(), params);
+    }
+
+    /**
+     * Returns paged login history result set
+     * @param accessToken access token
+     * @param page page number
+     * @param limit results per page
+     * @return login history results
+     * @throws IOException
+     */
+    @GET
+    @Path("user/login_history")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response LoginHistory(@QueryParam("access_token") String accessToken,
+                                 @QueryParam("page") String page,
+                                 @QueryParam("limit") String limit) throws IOException {
+
+        // call user info to validate access token
+        String output = getUserInfo(accessToken);
+        JSONObject outputResponse = new JSONObject(output);
+        if(outputResponse.isNull("phone_number")){
+            return PrepareResponse.Error("Invalid Token", "invalid_token", Response.Status.UNAUTHORIZED);
+        }
+
+        // paging object to limit result set per call
+        Pagination pagination = new Pagination(page, limit);
+
+        try {
+            PagedResults lh = DbService.getLoginHistoryByMsisdn(outputResponse.getString("phone_number"),
+                    "id", OrderByType.ASC, pagination);
+            return PrepareResponse.Success(new JSONObject(lh));
+        }catch (Exception e){
+            return PrepareResponse.Error(e.getMessage(), "login_history_error", Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    /**
+     * Send user info call to MIG and returns the output as a string
+     * @param accessToken access token
+     * @return user info response
+     * @throws IOException
+     */
+    private String getUserInfo(String accessToken) throws IOException {
+        HttpClient client = HttpClientProvider.GetHttpClient();
+        HttpPost httpPost = new HttpPost("https://localhost:9443/oauth2/userinfo?schema=openid");
+
+        httpPost.setHeader(Constants.HEADER_AUTHORIZATION, "Bearer " + accessToken);
+
+        HttpResponse httpResponse = client.execute(httpPost);
+        return IOUtils.toString(httpResponse.getEntity().getContent());
     }
 
     /**
