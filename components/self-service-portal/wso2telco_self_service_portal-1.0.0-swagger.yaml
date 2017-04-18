@@ -6,15 +6,26 @@ info:
   title: SELF SERVICE PORTAL API
   description: |
     Contains back-end API methods of the self service portal of MIG.
-    ## Structure
-
-    ### The Envelope
+    ### Structure : The Envelope
     #### SUCCESS RESPONSE
     Every sucess response is wrapped by an envelope with data parameter which contains the actual response for the request:
     ```json
     {
         "data": {
           ...
+        }
+    }
+    ```
+
+    #### PAGED RESPONSE
+    Paged results contained in following envelope format:
+    ```json
+    {
+        "data": {
+          "perPage" : 15,
+          "total_count": 55,
+          "page": 1,
+          "items": [ ... ]
         }
     }
     ```
@@ -29,7 +40,7 @@ info:
         }
     }
     ```
-    
+
 
 definitions:
   ErrorResponseModel:
@@ -41,22 +52,72 @@ definitions:
         type: "string"
       message:
         type: "string"
-        
+
   UserInfoModel:
     required:
       - "phone"
     properties:
       phone:
         type: "string"
-        
-        
+
+  LoginHistoryResultsResponse:
+    type: object
+    properties:
+      data:
+        $ref: '#/definitions/LoginHistoryResultsModel'
+
+  LoginHistoryResultsModel:
+    type: object
+    properties:
+      meta:
+        $ref: '#/definitions/MetaModel'
+      items:
+        type: array
+        items:
+         $ref: '#/definitions/LoginHistoryModel'
+
+  LoginHistoryModel:
+    properties:
+      id:
+        type: "integer"
+      reqtype:
+        type: "string"
+      application_id:
+        type: "string"
+      authenticated_user:
+        type: "string"
+      isauthenticated:
+        type: "boolean"
+      authenticators:
+        type: "boolean"
+      ipaddress:
+        type: "string"
+      created:
+        type: "string"
+      created_date:
+        type: string
+      lastupdated:
+        type: "string"
+      lastupdated_date:
+        type: "string"
+
+  MetaModel:
+    properties:
+      perPage:
+        type: "integer"
+      page:
+        type: "integer"
+      total_count:
+        type: "integer"
+
+
 paths:
   /auth/callback:
     get:
       parameters:
         - name: code
           in: query
-          description: | 
+          description: |
             Authentication code obtained from the initial OAuth flow of MIG product.
           required: true
           type: string
@@ -64,7 +125,7 @@ paths:
         - Auth
       description: |
         Callback URL of the OAuth call from MIG. This API endpoint redirects the request either with
-        success code or error code back to self service portal URL. You can set 
+        success code or error code back to self service portal URL. You can set
         redirect URI of the Service Provider in MIG for this API endpoint.
       responses:
         307:
@@ -73,7 +134,7 @@ paths:
             properties:
               acaccess_token:
                 type: string
-                
+
   /auth/validate:
     get:
       parameters:
@@ -98,7 +159,47 @@ paths:
             Unauthorized
           schema:
             $ref: '#/definitions/ErrorResponseModel'
-            
+
+  /user/login_history:
+    get:
+      parameters:
+        - name: access_token
+          in: query
+          description: |
+            A valid access token
+          required: true
+          type: string
+        - name: page
+          in: query
+          default: 1
+          description: |
+            Page number
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          default: 15
+          description: |
+            Results per page
+          required: false
+          type: integer
+      tags:
+        - User
+      description: |
+        Returns login history of current authenticated user. User MSISDN is retrieved from the
+        `access_token`
+      responses:
+        200:
+          description: |
+            Successful response
+          schema:
+            $ref: '#/definitions/LoginHistoryResultsResponse'
+        401:
+          description: |
+            Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponseModel'
+
 # Added by API Auto Mocking Plugin
 host: virtserver.swaggerhub.com
 basePath: /poosathecat/wso2telco_self_service_portal/1.0.0

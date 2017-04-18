@@ -13,24 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
+package com.wso2telco.ssp.model;
 
-package com.wso2telco.ssp.utils;
-
-public final class Constants {
-
-    public static final String REDIRECT_PARAM_ERROR = "error";
-
-    public static final String REDIRECT_PARAM_ACCESS_TOKEN = "access_token";
-
-    public static final String HEADER_AUTHORIZATION = "Authorization";
-
-    public static final String HEADER_CONTENT_TYPE = "Content-Type";
-
-    public static final String TOKEN_REQUEST_GRANT_TYPE = "grant_type";
-
-    public static final String TOKEN_REQUEST_CODE = "code";
-
-    public static final String TOKEN_REQUEST_REDIRECT_URI = "redirect_uri";
-
-    public static final String TOKEN_RESPONSE_ACCESS_TOKEN = "access_token";
+public interface IDataItem {
 }
