@@ -75,6 +75,10 @@ public class PrepareResponse {
      * @throws URISyntaxException
      */
     public static Response Redirect(String uri, ArrayList<NameValuePair> nameValuePairsList) throws URISyntaxException{
+        if(nameValuePairsList == null){
+            return Response.temporaryRedirect(new URIBuilder(uri).build()).build();
+        }
+
         return Response.temporaryRedirect(new URIBuilder(uri).addParameters(nameValuePairsList).build()).build();
     }
 }
