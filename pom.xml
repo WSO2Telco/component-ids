@@ -44,6 +44,7 @@
 	<prerequisites>
 		<maven>3.0.0</maven>
 	</prerequisites>
+	
 	<distributionManagement>
 		<snapshotRepository>
 			<id>wso2Telco.snapshots</id>
@@ -58,6 +59,7 @@
 		</repository>
 	</distributionManagement>
 
+	
 	<modules>
 		<module>parent</module>
 		<module>components/sp-seamless-provision</module>
@@ -73,10 +75,10 @@
 		<module>components/portal</module>
 		<module>components/dashboard</module>
 		<module>components/authentication-endpoint</module>
-		<module>components/saa-server</module>
-		<module>features</module>
-        <module>components/openid-extension</module>
+        <module>components/saa-server</module>
         <module>components/self-service-portal</module>
+        <module>features</module>
+        <module>components/openid-extension</module>
     </modules>
 
 	<scm>
