@@ -43,10 +43,10 @@ public class SSLSocket extends SSLSocketFactory {
      * Instantiates a new SSL socket.
      *
      * @param truststore the truststore
-     * @throws NoSuchAlgorithmException  the no such algorithm exception
-     * @throws KeyManagementException    the key management exception
-     * @throws KeyStoreException         the key store exception
-     * @throws UnrecoverableKeyException the unrecoverable key exception
+     * @throws NoSuchAlgorithmException  the no such algorithm com.wso2telco.ssp.exception
+     * @throws KeyManagementException    the key management com.wso2telco.ssp.exception
+     * @throws KeyStoreException         the key store com.wso2telco.ssp.exception
+     * @throws UnrecoverableKeyException the unrecoverable key com.wso2telco.ssp.exception
      */
     public SSLSocket(KeyStore truststore) throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException,
             UnrecoverableKeyException {

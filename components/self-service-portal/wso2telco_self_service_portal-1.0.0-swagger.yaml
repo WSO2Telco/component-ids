@@ -22,9 +22,11 @@ info:
     ```json
     {
         "data": {
-          "perPage" : 15,
-          "total_count": 55,
-          "page": 1,
+          "meta": {
+            "perPage": 15,
+            "page": 1,
+            "total_count": 50
+          },
           "items": [ ... ]
         }
     }
@@ -112,6 +114,36 @@ definitions:
 
 
 paths:
+  /auth/login:
+    get:
+      parameters:
+        - name: msisdn
+          in: query
+          description: |
+            Login hint MSISDN
+          required: true
+          type: string
+      tags:
+        - Auth
+      description: |
+        Constructs the login URL and redirects user to OAuth login flow of MIG.
+      responses:
+        307:
+          description: Temporary Redirect
+        400:
+          description: |
+            Bad Request
+
+            ```
+            {
+              "error": {
+                  "code":"no_msisdn",
+                  "message":"MSISDN Missing"
+                }
+            }
+            ```
+
+
   /auth/callback:
     get:
       parameters:
@@ -126,7 +158,7 @@ paths:
       description: |
         Callback URL of the OAuth call from MIG. This API endpoint redirects the request either with
         success code or error code back to self service portal URL. You can set
-        redirect URI of the Service Provider in MIG for this API endpoint.
+        redirect URI of the Service Provider in MIG for this API endpoint. Callback endpoint takes code parameter from initial auth call and redirects to redirect url (configured in mobile connect) with access token. On failure redirects to redirect url with 'error' parameter.
       responses:
         307:
           description: Temporary Redirect
@@ -142,7 +174,7 @@ paths:
           in: query
           description: |
             Access token which should be validated
-          required: false
+          required: true
           type: string
       tags:
         - Auth

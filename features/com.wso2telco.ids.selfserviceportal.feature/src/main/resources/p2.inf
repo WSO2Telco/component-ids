@@ -1,0 +1,2 @@
+instructions.configure = \
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/com.wso2telco.ids.selfserviceportal_${feature.version}/generated/selfserviceportal.war,target:${installFolder}/../../deployment/server/webapps/selfserviceportal.war,overwrite:true);

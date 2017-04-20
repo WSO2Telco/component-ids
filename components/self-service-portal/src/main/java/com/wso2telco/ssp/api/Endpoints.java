@@ -15,27 +15,23 @@
  ******************************************************************************/
 package com.wso2telco.ssp.api;
 
-import com.sun.jersey.core.util.Base64;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.dbutils.DBUtilException;
+import com.wso2telco.ssp.exception.ApiException;
 import com.wso2telco.ssp.model.OrderByType;
 import com.wso2telco.ssp.model.PagedResults;
 import com.wso2telco.ssp.service.DbService;
+import com.wso2telco.ssp.service.UserService;
 import com.wso2telco.ssp.util.Constants;
-import com.wso2telco.ssp.util.HttpClientProvider;
 import com.wso2telco.ssp.util.Pagination;
 import com.wso2telco.ssp.util.PrepareResponse;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.ws.rs.GET;
@@ -44,10 +40,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * API Endpoints
@@ -59,14 +55,9 @@ public class Endpoints {
 
     private static MobileConnectConfig.SelfServicePortalConfig selfServicePortalConfig;
 
-    private static String bearerToken;
-
     static {
         selfServicePortalConfig =
                 new ConfigurationServiceImpl().getDataHolder().getMobileConnectConfig().getSelfServicePortalConfig();
-        byte[] encodedBytes = Base64.encode(selfServicePortalConfig.getSPOAuthClientKey() + ":"
-                + selfServicePortalConfig.getSPOAuthClientSecret());
-        bearerToken = new String(encodedBytes);
     }
 
 
@@ -74,14 +65,18 @@ public class Endpoints {
      * Validates the access token
      * @param accessToken access token
      * @return user info response on valid access token
-     * @throws IOException
+     * @throws ApiException
      */
     @GET
     @Path("auth/validate")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response ValidateToken(@QueryParam("access_token") String accessToken) throws IOException {
+    public Response ValidateToken(@QueryParam("access_token") String accessToken) throws ApiException {
 
-        String output = getUserInfo(accessToken);
+        if(StringUtils.isEmpty(accessToken)){
+            throw new ApiException("Access Token Missing", "no_access_token", Response.Status.UNAUTHORIZED);
+        }
+
+        String output = UserService.getUserInfo(accessToken);
 
         JSONObject outputResponse = new JSONObject(output);
         if(!outputResponse.isNull("sub")){
@@ -92,23 +87,83 @@ public class Endpoints {
                 outputResponse.getString("error_description") : "Token error";
         String error_code = !outputResponse.isNull("error") ? outputResponse.getString("error") :
                 "error";
-        return PrepareResponse.Error(error_message, error_code, Response.Status.UNAUTHORIZED);
+
+        throw new ApiException(error_message, error_code, Response.Status.UNAUTHORIZED);
     }
 
     /**
-     * Callback endpoint takes code parameter from initial auth call and redirects to redirect url (configured in
-     * mobile connect) with access token. On failure redirects to redirect url with 'error' parameter.
+     * Redirects user to OAuth page of MIG
+     * @param msisdn login hint msisdn
+     * @return redirect result
+     * @throws ApiException
+     */
+    @GET
+    @Path("auth/login")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response RedirectToOAuthPage(@QueryParam("msisdn") String msisdn) throws ApiException {
+        String callbackUrl = selfServicePortalConfig.getCallbackUrl();
+        String clientKey = selfServicePortalConfig.getSPOAuthClientKey();
+        String authorizeCall = selfServicePortalConfig.getAuthorizeCall();
+
+        if(StringUtils.isEmpty(msisdn)){
+            throw new ApiException("MSISDN Missing", "no_msisdn", Response.Status.BAD_REQUEST);
+        }
+
+        if(StringUtils.isEmpty(callbackUrl)){
+            throw new ApiException("Missing Callback URL", "missing_config", Response.Status.SERVICE_UNAVAILABLE);
+        }
+
+        if(StringUtils.isEmpty(clientKey)){
+            throw new ApiException("Missing Client Key", "missing_config", Response.Status.SERVICE_UNAVAILABLE);
+        }
+
+        if(StringUtils.isEmpty(authorizeCall)){
+            throw new ApiException("Missing Authorize Call URL", "missing_config", Response.Status.SERVICE_UNAVAILABLE);
+        }
+
+        ArrayList<NameValuePair> params = new ArrayList<>();
+        params.add(new BasicNameValuePair("login_hint", msisdn));
+        params.add(new BasicNameValuePair("nonce", "kkk"));
+        params.add(new BasicNameValuePair("state", "aaa"));
+        params.add(new BasicNameValuePair("redirect_uri", callbackUrl));
+        params.add(new BasicNameValuePair("client_id", clientKey));
+        params.add(new BasicNameValuePair("acr_values", "2"));
+        params.add(new BasicNameValuePair("scope", "openid"));
+        params.add(new BasicNameValuePair("response_type", "code"));
+
+        //todo: call discovery service
+        String operator = getOperator(msisdn);
+
+        Map<String, String> data = new HashMap<String, String>();
+        data.put("operator", operator);
+        String uri = StrSubstitutor.replace(authorizeCall, data);
+
+        try {
+            return PrepareResponse.Redirect(uri, params);
+        }catch (URISyntaxException e){
+            throw new ApiException("Invalid URL in Configs", "invalid_config", Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Callback URL of the OAuth call from MIG. This API endpoint redirects the request either with
+     * success code or error code back to self service portal URL. You can set redirect URI of the
+     * Service Provider in MIG for this API endpoint. Callback endpoint takes code parameter from
+     * initial auth call and redirects to redirect url (configured in mobile connect) with access token.
+     * On failure redirects to redirect url with 'error' parameter.
      * @param code auth code
      * @return redirect response
-     * @throws IOException
-     * @throws URISyntaxException
-     * @throws JSONException
+     * @throws ApiException
      */
     @GET
     @Path("auth/callback")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response GetTokenFromAuthCode(@QueryParam("code") String code)
-            throws IOException, URISyntaxException, JSONException {
+    public Response GetTokenFromAuthCode(@QueryParam("code") String code) throws ApiException {
+
+        String uiLoginUrl = selfServicePortalConfig.getUILoginUrl();
+        if(StringUtils.isEmpty(uiLoginUrl)){
+            throw new ApiException("Missing UI Login URL", "missing_config", Response.Status.SERVICE_UNAVAILABLE);
+        }
 
         ArrayList<NameValuePair> params = new ArrayList<>();
 
@@ -125,7 +180,7 @@ public class Endpoints {
         if(StringUtils.isNotEmpty(code)){
 
             //get access token from code
-            String accessToken = getAccessTokenFromCode(code);
+            String accessToken = UserService.getAccessTokenFromCode(code);
 
             if(StringUtils.isNotEmpty(accessToken)) {
                 params.add(new BasicNameValuePair(Constants.REDIRECT_PARAM_ACCESS_TOKEN, accessToken));
@@ -142,7 +197,11 @@ public class Endpoints {
             }
         }
 
-        return PrepareResponse.Redirect(selfServicePortalConfig.getUILoginUrl(), params);
+        try {
+            return PrepareResponse.Redirect(uiLoginUrl, params);
+        }catch (URISyntaxException e){
+            throw new ApiException("Invalid URL in Configs", "invalid_config", Response.Status.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -151,20 +210,20 @@ public class Endpoints {
      * @param page page number
      * @param limit results per page
      * @return login history results
-     * @throws IOException
+     * @throws ApiException
      */
     @GET
     @Path("user/login_history")
     @Produces(MediaType.APPLICATION_JSON)
     public Response LoginHistory(@QueryParam("access_token") String accessToken,
                                  @QueryParam("page") String page,
-                                 @QueryParam("limit") String limit) throws IOException {
+                                 @QueryParam("limit") String limit) throws ApiException {
 
         // call user info to validate access token
-        String output = getUserInfo(accessToken);
+        String output = UserService.getUserInfo(accessToken);
         JSONObject outputResponse = new JSONObject(output);
         if(outputResponse.isNull("phone_number")){
-            return PrepareResponse.Error("Invalid Token", "invalid_token", Response.Status.UNAUTHORIZED);
+            throw new ApiException("Invalid Token", "invalid_token", Response.Status.UNAUTHORIZED);
         }
 
         // paging object to limit result set per call
@@ -174,70 +233,12 @@ public class Endpoints {
             PagedResults lh = DbService.getLoginHistoryByMsisdn(outputResponse.getString("phone_number"),
                     "id", OrderByType.ASC, pagination);
             return PrepareResponse.Success(new JSONObject(lh));
-        }catch (Exception e){
-            return PrepareResponse.Error(e.getMessage(), "login_history_error", Response.Status.INTERNAL_SERVER_ERROR);
+        }catch (DBUtilException e){
+            throw new ApiException(e.getMessage(), "login_history_error", Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 
-
-    /**
-     * Send user info call to MIG and returns the output as a string
-     * @param accessToken access token
-     * @return user info response
-     * @throws IOException
-     */
-    private String getUserInfo(String accessToken) throws IOException {
-        HttpClient client = HttpClientProvider.GetHttpClient();
-        HttpPost httpPost = new HttpPost("https://localhost:9443/oauth2/userinfo?schema=openid");
-
-        httpPost.setHeader(Constants.HEADER_AUTHORIZATION, "Bearer " + accessToken);
-
-        HttpResponse httpResponse = client.execute(httpPost);
-        return IOUtils.toString(httpResponse.getEntity().getContent());
-    }
-
-    /**
-     * Get access token from code
-     * @param code code
-     * @return access token
-     * @throws IOException
-     * @throws JSONException
-     */
-    private String getAccessTokenFromCode(String code)
-            throws IOException, JSONException {
-
-        String tokenEndpoint = selfServicePortalConfig.getTokenEndpoint();
-        HttpClient client = HttpClientProvider.GetHttpClient();
-        HttpPost httpPost = new HttpPost(tokenEndpoint);
-
-        ArrayList<NameValuePair> postParameters = new ArrayList<>();
-        postParameters.add(new BasicNameValuePair(Constants.TOKEN_REQUEST_GRANT_TYPE, "authorization_code"));
-        postParameters.add(new BasicNameValuePair(Constants.TOKEN_REQUEST_CODE, code));
-        postParameters.add(new BasicNameValuePair(Constants.TOKEN_REQUEST_REDIRECT_URI,
-                selfServicePortalConfig.getCallbackUrl()));
-
-        httpPost.setEntity(new UrlEncodedFormEntity(postParameters));
-
-        httpPost.setHeader(Constants.HEADER_AUTHORIZATION, "Bearer " + bearerToken);
-        httpPost.setHeader(Constants.HEADER_CONTENT_TYPE, "application/x-www-form-urlencoded");
-
-        if(log.isDebugEnabled()){
-            log.debug("Calling token endpoint");
-        }
-        try {
-            HttpResponse httpResponse = client.execute(httpPost);
-            String output = IOUtils.toString(httpResponse.getEntity().getContent());
-            JSONObject json = new JSONObject(output);
-            return json.getString(Constants.TOKEN_RESPONSE_ACCESS_TOKEN);
-        }catch (JSONException e){
-            log.error("Error occurred trying to parse response");
-            throw e;
-        }catch (UnsupportedEncodingException e){
-            log.error("Error occurred trying to build post parameters");
-            throw e;
-        }catch (IOException e){
-            log.error("Error occurred trying to call webservice : " + tokenEndpoint);
-            throw e;
-        }
+    private String getOperator(String msisdn) throws ApiException {
+        return "spark";
     }
 }
