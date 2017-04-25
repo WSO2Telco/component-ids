@@ -1338,11 +1338,11 @@
                 <artifactId>org.wso2.carbon.identity.workflow.mgt.stub</artifactId>
                 <version>${identity.framework.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.identity</groupId>
-                <artifactId>org.wso2.carbon.identity.workflow.impl.stub</artifactId>
-                <version>${identity.framework.version}</version>
-            </dependency>
+            <!--<dependency>-->
+                <!--<groupId>org.wso2.carbon.identity</groupId>-->
+                <!--<artifactId>org.wso2.carbon.identity.workflow.impl.stub</artifactId>-->
+                <!--<version>${identity.framework.version}</version>-->
+            <!--</dependency>-->
             <dependency>
                 <groupId>org.wso2.carbon.identity</groupId>
                 <artifactId>org.wso2.carbon.user.mgt.workflow.stub</artifactId>

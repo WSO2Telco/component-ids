@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
+	All Rights Reserved. WSO2.Telco Inc. licences this file to you under the 
+	Apache License, Version 2.0 (the "License"); you may not use this file except 
+	in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 
+	Unless required by applicable law or agreed to in writing, software distributed 
+	under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES 
+	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
+	the specific language governing permissions and limitations under the License. -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<parent>
+		<groupId>com.wso2telco.ids</groupId>
+		<artifactId>component-ids-parent</artifactId>
+		<version>2.2.0-SNAPSHOT</version>
+		<relativePath>../../parent/pom.xml</relativePath>
+	</parent>
+
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>sp-seamless-provision</artifactId>
+	<packaging>bundle</packaging>
+
+	<name>Sp Seamless Provisioner</name>
+
+	<properties>
+		<maven.javadoc.skip>true</maven.javadoc.skip>
+		<junit.version>4.11</junit.version>
+		<org.slf4j.verison>1.5.6</org.slf4j.verison>
+		<com.wso2telco.core.version>2.0.22-SNAPSHOT</com.wso2telco.core.version>
+		<org.apache.maven.compiler.plugins.version>3.3</org.apache.maven.compiler.plugins.version>
+		<org.apache.maven.compiler.plugins.config.source.version>1.7</org.apache.maven.compiler.plugins.config.source.version>
+		<org.apache.maven.surefire.plugins.version>2.19</org.apache.maven.surefire.plugins.version>
+		<org.apache.felix.src.plugin.version>1.9.0</org.apache.felix.src.plugin.version>
+	</properties>
+
+	<dependencies>
+		<dependency>
+    		<groupId>org.apache.felix</groupId>
+    		<artifactId>org.apache.felix.scr.annotations</artifactId>
+    		<version>1.9.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.wso2telco.core</groupId>
+			<artifactId>config-util</artifactId>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.wso2telco.core</groupId>
+			<artifactId>spprovisionservice</artifactId>
+			<version>${com.wso2telco.core.version}</version>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-jdk14</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.wso2.carbon</groupId>
+			<artifactId>org.wso2.carbon.logging</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
+
+		</dependency>
+		<dependency>
+			<groupId>org.wso2.carbon.identity</groupId>
+			<artifactId>org.wso2.carbon.identity.oauth</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>jcl-over-slf4j</artifactId>
+				</exclusion>
+
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>log4j-over-slf4j</artifactId>
+				</exclusion>
+
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>jul-to-slf4j</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-jdk14</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<type>jar</type>
+			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.wso2telco.core</groupId>
+			<artifactId>pcr-service</artifactId>
+			<version>${com.wso2telco.core.version}</version>
+			<scope>compile</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-jdk14</artifactId>
+				</exclusion>
+			</exclusions>
+
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${org.slf4j.verison}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${org.slf4j.verison}</version>
+		</dependency>
+	</dependencies>
+
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${org.apache.maven.compiler.plugins.version}</version>
+				<configuration>
+					<source>${org.apache.maven.compiler.plugins.config.source.version}</source>
+					<target>${org.apache.maven.compiler.plugins.config.source.version}</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>${org.apache.maven.surefire.plugins.version}</version>
+				<configuration>
+					<skipTests>false</skipTests>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-scr-plugin</artifactId>
+				<version>${org.apache.felix.src.plugin.version}</version>
+				<executions>
+					<execution>
+						<id>generate-scr-scrdescriptor</id>
+						<goals>
+							<goal>scr</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<version>${maven.bundle.plugin.version}</version>
+				<configuration>
+					<instructions>
+						<Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
+						<Bundle-Name>${project.artifactId}</Bundle-Name>
+						<Bundle-Version>${project.version}</Bundle-Version>
+						<Bundle-Description>Open ID Token Builder Bundle</Bundle-Description>
+						<Import-Package>
+							com.wso2telco.core.spprovisionservice.*
+						</Import-Package>
+						<Export-Package>
+							com.wso2telco.sp.*,com.wso2telco.carbon.*
+						</Export-Package>
+						<Embed-Dependency>
+							nimbus-jose-jwt|json-smart;scope=compile|runtime;inline=false
+						</Embed-Dependency>
+						<DynamicImport-Package>*</DynamicImport-Package>
+					</instructions>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
