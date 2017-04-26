@@ -250,7 +250,7 @@
 																	 alt="Mobile Connect&nbsp;Logo" width="150"
 																	 class="site-header__logo"></a>
 			<% if (!operator.isEmpty()) {
-				String imgPath = "images/branding/" + operator + "_logo.svg";
+				String imgPath = "mcx-user-registration/images/branding/" + operator + "_logo.svg";
 			%>
 			<p class="site-header__powered-by">powered&nbsp;by
 

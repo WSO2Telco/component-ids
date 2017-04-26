@@ -82,7 +82,7 @@
               <a href="/"><img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo"></a>
               
               <% if(operator != ""){ 
-              String imgPath = "img/branding/" + operator + "_logo.svg";
+              String imgPath = "mcx-user-registration/images/branding/" + operator + "_logo.svg";
               %>
               <p class="site-header__powered-by">powered&nbsp;by      
               </p>
