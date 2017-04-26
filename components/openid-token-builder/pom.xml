@@ -106,7 +106,7 @@
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-scr-plugin</artifactId>
-				<version>1.7.2</version>
+				<version>1.9.0</version>
 				<executions>
 					<execution>
 						<id>generate-scr-scrdescriptor</id>
@@ -127,7 +127,7 @@
 						<Bundle-Name>${project.artifactId}</Bundle-Name>
 						<Bundle-Version>${project.version}</Bundle-Version>
 						<Bundle-Description>Open ID Token Builder Bundle</Bundle-Description>
-						<Private-Package>com.wso2telco.internal</Private-Package>
+						<!-- <Private-Package>com.wso2telco.internal</Private-Package> -->
 						<Import-Package>
 							javax.xml.namespace,
 							javax.xml.stream,
@@ -193,7 +193,7 @@
 						<Export-Package>
 							com.wso2telco.claimhandler.*, com.wso2telco.dao.*, com.wso2telco.model.*,
 							com.wso2telco.openidtokenbuilder.*, com.wso2telco.reqpathsequencehandler.*,
-							com.wso2telco.transaction.log.*, com.wso2telco.util.*,!com.wso2telco.internal.*
+							com.wso2telco.transaction.log.*, com.wso2telco.util.*,com.wso2telco.internal.*
 						</Export-Package>
 						<Embed-Dependency>
 							nimbus-jose-jwt|json-smart;scope=compile|runtime;inline=false

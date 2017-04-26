@@ -15,6 +15,48 @@
  ******************************************************************************/
 package com.wso2telco.proxy.entity;
 
+import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.rmi.RemoteException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.naming.ConfigurationException;
+import javax.naming.NamingException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriInfo;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminService;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceException;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceStub;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceUserRegistrationException;
+import org.wso2.carbon.identity.user.registration.stub.dto.UserDTO;
+import org.wso2.carbon.identity.user.registration.stub.dto.UserFieldDTO;
+
 import com.google.gdata.util.common.util.Base64DecoderException;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.wso2telco.core.config.model.LoginHintFormatDetails;
@@ -22,6 +64,13 @@ import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.spprovisionservice.sp.entity.AdminServiceConfig;
+import com.wso2telco.core.spprovisionservice.sp.entity.AdminServiceDto;
+import com.wso2telco.core.spprovisionservice.sp.entity.ProvisionType;
+import com.wso2telco.core.spprovisionservice.sp.entity.ServiceProviderDto;
+import com.wso2telco.core.spprovisionservice.sp.entity.SpProvisionConfig;
+import com.wso2telco.core.spprovisionservice.sp.entity.SpProvisionDto;
+import com.wso2telco.core.spprovisionservice.sp.exception.SpProvisionServiceException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.proxy.MSISDNDecryption;
@@ -32,6 +81,11 @@ import com.wso2telco.proxy.util.AuthProxyConstants;
 import com.wso2telco.proxy.util.DBUtils;
 import com.wso2telco.proxy.util.Decrypt;
 import com.wso2telco.proxy.util.EncryptAES;
+import com.wso2telco.sp.discovery.service.DiscoveryService;
+import com.wso2telco.sp.discovery.service.impl.DiscoveryServiceImpl;
+import com.wso2telco.sp.provision.service.ProvisioningService;
+import com.wso2telco.sp.provision.service.impl.ProvisioningServiceImpl;
+import com.wso2telco.sp.util.TransformUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -71,6 +125,7 @@ public class Endpoints {
     private static MobileConnectConfig mobileConnectConfigs = null;
     private static Map<String, List<MSISDNHeader>> operatorsMSISDNHeadersMap;
     private static Map<String, MobileConnectConfig.OPERATOR> operatorPropertiesMap = null;
+    private static AdminServiceConfig adminServiceConfig = null;
 
     /**
      * The Configuration service
@@ -104,6 +159,8 @@ public class Endpoints {
             for (MobileConnectConfig.OPERATOR op : operators) {
                 operatorPropertiesMap.put(op.getOperatorName(), op);
             }
+            adminServiceConfig = new AdminServiceConfig();
+            getSpProvisionConfig(mobileConnectConfigs);
         } catch (SQLException e) {
             log.error("Error occurred while retrieving operator MSISDN properties of operators.");
         } catch (NamingException e) {
@@ -127,6 +184,7 @@ public class Endpoints {
         String redirectURL = queryParams.get(AuthProxyConstants.REDIRECT_URI).get(0);
         String scopeName = queryParams.get(AuthProxyConstants.SCOPE).get(0);
 
+        serviceProviderSeamlessProvision(httpServletRequest.getParameter("client_id"), redirectURL);
 
         //maintain userstatus related to request for data publishing purpose
         UserStatus userStatus = DataPublisherUtil.buildUserStatusFromRequest(httpServletRequest, null);
@@ -285,6 +343,64 @@ public class Endpoints {
         httpServletResponse.sendRedirect(redirectURL);
     }
 
+    private void serviceProviderSeamlessProvision(String client_id, String redirectURL) {
+        DiscoveryService discoveryService = new DiscoveryServiceImpl();
+        if (mobileConnectConfigs.isSeamlessProvisioningEnabled() && !client_id.isEmpty() && client_id != null &&
+                !redirectURL.isEmpty() && redirectURL != null) {
+            ServiceProviderDto serviceProviderDto = discoveryService.servceProviderCredentialDiscovery(
+                    TransformUtil.transformDiscoveryConfig(mobileConnectConfigs.getDiscoveryConfig(),
+                            mobileConnectConfigs),
+                    TransformUtil.transofrmDiscoveryDto(client_id, redirectURL),
+                    getServiceProviderDto(null, mobileConnectConfigs));
+
+            if (serviceProviderDto != null && serviceProviderDto.getExistance().equals(ProvisionType.REMOTE)
+                    && serviceProviderDto.getAdminServiceDto() != null) {
+                log.info("Provisioning Service Provider to Local data store....");
+                serviceProviderSeamlessProvision(serviceProviderDto);
+            }
+        }
+    }
+
+    private void serviceProviderSeamlessProvision(ServiceProviderDto serviceProvider) {
+
+        SpProvisionDto spProvisionDto = null;
+
+        try {
+
+            boolean isSeamlessProvisioningEnabled = mobileConnectConfigs.isSeamlessProvisioningEnabled();
+            MobileConnectConfig.Config config = mobileConnectConfigs.getSpProvisionConfig().getConfig();
+
+            if (isSeamlessProvisioningEnabled && serviceProvider != null) {
+                if (config != null) {
+                    spProvisionDto = getServiceProviderDto(serviceProvider, mobileConnectConfigs);
+                    ProvisioningService provisioningService = new ProvisioningServiceImpl();
+                    provisioningService.provisionServiceProvider(spProvisionDto);
+                } else {
+                    log.error("Config null");
+                }
+            }
+        } catch (SpProvisionServiceException e) {
+            log.error("Error occurred in provisioning a Service Provider " + e.getMessage());
+        }
+    }
+
+    private SpProvisionDto getServiceProviderDto(ServiceProviderDto serviceProvider,
+            MobileConnectConfig config) {
+        
+        SpProvisionDto spProvisionDto = TransformUtil.getServiceProviderDto(serviceProvider, config);
+        spProvisionDto.getSpProvisionConfig().setAdminServiceConfig(adminServiceConfig);
+        return spProvisionDto;
+
+    }
+
+    private static AdminServiceConfig getSpProvisionConfig(MobileConnectConfig config) {
+        adminServiceConfig.setAdminServiceUrl(config.getSpProvisionConfig().getAdminServiceUrl());
+        adminServiceConfig
+                .setApplicationManagementHostUrl(config.getSpProvisionConfig().getApplicationManagementHostUrl());
+        adminServiceConfig.setStubAccessPassword(config.getSpProvisionConfig().getStubAccessPassword());
+        adminServiceConfig.setStubAccessUserName(config.getSpProvisionConfig().getStubAccessUserName());
+        return adminServiceConfig;
+    }
 
     /**
      * Check if the Scope is allowed for SP
