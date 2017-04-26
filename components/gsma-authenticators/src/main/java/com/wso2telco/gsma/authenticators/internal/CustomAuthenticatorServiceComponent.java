@@ -81,6 +81,8 @@ public class CustomAuthenticatorServiceComponent {
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new USSDAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
+                new ConsentAuthenticator(), null);
+        ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new SmartPhoneAppAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new USSDPinAuthenticator(), null);
