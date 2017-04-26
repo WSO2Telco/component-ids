@@ -1020,6 +1020,13 @@ a:focus {
     background: 0;
     border: 0
 }
+
+.btn-danger {
+    color: #fff;
+    background-color: #d9534f;
+    border-color: #d43f3a;
+}
+
 .btn--inactive,
 .btn--inactive:hover,
 .btn--inactive:active,
