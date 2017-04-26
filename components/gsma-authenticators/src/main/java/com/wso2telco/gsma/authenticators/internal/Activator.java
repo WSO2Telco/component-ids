@@ -30,7 +30,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
-
+import com.wso2telco.gsma.authenticators.ConsentAuthenticator;
 import com.wso2telco.gsma.authenticators.GSMAMSISDNAuthenticator;
 import com.wso2telco.gsma.authenticators.LOACompositeAuthenticator;
 import com.wso2telco.gsma.authenticators.MSISDNAuthenticator;
@@ -86,6 +86,8 @@ public class Activator implements BundleActivator {
                 new GSMAMSISDNAuthenticator(), null);
         bundleContext.registerService(ApplicationAuthenticator.class.getName(),
                 new USSDAuthenticator(), null);
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new ConsentAuthenticator(), null);
         bundleContext.registerService(ApplicationAuthenticator.class.getName(),
                 new USSDPinAuthenticator(), null);
         bundleContext.registerService(ApplicationAuthenticator.class.getName(),

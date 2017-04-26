@@ -29,12 +29,12 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
 
-    <script src="js/landing.js" type="text/javascript"></script>
-    <script src="js/public/js/jquery.min.js" type="text/javascript"></script>
-    <script src="js/public/js/main.js" type="text/javascript"></script>
-    <script src="js/public/js/modal.js" type="text/javascript"></script>
-    <script src="mcresources/js/vendor/parsley.min.js" type="text/javascript"></script>
-    <link rel="stylesheet" href="mcresources/css/style.css">
+    <script src="mcx-user-registration/js/landing.js" type="text/javascript"></script>
+    <script src="mcx-user-registration/js/public/js/jquery.min.js" type="text/javascript"></script>
+    <script src="mcx-user-registration/js/public/js/main.js" type="text/javascript"></script>
+    <script src="mcx-user-registration/js/public/js/modal.js" type="text/javascript"></script>
+    <script src="mcx-user-registration/mcresources/js/vendor/parsley.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="mcx-user-registration/mcresources/css/style.css">
 
 
     <noscript>
@@ -57,15 +57,15 @@
             }
         };
     </script>
-    <script src="mcresources/js/vendor/webfontloader.js"></script>
+    <script src="mcx-user-registration/mcresources/js/vendor/webfontloader.js"></script>
     <!-- Adds IE root class without breaking doctype -->
     <!--[if IE]>
     <script>document.documentElement.className = document.documentElement.className + " ie";</script>
     <![endif]-->
 
     <!-- load main script early asyncronously -->
-    <script type="text/javascript" src="mcresources/js/main.js" async></script>
-    <script type="text/javascript" src="mcresources/js/vendor/modernizr.js"></script>
+    <script type="text/javascript" src="mcx-user-registration/mcresources/js/main.js" async></script>
+    <script type="text/javascript" src="mcx-user-registration/mcresources/js/vendor/modernizr.js"></script>
 
     <%
 	Logger log=Logger.getLogger(this.getClass().getName());
@@ -76,7 +76,7 @@
         String updateProfile = request.getParameter("updateProfile") != null ? request.getParameter("updateProfile") : "";
         log.info( "updateProfile :"+updateProfile );
         String authenticators = request.getParameter("authenticators");
-        String imgPath = "";
+        String imgPath = "mcx-user-registration/mcresources/img/svg/spark_logo.svg";
         String termsConditionsPath = "";
         if (operator != "") {
             imgPath = "mcx-user-registration/images/branding/" + operator + "_logo.svg";
@@ -94,7 +94,7 @@
     <header class="site-header">
         <div class="site-header__inner site__wrap">
             <h1 class="visuallyhidden">Mobile Connect</h1>
-            <a href="/"><img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150"
+            <a href="/"><img src="mcx-user-registration/mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150"
                              class="site-header__logo"></a>
 
             <p class="site-header__powered-by">powered by
@@ -116,49 +116,19 @@
             <p>Create a PIN for secure log-in and two questions we can ask you in case you ever forget
                 your&nbsp;PIN.</p>
         </header>
-        <div class="slider slider--all slick v-grow" id="slider">
+        <div>
             <section class="slider__slide">
                 <div class="slider__slide-inner v-distribute">
                     <header class="page__header">
-                        <h1 class="page__heading">Secure</h1>
-                        <p>A safer, more secure way to&nbsp;log-in.</p>
-                        <a href="https://mobileconnect.io/" class="cta">Learn more</a>
-                    </header>
-                    <div class="page__illustration v-grow v-align-content">
-                        <div>
-                            <img src="mcresources/img/svg/secure.svg" alt="Secure" width="106" height="126">
+                        <!--h1 class="page__heading">Private</h1-->
+                        <h4>Please provide your consent to register in order to access the <br><b>SMS, Payment API</b></h4>
+                        <div class="page__illustration v-grow v-align-content">
+                            <div>
+                                <img src="mcx-user-registration/mcresources/img/svg/personal.svg" alt="Secure" width="106" height="126">
+                            </div>
                         </div>
-                    </div>
-                </div>
-            </section>
+                    </header>
 
-            <section class="slider__slide">
-                <div class="slider__slide-inner v-distribute">
-                    <header class="page__header">
-                        <h1 class="page__heading">Private</h1>
-                        <p>Your personal data is never shared without your&nbsp;permission.</p>
-                        <a href="https://mobileconnect.io/" class="cta">Learn more</a>
-                    </header>
-                    <div class="page__illustration v-grow v-align-content">
-                        <div>
-                            <img src="mcresources/img/svg/private.svg" alt="Private" width="160" height="107">
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="slider__slide">
-                <div class="slider__slide-inner v-distribute">
-                    <header class="page__header">
-                        <h1 class="page__heading">Convenient</h1>
-                        <p>No need for multiple passwords or&nbsp;usernames.</p>
-                        <a href="https://mobileconnect.io/" class="cta">Learn more</a>
-                    </header>
-                    <div class="page__illustration v-grow v-align-content">
-                        <div>
-                            <img src="mcresources/img/svg/convenient.svg" alt="Convenient" width="106" height="127">
-                        </div>
-                    </div>
                 </div>
             </section>
         </div>
@@ -195,15 +165,22 @@
 
             <div class="grid">
                 <div class="grid__item one-half">
-                    <a onclick="cancelProcessToRegister()" class="btn btn--outline btn--full btn--large">
-                        No thanks
+                    <a class="btn btn--fill btn--full btn--large" href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=approve">
+                        Approve
                     </a>
                 </div>
                 <div class="grid__item one-half">
-                    <button type="button" id="validate-btn1" onclick="accept()" name="action" value="yes"
-                            class="btn btn--full btn--fill btn--large btn--color">
-                        Yes
+                    <button type="button" id="validate-btn1" name="action" value="yes"
+                            class="btn btn--full btn--large btn-danger">
+                        Deny
                     </button>
+                </div>
+            </div>
+            <div class="grid space--half-top">
+                <div class="grid__item one-whole">
+                    <a class="btn btn--full btn--large btn--outline " href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=all">
+                        Approve always
+                    </a>
                 </div>
             </div>
         </form>
