@@ -44,6 +44,7 @@ public class AuthProxyConstants {
     public static final String OPERATOR_CLAIM_NAME = "http://wso2.org/claims/operator";
     public static final String PRIORITY = "priority";
     public static final String PROMPT = "prompt";
+    public static final String TELCO_PROMPT = "telco_prompt";
     public static final String PROPERTY_VALUE = "propertyValue";
     public static final String RC4_KEY = "RC4";
     public static final String REDIRECT_URI = "redirect_uri";
@@ -57,5 +58,9 @@ public class AuthProxyConstants {
     public static final String SHOW_TNC = "isShowTnc";
     public static final String LOGIN_HINT_MANDATORY = "isLoginhintMandatory";
     public static final String HEADER_MISMATCH_RESULT = "headerMismatchResult";
+    public static final String HE_FAILURE_RESULT = "heFailureResult";
+    public static final String LOGIN_HINT_MSISDN = "loginhintMsisdn";
+    public static final String CLIENT_ID = "client_id";
+    public static final String TRANSACTION_ID = "transactionId";
 
 }

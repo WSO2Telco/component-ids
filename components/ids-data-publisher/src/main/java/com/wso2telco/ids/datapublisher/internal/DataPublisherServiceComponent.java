@@ -16,11 +16,25 @@
 
 package com.wso2telco.ids.datapublisher.internal;
 
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.osgi.service.component.ComponentContext;
 
-/**
- *@scr.component name="ids.agent" immediate="true"
- */
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
+
+@Component(name = "com.wso2telco.ids.datapublisher.internal.DataPublisherServiceComponent",
+        immediate = true)
+@Reference(
+        name = "application.mgt.service",
+        referenceInterface = ApplicationManagementService.class,
+        cardinality = ReferenceCardinality.OPTIONAL_UNARY,
+        policy = ReferencePolicy.DYNAMIC,
+        bind = "setApplicationManagementService",
+        unbind = "unsetApplicationManagementService"
+)
 public class DataPublisherServiceComponent {
 
     protected void activate(ComponentContext context) {
@@ -28,4 +42,14 @@ public class DataPublisherServiceComponent {
 
     protected void deactivate(ComponentContext context) {
     }
+
+    protected void setApplicationManagementService(ApplicationManagementService applicationManagementService) {
+        DataPublisherUtil.setApplicationManagementService(applicationManagementService);
+    }
+
+    protected void unsetApplicationManagementService(ApplicationManagementService applicationManagementService) {
+        DataPublisherUtil.setApplicationManagementService(null);
+    }
+
+
 }

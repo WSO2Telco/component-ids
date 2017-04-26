@@ -121,6 +121,11 @@
     </servlet>
 
     <servlet>
+        <servlet-name>auth_pin_registration</servlet-name>
+        <jsp-file>/mcx-user-registration/pin_register.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>auth_registration_profile_upgrade</servlet-name>
         <jsp-file>/mcx-user-registration/profile_upgrade.jsp</jsp-file>
     </servlet>
@@ -131,6 +136,11 @@
     </servlet>
 
     <servlet>
+        <servlet-name>auth_registration_saa_waiting</servlet-name>
+        <jsp-file>/mcx-user-registration/saa_waiting.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>oauth2_logout_consent.do</servlet-name>
         <jsp-file>/oauth2_logout_consent.jsp</jsp-file>
     </servlet>
@@ -138,6 +148,27 @@
     <servlet>
         <servlet-name>oauth2_logout.do</servlet-name>
         <jsp-file>/logout.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>terms_and_conditions</servlet-name>
+        <jsp-file>/mcx-user-registration/terms_and_conditions.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>privacy_promise</servlet-name>
+        <jsp-file>/mcx-user-registration/privacy_promise.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>privacy_policy</servlet-name>
+        <jsp-file>/mcx-user-registration/privacy_policy.jsp</jsp-file>
+    </servlet>
+
+
+    <servlet>
+        <servlet-name>sms_auth</servlet-name>
+        <jsp-file>/mcx-user-registration/sms_auth.jsp</jsp-file>
     </servlet>
 
     <servlet>
@@ -191,6 +222,21 @@
     </servlet>
 
     <servlet-mapping>
+        <servlet-name>terms_and_conditions</servlet-name>
+        <url-pattern>/terms_and_conditions</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>privacy_policy</servlet-name>
+        <url-pattern>/privacy_policy</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>privacy_promise</servlet-name>
+        <url-pattern>/privacy_promise</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>retry.do</servlet-name>
         <url-pattern>/retry.do</url-pattern>
     </servlet-mapping>
@@ -211,6 +257,11 @@
     </servlet-mapping>
 
     <servlet-mapping>
+        <servlet-name>auth_pin_registration</servlet-name>
+        <url-pattern>/mcx-user-registration/auth_pin_registration</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>auth_registration_profile_upgrade</servlet-name>
         <url-pattern>/mcx-user-registration/auth_registration_profile_upgrade</url-pattern>
     </servlet-mapping>
@@ -218,6 +269,17 @@
     <servlet-mapping>
         <servlet-name>auth_registration_pin_reset</servlet-name>
         <url-pattern>/mcx-user-registration/auth_registration_pin_reset</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>auth_registration_saa_waiting</servlet-name>
+        <url-pattern>/mcx-user-registration/auth_registration_saa_waiting</url-pattern>
+    </servlet-mapping>
+
+
+    <servlet-mapping>
+        <servlet-name>sms_auth</servlet-name>
+        <url-pattern>/sms</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

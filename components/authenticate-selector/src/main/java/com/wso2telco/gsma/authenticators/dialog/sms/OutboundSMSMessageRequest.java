@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
- * 
+ *
  * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,34 +17,49 @@ package com.wso2telco.gsma.authenticators.dialog.sms;
 
 import java.util.List;
 
- 
+
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class OutboundSMSMessageRequest.
  */
 public class OutboundSMSMessageRequest {
 
-    /** The client correlator. */
+    /**
+     * The client correlator.
+     */
     private String clientCorrelator = "";
-    
-    /** The callback data. */
+
+    /**
+     * The callback data.
+     */
     private String callbackData = "";
-    
-    /** The address. */
+
+    /**
+     * The address.
+     */
     private List<String> address;
-    
-    /** The sender address. */
+
+    /**
+     * The sender address.
+     */
     private String senderAddress = "";
-    
-    /** The sender name. */
+
+    /**
+     * The sender name.
+     */
     private String senderName = "";
 
-    /** The outbound sms text message. */
+    /**
+     * The outbound sms text message.
+     */
     private OutboundSMSTextMessage outboundSMSTextMessage;
 //    private ReceiptRequest receiptRequest;
 
-    /** The receipt request. */
-private ReceiptRequest receiptRequest;
+    /**
+     * The receipt request.
+     */
+    private ReceiptRequest receiptRequest;
 
 
     /**
@@ -71,7 +86,7 @@ private ReceiptRequest receiptRequest;
     public void setClientCorrelator(String clientCorrelator) {
         this.clientCorrelator = clientCorrelator;
     }
-    
+
     /**
      * Gets the sender address.
      *
@@ -150,7 +165,8 @@ private ReceiptRequest receiptRequest;
 //
 //    public void setReceiptRequest(ReceiptRequest receiptRequest) {
 //            this.receiptRequest = receiptRequest;
-/**
+
+    /**
      * Gets the sender name.
      *
      * @return the sender name
@@ -168,14 +184,14 @@ private ReceiptRequest receiptRequest;
     public void setSenderName(String senderName) {
         this.senderName = senderName;
     }
-    
+
     /**
      * Gets the receipt request.
      *
      * @return the receipt request
      */
     public ReceiptRequest getReceiptRequest() {
-            return receiptRequest;
+        return receiptRequest;
     }
 
     /**
@@ -184,7 +200,7 @@ private ReceiptRequest receiptRequest;
      * @param receiptRequest the new receipt request
      */
     public void setReceiptRequest(ReceiptRequest receiptRequest) {
-            this.receiptRequest = receiptRequest;
+        this.receiptRequest = receiptRequest;
     }
 
 }

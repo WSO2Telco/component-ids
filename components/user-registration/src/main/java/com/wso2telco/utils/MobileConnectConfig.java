@@ -5,6 +5,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import java.util.List;
+
 @Deprecated
 @XmlRootElement(name = "MobileConnectConfig")
 public class MobileConnectConfig {
@@ -20,7 +21,7 @@ public class MobileConnectConfig {
 
     @XmlElement(name = "MSS")
     protected MSS mss;
-    
+
     @XmlElement(name = "HEADERENRICH")
     protected HEADERENRICH headerenrich;
 
@@ -28,12 +29,12 @@ public class MobileConnectConfig {
     public String getDataSourceName() {
         return dataSourceName;
     }
-    
+
     @XmlElement(name = "EncryptAppend")
     public String getEncryptAppend() {
         return encryptAppend;
     }
-    
+
     @XmlElement(name = "Keyfile")
     public String getKeyfile() {
         return keyfile;
@@ -61,15 +62,15 @@ public class MobileConnectConfig {
         }
         return listenerWebappHost;
     }
-    
+
     public void setDataSourceName(String dataSourceName) {
         this.dataSourceName = dataSourceName;
     }
-    
+
     public void setEncryptAppend(String EncryptAppend) {
         this.encryptAppend = EncryptAppend;
     }
-    
+
     public void setKeyfile(String Keyfile) {
         this.keyfile = Keyfile;
     }
@@ -77,7 +78,7 @@ public class MobileConnectConfig {
     public void setGsmaExchangeConfig(GSMAExchangeConfig gsmaExchangeConfig) {
         this.gsmaExchangeConfig = gsmaExchangeConfig;
     }
-    
+
     public void setSmsConfig(SMSConfig smsConfig) {
         this.smsConfig = smsConfig;
     }
@@ -127,11 +128,11 @@ public class MobileConnectConfig {
         public String getAuthToken() {
             return authToken;
         }
-        
+
         @XmlElement(name = "ServingOperator")
-		public ServingOperator getServingOperator() {
-			return servingOperator;
-		}
+        public ServingOperator getServingOperator() {
+            return servingOperator;
+        }
 
         public void setServingOperatorHost(String servingOperatorHost) {
             this.servingOperatorHost = servingOperatorHost;
@@ -145,9 +146,9 @@ public class MobileConnectConfig {
             this.authToken = authToken;
         }
 
-		public void setServingOperator(ServingOperator servingOperator) {
-			this.servingOperator = servingOperator;
-		}
+        public void setServingOperator(ServingOperator servingOperator) {
+            this.servingOperator = servingOperator;
+        }
     }
 
     public static class SMSConfig {
@@ -225,20 +226,23 @@ public class MobileConnectConfig {
         public String getPinauth() {
             return pinauth;
         }
+
         @XmlElement(name = "DashBoard")
         public String getDashBoard() {
             return dashBoard;
         }
+
         @XmlElement(name = "USSDContextEndpoint")
         public String getUssdContextEndpoint() {
-			return ussdContextEndpoint;
-		}
+            return ussdContextEndpoint;
+        }
+
         @XmlElement(name = "USSDPinContextEndpoint")
         public String getUssdPinContextEndpoint() {
-			return ussdPinContextEndpoint;
-		}
-        
-        
+            return ussdPinContextEndpoint;
+        }
+
+
         public void setEndpoint(String endpoint) {
             this.endpoint = endpoint;
         }
@@ -258,23 +262,23 @@ public class MobileConnectConfig {
         public void setKeyword(String keyword) {
             this.keyword = keyword;
         }
-        
+
         public void setPinauth(String pinauth) {
             this.pinauth = pinauth;
         }
-        
+
         public void setDashBoard(String dashBoard) {
             this.dashBoard = dashBoard;
         }
 
-		public void setUssdContextEndpoint(String ussdContextEndpoint) {
-			this.ussdContextEndpoint = ussdContextEndpoint;
-		}
+        public void setUssdContextEndpoint(String ussdContextEndpoint) {
+            this.ussdContextEndpoint = ussdContextEndpoint;
+        }
 
-		public void setUssdPinContextEndpoint(String ussdPinContextEndpoint) {
-			this.ussdPinContextEndpoint = ussdPinContextEndpoint;
-		}
-        
+        public void setUssdPinContextEndpoint(String ussdPinContextEndpoint) {
+            this.ussdPinContextEndpoint = ussdPinContextEndpoint;
+        }
+
     }
 
     /*public static class HEADERENRICH {
@@ -352,6 +356,7 @@ public class MobileConnectConfig {
         public String getKey() {
             return key;
         }
+
         public void setKey(String key) {
             this.key = key;
         }
@@ -390,8 +395,9 @@ public class MobileConnectConfig {
             return operatorName;
         }
 
-        public void setOperatorName(String operatorName){ this.operatorName = operatorName; }
-
+        public void setOperatorName(String operatorName) {
+            this.operatorName = operatorName;
+        }
 
 
     }
@@ -419,7 +425,6 @@ public class MobileConnectConfig {
         public void setMssPinTest(String mssPinTest) {
             this.mssPinTest = mssPinTest;
         }
-
 
 
         @XmlElement(name = "Endpoint")

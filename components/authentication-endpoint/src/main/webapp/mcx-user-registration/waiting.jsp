@@ -47,7 +47,6 @@
         <![endif]-->
         <script type="text/javascript" src="mcresources/js/vendor/modernizr.js"></script>
         <%
-System.out.println("waiting.jsp-----------------------------------------");
         String acr = request.getParameter("http://wso2.org/claims/loa")!= null ?  request.getParameter("http://wso2.org/claims/loa") : "";
         String sessionDataKey = request.getParameter("sessionDataKey")!= null ?  request.getParameter("sessionDataKey") : "";
         String operator = request.getParameter("operator")!= null ?  request.getParameter("operator") : "";
@@ -71,7 +70,7 @@ System.out.println("waiting.jsp-----------------------------------------");
 
         
 
-        </script> 
+        </script>
         <script src="js/waiting.js"></script>
       </head>
 
@@ -151,7 +150,7 @@ System.out.println("waiting.jsp-----------------------------------------");
     <div align="center" id ="sms_fallback" style="display:block">
       <p>No message arrived? <br><u><a onclick="sendSms()" style="cursor: pointer;">Click to get a text message instead.</a><u></p>
     </div>
-    <a onclick="cancelProcessToRegister('<%=sessionDataKey%>')" class="btn btn--outline btn--full btn--large">
+    <a onclick="cancelProcessToRegister(true)" class="btn btn--outline btn--full btn--large">
       Cancel
     </a>
   </main>
@@ -189,9 +188,24 @@ function sendSms(){
   console.log(isTimeout);
 
   isTimeout = true;
-  handleTerminationSms();
+  handleTerminationSms(getUrlParameter('sessionDataKey'));
 
 }
+
+var getUrlParameter = function getUrlParameter(sParam) {
+    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+};
 
 </script>
 </body>

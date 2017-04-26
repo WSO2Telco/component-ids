@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
- * 
+ *
  * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,12 +16,13 @@
 package com.wso2telco.user.impl;
 
 
-import com.wso2telco.config.ConfigLoader;
-import com.wso2telco.config.DataHolder;
-import com.wso2telco.config.Scope;
-import com.wso2telco.config.ScopeConfigs;
+import com.google.gson.Gson;
+import com.wso2telco.config.*;
+import com.wso2telco.dao.DBConnection;
+import com.wso2telco.dao.ScopeDetails;
 import com.wso2telco.util.ClaimUtil;
 import org.apache.amber.oauth2.common.utils.JSONUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
@@ -35,24 +36,43 @@ import org.wso2.carbon.identity.oauth.user.UserInfoEndpointException;
 import org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * The Class ClaimInfoMultipleScopeResponseBuilder.
  */
 public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBuilder {
-    
-    /** The log. */
+
+    /**
+     * The log.
+     */
     private static Log log = LogFactory.getLog(ClaimInfoMultipleScopeResponseBuilder.class);
 
-    /** The openid scopes. */
-    List<String> openidScopes = Arrays.asList("profile", "email", "address", "phone", "openid");
+    private final String hashPhoneScope = "mc_identity_phonenumber_hashed";
+
+    private final String phone_number_claim = "phone_number";
+
+    /**
+     * The openid scopes.
+     */
+    List<String> openidScopes = Arrays.asList("profile", "email", "address", "phone", "openid",
+            "mc_identity_phonenumber_hashed");
 
     /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder#getResponseString(org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO)
+     * @see org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder#getResponseString(org.wso2.carbon.identity
+     * .oauth2.dto.OAuth2TokenValidationResponseDTO)
      */
-    public String getResponseString(OAuth2TokenValidationResponseDTO tokenResponse) throws UserInfoEndpointException, OAuthSystemException {
+    public String getResponseString(OAuth2TokenValidationResponseDTO tokenResponse) throws UserInfoEndpointException,
+            OAuthSystemException {
+
+        if (log.isDebugEnabled()) {
+            log.debug("Generating Claim Info for Access token : " + tokenResponse.getAuthorizationContextToken()
+                    .getTokenString());
+        }
 
         Map<ClaimMapping, String> userAttributes = getUserAttributesFromCache(tokenResponse);
         Map<String, Object> claims = null;
@@ -77,11 +97,11 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
 //            if (log.isDebugEnabled()) {
 //                log.debug("User attributes not found in cache. Trying to retrieve from user store.");
 //            }
-            try {
-                claims = ClaimUtil.getClaimsFromUserStore(tokenResponse);
-            } catch (Exception e) {
-                throw new UserInfoEndpointException("Error while retrieving claims from user store.");
-            }
+        try {
+            claims = ClaimUtil.getClaimsFromUserStore(tokenResponse);
+        } catch (Exception e) {
+            throw new UserInfoEndpointException("Error while retrieving claims from user store.");
+        }
 //        }
 
         String contextPath = System.getProperty("request.context.path");
@@ -91,14 +111,24 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
             //oauth2/userinfo requests should serve scopes in openid connect onl
             requestedScopes = getValidScopes(requestedScopes);
         }
-        Map<String, Object> requestedClaims = getRequestedClaims(requestedScopes, scopeConfigs, claims);
 
+        Map<String, Object> requestedClaims = null;
         try {
-            return JSONUtils.buildJSON(requestedClaims);
-
-        } catch (JSONException e) {
-            throw new UserInfoEndpointException("Error while generating the response JSON");
+            DBConnection dbConnection = DBConnection.getInstance();
+            ScopeDetails scopeDetails = dbConnection.getScopeFromAcessToken(tokenResponse
+                    .getAuthorizationContextToken().getTokenString());
+            requestedClaims = getRequestedClaims(requestedScopes, scopeConfigs, claims);
+            requestedClaims.put("sub", scopeDetails.getPcr());
+        } catch (NoSuchAlgorithmException e) {
+            throw new UserInfoEndpointException("Error while generating hashed claim values.");
+        } catch (Exception e) {
+            throw new UserInfoEndpointException("Error while generating sub value");
         }
+
+        Gson gson = new Gson();
+        String userInfoJson = gson.toJson(requestedClaims);
+        log.debug("User data JSON " + userInfoJson);
+        return userInfoJson;
     }
 
     /**
@@ -110,7 +140,8 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
     private Map<ClaimMapping, String> getUserAttributesFromCache(OAuth2TokenValidationResponseDTO tokenResponse) {
         AuthorizationGrantCacheKey cacheKey = new AuthorizationGrantCacheKey(tokenResponse
                 .getAuthorizationContextToken().getTokenString());
-        AuthorizationGrantCacheEntry cacheEntry = (AuthorizationGrantCacheEntry) AuthorizationGrantCache.getInstance().getValueFromCache(cacheKey);
+        AuthorizationGrantCacheEntry cacheEntry = (AuthorizationGrantCacheEntry) AuthorizationGrantCache.getInstance
+                ().getValueFromCache(cacheKey);
         if (cacheEntry == null) {
             return new HashMap<ClaimMapping, String>();
         }
@@ -120,27 +151,32 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
     /**
      * Gets the requested claims.
      *
-     * @param scopes the scopes
+     * @param scopes       the scopes
      * @param scopeConfigs the scope configs
-     * @param totalClaims the total claims
+     * @param totalClaims  the total claims
      * @return the requested claims
      */
-    private Map<String, Object> getRequestedClaims(String[] scopes, ScopeConfigs scopeConfigs, Map<String, Object> totalClaims) {
+    private Map<String, Object> getRequestedClaims(String[] scopes, ScopeConfigs scopeConfigs, Map<String, Object>
+            totalClaims) throws NoSuchAlgorithmException {
         Map<String, Object> requestedClaims = new HashMap<String, Object>();
-        String[] attributes;
         if (scopeConfigs != null) {
-            for (String scopeName : scopes) {
-            	log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + scopeName);
+            if (ArrayUtils.contains(scopes, hashPhoneScope)) {
+                String hashed_msisdn = getHashedClaimValue((String) totalClaims.get(phone_number_claim));
+                requestedClaims.put(phone_number_claim, hashed_msisdn);
+            } else {
                 for (Scope scope : scopeConfigs.getScopes().getScopeList()) {
-                	log.info("<<<<<<< " + scope.getName());
-                    if (scopeName.equals(scope.getName())) {
-                        attributes = new String[scope.getClaims().getClaimValues().size()];
-                        requestedClaims = addClaims(totalClaims, requestedClaims, scope.getClaims().getClaimValues().toArray(attributes));
-                        log.info("added claim ");
-                        break;
+                    if (ArrayUtils.contains(scopes, scope.getName())) {
+                        for (String claims : scope.getClaims().getClaimValues()) {
+                            if (totalClaims.get(claims) == null) {
+                                requestedClaims.put(claims, "");
+                            } else {
+                                requestedClaims.put(claims, totalClaims.get(claims));
+                            }
+                        }
                     }
                 }
             }
+
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Could not load user-info claims.");
@@ -149,25 +185,6 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         return requestedClaims;
     }
 
-
-    /**
-     * Adds the claims.
-     *
-     * @param claims the claims
-     * @param requestedClaims the requested claims
-     * @param attributeList the attribute list
-     * @return the map
-     */
-    private Map<String, Object> addClaims(Map<String, Object> claims, Map<String, Object> requestedClaims, String[] attributeList) {
-        int attributeIndex = 0;
-        while (attributeIndex < attributeList.length) {
-            if (claims.get(attributeList[attributeIndex]) != null) {
-                requestedClaims.put(attributeList[attributeIndex], claims.get(attributeList[attributeIndex]));
-            }
-            attributeIndex++;
-        }
-        return requestedClaims;
-    }
 
     /**
      * Gets the valid scopes.
@@ -185,4 +202,21 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         }
         return validScopes.toArray(new String[validScopes.size()]);
     }
+
+    private String getHashedClaimValue(String claimValue) throws NoSuchAlgorithmException {
+
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        md.update(claimValue.getBytes());
+
+        byte byteData[] = md.digest();
+
+        //convert the byte to hex format
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < byteData.length; i++) {
+            sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
+        }
+
+        return sb.toString();
+    }
+
 }

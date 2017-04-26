@@ -6,12 +6,13 @@ var isTimeout = false;
 var status;
 var pollingVar;
 var STATUS_PIN_FAIL ="FAILED_ATTEMPTS";
+var STATUS_PENDING = "PENDING";
+var STATUS_APPROVED = "APPROVED";
 var pinResetUrl;
+var smsRequested = false;
+var xhr;
 
 $(document).ready(function(){
-
-
-
 
 	// The template code
 	var templateSource = $("#results-template").html();
@@ -63,21 +64,23 @@ function pollForStatus() {
 /*
  * Handle polling termination and form submit.
  */
-function handleTermination() {
+function handleTermination(cancelButton) {
 	window.clearInterval(pollingVar);
 
-	if(status == STATUS_PIN_FAIL){
-		//var name = 'msisdn';
-		var msisdn = document.getElementById('msisdn').value;
-		if(msisdn){
-			window.location = pinResetUrl+"&msisdn="+msisdn;
-		}else{
-			window.location = pinResetUrl+"&msisdn=not_found";
-		}
 
-	}else {
-		document.getElementById('loginForm').submit();
+
+	var sessionDataKey = qs('sessionDataKey');
+	var commonAuthURL;
+	var action = "userRespondedOrTimeout";
+	if(cancelButton){
+		action = "userCanceled";
 	}
+
+	commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
+		+ "&msisdn=" + msisdn
+		+ "&action=" + action + "&canHandle=true";
+
+	window.location = commonAuthURL;
 	//}, 5000);
 }
 
@@ -85,19 +88,17 @@ function handleTermination() {
  * Invoke the endpoint to retrieve USSD status.
  */
 function checkUSSDResponseStatus() {
-
+	if(smsRequested)
+		return;
 	var sessionId = document.getElementById('sessionDataKey').value;
 	var url = "../sessionupdater/tnspoints/endpoint/ussd/status?sessionID=" + sessionId;
-	var STATUS_PENDING = "PENDING";
 
-
-	$.ajax({
+	xhr = $.ajax({
 		type: "GET",
 		url:url,
 		async: false,
 		cache: false,
 		success:function(result){
-
 			if(result != null) {
 				var responseStatus = result.status;
 
@@ -140,19 +141,12 @@ function getCookieAndResend() {
 	});
 }
 
-function sendSMS(prefix){
-
-	var operator = getUrlVars()["operator"];
-	var client_id = getUrlVars()["relyingParty"];
-	var redirect_uri = getUrlVars()["redirect_uri"];
-	var acr_values = getUrlVars()["acr_values"];
-	var state = getUrlVars()["state"];
-	var scope = getUrlVars()["scope"];
-	var msisdn = document.getElementById('msisdn').value;
-	var nonce = getUrlVars()["nonce"];
-	var smsFallbackURL = prefix + "oauth2/authorize?scope=" + scope +"&response_type=code&redirect_uri=" + redirect_uri +"&client_id="+ client_id +"&msisdn="+msisdn +"&acr_values="+ "5" + "&state=" + state+ "&nonce=" + nonce;;
-
-	window.location = smsFallbackURL;
+function sendSMS(key){
+	smsRequested = true;
+	if(xhr)
+		xhr.abort();
+	window.clearInterval(pollingVar);
+	window.location = "/commonauth?sessionDataKey="+key+"&smsrequested=true";
 }
 
 function getUrlVars()

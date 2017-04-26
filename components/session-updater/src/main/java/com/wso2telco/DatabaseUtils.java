@@ -15,28 +15,20 @@
  ******************************************************************************/
 package com.wso2telco;
 
-import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import com.wso2telco.entity.LoginHistory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
+import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.sql.DataSource;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.wso2telco.entity.LoginHistory;
 
 
 // TODO: Auto-generated Javadoc
@@ -110,8 +102,7 @@ public class DatabaseUtils {
             log.error("Naming Error occurred: " + ex);
             //Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            log.error("SQL Error occurred: " + e);
-            System.out.print(e.getMessage());
+            log.error("Error while updating user status", e);
         } finally {
             connection.close();
         }
@@ -130,9 +121,9 @@ public class DatabaseUtils {
         PreparedStatement ps = null;
 
         String sql =
-                "update `clientstatus` set "
-                        + "Status=? where "
-                        + "SessionID=?;";
+                "update `regstatus` set "
+                        + "status=? where "
+                        + "uuid=?;";
 
         try {
             connection = getUssdDBConnection();
@@ -149,8 +140,7 @@ public class DatabaseUtils {
             log.error("Naming Error occurred: " + ex);
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            log.error("SQL Error occurred: " + e);
-            System.out.print(e.getMessage());
+            log.error("Error while updating status", e);
         } finally {
             connection.close();
         }
@@ -189,8 +179,7 @@ public class DatabaseUtils {
             log.error("Naming Error occurred: " + ex);
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            log.error("SQL Error occurred: " + e);
-            System.out.print(e.getMessage());
+            log.error("Error while updating registration status", e);
         } finally {
             connection.close();
         }
@@ -229,7 +218,7 @@ public class DatabaseUtils {
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while updating pin status", e);
         } finally {
             connection.close();
         }
@@ -245,7 +234,8 @@ public class DatabaseUtils {
      * @param ussdSessionID the ussd session id
      * @throws SQLException the SQL exception
      */
-    public static void updatePinStatus(String sessionID, String status, String userpin, String ussdSessionID) throws SQLException {
+    public static void updatePinStatus(String sessionID, String status, String userpin, String ussdSessionID) throws
+            SQLException {
 
         Connection connection = null;
 
@@ -283,7 +273,7 @@ public class DatabaseUtils {
 
         } catch (SQLException e) {
 
-            System.out.print(e.getMessage());
+            log.error("Error while updating pin status", e);
 
         } finally {
 
@@ -323,14 +313,16 @@ public class DatabaseUtils {
             }
 
         } catch (NamingException ex) {
+            log.error("Naming Exception ", ex);
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while retrieving user status", e);
         } finally {
             connection.close();
 
         }
 
+        log.info("UserStatus " + userStatus);
         return userStatus;
     }
 
@@ -377,7 +369,7 @@ public class DatabaseUtils {
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.info("Error while reading multiple password attempts", e);
         } finally {
             connection.close();
         }
@@ -409,7 +401,7 @@ public class DatabaseUtils {
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while checking for first pin request", e);
         } finally {
             connection.close();
         }
@@ -447,7 +439,7 @@ public class DatabaseUtils {
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while updating multiple password attempts", e);
         } finally {
             connection.close();
         }
@@ -471,7 +463,7 @@ public class DatabaseUtils {
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while deleting user", e);
         } finally {
             connection.close();
         }
@@ -487,7 +479,8 @@ public class DatabaseUtils {
      * @return the login history
      * @throws SQLException the SQL exception
      */
-    public static List<LoginHistory> getLoginHistory(String userId, String application, Date fromDate, Date toDate) throws SQLException {
+    public static List<LoginHistory> getLoginHistory(String userId, String application, Date fromDate, Date toDate)
+            throws SQLException {
         Connection connection = null;
         PreparedStatement ps = null;
         String userStatus = null;
@@ -499,7 +492,8 @@ public class DatabaseUtils {
 
         List<LoginHistory> loghistory = new ArrayList();
 
-        String sql = "SELECT id, reqtype, application_id, authenticated_user, isauthenticated, authenticators, ipaddress, created_date "
+        String sql = "SELECT id, reqtype, application_id, authenticated_user, isauthenticated, authenticators, " +
+                "ipaddress, created_date "
                 + "FROM sp_login_history "
                 + "WHERE application_id like ? "
                 + "AND authenticated_user = ? "
@@ -525,13 +519,14 @@ public class DatabaseUtils {
                 sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
                 String creationDate = sdf.format(rs.getTimestamp("created_date"));
                 loghistory.add(new LoginHistory(rs.getString("application_id"), rs.getString("authenticated_user"),
-                        (rs.getInt("isauthenticated") == 1) ? "SUCCESS" : "FAILED", rs.getString("ipaddress"), creationDate));
+                        (rs.getInt("isauthenticated") == 1) ? "SUCCESS" : "FAILED", rs.getString("ipaddress"),
+                        creationDate));
             }
 
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while retrieving login history", e);
         } finally {
             connection.close();
 
@@ -570,7 +565,7 @@ public class DatabaseUtils {
         } catch (NamingException ex) {
             // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SQLException e) {
-            System.out.print(e.getMessage());
+            log.error("Error while retrieving login apps", e);
         } finally {
             connection.close();
 
@@ -661,4 +656,6 @@ public class DatabaseUtils {
 
         }
     }
+
+
 }

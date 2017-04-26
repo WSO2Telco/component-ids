@@ -34,7 +34,14 @@
 				{{continue-on-device-intro-default}}
 				<%}%>
 
-			</p>
+                <%
+                    String acr = request.getParameter("acr_values");
+                    if (acr.equals("3")) {
+                        showSMSLink = false;
+                    }
+                %>
+
+            </p>
 		</header>
 
 		<div class="page__illustration v-grow v-align-content">
@@ -59,14 +66,14 @@
 		%>
 		<p class="page__copy flush">{{ussd-sent-resend-sms-prompt}}
 			<br>
-			<a onclick="sendSMS('<%=fallbackPrefix%>');" style="cursor:pointer"><u>
+			<a onclick="sendSMS('<%=request.getParameter("sessionDataKey")%>');" style="cursor:pointer"><u>
 				{{ussd-sent-resend-sms-button}}
 			</u></a>
 		</p>
 		<br>
 		<br>
 		<%} %>
-		<a onclick="handleTermination();" class="btn btn--outline btn--full btn--large">
+		<a onclick="handleTermination(true);" class="btn btn--outline btn--full btn--large">
 			{{misc-cancel-button}}
 		</a>
 	</main>

@@ -10,23 +10,28 @@ public class OpenIDScope extends Scope {
         super(scopeDTO);
     }
 
-    @Override public ScopeValidationResult validate(String callBackURL, String state) {
+    @Override
+    public ScopeValidationResult validate(String callBackURL, String state) {
         return super.validate(callBackURL, state);
     }
 
-    @Override public String createRedirectURL(String baseURL, Map<String, String> queryParameters) {
+    @Override
+    public String createRedirectURL(String baseURL, Map<String, String> queryParameters) {
         return super.createRedirectURL(baseURL, queryParameters);
     }
 
-    @Override public void executeAuthenticationFlow() {
+    @Override
+    public void executeAuthenticationFlow() {
         super.executeAuthenticationFlow();
     }
 
-    @Override public ScopeDTO getScopeDTO() {
+    @Override
+    public ScopeDTO getScopeDTO() {
         return super.getScopeDTO();
     }
 
-    @Override public void setScopeDTO(ScopeDTO scopeDTO) {
+    @Override
+    public void setScopeDTO(ScopeDTO scopeDTO) {
         super.setScopeDTO(scopeDTO);
     }
 }

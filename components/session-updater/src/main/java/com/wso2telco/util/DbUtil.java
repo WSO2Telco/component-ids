@@ -3,13 +3,16 @@ package com.wso2telco.util;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.exception.AuthenticatorException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -29,7 +32,9 @@ public class DbUtil {
 
     private static final Log log = LogFactory.getLog(DbUtil.class);
 
-    /** The Configuration service */
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     private static void initializeDatasources() throws AuthenticatorException {
@@ -90,7 +95,8 @@ public class DbUtil {
         return noOfAttempts;
     }
 
-    public static void updateMultiplePasswordNoOfAttempts(String username, int attempts) throws SQLException, AuthenticatorException {
+    public static void updateMultiplePasswordNoOfAttempts(String username, int attempts) throws SQLException,
+            AuthenticatorException {
 
         Connection connection = null;
         PreparedStatement ps = null;
@@ -110,7 +116,8 @@ public class DbUtil {
         }
     }
 
-    public static String updateRegistrationStatus(String uuid, String status) throws SQLException, AuthenticatorException {
+    public static String updateRegistrationStatus(String uuid, String status) throws SQLException,
+            AuthenticatorException {
 
         Connection connection;
         PreparedStatement ps;
@@ -167,7 +174,8 @@ public class DbUtil {
         }
     }
 
-    public static void insertPinAttempt(String msisdn, int attempts, String sessionId) throws SQLException, AuthenticatorException {
+    public static void insertPinAttempt(String msisdn, int attempts, String sessionId) throws SQLException,
+            AuthenticatorException {
 
         Connection connection = null;
         PreparedStatement ps = null;
@@ -186,6 +194,30 @@ public class DbUtil {
         if (connection != null) {
             connection.close();
         }
+    }
+
+    public static String getContextIDForHashKey(String hashKey) throws AuthenticatorException, SQLException {
+        String sessionDataKey = null;
+
+        String sql = "select contextid from sms_hashkey_contextid_mapping where hashkey=?";
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            connection = getConnectDBConnection();
+            ps = connection.prepareStatement(sql);
+            ps.setString(1, hashKey);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                sessionDataKey = rs.getString("contextid");
+            }
+        } catch (SQLException e) {
+            handleException(e.getMessage(), e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, rs, ps);
+        }
+        return sessionDataKey;
     }
 
     /**

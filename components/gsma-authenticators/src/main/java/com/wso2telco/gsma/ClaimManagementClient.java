@@ -33,7 +33,7 @@ public class ClaimManagementClient {
     }
 
     public boolean isUserExist(String msisdn) throws RemoteException,
-                                                     RemoteUserStoreManagerServiceUserStoreExceptionException {
+            RemoteUserStoreManagerServiceUserStoreExceptionException {
         return remoteUser.isExistingUser(msisdn);
     }
 }

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,30 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
+package com.wso2telco.entity;
 
-package com.wso2telco.gsma.authenticators.model;
+public class ClientDetails {
 
-public enum UserState {
+    private String deviceId;
+    private String platform;
+    private String pushToken;
 
-    HE_AUTH_PROCESSING_FAIL, HE_AUTH_PROCESSING,HE_AUTH_SUCCESS,
-    MSISDN_AUTH_SUCCESS,
-    MSISDN_AUTH_PROCESSING_FAIL,  MSISDN_AUTH_PROCESSING,
+    public String getDeviceId() {
+        return deviceId;
+    }
 
-    USSD_AUTH_PROCESSING_FAIL,USSD_AUTH_SUCCESS,
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
+    }
 
-    SMS_AUTH_PROCESSING_FAIL, SMS_AUTH_SUCCESS,
+    public String getPlatform() {
+        return platform;
+    }
 
-    SEND_USSD_PUSH,SEND_USSD_PUSH_FAIL,
+    public void setPlatform(String platform) {
+        this.platform = platform;
+    }
 
-    SEND_USSD_PIN, SEND_USSD_PIN_FAIL,
-    SEND_SMS,SEND_SMS_FAIL,
+    public String getPushToken() {
+        return pushToken;
+    }
 
-    RECEIVE_USSD_PUSH_APPROVED, RECEIVE_USSD_PUSH_FAIL, RECEIVE_USSD_PIN_APPROVED, RECEIVE_SMS_RESPONSE_SUCCESS,
-    RECEIVE_USSD_PUSH_REJECTED,  RECEIVE_USSD_PIN_REJECTED,
-    RECEIVE_SMS_RESPONSE_FAIL, LOGIN_SUCCESS,
-    INVALID_MNV_REQUEST,
-
-    REG_USER_TOKEN_FAIL,
-    IP_HEADER_NOT_IN_RANGE,
-    IP_HEADER_NOT_FOUND;
+    public void setPushToken(String pushToken) {
+        this.pushToken = pushToken;
+    }
 }

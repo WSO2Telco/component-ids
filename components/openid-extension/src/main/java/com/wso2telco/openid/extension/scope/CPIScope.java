@@ -19,21 +19,24 @@ import com.wso2telco.openid.extension.dto.ScopeDTO;
 
 import java.util.Map;
 
-public class CPIScope extends Scope{
+public class CPIScope extends Scope {
 
     public CPIScope(ScopeDTO scopeDTO) {
         super(scopeDTO);
     }
 
-    @Override public ScopeValidationResult validate(String callBackURL, String state) {
+    @Override
+    public ScopeValidationResult validate(String callBackURL, String state) {
         return super.validate(callBackURL, state);
     }
 
-    @Override public String createRedirectURL(String baseURL, Map<String, String> queryParameters) {
+    @Override
+    public String createRedirectURL(String baseURL, Map<String, String> queryParameters) {
         return super.createRedirectURL(baseURL, queryParameters);
     }
 
-    @Override public void executeAuthenticationFlow() {
+    @Override
+    public void executeAuthenticationFlow() {
         super.executeAuthenticationFlow();
     }
 

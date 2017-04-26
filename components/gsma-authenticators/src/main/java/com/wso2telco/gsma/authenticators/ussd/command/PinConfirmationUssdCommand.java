@@ -20,13 +20,16 @@ public class PinConfirmationUssdCommand extends UssdCommand {
 
     private static Log log = LogFactory.getLog(PinConfirmationUssdCommand.class);
 
-    /** The Configuration service */
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     @Override
     protected String getUrl(String msisdn) {
 
-        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
+        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig()
+                .getUssdConfig();
 
         String url = ussdConfig.getEndpoint();
         if (url.endsWith("/")) {
@@ -40,8 +43,10 @@ public class PinConfirmationUssdCommand extends UssdCommand {
     }
 
     @Override
-    protected USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String operator) {
-        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig();
+    protected USSDRequest getUssdRequest(String msisdn, String sessionID, String serviceProvider, String operator,
+                                         String client_id) {
+        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig()
+                .getUssdConfig();
 
         USSDRequest req = new USSDRequest();
 

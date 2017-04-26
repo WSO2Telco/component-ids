@@ -38,9 +38,9 @@ public abstract class Scope {
     }
 
     /**
-     *Create redirect URL with query parameters which are needed in the authentication flow
+     * Create redirect URL with query parameters which are needed in the authentication flow
      *
-     * @param baseURL base URL (authorize endpoint URL)
+     * @param baseURL         base URL (authorize endpoint URL)
      * @param queryParameters query parameter name and value
      * @return redirect URL
      */

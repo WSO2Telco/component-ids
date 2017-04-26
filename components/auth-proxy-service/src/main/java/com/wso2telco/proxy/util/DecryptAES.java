@@ -32,7 +32,9 @@ public class DecryptAES {
     private static MobileConnectConfig mobileConnectConfigs = null;
     private static String encryptionKey = null;
 
-    /** The Configuration service */
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     static {
@@ -45,16 +47,16 @@ public class DecryptAES {
 
     public static String decrypt(String encryptedText)
             throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, BadPaddingException,
-                   IllegalBlockSizeException, ConfigurationException {
+            IllegalBlockSizeException, ConfigurationException {
         if (encryptionKey != null) {
             byte[] encryptionKeyByteValue = encryptionKey.getBytes();
             SecretKey secretKey = new SecretKeySpec(encryptionKeyByteValue, AuthProxyConstants.ASE_KEY);
             String decryptedText = null;
-            if (encryptedText != null){
+            if (encryptedText != null) {
                 byte[] encryptedTextByte = Base64.decodeBase64(encryptedText);
                 Cipher cipher = Cipher.getInstance("AES");
 
-                cipher.init(Cipher.DECRYPT_MODE,secretKey);
+                cipher.init(Cipher.DECRYPT_MODE, secretKey);
                 byte[] decryptedByte = cipher.doFinal(encryptedTextByte);
                 decryptedText = new String(decryptedByte);
             }

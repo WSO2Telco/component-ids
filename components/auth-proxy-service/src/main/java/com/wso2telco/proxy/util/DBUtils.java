@@ -16,11 +16,10 @@
 package com.wso2telco.proxy.util;
 
 
-import com.wso2telco.core.config.model.MobileConnectConfig;
-import com.wso2telco.core.config.service.ConfigurationService;
-import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.config.model.LoginHintFormatDetails;
 import com.wso2telco.core.config.model.ScopeParam;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.model.MSISDNHeader;
 import com.wso2telco.proxy.model.Operator;
@@ -48,7 +47,14 @@ public class DBUtils {
     private static final Log log = LogFactory.getLog(DBUtils.class);
     private static DataSource dataSource = null;
 
-    /** The Configuration service */
+    /**
+     * The m connect datasource.
+     */
+    private static volatile DataSource mConnectDatasource = null;
+
+    /**
+     * The Configuration service
+     */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
     private static void initializeDatasource() throws NamingException {
@@ -57,10 +63,10 @@ public class DBUtils {
         }
 
         String dataSourceName = null;
-        MobileConnectConfig mobileConnectConfigs = ConfigLoader.getInstance().getMobileConnectConfig();
         try {
             Context ctx = new InitialContext();
-            dataSourceName = mobileConnectConfigs.getAuthProxy().getDataSourceName();
+            dataSourceName = configurationService.getDataHolder().getMobileConnectConfig().getAuthProxy()
+                    .getDataSourceName();
             if (dataSourceName != null) {
                 dataSource = (DataSource) ctx.lookup(dataSourceName);
             } else {
@@ -73,6 +79,22 @@ public class DBUtils {
         }
     }
 
+    private static void initializeConnectDatasource() throws NamingException {
+        if (mConnectDatasource != null) {
+            return;
+        }
+
+        String dataSourceName = null;
+        try {
+            Context ctx = new InitialContext();
+            ConfigurationService configurationService = new ConfigurationServiceImpl();
+            dataSourceName = configurationService.getDataHolder().getMobileConnectConfig().getDataSourceName();
+            mConnectDatasource = (DataSource) ctx.lookup(dataSourceName);
+        } catch (NamingException e) {
+            throw new NamingException("Error while looking up the data source : " + dataSourceName);
+        }
+    }
+
     private static Connection getConnection() throws SQLException, NamingException {
         initializeDatasource();
         if (dataSource != null) {
@@ -81,10 +103,28 @@ public class DBUtils {
         throw new SQLException("Sessions Datasource not initialized properly");
     }
 
+
+    /**
+     * Gets the connect db connection.
+     *
+     * @return the connect db connection
+     * @throws SQLException           the SQL exception
+     * @throws AuthenticatorException the authenticator exception
+     */
+    private static Connection getConnectDBConnection() throws SQLException, NamingException {
+        initializeConnectDatasource();
+
+        if (mConnectDatasource != null) {
+            return mConnectDatasource.getConnection();
+        }
+        throw new SQLException("Connect Datasource not initialized properly");
+    }
+
     /**
      * Get Operators' Properties.
+     *
      * @return operators properties map.
-     * @throws SQLException on errors.
+     * @throws SQLException    on errors.
      * @throws NamingException on errors.
      */
     public static Map<String, Operator> getOperatorProperties() throws SQLException, NamingException {
@@ -94,7 +134,7 @@ public class DBUtils {
         Map<String, Operator> operatorProperties = new HashMap<String, Operator>();
         String queryToGetOperatorProperties = "SELECT ID, operatorName, requiredIPValidation, ipHeader FROM operators";
         try {
-            connection = getConnection();
+            connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(queryToGetOperatorProperties);
             resultSet = preparedStatement.executeQuery();
 
@@ -114,8 +154,7 @@ public class DBUtils {
             throw new SQLException("Error occurred while retrieving operator properties.", e);
         } catch (NamingException e) {
             throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
-        }
-        finally {
+        } finally {
             closeAllConnections(preparedStatement, connection, resultSet);
         }
         return operatorProperties;
@@ -123,12 +162,13 @@ public class DBUtils {
 
     /**
      * Get operators' MSISDN header properties.
+     *
      * @return operators' MSISDN header properties map.
-     * @throws SQLException
-     * @throws NamingException
+     * @throws SQLException    on errors
+     * @throws NamingException on errors
      */
     public static Map<String, List<MSISDNHeader>> getOperatorsMSISDNHeaderProperties() throws SQLException,
-                                                                                              NamingException {
+            NamingException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
@@ -136,7 +176,7 @@ public class DBUtils {
         String queryToGetOperatorProperty = "SELECT DISTINCT operatorId, LOWER(operatorName) AS operatorName FROM " +
                 "operators_msisdn_headers_properties prop LEFT JOIN operators op ON op.ID=prop.operatorId";
         try {
-            connection = getConnection();
+            connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
@@ -150,8 +190,7 @@ public class DBUtils {
             throw new SQLException("Error occurred while retrieving operator MSISDN properties of operators : ", e);
         } catch (NamingException e) {
             throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
-        }
-        finally {
+        } finally {
             closeAllConnections(preparedStatement, connection, resultSet);
         }
         return operatorsMSISDNHeadersList;
@@ -159,15 +198,16 @@ public class DBUtils {
 
     /**
      * Get MSISDN properties by operator Id.
-     * @param operatorId operator Id.
+     *
+     * @param operatorId   operator Id.
      * @param operatorName operator Name.
      * @return MSISDN properties of given operator.
-     * @throws SQLException
-     * @throws NamingException
+     * @throws SQLException    on errors
+     * @throws NamingException on errors
      */
     public static List<MSISDNHeader> getMSISDNPropertiesByOperatorId(int operatorId, String operatorName) throws
-                                                                                                     SQLException,
-                                                                                            NamingException {
+            SQLException,
+            NamingException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
@@ -176,7 +216,7 @@ public class DBUtils {
                 "msisdnEncryptionKey, priority FROM operators_msisdn_headers_properties WHERE operatorId = ? ORDER BY" +
                 " priority ASC";
         try {
-            connection = getConnection();
+            connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
             preparedStatement.setInt(1, operatorId);
             resultSet = preparedStatement.executeQuery();
@@ -184,18 +224,18 @@ public class DBUtils {
                 MSISDNHeader msisdnHeader = new MSISDNHeader();
                 msisdnHeader.setMsisdnHeaderName(resultSet.getString(AuthProxyConstants.MSISDN_HEADER_NAME));
                 msisdnHeader.setHeaderEncrypted(resultSet.getBoolean(AuthProxyConstants.IS_HEADER_ENCRYPTED));
-                msisdnHeader.setHeaderEncryptionMethod(resultSet.getString(AuthProxyConstants.ENCRYPTION_IMPLEMENTATION));
+                msisdnHeader.setHeaderEncryptionMethod(resultSet.getString(AuthProxyConstants
+                        .ENCRYPTION_IMPLEMENTATION));
                 msisdnHeader.setHeaderEncryptionKey(resultSet.getString(AuthProxyConstants.MSISDN_ENCRYPTION_KEY));
                 msisdnHeader.setPriority(resultSet.getInt(AuthProxyConstants.PRIORITY));
                 msisdnHeaderList.add(msisdnHeader);
             }
         } catch (SQLException e) {
             throw new SQLException("Error occurred while retrieving operator MSISDN properties of operator : " +
-                                           operatorName, e);
+                    operatorName, e);
         } catch (NamingException e) {
             throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
-        }
-        finally {
+        } finally {
             closeAllConnections(preparedStatement, connection, resultSet);
         }
         return msisdnHeaderList;
@@ -205,13 +245,18 @@ public class DBUtils {
      * Get a map of parameters mapped to a scope
      *
      * @return map of scope vs parameters
-     * @throws javax.naming.NamingException
+     * @throws AuthenticatorException on errors
      */
-    public static Map<String, ScopeParam> getScopeParams() throws AuthenticatorException {
+    public static Map<String, ScopeParam> getScopeParams(String scope) throws AuthenticatorException {
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet results = null;
-        String sql = "SELECT * FROM `scope_parameter`";
+        String[] scopeValues = scope.split("\\s+|\\+");
+        StringBuilder params = new StringBuilder("?");
+        for (int i = 1; i < scopeValues.length; i++) {
+            params.append(",?");
+        }
+        String sql = "SELECT * FROM `scope_parameter` WHERE scope in (" + params + ")";
 
         if (log.isDebugEnabled()) {
             log.debug("Executing the query " + sql);
@@ -219,26 +264,59 @@ public class DBUtils {
 
         Map scopeParamsMap = new HashMap();
         try {
-            conn = getConnection();
+            conn = getConnectDBConnection();
             ps = conn.prepareStatement(sql);
+            for (int i = 0; i < scopeValues.length; i++) {
+                ps.setString(i + 1, scopeValues[i]);
+            }
             results = ps.executeQuery();
 
+            Boolean mainScopeFound = false;
+            List<String> scopeValuesFromDatabase = new ArrayList<>();
+
             while (results.next()) {
-                scopeParamsMap.put("scope", results.getString("scope"));
+                Boolean isMultiscope = results.getBoolean("is_multiscope");
+                scopeValuesFromDatabase.add(results.getString("scope"));
 
-                ScopeParam parameters = new ScopeParam();
-                parameters.setLoginHintMandatory(Boolean.parseBoolean(results.getString("is_login_hint_mandatory")));
-                parameters.setMsisdnMismatchResult(ScopeParam.msisdnMismatchResultTypes.valueOf(results.getString(
-                        "msisdn_mismatch_result")));
-                parameters.setTncVisible(Boolean.parseBoolean(results.getString("is_tnc_visible")));
-                parameters.setLoginHintFormat(getLoginHintFormatTypeDetails(results.getInt("param_id"), conn));
+                if(!isMultiscope) {
+                    //throw error if multiple main scopes found
+                    if (mainScopeFound) {
+                        throw new ConfigurationException("Multiple main scopes found");
+                    }
 
-                scopeParamsMap.put("params", parameters);
+                    //mark as main scope found
+                    mainScopeFound = true;
+
+
+                    scopeParamsMap.put("scope", results.getString("scope"));
+
+                    ScopeParam parameters = new ScopeParam();
+                    parameters.setScope(results.getString("scope"));
+                    parameters.setLoginHintMandatory(results.getBoolean("is_login_hint_mandatory"));
+                    parameters.setHeaderMsisdnMandatory(results.getBoolean("is_header_msisdn_mandatory"));
+                    parameters.setMsisdnMismatchResult(ScopeParam.msisdnMismatchResultTypes.valueOf(results.getString(
+                            "msisdn_mismatch_result")));
+                    parameters.setHeFailureResult(ScopeParam.heFailureResults.valueOf(results.getString(
+                            "he_failure_result")));
+                    parameters.setTncVisible(results.getBoolean("is_tnc_visible"));
+                    parameters.setLoginHintFormat(getLoginHintFormatTypeDetails(results.getInt("param_id"), conn));
+
+                    scopeParamsMap.put("params", parameters);
+                }
+            }
+
+            //validate all scopes and compare with scopes fetched from database
+            for(String scopeToValidate : scopeValues){
+                if(!scopeValuesFromDatabase.contains(scopeToValidate)){
+                    throw new ConfigurationException("One or more scopes are not valid");
+                }
             }
         } catch (SQLException e) {
             handleException("Error occurred while getting scope parameters from the database", e);
+        } catch (ConfigurationException e) {
+            handleException(e.getMessage(), e);
         } catch (NamingException e) {
-            e.printStackTrace();
+            log.error("Naming exception ", e);
         } finally {
             closeAllConnections(ps, conn, results);
         }
@@ -254,7 +332,7 @@ public class DBUtils {
                         "`scope_supp_login_hint_format` WHERE `param_id` = ?);";
 
         if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql);
+            log.debug("Executing the query : " + sql);
         }
 
         List<LoginHintFormatDetails> loginHintFormatDetails = new ArrayList<LoginHintFormatDetails>();
@@ -282,8 +360,53 @@ public class DBUtils {
         return loginHintFormatDetails;
     }
 
+
+    public static boolean isSPAllowedScope(String scopeName, String clientId)
+            throws ConfigurationException, AuthenticatorException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
+        String[] scopeValues = scopeName.split("\\s+|\\+");
+        StringBuilder params = new StringBuilder("?");
+        for (int i = 1; i < scopeValues.length; i++) {
+            params.append(",?");
+        }
+
+        String queryToGetOperatorProperty =
+                "SELECT COUNT(*) AS record_count FROM `sp_configuration` WHERE `client_id`=? AND `config_key`=? AND " +
+                        "`config_value` in (" + params + ")";
+        boolean isSPAllowedScope = false;
+
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
+            preparedStatement.setString(1, clientId);
+            preparedStatement.setString(2, "scope");
+
+            for (int i = 0; i < scopeValues.length; i++) {
+                preparedStatement.setString(i + 3, scopeValues[i]);
+            }
+
+            resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                isSPAllowedScope = resultSet.getInt("record_count") == scopeValues.length;
+            }
+        } catch (SQLException e) {
+            handleException(
+                    "Error occurred while SP Configurations for ClientId - " + clientId + " and Scope - " + scopeName,
+                    e);
+        } catch (NamingException e) {
+            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+        } finally {
+            closeAllConnections(preparedStatement, connection, resultSet);
+        }
+        return isSPAllowedScope;
+    }
+
+
     private static void closeAllConnections(PreparedStatement preparedStatement,
-                                           Connection connection, ResultSet resultSet) {
+                                            Connection connection, ResultSet resultSet) {
         closeResultSet(resultSet);
         closeStatement(preparedStatement);
         closeConnection(connection);
@@ -291,6 +414,7 @@ public class DBUtils {
 
     /**
      * Close Connection
+     *
      * @param dbConnection Connection
      */
     private static void closeConnection(Connection dbConnection) {
@@ -298,7 +422,7 @@ public class DBUtils {
             try {
                 dbConnection.close();
             } catch (SQLException e) {
-                log.warn("Database error. Could not close database connection. Continuing with others. - " + e
+                log.error("Database error. Could not close database connection. Continuing with others. - " + e
                         .getMessage(), e);
             }
         }
@@ -306,6 +430,7 @@ public class DBUtils {
 
     /**
      * Close ResultSet
+     *
      * @param resultSet ResultSet
      */
     private static void closeResultSet(ResultSet resultSet) {
@@ -313,13 +438,14 @@ public class DBUtils {
             try {
                 resultSet.close();
             } catch (SQLException e) {
-                log.warn("Database error. Could not close ResultSet  - " + e.getMessage(), e);
+                log.error("Database error. Could not close ResultSet  - " + e.getMessage(), e);
             }
         }
     }
 
     /**
      * Close PreparedStatement
+     *
      * @param preparedStatement PreparedStatement
      */
     private static void closeStatement(PreparedStatement preparedStatement) {
@@ -327,7 +453,7 @@ public class DBUtils {
             try {
                 preparedStatement.close();
             } catch (SQLException e) {
-                log.warn("Database error. Could not close PreparedStatement. Continuing with others. - " + e
+                log.error("Database error. Could not close PreparedStatement. Continuing with others. - " + e
                         .getMessage(), e);
             }
         }

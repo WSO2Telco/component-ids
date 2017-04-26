@@ -1,0 +1,140 @@
+This document is about the API endpoints ,the json input patterns and the expected outputs from the APIs.
+
+*Register the Clients to the SAA Server Database.
+
+EndPoint = saaserver/services/serverAPI/api/v1/clients
+(POST Method)
+Input: 
+
+ {
+   "clientDeviceID" : "49567892F",
+   "platform": "Android",
+   "pushToken": "en5678910um"
+ }
+
+Here put the header key as the "msisdn" in the header.
+
+Expected Output:
+{
+  "success": "1",
+  "failure": "0",
+  "result": {
+    "message": "DEVICE_REGISTERED"
+  }
+}
+
+{
+  "success": "0",
+  "failure": "1",
+  "result": {
+    "message": "DEVICE_ALREADY_REGISTERED"
+  }
+}
+
+{
+  "success": "0",
+  "failure": "1",
+  "result": {
+    "message": "ERROR_IN_REGISTRATION"
+  }
+}
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+To Authenticate the user called by SAA Adapter
+EndPoint : saaserver/services/serverAPI/api/v1/clients/{msisdn}/authenticate
+(POST Method)
+Input:
+{
+    "message" : "Login to Spark Connect",
+    "applicationName" : "Spark Connect",
+    "referenceID" : "340943904904904343904",
+    "acr" : "1",
+    "spImgUrl" : "http://www.easy/logo.gif"
+}
+
+Expected Output:
+{
+  "success": "0",
+  "failure": "1",
+  "result": {
+    "message": "AUTHENTICATION_NOT_SUCCESSFULL"
+  }
+}
+
+{
+  "success": "0",
+  "failure": "1",
+  "result": {
+    "message": "INVALID_REGISTRATION"
+  }
+}
+
+{
+  "success": "1",
+  "failure": "0",
+  "result": {
+    "message": "MESSAGE_PUSHED"
+  }
+}
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+To Authenticate the user from the SAA Client
+EndPoint : saaserver/services/serverAPI/api/v1/clients/918908098908/auth_response
+(POST Method)
+Input:
+{
+    "status" : "1",
+    "referenceID" : "34094390490490434390"
+}
+
+Expected Output:
+{
+  "success": "1",
+  "failure": "0",
+  "result": {
+    "message": "STATUS_UPDATED"
+  }
+}
+
+{
+  "success": "0",
+  "failure": "1",
+  "result": {
+    "message": "INVALID_REFERENCE_ID"
+  }
+}
+
+{
+  "success": "0",
+  "failure": "1",
+  "result": {
+    "message": "ERROR_IN_SENDING_AUTHORIZATION_RESPONSE"
+  }
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------
+
+To check the client is registered or not in the SAA Server
+EndPoint : saaserver/services/serverAPI/api/v1/clients/{msisdn}/is_registered
+(GET Method)
+
+Expected Output:
+{"isRegistered" :"true"}
+
+{"isRegistered" :"ERROR_IN_AUTHORIZING_BY_CLIENT"}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------
+
+To remove/Unregistered the registered client from the database.
+EndPoint : saaserver/services/serverAPI/api/v1/clients/{msisdn}/unregisterClient
+(DELETE Method)
+
+Expected Output:
+{"removeClient" :" CLIENT_NOT_REGISTERED_IN_THE_DATABASE"}
+
+{"removeClient" :"SUCCESSFULLY_REMOVED"}
+
+{"removeClient" :"ERROR_IN_REMOVING_CLIENT"}
+

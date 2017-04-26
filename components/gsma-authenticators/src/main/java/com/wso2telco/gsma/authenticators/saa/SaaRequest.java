@@ -22,7 +22,7 @@ public class SaaRequest {
 
     private String applicationName;
 
-    private String ref;
+    private String referenceID;
 
     private String spImgUrl;
 
@@ -44,12 +44,12 @@ public class SaaRequest {
         this.applicationName = applicationName;
     }
 
-    public String getRef() {
-        return ref;
+    public String getReferenceID() {
+        return referenceID;
     }
 
-    public void setRef(String ref) {
-        this.ref = ref;
+    public void setReferenceID(String referenceID) {
+        this.referenceID = referenceID;
     }
 
     public String getSpImgUrl() {

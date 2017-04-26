@@ -25,11 +25,19 @@ public class RedirectUrlInfo {
     private String authorizeUrl;
     private String operatorName;
     private String msisdnHeader;
+    private String loginhintMsisdn;
     private String ipAddress;
     private String telcoScope;
     private boolean isLoginhintMandatory;
     private boolean showTnc;
     private ScopeParam.msisdnMismatchResultTypes headerMismatchResult;
+    private ScopeParam.heFailureResults heFailureResult;
+    private String transactionId;
+    private String prompt;
+
+    public void setPrompt(String prompt) { this.prompt = prompt; }
+
+    public String getPrompt() { return prompt; }
 
     public String getQueryString() {
         return queryString;
@@ -87,6 +95,14 @@ public class RedirectUrlInfo {
         return isLoginhintMandatory;
     }
 
+    public String getLoginhintMsisdn() {
+        return loginhintMsisdn;
+    }
+
+    public void setLoginhintMsisdn(String loginhintMsisdn) {
+        this.loginhintMsisdn = loginhintMsisdn;
+    }
+
     public void setShowTnc(boolean showTnc) {
         this.showTnc = showTnc;
     }
@@ -101,5 +117,21 @@ public class RedirectUrlInfo {
 
     public ScopeParam.msisdnMismatchResultTypes getHeaderMismatchResult() {
         return headerMismatchResult;
+    }
+
+    public void setHeFailureResult(ScopeParam.heFailureResults heFailureResult) {
+        this.heFailureResult = heFailureResult;
+    }
+
+    public ScopeParam.heFailureResults getHeFailureResult() {
+        return heFailureResult;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
     }
 }

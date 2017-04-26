@@ -20,7 +20,7 @@
          <ul class="form-fields">
             <li>
                <label for="msisdn">{{msdin-entry-mobile-label}}</label>
-               <input type="tel"  id="msisdn" onfocus="this.value = this.value;" value="91" name="msisdn" autofocus required pattern="^91\d{10}$" data-parsley-error-message="{{msdin-entry-phone-number-error}}">{{set_msisdn this}}</input>
+               <input type="tel"  id="msisdn" onfocus="this.value = this.value;"  name="msisdn" autofocus required pattern="^\d{12}$" data-parsley-error-message="{{msdin-entry-phone-number-error}}">{{set_msisdn this}}</input>
             </li>
             <li>
                <button type="submit" class="btn btn--outline btn--large btn--full" onclick="submitLoginForm()" >

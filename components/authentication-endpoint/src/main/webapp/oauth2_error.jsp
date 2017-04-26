@@ -16,6 +16,7 @@
   ~ under the License.
   --%>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@page import="javax.servlet.http.HttpServletResponse"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <%
@@ -91,6 +92,7 @@
                             <div id="workArea">
                                 <table>
                                     <%
+                                    	response.sendError(400, "Bad Request" );
                                         if (errorCode != null && errorMsg != null) {
                                     %>
                                     <tr>
