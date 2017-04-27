@@ -1666,7 +1666,7 @@
 		<org.json.wso2.version>3.0.0.wso2v1</org.json.wso2.version>
 		
 		<org.apache.felix.scr.annotations.version>1.9.6</org.apache.felix.scr.annotations.version>		
-		<com.wso2telco.core.version>2.0.21</com.wso2telco.core.version>
+		<com.wso2telco.core.version>2.0.22-SNAPSHOT</com.wso2telco.core.version>
 
         <httpasyncclient.version>4.0</httpasyncclient.version>
         <httpcore-nio.version>4.3</httpcore-nio.version>
