@@ -55,11 +55,20 @@ definitions:
       message:
         type: "string"
 
+  UserInfoResponse:
+    type: object
+    properties:
+      data:
+        $ref: '#/definitions/UserInfoModel'
+
   UserInfoModel:
     required:
       - "phone"
+      - "sub"
     properties:
       phone:
+        type: "string"
+      sub:
         type: "string"
 
   LoginHistoryResultsResponse:
@@ -123,6 +132,11 @@ paths:
             Login hint MSISDN
           required: true
           type: string
+        - name: acr
+          in: query
+          description: |
+            ACR value
+          type: string
       tags:
         - Auth
       description: |
@@ -185,7 +199,7 @@ paths:
           description: |
             Successfully validated response
           schema:
-            $ref: '#/definitions/UserInfoModel'
+            $ref: '#/definitions/UserInfoResponse'
         401:
           description: |
             Unauthorized
