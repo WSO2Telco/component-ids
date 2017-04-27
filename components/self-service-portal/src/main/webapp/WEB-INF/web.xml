@@ -5,8 +5,8 @@
 	http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 
     <servlet>
-        <description>JAX-RS Tools Generated</description>
-        <servlet-name>JAX-RS Servlet</servlet-name>
+        <description>API for Self Service Portal</description>
+        <servlet-name>API</servlet-name>
         <servlet-class>com.sun.jersey.spi.container.servlet.ServletContainer</servlet-class>
         <init-param>
             <param-name>com.sun.jersey.config.property.packages</param-name>
@@ -14,12 +14,17 @@
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
+
     <servlet-mapping>
-        <servlet-name>JAX-RS Servlet</servlet-name>
-        <url-pattern>/*</url-pattern>
+        <servlet-name>API</servlet-name>
+        <url-pattern>/api/*</url-pattern>
     </servlet-mapping>
 
     <session-config>
         <session-timeout>60</session-timeout>
     </session-config>
+
+    <welcome-file-list>
+        <welcome-file>/index.html</welcome-file>
+    </welcome-file-list>
 </web-app>

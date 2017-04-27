@@ -1,0 +1,17 @@
+
+<div class="feed-messages-container">
+  <div class="feed-message" *ngFor="let message of feed">
+    <div class="message-icon">
+      <img class="photo-icon">
+      <span class="sub-photo-icon"></span>
+    </div>
+    <div class="text-block text-message">
+      <div class="message-header">
+        <span class="author">{{ message.data.items.created }} {{ message.data.items.created_date}}</span>
+      </div>
+      <div class="ago-time">
+        {{ message.data.items.application_id }}
+      </div>
+    </div>
+  </div>
+</div>
