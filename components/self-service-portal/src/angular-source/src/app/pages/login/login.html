@@ -1,0 +1,25 @@
+
+<div class="auth-main">
+  <div class="auth-block">
+    <img ng-reflect-src="assets/img/logo_mobileconnect.png" class="offset-xs-3 offset-md-2 offset-lg-4 offset-sm-4 card-title" style="width: 160px;height:auto;" src="assets/img/logo_mobileconnect.png">
+    <br>
+    <!-- <a routerLink="/register" class="auth-link">New to Mobile connect? Register!</a> -->
+
+    <form *ngIf="!callback" [formGroup]="form" (ngSubmit)="onSubmit(form.value)" class="form-horizontal">
+      <div class="form-group row" [ngClass]="{'has-error': (!phone.valid && phone.touched), 'has-success': (phone.valid && phone.touched)}">
+        <label for="phoneInput" class="col-sm-3 control-label">Mobile Number</label>
+
+        <div class="col-sm-7">
+          <input [formControl]="phone" type="text" class="form-control" id="phoneInput" placeholder="Enter MSISDN" pattern="[0-9]{12}">
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="offset-sm-5 col-sm-12">
+          <button [disabled]="!form.valid" type="submit" class="btn btn-default btn-auth">Sign in</button>
+        </div>
+      </div>
+    </form>
+
+    <div *ngIf="callback">access_token : {{access_token}}</div>
+  </div>
+</div>

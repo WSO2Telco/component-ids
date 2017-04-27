@@ -22,6 +22,7 @@ import com.wso2telco.ssp.exception.ApiException;
 import com.wso2telco.ssp.model.OrderByType;
 import com.wso2telco.ssp.model.PagedResults;
 import com.wso2telco.ssp.service.DbService;
+import com.wso2telco.ssp.service.DiscoveryService;
 import com.wso2telco.ssp.service.UserService;
 import com.wso2telco.ssp.util.Constants;
 import com.wso2telco.ssp.util.Pagination;
@@ -48,7 +49,7 @@ import java.util.Map;
 /**
  * API Endpoints
  */
-@Path("/api/v1/")
+@Path("v1/")
 public class Endpoints {
 
     private static Log log = LogFactory.getLog(Endpoints.class);
@@ -94,13 +95,15 @@ public class Endpoints {
     /**
      * Redirects user to OAuth page of MIG
      * @param msisdn login hint msisdn
+     * @param acr acr value
      * @return redirect result
      * @throws ApiException
      */
     @GET
     @Path("auth/login")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response RedirectToOAuthPage(@QueryParam("msisdn") String msisdn) throws ApiException {
+    public Response RedirectToOAuthPage(@QueryParam("msisdn") String msisdn,
+                                        @QueryParam("acr") String acr) throws ApiException {
         String callbackUrl = selfServicePortalConfig.getCallbackUrl();
         String clientKey = selfServicePortalConfig.getSPOAuthClientKey();
         String authorizeCall = selfServicePortalConfig.getAuthorizeCall();
@@ -121,18 +124,22 @@ public class Endpoints {
             throw new ApiException("Missing Authorize Call URL", "missing_config", Response.Status.SERVICE_UNAVAILABLE);
         }
 
+        if(StringUtils.isEmpty(acr)){
+            acr = "2";
+        }
+
         ArrayList<NameValuePair> params = new ArrayList<>();
         params.add(new BasicNameValuePair("login_hint", msisdn));
         params.add(new BasicNameValuePair("nonce", "kkk"));
         params.add(new BasicNameValuePair("state", "aaa"));
         params.add(new BasicNameValuePair("redirect_uri", callbackUrl));
         params.add(new BasicNameValuePair("client_id", clientKey));
-        params.add(new BasicNameValuePair("acr_values", "2"));
+        params.add(new BasicNameValuePair("acr_values", acr));
         params.add(new BasicNameValuePair("scope", "openid"));
         params.add(new BasicNameValuePair("response_type", "code"));
 
         //todo: call discovery service
-        String operator = getOperator(msisdn);
+        String operator = DiscoveryService.getOperator(msisdn);
 
         Map<String, String> data = new HashMap<String, String>();
         data.put("operator", operator);
@@ -160,17 +167,15 @@ public class Endpoints {
     @Produces(MediaType.APPLICATION_JSON)
     public Response GetTokenFromAuthCode(@QueryParam("code") String code) throws ApiException {
 
+        String urlFragment = "";
         String uiLoginUrl = selfServicePortalConfig.getUILoginUrl();
         if(StringUtils.isEmpty(uiLoginUrl)){
             throw new ApiException("Missing UI Login URL", "missing_config", Response.Status.SERVICE_UNAVAILABLE);
         }
 
-        ArrayList<NameValuePair> params = new ArrayList<>();
-
         //return an error if code is not provided
         if(StringUtils.isEmpty(code)){
-            params.add(new BasicNameValuePair(Constants.REDIRECT_PARAM_ERROR, "Code not provided"));
-
+            urlFragment = "/0/code_not_provided";
             if(log.isDebugEnabled()){
                 log.debug("Code not provided for auth/callback");
             }
@@ -183,13 +188,13 @@ public class Endpoints {
             String accessToken = UserService.getAccessTokenFromCode(code);
 
             if(StringUtils.isNotEmpty(accessToken)) {
-                params.add(new BasicNameValuePair(Constants.REDIRECT_PARAM_ACCESS_TOKEN, accessToken));
+                urlFragment = "/1/" + accessToken;
 
                 if(log.isDebugEnabled()){
                     log.debug("Access token retrieved : " + accessToken);
                 }
             }else{
-                params.add(new BasicNameValuePair(Constants.REDIRECT_PARAM_ERROR, "Login unsuccessful"));
+                urlFragment = "/0/login_unsuccessful";
 
                 if(log.isDebugEnabled()){
                     log.debug("No access token auth/callback");
@@ -198,7 +203,7 @@ public class Endpoints {
         }
 
         try {
-            return PrepareResponse.Redirect(uiLoginUrl, params);
+            return PrepareResponse.Redirect(uiLoginUrl + urlFragment, null);
         }catch (URISyntaxException e){
             throw new ApiException("Invalid URL in Configs", "invalid_config", Response.Status.INTERNAL_SERVER_ERROR);
         }
@@ -222,7 +227,7 @@ public class Endpoints {
         // call user info to validate access token
         String output = UserService.getUserInfo(accessToken);
         JSONObject outputResponse = new JSONObject(output);
-        if(outputResponse.isNull("phone_number")){
+        if(outputResponse.isNull("msisdn")){
             throw new ApiException("Invalid Token", "invalid_token", Response.Status.UNAUTHORIZED);
         }
 
@@ -230,15 +235,11 @@ public class Endpoints {
         Pagination pagination = new Pagination(page, limit);
 
         try {
-            PagedResults lh = DbService.getLoginHistoryByMsisdn(outputResponse.getString("phone_number"),
+            PagedResults lh = DbService.getLoginHistoryByMsisdn(outputResponse.getString("msisdn"),
                     "id", OrderByType.ASC, pagination);
             return PrepareResponse.Success(new JSONObject(lh));
         }catch (DBUtilException e){
             throw new ApiException(e.getMessage(), "login_history_error", Response.Status.INTERNAL_SERVER_ERROR);
         }
-    }
-
-    private String getOperator(String msisdn) throws ApiException {
-        return "spark";
     }
 }
