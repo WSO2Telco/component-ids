@@ -174,7 +174,9 @@ public class SeamlessProvisionClientAuthHandler extends AbstractClientAuthHandle
         ServiceProviderDto serviceProviderDto = null;
         DiscoveryService discoveryService = new DiscoveryServiceImpl();
         try {
-            serviceProviderDto = discoveryService.servceProviderEksDiscovery(readDiscoveryConfigs(),
+            DiscoveryServiceConfig discoveryServiceConfig = readDiscoveryConfigs();
+            discoveryServiceConfig.setDiscoverOnlyLocal(true);
+            serviceProviderDto = discoveryService.servceProviderEksDiscovery(discoveryServiceConfig,
                     getDiscoveryServiceDto(oAuth2AccessTokenReqDTO), getServiceProviderDto(null, mobileConnectConfigs));
         } catch (Exception e) {
             log.error("" + e.getMessage());

@@ -46,7 +46,8 @@ public class LocalDiscovery extends DiscoveryLocator {
 
     @Override
     public ServiceProviderDto servceProviderDiscovery(DiscoveryServiceConfig discoveryServiceConfig,
-            DiscoveryServiceDto discoveryServiceDto, SpProvisionDto spProvisionDto) throws DicoveryException {
+                                                      DiscoveryServiceDto discoveryServiceDto, SpProvisionDto
+                                                                  spProvisionDto) throws DicoveryException {
         this.spProvisionDto = spProvisionDto;
         log.info("Performing Local Discovery on EKS");
         ServiceProviderDto serviceProviderDto = null;
@@ -54,8 +55,12 @@ public class LocalDiscovery extends DiscoveryLocator {
 
         ValidationUtil.validateInuts(discoveryServiceDto.getSectorId(), discoveryServiceDto.getClientId());
         populateMsisdnFrom(discoveryServiceConfig, discoveryServiceDto);
-        isAppAvailable = checkLocally(discoveryServiceConfig.isPcrServiceEnabled(), discoveryServiceDto.getSectorId(),
+        isAppAvailable = checkLocally(discoveryServiceConfig.isDiscoverOnlyLocal(), discoveryServiceConfig
+                        .isPcrServiceEnabled(),
+                discoveryServiceDto
+                        .getSectorId(),
                 discoveryServiceDto.getClientId(), discoveryServiceDto.getClientSecret());
+
         if (!isAppAvailable) {
             log.info("SP NOT AVAILABLE locally... Fetching remotley ...");
             serviceProviderDto = checkRemotlyDiscovery(discoveryServiceConfig, discoveryServiceDto);
@@ -75,37 +80,47 @@ public class LocalDiscovery extends DiscoveryLocator {
     }
 
     private ServiceProviderDto checkRemotlyDiscovery(DiscoveryServiceConfig discoveryServiceConfig,
-            DiscoveryServiceDto discoveryServiceDto) throws DicoveryException {
+                                                     DiscoveryServiceDto discoveryServiceDto) throws DicoveryException {
         ServiceProviderDto serviceProviderDto = null;
         if (getNextDiscovery() != null) {
             serviceProviderDto = getNextDiscovery().servceProviderDiscovery(discoveryServiceConfig,
-                    discoveryServiceDto,spProvisionDto);
+                    discoveryServiceDto, spProvisionDto);
         }
 
         return serviceProviderDto;
     }
 
-    private boolean checkLocally(boolean isPcrServiceEnabled, String sectorId, String clientId, String clientSecret)
-            throws DicoveryException {
+    private boolean checkLocally(boolean isCacheOverride, boolean isPcrServiceEnabled, String sectorId, String clientId,
+                                 String clientSecret) throws DicoveryException {
         boolean isAppAvailable = false;
         if (isPcrServiceEnabled) {
             isAppAvailable = checkSpAvailabilityInmemory(sectorId, clientId);
+            if (isCacheOverride && !isAppAvailable) {
+                isAppAvailable = dataStoreValidation(clientId, clientSecret);
+            }
         } else {
 
-            AdminServiceDto adminServiceDto = provisioningService.getOauthServiceProviderData(clientId,this.spProvisionDto);
+            isAppAvailable = dataStoreValidation(clientId, clientSecret);
+        }
+        return isAppAvailable;
+    }
 
-            if (clientSecret != null && !clientSecret.isEmpty() && adminServiceDto != null
-                    && adminServiceDto.getOauthConsumerSecret() != null
-                    && !adminServiceDto.getOauthConsumerSecret().isEmpty()
-                    && adminServiceDto.getOauthConsumerSecret().equals(clientSecret)) {
-                isAppAvailable = true;
-            }
+    private boolean dataStoreValidation(String clientId, String clientSecret) {
+        boolean isAppAvailable = false;
+        AdminServiceDto adminServiceDto = provisioningService.getOauthServiceProviderData(clientId,
+                this.spProvisionDto);
+
+        if (clientSecret != null && !clientSecret.isEmpty() && adminServiceDto != null
+                && adminServiceDto.getOauthConsumerSecret() != null
+                && !adminServiceDto.getOauthConsumerSecret().isEmpty()
+                && adminServiceDto.getOauthConsumerSecret().equals(clientSecret)) {
+            isAppAvailable = true;
         }
         return isAppAvailable;
     }
 
     private void populateMsisdnFrom(DiscoveryServiceConfig discoveryServiceConfig,
-            DiscoveryServiceDto discoveryServiceDto) {
+                                    DiscoveryServiceDto discoveryServiceDto) {
         if (discoveryServiceConfig != null && discoveryServiceConfig.getEksDiscoveryConfig() != null
                 && discoveryServiceConfig.getEksDiscoveryConfig().getMsisdn() != null
                 && !discoveryServiceConfig.getEksDiscoveryConfig().getMsisdn().isEmpty()) {
