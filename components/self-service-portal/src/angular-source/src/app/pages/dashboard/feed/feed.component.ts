@@ -11,19 +11,25 @@ import 'style-loader!./feed.scss';
 export class Feed {
 
   public feed:Array<Object>;
+  public feed_error:Boolean = false;
 
   constructor(private _feedService:FeedService) {
   }
 
   ngOnInit() {
-    this._loadFeed();
+    this.getFeeds();
   }
 
   expandMessage (message){
     message.expanded = !message.expanded;
   }
 
-  private _loadFeed() {
-    this.feed = this._feedService.getData();
+  getFeeds() {
+    this._feedService.getFeeds().subscribe(
+        data => { this.feed = data},
+        err => { this.feed_error = true }
+    );
+
   }
+
 }
