@@ -324,6 +324,7 @@ public class Endpoints {
                     redirectUrlInfo.setQueryString(queryString);
                     redirectUrlInfo.setIpAddress(ipAddress);
                     redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
+                    redirectUrlInfo.setParentScope(scopeParam.getScope());
                     redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
                     redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
 
@@ -802,6 +803,7 @@ public class Endpoints {
         String loginHintMsisdn = redirectUrlInfo.getLoginhintMsisdn();
         String operatorName = redirectUrlInfo.getOperatorName();
         String telcoScope = redirectUrlInfo.getTelcoScope();
+        String parentScope = redirectUrlInfo.getParentScope();
         String ipAddress = redirectUrlInfo.getIpAddress();
         String prompt = redirectUrlInfo.getPrompt();
         String validationRegex=configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getValidationRegex();
@@ -812,7 +814,7 @@ public class Endpoints {
         String transactionId = redirectUrlInfo.getTransactionId();
         if (authorizeUrl != null) {
             redirectURL = authorizeUrl + queryString + "&" + AuthProxyConstants.OPERATOR + "=" +
-                    operatorName + "&" + AuthProxyConstants.TELCO_SCOPE + "=" + telcoScope + "&" +
+                    operatorName + "&" + AuthProxyConstants.TELCO_SCOPE + "=" + telcoScope + "&" + AuthProxyConstants.PARENT_SCOPE + "=" + parentScope + "&" +
                     AuthProxyConstants.SHOW_TNC + "=" + isShowTnc + "&" + AuthProxyConstants.HEADER_MISMATCH_RESULT +
                     "=" + headerMismatchResult + "&" + AuthProxyConstants.HE_FAILURE_RESULT +
                     "=" + heFailureResult;
