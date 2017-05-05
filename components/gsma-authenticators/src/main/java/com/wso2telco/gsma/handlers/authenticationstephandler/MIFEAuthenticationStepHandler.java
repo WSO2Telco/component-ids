@@ -618,10 +618,7 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
         while (it.hasNext()) {
             int key = it.next();
             if (key > currentStep) {
-                //"ConsentAuthenticator"
-                if(!context.getSequenceConfig().getStepMap().get(key).getAuthenticatorList().get(0).getName().equals("ConsentAuthenticator")){
                    context.getSequenceConfig().getStepMap().remove(key);
-                }
             }
         }
     }
