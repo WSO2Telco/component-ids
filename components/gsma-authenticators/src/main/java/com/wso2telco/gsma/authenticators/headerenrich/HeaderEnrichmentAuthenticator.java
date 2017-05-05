@@ -393,7 +393,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     }
                     context.setProperty(Constants.IS_PIN_RESET, false);
                     // explicitly remove all other authenticators and mark as a success
-                    context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+                    context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "false");
                 }
 
                 AuthenticationContextHelper.setSubject(context, msisdn);
