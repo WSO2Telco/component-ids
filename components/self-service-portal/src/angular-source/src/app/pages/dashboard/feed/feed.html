@@ -1,19 +1,19 @@
 
 <div class="feed-messages-container">
-  <div class="feed-message" *ngFor="let message of feed.data.items">
-    <div class="message-icon">
-      <img class="photo-icon">
-      <span class="sub-photo-icon"></span>
+<div class="feed-message" *ngFor="let message of feed?.data?.items">
+  <div class="message-icon">
+    <img class="photo-icon">
+    <span class="sub-photo-icon"></span>
+  </div>
+  <div class="text-block text-message">
+    <div class="message-header">
+      <span class="author">{{ message.created }} {{ message.created_date}}</span>
     </div>
-    <div class="text-block text-message">
-      <div class="message-header">
-        <span class="author">{{ message.created }} {{ message.created_date}}</span>
-      </div>
-      <div class="ago-time">
-        {{ message.application_id }}
-      </div>
+    <div class="ago-time">
+      {{ message.application_id }}
     </div>
   </div>
+</div>
 </div>
 
 <!--div class="feed-messages-container">
@@ -32,4 +32,3 @@
     </div>
   </div>
 </div -->
-
