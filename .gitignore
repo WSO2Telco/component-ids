@@ -26,3 +26,4 @@ target
 *pom.xml.tag
 *release.properties
 features/com.wso2telco.ids.dashboard.ui.feature/src/main/resources/generated/dashboard.zip
+components/self-service-portal/src/angular-source/node_modules

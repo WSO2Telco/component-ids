@@ -9,7 +9,6 @@ export class FeedService {
   constructor(private http:Http) {
   }
 
-  // Uses http.get() to load a single JSON file
   getFeeds() {
     let token = localStorage.getItem('access_token');
     return this.http.get('https://localhost:9443/selfserviceportal/api/v1/user/login_history?access_token='+ token).map((res:Response) => res.json());
