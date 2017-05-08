@@ -32,4 +32,6 @@ public final class Constants {
     public static final String TOKEN_REQUEST_REDIRECT_URI = "redirect_uri";
 
     public static final String TOKEN_RESPONSE_ACCESS_TOKEN = "access_token";
+
+    public static final String MSISDN_CLAIM = "msisdn";
 }

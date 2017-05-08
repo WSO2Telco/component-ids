@@ -17,6 +17,16 @@ info:
     }
     ```
 
+    #### LIST OF ITEMS SUCCESS RESPONSE
+    Every sucess item set response is wrapped by an envelope with data parameter which contains the actual response set for the request:
+    ```json
+    {
+        "data": {
+          "items": [ ... ]
+        }
+    }
+    ```
+
     #### PAGED RESPONSE
     Paged results contained in following envelope format:
     ```json
@@ -77,6 +87,12 @@ definitions:
       data:
         $ref: '#/definitions/LoginHistoryResultsModel'
 
+  AppLoginsResultsResponse:
+    type: object
+    properties:
+      data:
+        $ref: '#/definitions/AppLoginsResultsModel'
+
   LoginHistoryResultsModel:
     type: object
     properties:
@@ -86,6 +102,14 @@ definitions:
         type: array
         items:
          $ref: '#/definitions/LoginHistoryModel'
+
+  AppLoginsResultsModel:
+    type: object
+    properties:
+      items:
+        type: array
+        items:
+         $ref: '#/definitions/AppLoginModel'
 
   LoginHistoryModel:
     properties:
@@ -111,6 +135,15 @@ definitions:
         type: "string"
       lastupdated_date:
         type: "string"
+
+  AppLoginModel:
+    properties:
+      application_id:
+        type: "string"
+      created_date:
+        type: string
+      login_count:
+        type: "number"
 
   MetaModel:
     properties:
@@ -240,6 +273,32 @@ paths:
             Successful response
           schema:
             $ref: '#/definitions/LoginHistoryResultsResponse'
+        401:
+          description: |
+            Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponseModel'
+
+  /user/app_logins:
+    get:
+      parameters:
+        - name: access_token
+          in: query
+          description: |
+            A valid access token
+          required: true
+          type: string
+      tags:
+        - User
+      description: |
+        Returns application login count of current authenticated user. User MSISDN is retrieved from the
+        `access_token`
+      responses:
+        200:
+          description: |
+            Successful response
+          schema:
+            $ref: '#/definitions/AppLoginsResultsResponse'
         401:
           description: |
             Unauthorized
