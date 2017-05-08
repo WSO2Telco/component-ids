@@ -56,14 +56,14 @@ info:
 
 definitions:
   ErrorResponseModel:
-    required:
-      - "code"
-      - "message"
     properties:
-      code:
-        type: "string"
-      message:
-        type: "string"
+      error:
+        type: object
+        properties:
+          code:
+            type: "string"
+          message:
+            type: "string"
 
   UserInfoResponse:
     type: object
@@ -92,6 +92,15 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/AppLoginsResultsModel'
+
+  PinResetResponse:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          success:
+            type: "boolean"
 
   LoginHistoryResultsModel:
     type: object
@@ -299,6 +308,44 @@ paths:
             Successful response
           schema:
             $ref: '#/definitions/AppLoginsResultsResponse'
+        401:
+          description: |
+            Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponseModel'
+
+  /user/pin_reset:
+    get:
+      parameters:
+        - name: access_token
+          in: query
+          description: |
+            A valid access token
+          required: true
+          type: string
+        - name: new_pin
+          in: query
+          description: |
+            New PIN
+          required: true
+          type: string
+        - name: current_pin
+          in: query
+          description: |
+            Current PIN
+          required: true
+          type: string
+      tags:
+        - User
+      description: |
+        Resets the PIN of an LOA 3 existing user. User MSISDN is retrieved from the
+        `access_token`
+      responses:
+        200:
+          description: |
+            Successful response
+          schema:
+            $ref: '#/definitions/PinResetResponse'
         401:
           description: |
             Unauthorized
