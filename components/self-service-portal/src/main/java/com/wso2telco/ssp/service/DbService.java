@@ -196,4 +196,53 @@ public class DbService {
         loginHistoryResults.setMeta(meta);
         return loginHistoryResults;
     }
+
+    /**
+     * Gets application login counts.
+     * @param msisdn msisdn
+     * @param order sort order
+     * @param orderType sort order type
+     * @return
+     * @throws DBUtilException
+     */
+    public static PagedResults  getLoginApplicationsByMsisdn(String msisdn, String order, OrderByType orderType)
+            throws DBUtilException {
+
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        PagedResults applicationLoginsResults = new PagedResults();
+        List<IDataItem> applicationLogins = new ArrayList<>();
+
+        try {
+            con = getConnectDBConnection();
+
+            String sql = "SELECT application_id,  max(created_date) as l, count(*) as count FROM mig_connectdb.sp_login_history "
+                    + "WHERE authenticated_user=? GROUP BY application_id ORDER BY ? " + orderType.toString();
+
+            ps = con.prepareStatement(sql);
+            ps.setString(1, msisdn);
+            ps.setString(2, order);
+
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                ApplicationLogin applicationLogin = new ApplicationLogin();
+                applicationLogin.setApplication_id(rs.getString("application_id"));
+                applicationLogin.setLogin_count(rs.getLong("count"));
+                applicationLogin.setCreated_date(rs.getTimestamp("l"));
+
+                applicationLogins.add(applicationLogin);
+            }
+
+        } catch (Exception e) {
+            com.wso2telco.core.dbutils.DbUtils.handleException("Error while loading app login list. ", e);
+        } finally {
+            com.wso2telco.core.dbutils.DbUtils.closeAllConnections(ps, con, rs);
+        }
+
+        applicationLoginsResults.setItems(applicationLogins);
+        applicationLoginsResults.setMeta(null);
+        return applicationLoginsResults;
+    }
 }
