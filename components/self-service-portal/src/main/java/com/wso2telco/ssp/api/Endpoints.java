@@ -227,7 +227,7 @@ public class Endpoints {
         // call user info to validate access token
         String output = UserService.getUserInfo(accessToken);
         JSONObject outputResponse = new JSONObject(output);
-        if(outputResponse.isNull("msisdn")){
+        if(outputResponse.isNull(Constants.MSISDN_CLAIM)){
             throw new ApiException("Invalid Token", "invalid_token", Response.Status.UNAUTHORIZED);
         }
 
@@ -235,11 +235,38 @@ public class Endpoints {
         Pagination pagination = new Pagination(page, limit);
 
         try {
-            PagedResults lh = DbService.getLoginHistoryByMsisdn(outputResponse.getString("msisdn"),
+            PagedResults lh = DbService.getLoginHistoryByMsisdn(outputResponse.getString(Constants.MSISDN_CLAIM),
                     "id", OrderByType.ASC, pagination);
             return PrepareResponse.Success(new JSONObject(lh));
         }catch (DBUtilException e){
             throw new ApiException(e.getMessage(), "login_history_error", Response.Status.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Returns application login counts.
+     * @param accessToken access token
+     * @return application login results
+     * @throws ApiException
+     */
+    @GET
+    @Path("user/app_logins")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response LoginHistory(@QueryParam("access_token") String accessToken) throws ApiException {
+
+        // call user info to validate access token
+        String output = UserService.getUserInfo(accessToken);
+        JSONObject outputResponse = new JSONObject(output);
+        if(outputResponse.isNull(Constants.MSISDN_CLAIM)){
+            throw new ApiException("Invalid Token", "invalid_token", Response.Status.UNAUTHORIZED);
+        }
+
+        try {
+            PagedResults lh = DbService.getLoginApplicationsByMsisdn(outputResponse.getString(Constants.MSISDN_CLAIM),
+                    "count", OrderByType.DESC);
+            return PrepareResponse.Success(new JSONObject(lh));
+        }catch (DBUtilException e){
+            throw new ApiException(e.getMessage(), "app_login_error", Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 }
