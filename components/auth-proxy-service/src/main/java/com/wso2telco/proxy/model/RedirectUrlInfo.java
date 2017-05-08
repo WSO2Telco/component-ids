@@ -28,6 +28,7 @@ public class RedirectUrlInfo {
     private String loginhintMsisdn;
     private String ipAddress;
     private String telcoScope;
+    private String parentScope;
     private boolean isLoginhintMandatory;
     private boolean showTnc;
     private ScopeParam.msisdnMismatchResultTypes headerMismatchResult;
@@ -55,7 +56,15 @@ public class RedirectUrlInfo {
         this.telcoScope = telcoScope;
     }
 
-    public String getIpAddress() {
+    public String getParentScope() {
+		return parentScope;
+	}
+
+	public void setParentScope(String parentScope) {
+		this.parentScope = parentScope;
+	}
+
+	public String getIpAddress() {
         return ipAddress;
     }
 

@@ -16,6 +16,7 @@
 * limitations under the License.
 ******************************************************************************/
 -->
+<%@ taglib uri="http://java.sun.com/jstl/core" prefix="c" %>
 <%@page import="java.util.logging.Logger" %>
 <html class="site no-js lang--en" lang="en">
 
@@ -121,7 +122,7 @@
                 <div class="slider__slide-inner v-distribute">
                     <header class="page__header">
                         <!--h1 class="page__heading">Private</h1-->
-                        <h4>Please provide your consent to register in order to access the <br><b>SMS, Payment API</b></h4>
+                        <h4>Please provide your consent to register in order to access the <br><b>API</b></h4>
                         <div class="page__illustration v-grow v-align-content">
                             <div>
                                 <img src="mcx-user-registration/mcresources/img/svg/personal.svg" alt="Secure" width="106" height="126">
@@ -169,20 +170,21 @@
                         Approve
                     </a>
                 </div>
-                <div class="grid__item one-half">
-                    <button type="button" id="validate-btn1" name="action" value="yes"
-                            class="btn btn--full btn--large btn-danger">
+                <div class="grid__item one-half" >
+                       <a class="btn btn--full btn--large btn-danger" href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=deny">
                         Deny
-                    </button>
-                </div>
-            </div>
-            <div class="grid space--half-top">
-                <div class="grid__item one-whole">
-                    <a class="btn btn--full btn--large btn--outline " href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=all">
-                        Approve always
                     </a>
                 </div>
             </div>
+               <c:if test="${param.skipConsent=='false'}">
+                      <div class="grid space--half-top">
+                           <div class="grid__item one-whole">
+                                <a class="btn btn--full btn--large btn--outline " href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=all">
+                                Approve always
+                                </a>
+                          </div>
+                     </div>
+               </c:if>
         </form>
     </main>
 </div>
