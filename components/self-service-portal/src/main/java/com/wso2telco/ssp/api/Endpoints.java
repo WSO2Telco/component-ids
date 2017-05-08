@@ -269,4 +269,21 @@ public class Endpoints {
             throw new ApiException(e.getMessage(), "app_login_error", Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GET
+    @Path("user/pin_reset")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response ResetPin(@QueryParam("access_token") String accessToken,
+                                 @QueryParam("current") String current,
+                                 @QueryParam("new_pin") String new_pin) throws ApiException {
+
+        // call user info to validate access token
+        String output = UserService.getUserInfo(accessToken);
+        JSONObject outputResponse = new JSONObject(output);
+        if(outputResponse.isNull(Constants.MSISDN_CLAIM)){
+            throw new ApiException("Invalid Token", "invalid_token", Response.Status.UNAUTHORIZED);
+        }
+
+        return PrepareResponse.Success("PIN");
+    }
 }
