@@ -116,7 +116,7 @@
                                 <argument>run</argument>
                                 <argument>build:prod</argument>
                             </arguments>
-                            <skip>false</skip>
+                            <skip>true</skip>
                             <!-- set false to build the angular app -->
                         </configuration>
                         <goals>
