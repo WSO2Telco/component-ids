@@ -4,6 +4,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 import { RouterModule } from '@angular/router';
 import { removeNgStyles, createNewHosts, createInputTransfer } from '@angularclass/hmr';
+import {NgPipesModule} from 'ngx-pipes';
+import {Ng2PaginationModule} from 'ng2-pagination'; // <-- import the module
 
 /*
  * Platform and Environment providers/directives/pipes
@@ -17,6 +19,7 @@ import { AppState, InternalStateType } from './app.service';
 import { GlobalState } from './global.state';
 import { NgaModule } from './theme/nga.module';
 import { PagesModule } from './pages/pages.module';
+import { PipeModule } from 'PipeModule';
 
 // Application wide providers
 const APP_PROVIDERS = [
@@ -46,7 +49,9 @@ export type StoreType = {
     ReactiveFormsModule,
     NgaModule.forRoot(),
     PagesModule,
-    routing
+    routing,
+    NgPipesModule,
+    Ng2PaginationModule,
   ],
   providers: [ // expose our Services and Providers into Angular's dependency injection
     ENV_PROVIDERS,
