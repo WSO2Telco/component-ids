@@ -33,5 +33,5 @@ public final class Constants {
 
     public static final String TOKEN_RESPONSE_ACCESS_TOKEN = "access_token";
 
-    public static final String MSISDN_CLAIM = "msisdn";
+    public static final String MSISDN_CLAIM = "phone_number";
 }

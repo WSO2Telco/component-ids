@@ -188,16 +188,23 @@ paths:
           description: Temporary Redirect
         400:
           description: |
-            Bad Request
-
-            ```
-            {
-              "error": {
-                  "code":"no_msisdn",
-                  "message":"MSISDN Missing"
-                }
-            }
-            ```
+            `Bad Request` with code
+            `no_msisdn`
+          schema:
+            $ref: '#/definitions/ErrorResponseModel'
+        503:
+          description: |
+            `Service Unavailable` with code
+            `missing_config`,
+            `invalid_config`
+          schema:
+            $ref: '#/definitions/ErrorResponseModel'
+        500:
+          description: |
+            `Internal Server Error` with code
+            `invalid_config`
+          schema:
+            $ref: '#/definitions/ErrorResponseModel'
 
 
   /auth/callback:
@@ -222,6 +229,18 @@ paths:
             properties:
               acaccess_token:
                 type: string
+        503:
+          description: |
+            `Service Unavailable` with code
+            `invalid_config`
+          schema:
+            $ref: '#/definitions/ErrorResponseModel'
+        500:
+          description: |
+            `Internal Server Error` with code
+            `invalid_config`
+          schema:
+            $ref: '#/definitions/ErrorResponseModel'
 
   /auth/validate:
     get:
@@ -244,7 +263,9 @@ paths:
             $ref: '#/definitions/UserInfoResponse'
         401:
           description: |
-            Unauthorized
+            `Unauthorized` with code
+            `no_access_token`,
+            `error`
           schema:
             $ref: '#/definitions/ErrorResponseModel'
 
@@ -284,7 +305,14 @@ paths:
             $ref: '#/definitions/LoginHistoryResultsResponse'
         401:
           description: |
-            Unauthorized
+            `Unauthorized` with code
+            `invalid_token`
+          schema:
+            $ref: '#/definitions/ErrorResponseModel'
+        500:
+          description: |
+            `Internal Server Error` with code
+            `login_history_error`
           schema:
             $ref: '#/definitions/ErrorResponseModel'
 
@@ -310,12 +338,52 @@ paths:
             $ref: '#/definitions/AppLoginsResultsResponse'
         401:
           description: |
+            `Unauthorized` with code
+            `invalid_token`
+          schema:
+            $ref: '#/definitions/ErrorResponseModel'
+
+        500:
+          description: |
+            `Internal Server Error` with code
+            `app_login_error`
+          schema:
+            $ref: '#/definitions/ErrorResponseModel'
+
+  /user/loa:
+    get:
+      parameters:
+        - name: access_token
+          in: query
+          description: |
+            A valid access token
+          required: true
+          type: string
+      tags:
+        - User
+      description: |
+        Get current user's LOA value. User MSISDN is retrieved from the
+        `access_token`
+      responses:
+        200:
+          description: |
+            Successful response
+          schema:
+            properties:
+              data:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
+        401:
+          description: |
             Unauthorized
           schema:
             $ref: '#/definitions/ErrorResponseModel'
 
   /user/pin_reset:
-    get:
+    post:
       parameters:
         - name: access_token
           in: query
@@ -348,7 +416,24 @@ paths:
             $ref: '#/definitions/PinResetResponse'
         401:
           description: |
-            Unauthorized
+            `Unauthorized` with code
+            `invalid_token`
+          schema:
+            $ref: '#/definitions/ErrorResponseModel'
+
+        400:
+          description: |
+            `Bad Request` with code
+            `current_pin_missing`,
+            `new_pin_missing`,
+            `pin_mismatched`
+          schema:
+            $ref: '#/definitions/ErrorResponseModel'
+
+        500:
+          description: |
+            `Internal Server Error` with code
+            `admin_service_error`
           schema:
             $ref: '#/definitions/ErrorResponseModel'
 
