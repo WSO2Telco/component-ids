@@ -21,6 +21,7 @@ import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.ssp.exception.ApiException;
 import com.wso2telco.ssp.model.OrderByType;
 import com.wso2telco.ssp.model.PagedResults;
+import com.wso2telco.ssp.service.AdminService;
 import com.wso2telco.ssp.service.DbService;
 import com.wso2telco.ssp.service.DiscoveryService;
 import com.wso2telco.ssp.service.UserService;
@@ -35,10 +36,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.URISyntaxException;
@@ -59,37 +57,6 @@ public class Endpoints {
     static {
         selfServicePortalConfig =
                 new ConfigurationServiceImpl().getDataHolder().getMobileConnectConfig().getSelfServicePortalConfig();
-    }
-
-
-    /**
-     * Validates the access token
-     * @param accessToken access token
-     * @return user info response on valid access token
-     * @throws ApiException
-     */
-    @GET
-    @Path("auth/validate")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response ValidateToken(@QueryParam("access_token") String accessToken) throws ApiException {
-
-        if(StringUtils.isEmpty(accessToken)){
-            throw new ApiException("Access Token Missing", "no_access_token", Response.Status.UNAUTHORIZED);
-        }
-
-        String output = UserService.getUserInfo(accessToken);
-
-        JSONObject outputResponse = new JSONObject(output);
-        if(!outputResponse.isNull("sub")){
-            return PrepareResponse.Success(outputResponse);
-        }
-
-        String error_message = !outputResponse.isNull("error_description") ?
-                outputResponse.getString("error_description") : "Token error";
-        String error_code = !outputResponse.isNull("error") ? outputResponse.getString("error") :
-                "error";
-
-        throw new ApiException(error_message, error_code, Response.Status.UNAUTHORIZED);
     }
 
     /**
@@ -210,6 +177,36 @@ public class Endpoints {
     }
 
     /**
+     * Validates the access token
+     * @param accessToken access token
+     * @return user info response on valid access token
+     * @throws ApiException
+     */
+    @GET
+    @Path("auth/validate")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response ValidateToken(@QueryParam("access_token") String accessToken) throws ApiException {
+
+        if(StringUtils.isEmpty(accessToken)){
+            throw new ApiException("Access Token Missing", "no_access_token", Response.Status.UNAUTHORIZED);
+        }
+
+        String output = UserService.getUserInfo(accessToken);
+
+        JSONObject outputResponse = new JSONObject(output);
+        if(!outputResponse.isNull("sub")){
+            return PrepareResponse.Success(outputResponse);
+        }
+
+        String error_message = !outputResponse.isNull("error_description") ?
+                outputResponse.getString("error_description") : "Token error";
+        String error_code = !outputResponse.isNull("error") ? outputResponse.getString("error") :
+                "error";
+
+        throw new ApiException(error_message, error_code, Response.Status.UNAUTHORIZED);
+    }
+
+    /**
      * Returns paged login history result set
      * @param accessToken access token
      * @param page page number
@@ -237,7 +234,7 @@ public class Endpoints {
         try {
             PagedResults lh = DbService.getLoginHistoryByMsisdn(outputResponse.getString(Constants.MSISDN_CLAIM),
                     "id", OrderByType.ASC, pagination);
-            return PrepareResponse.Success(new JSONObject(lh));
+            return PrepareResponse.Success(lh);
         }catch (DBUtilException e){
             throw new ApiException(e.getMessage(), "login_history_error", Response.Status.INTERNAL_SERVER_ERROR);
         }
@@ -264,18 +261,57 @@ public class Endpoints {
         try {
             PagedResults lh = DbService.getLoginApplicationsByMsisdn(outputResponse.getString(Constants.MSISDN_CLAIM),
                     "count", OrderByType.DESC);
-            return PrepareResponse.Success(new JSONObject(lh));
+            return PrepareResponse.Success(lh);
         }catch (DBUtilException e){
             throw new ApiException(e.getMessage(), "app_login_error", Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 
+    /**
+     * Returns user LOA
+     * @param accessToken access token
+     * @return user LOA
+     * @throws ApiException
+     */
     @GET
+    @Path("user/loa")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response ResetPin(@QueryParam("access_token") String accessToken) throws ApiException {
+        // call user info to validate access token
+        String output = UserService.getUserInfo(accessToken);
+        JSONObject outputResponse = new JSONObject(output);
+        if(outputResponse.isNull(Constants.MSISDN_CLAIM)){
+            throw new ApiException("Invalid Token", "invalid_token", Response.Status.UNAUTHORIZED);
+        }
+
+        AdminService adminService = new AdminService();
+        String loa = adminService.getLoa(outputResponse.getString(Constants.MSISDN_CLAIM));
+
+        return PrepareResponse.Success("loa", loa);
+    }
+
+    /**
+     * Resets the PIN of a user. Current PIN must match with the provided current PIN
+     * @param accessToken access token
+     * @param current current PIN
+     * @param new_pin new PIN
+     * @return
+     * @throws ApiException
+     */
+    @POST
     @Path("user/pin_reset")
     @Produces(MediaType.APPLICATION_JSON)
     public Response ResetPin(@QueryParam("access_token") String accessToken,
                                  @QueryParam("current") String current,
                                  @QueryParam("new_pin") String new_pin) throws ApiException {
+
+        if(StringUtils.isEmpty(current)){
+            throw new ApiException("Current PIN not provided", "current_pin_missing", Response.Status.BAD_REQUEST);
+        }
+
+        if(StringUtils.isEmpty(new_pin)){
+            throw new ApiException("New PIN not provided", "new_pin_missing", Response.Status.BAD_REQUEST);
+        }
 
         // call user info to validate access token
         String output = UserService.getUserInfo(accessToken);
@@ -284,6 +320,16 @@ public class Endpoints {
             throw new ApiException("Invalid Token", "invalid_token", Response.Status.UNAUTHORIZED);
         }
 
-        return PrepareResponse.Success("PIN");
+        AdminService adminService = new AdminService();
+        String current_pin = adminService.getPin(outputResponse.getString(Constants.MSISDN_CLAIM));
+
+        if(current.equals(current_pin)){
+            // current pin loaded from IS and provided pin are matched
+            adminService.setPin(outputResponse.getString(Constants.MSISDN_CLAIM), new_pin);
+        } else {
+            throw new ApiException("PIN mismatched", "pin_mismatched", Response.Status.BAD_REQUEST);
+        }
+
+        return PrepareResponse.Success("success", true);
     }
 }
