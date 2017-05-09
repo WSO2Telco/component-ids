@@ -1,2 +1,2 @@
 #run following command from src/angular-source path to build the angular webapp
-npm run prebuild:prod && npm run build:prod
+npm run build:prod
