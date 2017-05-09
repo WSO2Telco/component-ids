@@ -39,14 +39,32 @@ public class PrepareResponse {
     }
 
     /**
+     * Prepare a success response from a key and a value. Success responses are sent with 200 OK status code.
+     * Sample : <code>{"data": {"key": value}}</code>
+     * @param key
+     * @param value
+     * @return
+     */
+    public static Response Success(String key, Object value){
+        JSONObject response = new JSONObject();
+        response.put(key, value);
+        return PrepareResponse.Success(response);
+    }
+
+    /**
      * Prepare a success response from a json object. Success responses are sent with 200 OK status code.
      * Sample : <code>{"data": {"id": 1001, "name": "Wing"}}</code>
-     * @param json the success response data payload
+     * @param obj the success response data payload
      * @return Prepared success response
      */
-    public static Response Success(JSONObject json){
+    public static Response Success(Object obj){
         JSONObject response = new JSONObject();
-        response.put("data", json);
+        if(obj instanceof JSONObject){
+            response.put("data", obj);
+        }else {
+            response.put("data", new JSONObject(obj));
+        }
+
         return Response.ok(response.toString(), MediaType.APPLICATION_JSON).build();
     }
 
