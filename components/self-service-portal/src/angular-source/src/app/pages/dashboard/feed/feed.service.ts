@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {Http, Response} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
+import {AppSettings} from "../../../app.settings";
 
 
 @Injectable()
@@ -11,7 +12,7 @@ export class FeedService {
 
   getFeeds() {
     let token = localStorage.getItem('access_token');
-    return this.http.get('https://localhost:9443/selfserviceportal/api/v1/user/login_history?access_token='+ token).map((res:Response) => res.json());
+    return this.http.get(AppSettings.BASE_API + 'user/login_history?access_token='+ token).map((res:Response) => res.json());
   }
 
   /* getData():Observable<Feed[]> {
