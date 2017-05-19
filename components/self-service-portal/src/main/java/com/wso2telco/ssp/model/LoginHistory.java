@@ -32,14 +32,17 @@ public class LoginHistory implements IDataItem{
     private Timestamp created_date;
     private String lastupdated;
     private Timestamp lastupdated_date;
+    private long duration;
+
+    public long getDuration() { return duration; }
+
+    public void setDuration(long duration) { this.duration = duration; }
 
     public void setId(int id) {
         this.id = id;
     }
 
-    public void setReqtype(String reqtype) {
-        this.reqtype = reqtype;
-    }
+    public void setReqtype(String reqtype) { this.reqtype = reqtype; }
 
     public void setApplication_id(String application_id) {
         this.application_id = application_id;
