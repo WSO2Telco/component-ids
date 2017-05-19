@@ -143,7 +143,7 @@ public class DbService {
         try {
             con = getConnectDBConnection();
 
-            String sql = "SELECT * FROM sp_login_history "
+            String sql = "SELECT *, UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(created_date) as duration FROM sp_login_history "
                     + "WHERE authenticated_user=? ORDER BY ? " + orderType.toString() + " LIMIT ?,? ";
 
             ps = con.prepareStatement(sql);
@@ -167,6 +167,7 @@ public class DbService {
                 loginHistory.setLastupdated(rs.getString("lastupdated"));
                 loginHistory.setLastupdated_date(rs.getTimestamp("lastupdated_date"));
                 loginHistory.setReqtype(rs.getString("reqtype"));
+                loginHistory.setDuration(rs.getLong("duration"));
 
                 loginHistories.add(loginHistory);
             }

@@ -1,22 +1,30 @@
 @import "../../../theme/sass/conf/conf";
 
-.card.popular-app {
+.card.pin-reset {
   &>.card-body {
     padding: 0;
   }
 
-  .popular-app-img-container {
+  a{
+    text-decoration: none!important;
+    color: $content-text;
+  }
+
+  .pin-reset-img-container {
+    color: $content-text;
     position: relative;
     padding: 30px 0;
     height: 260px;
     border-top-right-radius: 5px;
     border-top-left-radius: 5px;
-    .popular-app-img {
+    .pin-reset-img {
+      color: $content-text;
       width: 260px;
       position: absolute;
       transform: translateY(-50%) translate(-50%);
       top: 50%;
       left: 50%;
+      text-align: center;
 
       .logo-text {
         display: inline-block;
@@ -24,17 +32,22 @@
         font-size: 26px;
         color: $content-text;
       }
+
+      h1{
+        color: $content-text;
+        font-size: 60px;
+      }
     }
   }
-  .popular-app-cost {
+  .pin-reset-cost {
     font-size: 20px;
     padding: 20px 22px;
     border-bottom: 1px solid $border-light;
     border-top: 1px solid $border-light;
   }
-  .popular-app-info {
+  .pin-reset-info {
     padding: 20px 22px;
-    font-size: 20px;
+    font-size: 16px;
     text-align: center;
     .info-label {
       font-size: 12px;
@@ -48,6 +61,6 @@
   }
 }
 
-.blur .card.popular-app .popular-app-img-container {
+.blur .card.pin-reset .pin-reset-img-container {
   background: rgba(0, 0, 0, 0.5);
 }

@@ -6,9 +6,9 @@ import { NgaModule } from '../../theme/nga.module';
 import { Dashboard } from './dashboard.component';
 import { routing }       from './dashboard.routing';
 
-import { PopularApp } from './popularApp';
+import { PinReset } from './pinReset';
 import { PieChart } from './pieChart';
-import { TrafficChart } from './trafficChart';
+import { LoginChart } from './loginChart';
 import { UsersMap } from './usersMap';
 import { LineChart } from './lineChart';
 import { Feed } from './feed';
@@ -19,7 +19,7 @@ import { FeedService } from './feed/feed.service';
 import { LineChartService } from './lineChart/lineChart.service';
 import { PieChartService } from './pieChart/pieChart.service';
 import { TodoService } from './todo/todo.service';
-import { TrafficChartService } from './trafficChart/trafficChart.service';
+import { LoginChartService } from './loginChart/loginChart.service';
 import { UsersMapService } from './usersMap/usersMap.service';
 
 @NgModule({
@@ -30,9 +30,9 @@ import { UsersMapService } from './usersMap/usersMap.service';
     routing
   ],
   declarations: [
-    PopularApp,
+    PinReset,
     PieChart,
-    TrafficChart,
+    LoginChart,
     UsersMap,
     LineChart,
     Feed,
@@ -46,7 +46,7 @@ import { UsersMapService } from './usersMap/usersMap.service';
     LineChartService,
     PieChartService,
     TodoService,
-    TrafficChartService,
+    LoginChartService,
     UsersMapService
   ]
 })

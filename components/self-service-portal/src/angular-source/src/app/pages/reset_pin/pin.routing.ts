@@ -1,12 +1,12 @@
 import { Routes, RouterModule }  from '@angular/router';
 
-import { Register } from './register.component';
+import { PinReset } from './pin.component';
 
 // noinspection TypeScriptValidateTypes
 const routes: Routes = [
   {
     path: '',
-    component: Register
+    component: PinReset
   }
 ];
 

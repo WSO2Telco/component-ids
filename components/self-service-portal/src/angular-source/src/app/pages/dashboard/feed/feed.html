@@ -3,7 +3,7 @@
 <div class="feed-message" *ngFor="let message of feed?.data?.items">
   <div class="text-block text-message">
     <div class="message-header">
-      <span class="author">verified for  {{ message.application_id }} </span>
+      <span class="author">{{ message.application_id }} </span>
     </div>
     <div class="ago-time">
      {{ message.created_date}}

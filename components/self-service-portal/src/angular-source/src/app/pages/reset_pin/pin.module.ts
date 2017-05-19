@@ -3,8 +3,8 @@ import { CommonModule }  from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgaModule } from '../../theme/nga.module';
 
-import { Register } from './register.component';
-import { routing }       from './register.routing';
+import { PinReset } from './pin.component';
+import { routing }       from './pin.routing';
 
 
 @NgModule({
@@ -16,7 +16,7 @@ import { routing }       from './register.routing';
     routing
   ],
   declarations: [
-    Register
+    PinReset
   ]
 })
-export class RegisterModule {}
+export class PinResetModule {}

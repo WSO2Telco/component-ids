@@ -8,12 +8,12 @@ import { ProtectedRouteCanActivate } from '../auth/activator';
 
 export const routes: Routes = [
   {
-    path: 'login',
+    path: '',
     loadChildren: 'app/pages/login/login.module#LoginModule'
   },
   {
-    path: 'register',
-    loadChildren: 'app/pages/register/register.module#RegisterModule'
+    path: 'login',
+    loadChildren: 'app/pages/login/login.module#LoginModule'
   },
   {
     path: 'pages',
@@ -21,7 +21,8 @@ export const routes: Routes = [
     canActivate: [ProtectedRouteCanActivate],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', loadChildren: 'app/pages/dashboard/dashboard.module#DashboardModule' }
+      { path: 'dashboard', loadChildren: 'app/pages/dashboard/dashboard.module#DashboardModule' },
+      { path: 'reset_pin', loadChildren: 'app/pages/reset_pin/pin.module#PinResetModule' }
     ]
   }
 ];
