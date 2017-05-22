@@ -1,15 +1,14 @@
 import {Injectable} from '@angular/core';
 import {Http, Response} from '@angular/http';
-import {AppSettings} from "../../../app.settings";
+import {CommonService} from "../../../common.service";
 
 @Injectable()
 export class LoginChartService {
 
-  constructor(private http:Http) {
+  constructor(private commonService:CommonService) {
   }
 
   getData() {
-    let token = localStorage.getItem('access_token');
-    return this.http.get(AppSettings.BASE_API + 'user/app_logins?access_token='+ token).map((res:Response) => res.json());
+    return this.commonService.get('user/app_logins').map((res:Response) => res.json());
   }
 }
