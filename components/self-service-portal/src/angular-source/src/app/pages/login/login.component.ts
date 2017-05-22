@@ -33,7 +33,10 @@ export class Login {
     }
 
     if(this.error){
-      alert(this.error);
+      if(this.error == "code_not_provided")
+        alert("Authentication Error. Please Try Again.");
+      else
+        alert("Error Occurred. Please Try Again.");
     }
   }
 
@@ -49,6 +52,18 @@ export class Login {
   public doLogin(token:string):void{
     //save token to localstorage and redirect to dashboard
     localStorage.setItem('access_token', token);
+    this.router.navigate(['/pages/dashboard']);
+  }
+}
+
+@Component({
+  selector: 'login',
+  templateUrl: './login.html',
+})
+export class Clear {
+
+  constructor(private router:Router) {
+    localStorage.removeItem('access_token');
     this.router.navigate(['/pages/dashboard']);
   }
 }
