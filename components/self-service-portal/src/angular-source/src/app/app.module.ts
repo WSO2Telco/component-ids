@@ -16,6 +16,7 @@ import { routing } from './app.routing';
 // App is our top level component
 import { App } from './app.component';
 import { AppState, InternalStateType } from './app.service';
+import { CommonService } from './common.service';
 import { GlobalState } from './global.state';
 import { NgaModule } from './theme/nga.module';
 import { PagesModule } from './pages/pages.module';
@@ -55,7 +56,8 @@ export type StoreType = {
   ],
   providers: [ // expose our Services and Providers into Angular's dependency injection
     ENV_PROVIDERS,
-    APP_PROVIDERS
+    APP_PROVIDERS,
+    CommonService
   ]
 })
 
