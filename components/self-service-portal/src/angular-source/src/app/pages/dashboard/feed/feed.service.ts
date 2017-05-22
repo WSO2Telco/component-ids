@@ -1,18 +1,17 @@
 import {Injectable} from '@angular/core';
 import {Http, Response} from '@angular/http';
 import {Observable} from 'rxjs/Observable';
-import {AppSettings} from "../../../app.settings";
+import {CommonService} from "../../../common.service";
 
 
 @Injectable()
 export class FeedService {
 
-  constructor(private http:Http) {
+  constructor(private http:Http, private commonService:CommonService) {
   }
 
   getFeeds() {
-    let token = localStorage.getItem('access_token');
-    return this.http.get(AppSettings.BASE_API + 'user/login_history?access_token='+ token).map((res:Response) => res.json());
+    return this.commonService.get('user/login_history').map((res:Response) => res.json());
   }
 
   /* getData():Observable<Feed[]> {
