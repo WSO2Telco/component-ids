@@ -3,7 +3,7 @@ import { CommonModule }  from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgaModule } from '../../theme/nga.module';
 
-import { Login } from './login.component';
+import {Login, Clear} from './login.component';
 import { routing }       from './login.routing';
 
 
@@ -16,7 +16,8 @@ import { routing }       from './login.routing';
     routing
   ],
   declarations: [
-    Login
+    Login,
+    Clear
   ]
 })
 export class LoginModule {}
