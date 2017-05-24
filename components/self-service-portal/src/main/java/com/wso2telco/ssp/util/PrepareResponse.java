@@ -41,8 +41,8 @@ public class PrepareResponse {
     /**
      * Prepare a success response from a key and a value. Success responses are sent with 200 OK status code.
      * Sample : <code>{"data": {"key": value}}</code>
-     * @param key
-     * @param value
+     * @param key key
+     * @param value value
      * @return
      */
     public static Response Success(String key, Object value){
@@ -90,7 +90,8 @@ public class PrepareResponse {
      * @param uri URI to redirect
      * @param nameValuePairsList query params
      * @return http redirect response
-     * @throws URISyntaxException
+     * @throws URISyntaxException Checked exception thrown to indicate that a string could not be parsed as a
+     * URI reference.
      */
     public static Response Redirect(String uri, ArrayList<NameValuePair> nameValuePairsList) throws URISyntaxException{
         if(nameValuePairsList == null){

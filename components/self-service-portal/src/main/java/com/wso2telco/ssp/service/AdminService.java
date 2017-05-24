@@ -33,7 +33,7 @@ public class AdminService {
 
     /**
      * Constructs the AdminService object and creates admin and remote user store stubs
-     * @throws ApiException
+     * @throws ApiException Checked exception thrown to indicate that API request fails to process
      */
     public AdminService() throws ApiException {
 
@@ -61,8 +61,8 @@ public class AdminService {
      * @param userName admin username
      * @param password admin password
      * @return Session string
-     * @throws RemoteException
-     * @throws LoginAuthenticationExceptionException
+     * @throws RemoteException Remore procedure fails
+     * @throws LoginAuthenticationExceptionException Fails to login to Admin Service
      */
     private String authenticate(String userName, String password)
             throws RemoteException, LoginAuthenticationExceptionException {
@@ -85,7 +85,7 @@ public class AdminService {
      * @param userName user store username
      * @param claimURI claim URI
      * @param claimValue new claim value
-     * @throws ApiException
+     * @throws ApiException Checked exception thrown to indicate that API request fails to process
      */
     protected void setUserClaim(String userName, String claimURI, String claimValue) throws ApiException {
         try{
@@ -100,7 +100,7 @@ public class AdminService {
      * @param username user store username
      * @param claimURI claim URI
      * @return claim value
-     * @throws ApiException
+     * @throws ApiException Checked exception thrown to indicate that API request fails to process
      */
     protected String getUserClaim(String username, String claimURI) throws ApiException {
         try {
@@ -114,7 +114,7 @@ public class AdminService {
      * Get PIN of a user
      * @param username user store username
      * @return PIN
-     * @throws ApiException
+     * @throws ApiException Checked exception thrown to indicate that API request fails to process
      */
     public String getPin(String username) throws ApiException {
         return getUserClaim(username, "http://wso2.org/claims/pin");
@@ -124,7 +124,7 @@ public class AdminService {
      * Get LOA of a user
      * @param username user store username
      * @return LOA
-     * @throws ApiException
+     * @throws ApiException Checked exception thrown to indicate that API request fails to process
      */
     public String getLoa(String username) throws ApiException {
         return getUserClaim(username, "http://wso2.org/claims/loa");
@@ -134,7 +134,7 @@ public class AdminService {
      * Sets PIN of a user
      * @param username user store username
      * @param pin new PIN
-     * @throws ApiException
+     * @throws ApiException Checked exception thrown to indicate that API request fails to process
      */
     public void setPin(String username, String pin) throws ApiException {
         setUserClaim(username, "http://wso2.org/claims/pin", pin);
