@@ -21,6 +21,7 @@ import com.wso2telco.ssp.api.Endpoints;
 import com.wso2telco.ssp.exception.ApiException;
 import com.wso2telco.ssp.util.Constants;
 import com.wso2telco.ssp.util.HttpClientProvider;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -61,9 +62,13 @@ public class DiscoveryService {
      * Get operator name from the msisdn
      * @param msisdn msisdn to get the operator
      * @return operator name
-     * @throws ApiException
+     * @throws ApiException Checked exception thrown to indicate that API request fails to process
      */
     public static String getOperator(String msisdn) throws ApiException {
+        if(StringUtils.isEmpty(selfServicePortalConfig.getDiscoveryAPICall())){
+            return "spark";
+        }
+
         HttpClient client = HttpClientProvider.GetHttpClient();
         HttpPost httpPost = new HttpPost(selfServicePortalConfig.getDiscoveryAPICall());
 

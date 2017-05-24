@@ -7,7 +7,7 @@ import 'style-loader!./login.scss';
 
 @Component({
   selector: 'login',
-  templateUrl: './login.html',
+  templateUrl: './login.html'
 })
 export class Login {
 
@@ -44,6 +44,7 @@ export class Login {
   public onSubmit(values:Object):void {
     this.submitted = true;
     if (this.form.valid){
+        localStorage.setItem('msisdn', this.phone.value);
         window.location.href = AppSettings.getAuthUrl(this.phone.value);
     }
   }
