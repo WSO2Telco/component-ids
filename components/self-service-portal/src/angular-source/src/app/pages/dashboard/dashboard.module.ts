@@ -10,9 +10,11 @@ import { PinReset } from './pinReset';
 import { PieChart } from './pieChart';
 import { LoginChart } from './loginChart';
 import { Feed } from './feed';
+import { LoaUpgrade } from "./loaUpgrade";
 import { FeedService } from './feed/feed.service';
 import { PieChartService } from './pieChart/pieChart.service';
 import { LoginChartService } from './loginChart/loginChart.service';
+
 
 @NgModule({
   imports: [
@@ -23,6 +25,7 @@ import { LoginChartService } from './loginChart/loginChart.service';
   ],
   declarations: [
     PinReset,
+    LoaUpgrade,
     PieChart,
     LoginChart,
     Feed,

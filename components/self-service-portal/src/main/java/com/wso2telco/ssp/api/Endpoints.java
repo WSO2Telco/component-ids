@@ -25,7 +25,6 @@ import com.wso2telco.ssp.service.AdminService;
 import com.wso2telco.ssp.service.DbService;
 import com.wso2telco.ssp.service.DiscoveryService;
 import com.wso2telco.ssp.service.UserService;
-import com.wso2telco.ssp.util.Constants;
 import com.wso2telco.ssp.util.Pagination;
 import com.wso2telco.ssp.util.PrepareResponse;
 import org.apache.commons.lang.StringUtils;
@@ -64,7 +63,7 @@ public class Endpoints {
      * @param msisdn login hint msisdn
      * @param acr acr value
      * @return redirect result
-     * @throws ApiException
+     * @throws ApiException Checked exception thrown to indicate that API request fails to process
      */
     @GET
     @Path("auth/login")
@@ -127,7 +126,7 @@ public class Endpoints {
      * On failure redirects to redirect url with 'error' parameter.
      * @param code auth code
      * @return redirect response
-     * @throws ApiException
+     * @throws ApiException Checked exception thrown to indicate that API request fails to process
      */
     @GET
     @Path("auth/callback")
@@ -180,7 +179,7 @@ public class Endpoints {
      * Validates the access token
      * @param accessToken access token
      * @return user info response on valid access token
-     * @throws ApiException
+     * @throws ApiException Checked exception thrown to indicate that API request fails to process
      */
     @GET
     @Path("auth/validate")
@@ -212,7 +211,7 @@ public class Endpoints {
      * @param page page number
      * @param limit results per page
      * @return login history results
-     * @throws ApiException
+     * @throws ApiException Checked exception thrown to indicate that API request fails to process
      */
     @GET
     @Path("user/login_history")
@@ -224,7 +223,7 @@ public class Endpoints {
         // call user info to validate access token
         String output = UserService.getUserInfo(accessToken);
         JSONObject outputResponse = new JSONObject(output);
-        if(outputResponse.isNull(Constants.MSISDN_CLAIM)){
+        if(outputResponse.isNull(selfServicePortalConfig.getMsisdnClaim())){
             throw new ApiException("Invalid Token", "invalid_token", Response.Status.UNAUTHORIZED);
         }
 
@@ -232,7 +231,8 @@ public class Endpoints {
         Pagination pagination = new Pagination(page, limit);
 
         try {
-            PagedResults lh = DbService.getLoginHistoryByMsisdn(outputResponse.getString(Constants.MSISDN_CLAIM),
+            PagedResults lh = DbService.getLoginHistoryByMsisdn(
+                    outputResponse.getString(selfServicePortalConfig.getMsisdnClaim()),
                     "id", OrderByType.ASC, pagination);
             return PrepareResponse.Success(lh);
         }catch (DBUtilException e){
@@ -244,7 +244,7 @@ public class Endpoints {
      * Returns application login counts.
      * @param accessToken access token
      * @return application login results
-     * @throws ApiException
+     * @throws ApiException Checked exception thrown to indicate that API request fails to process
      */
     @GET
     @Path("user/app_logins")
@@ -254,12 +254,13 @@ public class Endpoints {
         // call user info to validate access token
         String output = UserService.getUserInfo(accessToken);
         JSONObject outputResponse = new JSONObject(output);
-        if(outputResponse.isNull(Constants.MSISDN_CLAIM)){
+        if(outputResponse.isNull(selfServicePortalConfig.getMsisdnClaim())){
             throw new ApiException("Invalid Token", "invalid_token", Response.Status.UNAUTHORIZED);
         }
 
         try {
-            PagedResults lh = DbService.getLoginApplicationsByMsisdn(outputResponse.getString(Constants.MSISDN_CLAIM),
+            PagedResults lh = DbService.getLoginApplicationsByMsisdn(
+                    outputResponse.getString(selfServicePortalConfig.getMsisdnClaim()),
                     "count", OrderByType.DESC);
             return PrepareResponse.Success(lh);
         }catch (DBUtilException e){
@@ -271,7 +272,7 @@ public class Endpoints {
      * Returns user LOA
      * @param accessToken access token
      * @return user LOA
-     * @throws ApiException
+     * @throws ApiException Checked exception thrown to indicate that API request fails to process
      */
     @GET
     @Path("user/loa")
@@ -280,12 +281,12 @@ public class Endpoints {
         // call user info to validate access token
         String output = UserService.getUserInfo(accessToken);
         JSONObject outputResponse = new JSONObject(output);
-        if(outputResponse.isNull(Constants.MSISDN_CLAIM)){
+        if(outputResponse.isNull(selfServicePortalConfig.getMsisdnClaim())){
             throw new ApiException("Invalid Token", "invalid_token", Response.Status.UNAUTHORIZED);
         }
 
         AdminService adminService = new AdminService();
-        String loa = adminService.getLoa(outputResponse.getString(Constants.MSISDN_CLAIM));
+        String loa = adminService.getLoa(outputResponse.getString(selfServicePortalConfig.getMsisdnClaim()));
 
         return PrepareResponse.Success("loa", loa);
     }
@@ -295,8 +296,8 @@ public class Endpoints {
      * @param accessToken access token
      * @param current current PIN
      * @param new_pin new PIN
-     * @return
-     * @throws ApiException
+     * @return Success or Error
+     * @throws ApiException Checked exception thrown to indicate that API request fails to process
      */
     @POST
     @Path("user/pin_reset")
@@ -316,16 +317,16 @@ public class Endpoints {
         // call user info to validate access token
         String output = UserService.getUserInfo(accessToken);
         JSONObject outputResponse = new JSONObject(output);
-        if(outputResponse.isNull(Constants.MSISDN_CLAIM)){
+        if(outputResponse.isNull(selfServicePortalConfig.getMsisdnClaim())){
             throw new ApiException("Invalid Token", "invalid_token", Response.Status.UNAUTHORIZED);
         }
 
         AdminService adminService = new AdminService();
-        String current_pin = adminService.getPin(outputResponse.getString(Constants.MSISDN_CLAIM));
+        String current_pin = adminService.getPin(outputResponse.getString(selfServicePortalConfig.getMsisdnClaim()));
 
         if(current.equals(current_pin)){
             // current pin loaded from IS and provided pin are matched
-            adminService.setPin(outputResponse.getString(Constants.MSISDN_CLAIM), new_pin);
+            adminService.setPin(outputResponse.getString(selfServicePortalConfig.getMsisdnClaim()), new_pin);
         } else {
             throw new ApiException("PIN mismatched", "pin_mismatched", Response.Status.BAD_REQUEST);
         }
