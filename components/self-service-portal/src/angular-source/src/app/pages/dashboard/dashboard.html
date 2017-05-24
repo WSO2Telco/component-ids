@@ -21,4 +21,9 @@
            baCardClass="pin-reset medium-card" *ngIf="showPinReset">
     <pin-reset></pin-reset>
   </ba-card>
+
+  <ba-card class="col-xlg-3 col-xl-6 col-lg-12 col-md-5 col-sm-12 col-xs-12"
+           baCardClass="pin-reset medium-card" *ngIf="!showPinReset">
+    <loa-upgrade></loa-upgrade>
+  </ba-card>
 </div>

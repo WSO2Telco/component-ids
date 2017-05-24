@@ -17,6 +17,9 @@ package com.wso2telco.ssp.exception;
 
 import javax.ws.rs.core.Response;
 
+/**
+ * Checked exception thrown to indicate that API request fails to process
+ */
 public class ApiException extends Exception {
 
     private String message;

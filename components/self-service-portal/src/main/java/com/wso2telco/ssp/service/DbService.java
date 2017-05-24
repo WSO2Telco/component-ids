@@ -53,7 +53,7 @@ public class DbService {
 
     /**
      * Initializes the datasource
-     * @throws NamingException
+     * @throws NamingException Datasource naming error
      */
     private static void initializeDatasource() throws NamingException {
         if (dataSource != null) {
@@ -78,7 +78,7 @@ public class DbService {
 
     /**
      * Initializes the datasource
-     * @throws NamingException
+     * @throws NamingException Datasource naming error
      */
     private static void initializeConnectDatasource() throws NamingException {
         if (mConnectDatasource != null) {
@@ -108,7 +108,7 @@ public class DbService {
      * Gets the connect db connection.
      *
      * @return the connect db connection
-     * @throws SQLException           the SQL com.wso2telco.ssp.exception
+     * @throws SQLException the SQL com.wso2telco.ssp.exception
      * @throws NamingException the authenticator com.wso2telco.ssp.exception
      */
     private static Connection getConnectDBConnection() throws SQLException, NamingException {
@@ -127,7 +127,7 @@ public class DbService {
      * @param orderType sort order type
      * @param pagination pagination object
      * @return paged result set
-     * @throws DBUtilException
+     * @throws DBUtilException Database access fail
      */
     public static PagedResults getLoginHistoryByMsisdn(String msisdn, String order,
                                                        OrderByType orderType, Pagination pagination)
@@ -203,8 +203,8 @@ public class DbService {
      * @param msisdn msisdn
      * @param order sort order
      * @param orderType sort order type
-     * @return
-     * @throws DBUtilException
+     * @return Application login details
+     * @throws DBUtilException Database fails
      */
     public static PagedResults  getLoginApplicationsByMsisdn(String msisdn, String order, OrderByType orderType)
             throws DBUtilException {
