@@ -1,0 +1,66 @@
+@import "../../../theme/sass/conf/conf";
+
+.card.pin-reset {
+  &>.card-body {
+    padding: 0;
+  }
+
+  a{
+    text-decoration: none!important;
+    color: $content-text;
+  }
+
+  .pin-reset-img-container {
+    color: $content-text;
+    position: relative;
+    padding: 30px 0;
+    height: 260px;
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+    .pin-reset-img {
+      color: $content-text;
+      width: 260px;
+      position: absolute;
+      transform: translateY(-50%) translate(-50%);
+      top: 50%;
+      left: 50%;
+      text-align: center;
+
+      .logo-text {
+        display: inline-block;
+        margin: 10px;
+        font-size: 26px;
+        color: $content-text;
+      }
+
+      h1{
+        color: $content-text;
+        font-size: 60px;
+      }
+    }
+  }
+  .pin-reset-cost {
+    font-size: 20px;
+    padding: 20px 22px;
+    border-bottom: 1px solid $border-light;
+    border-top: 1px solid $border-light;
+  }
+  .pin-reset-info {
+    padding: 20px 22px;
+    font-size: 16px;
+    text-align: center;
+    .info-label {
+      font-size: 12px;
+    }
+  }
+  .row {
+    margin: 0;
+    > div {
+      padding: 0;
+    }
+  }
+}
+
+.blur .card.pin-reset .pin-reset-img-container {
+  background: rgba(0, 0, 0, 0.5);
+}

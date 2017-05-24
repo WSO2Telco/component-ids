@@ -62,7 +62,7 @@ public class UserService {
      * Send user info call to MIG and returns the output as a string
      * @param accessToken access token
      * @return user info response
-     * @throws ApiException
+     * @throws ApiException Checked exception thrown to indicate that API request fails to process
      */
     public static String getUserInfo(String accessToken) throws ApiException {
         HttpClient client = HttpClientProvider.GetHttpClient();
@@ -82,7 +82,7 @@ public class UserService {
      * Get access token from code
      * @param code code
      * @return access token
-     * @throws ApiException
+     * @throws ApiException Checked exception thrown to indicate that API request fails to process
      */
     public static String getAccessTokenFromCode(String code) throws ApiException {
 
