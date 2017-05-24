@@ -113,10 +113,32 @@
                             <workingDirectory>${project.basedir}/src/angular-source</workingDirectory>
                             <executable>npm</executable>
                             <arguments>
+                                <argument>install</argument>
+                            </arguments>
+                            <skip>false</skip>
+                            <!-- set false to build the angular app -->
+                        </configuration>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>exec-npm-build</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <workingDirectory>${project.basedir}/src/angular-source</workingDirectory>
+                            <executable>npm</executable>
+                            <arguments>
                                 <argument>run</argument>
                                 <argument>build:prod</argument>
                             </arguments>
-                            <skip>true</skip>
+                            <skip>false</skip>
                             <!-- set false to build the angular app -->
                         </configuration>
                         <goals>
