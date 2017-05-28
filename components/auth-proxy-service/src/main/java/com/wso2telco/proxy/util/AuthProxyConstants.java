@@ -55,6 +55,7 @@ public class AuthProxyConstants {
     public static final String SCOPE_OPENID = "openid";
     public static final String TELCO_SCOPE = "telco_scope";
     public static final String PARENT_SCOPE = "parent_scope";
+    public static final String API_SCOPES = "api_scope";
     public static final String UTF_ENCODER = "UTF-8";
     public static final String SHOW_TNC = "isShowTnc";
     public static final String LOGIN_HINT_MANDATORY = "isLoginhintMandatory";

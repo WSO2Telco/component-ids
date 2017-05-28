@@ -299,6 +299,7 @@ public class DBUtils {
                     parameters.setHeFailureResult(ScopeParam.heFailureResults.valueOf(results.getString(
                             "he_failure_result")));
                     parameters.setTncVisible(results.getBoolean("is_tnc_visible"));
+                    parameters.setConsentPage(results.getBoolean("is_consent_page"));
                     parameters.setLoginHintFormat(getLoginHintFormatTypeDetails(results.getInt("param_id"), conn));
 
                     scopeParamsMap.put("params", parameters);
