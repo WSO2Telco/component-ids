@@ -13,6 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
+
+
+/*
+* checkbox validation for Aprrove senario
+*/
+function TCBoxValidation(sessionkey,action) {
+
+   if (jQuery("#tc_checkbox").is(":checked")) {
+
+$('.checkbox-inline').css({'color':'#292b2c','border':'none','padding':'0px'});
+  window.location = "/commonauth/?sessionDataKey="+sessionkey+"&action="+action;
+ }
+   else {
+         $('.checkbox-inline').css({'color':'#E0000B' , 'border':'1px solid #E0000B' , 'padding':'5px'});
+ }
+
+}
+
+/*
+* checkbox validation for Aprroveall senario
+*/
+/*function TCBoxValidationall(sessionkey) {
+
+   if (jQuery("#tc_checkbox").is(":checked")) {
+
+$('.checkbox-inline').css({'color':'#292b2c','border':'none','padding':'0px'});
+window.location = "/commonauth/?sessionDataKey="+sessionkey+"&action=all";
+ }
+   else {
+         $('.checkbox-inline').css({'color':'#E0000B' , 'border':'1px solid #E0000B' , 'padding':'5px'});
+ }
+
+}*/
+
+
+
 /*
  * Cancel registrations  and redirect to call back url
  */
