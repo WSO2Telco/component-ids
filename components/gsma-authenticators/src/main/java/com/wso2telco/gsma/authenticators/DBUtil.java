@@ -33,6 +33,7 @@ import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.Consent;
+import com.wso2telco.gsma.authenticators.model.Operator;
 import com.wso2telco.gsma.authenticators.model.UserConsent;
 
 /**
@@ -80,20 +81,12 @@ public class DBUtil {
 		throw new SQLException("Connect Datasource not initialized properly");
 	}
 
-	/**
-	 * To get scope parameter details for scope
-	 * 
-	 * @param scope
-	 * @return
-	 * @throws SQLException
-	 * @throws NamingException
-	 */
 	public static ScopeParam getScopeDetails(String scope) throws SQLException, NamingException {
 		Connection connection = null;
 		PreparedStatement preparedStatement = null;
 		ResultSet resultSet = null;
 		ScopeParam parameters = new ScopeParam();
-		String queryToGetScopeDetails = "SELECT param_id,is_consent_page FROM scope_parameter WHERE scope=?";
+		String queryToGetScopeDetails = "SELECT param_id,is_consent_page,description FROM scope_parameter WHERE scope=?";
 		try {
 			connection = getConnectDBConnection();
 			preparedStatement = connection.prepareStatement(queryToGetScopeDetails);
@@ -103,6 +96,7 @@ public class DBUtil {
 			while (resultSet.next()) {
 				parameters.setScope_id(resultSet.getInt("param_id"));
 				parameters.setConsentPage(resultSet.getBoolean("is_consent_page"));
+				parameters.setDescription(resultSet.getString("description"));
 			}
 		} catch (SQLException e) {
 			throw new SQLException("Error occurred while retrieving scopeID for scope : " + scope, e);
@@ -114,17 +108,7 @@ public class DBUtil {
 		return parameters;
 	}
 
-	/**
-	 * To get consent details for the scope and client id
-	 * 
-	 * @param scope
-	 * @param clientID
-	 * @param operator
-	 * @return
-	 * @throws SQLException
-	 * @throws NamingException
-	 */
-	public static Consent getConsentDetails(String scope, String clientID, String operator)
+	public static Consent getConsentDetails(String scope, String clientID, int operatorID)
 			throws SQLException, NamingException {
 		Consent consentProp = new Consent();
 		ScopeParam params = getScopeDetails(scope);
@@ -132,26 +116,20 @@ public class DBUtil {
 			Connection connection = null;
 			PreparedStatement preparedStatement = null;
 			ResultSet resultSet = null;
-			String queryToGetConsent = "SELECT operator,approve_status FROM consent WHERE scope_id=? AND client_id=?";
+			String queryToGetConsent = "SELECT approve_status FROM consent WHERE scope_id=? AND client_id=? AND operator_id=?";
 			try {
 				connection = getConnectDBConnection();
 				preparedStatement = connection.prepareStatement(queryToGetConsent);
 				preparedStatement.setInt(1, params.getScope_id());
 				preparedStatement.setString(2, clientID);
+				preparedStatement.setInt(3, operatorID);
 				resultSet = preparedStatement.executeQuery();
 				while (resultSet.next()) {
-					if (resultSet.getString("operator").equalsIgnoreCase("all")) {
-						consentProp.setOperator(resultSet.getString("operator"));
+						consentProp.setOperatorID(operatorID);
 						consentProp.setStatus(resultSet.getString("approve_status"));
 						consentProp.setConsumerKey(clientID);
 						consentProp.setScope(scope);
-						return consentProp;
-					} else if (resultSet.getString("operator").equalsIgnoreCase(operator)) {
-						consentProp.setOperator(resultSet.getString("operator"));
-						consentProp.setStatus(resultSet.getString("approve_status"));
-						consentProp.setConsumerKey(clientID);
-						consentProp.setScope(scope);
-					}
+						consentProp.setDescription(params.getDescription());
 				}
 			} catch (SQLException e) {
 				throw new SQLException("Error occurred while retrieving consent details for client_id : " + clientID,
@@ -165,7 +143,7 @@ public class DBUtil {
 		return consentProp;
 	}
 
-	public static UserConsent getUserConsentDetails(String msisdn, String scope, String clientID, String operator)
+	public static UserConsent getUserConsentDetails(String msisdn, String scope, String clientID, int operatorID)
 			throws SQLException, NamingException {
 		UserConsent consentProp = new UserConsent();
 		ScopeParam params = getScopeDetails(scope);
@@ -173,33 +151,25 @@ public class DBUtil {
 			Connection connection = null;
 			PreparedStatement preparedStatement = null;
 			ResultSet resultSet = null;
-			String queryToGetUserConsent = "SELECT operator,approve FROM user_consent WHERE msisdn=? AND scope_id=? AND client_id=?";
+			String queryToGetUserConsent = "SELECT approve FROM user_consent WHERE msisdn=? AND scope_id=? AND client_id=? AND operator_id=?";
 			try {
 				connection = getConnectDBConnection();
 				preparedStatement = connection.prepareStatement(queryToGetUserConsent);
 				preparedStatement.setString(1, msisdn);
 				preparedStatement.setInt(2, params.getScope_id());
 				preparedStatement.setString(3, clientID);
+				preparedStatement.setInt(4, operatorID);
 				resultSet = preparedStatement.executeQuery();
 				while (resultSet.next()) {
-					if (resultSet.getString("operator").equalsIgnoreCase("all")) {
 						consentProp.setMsisdn(msisdn);
 						consentProp.setScope(scope);
 						consentProp.setConsumerKey(clientID);
-						consentProp.setOperator(resultSet.getString("operator"));
+						consentProp.setOperatorID(operatorID);
 						consentProp.setIs_approved(resultSet.getBoolean("approve"));
-						return consentProp;
-					} else if (resultSet.getString("operator").equalsIgnoreCase(operator)) {
-						consentProp.setMsisdn(msisdn);
-						consentProp.setScope(scope);
-						consentProp.setConsumerKey(clientID);
-						consentProp.setOperator(resultSet.getString("operator"));
-						consentProp.setIs_approved(resultSet.getBoolean("approve"));
-					}
 				}
 			} catch (SQLException e) {
 				throw new SQLException("Error occurred while retrieving user consent details for msisdn :- " + msisdn
-						+ ",operator :-" + operator + ",scope :-" + scope, e);
+						+ ",operator :-" + operatorID + ",scope :-" + scope, e);
 			} catch (NamingException e) {
 				throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
 			} finally {
@@ -209,11 +179,10 @@ public class DBUtil {
 		return consentProp;
 	}
 
-	public static void insertUserConsentDetails(String msisdn, String scope, String clientID, String operator)
+	public static void insertUserConsentDetails(String msisdn, String scope, String clientID, int operatorID)
 			throws SQLException, NamingException {
-		UserConsent consentProp = getUserConsentDetails(msisdn, scope, clientID, operator);
-		if (consentProp.getConsumerKey() == null && consentProp.getMsisdn() == null && consentProp.getOperator() == null
-				&& consentProp.getScope() == null) {
+		UserConsent consentProp = getUserConsentDetails(msisdn, scope, clientID, operatorID);
+		if (consentProp.getConsumerKey() == null && consentProp.getMsisdn() == null && consentProp.getScope() == null) {
 			Connection connection = null;
 			PreparedStatement preparedStatement = null;
 			ResultSet resultSet = null;
@@ -224,17 +193,95 @@ public class DBUtil {
 				preparedStatement.setString(1, msisdn);
 				preparedStatement.setString(2, clientID);
 				preparedStatement.setInt(3, getScopeDetails(scope).getScope_id());
-				preparedStatement.setString(4, operator);
+				preparedStatement.setInt(4, operatorID);
 				preparedStatement.execute();
 			} catch (SQLException e) {
 				throw new SQLException("Error occurred while inserting user consent details for msisdn :- " + msisdn
-						+ ",operator :-" + operator + ",scope :-" + scope, e);
+						+ ",operator :-" + operatorID + ",scope :-" + scope, e);
 			} catch (NamingException e) {
 				throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
 			} finally {
 				closeAllConnections(preparedStatement, connection, resultSet);
 			}
 		}
+	}
+	
+	public static void insertConsentHistoryDetails(String msisdn, String scope, String clientID, int operatorID,String status)
+			throws SQLException, NamingException {
+			Connection connection = null;
+			PreparedStatement preparedStatement = null;
+			ResultSet resultSet = null;
+			String queryToInsertConsentHistory = "INSERT INTO consent_history (msisdn, client_id, scope_id, operator_id,approve_status,consent_date) VALUES(?,?,?,?,?,?)";
+			try {
+				connection = getConnectDBConnection();
+				preparedStatement = connection.prepareStatement(queryToInsertConsentHistory);
+				preparedStatement.setString(1, msisdn);
+				preparedStatement.setString(2, clientID);
+				preparedStatement.setInt(3, getScopeDetails(scope).getScope_id());
+				preparedStatement.setInt(4, operatorID);
+				preparedStatement.setString(5, status);
+				preparedStatement.setTimestamp(6, new java.sql.Timestamp(new java.util.Date().getTime()));
+				preparedStatement.execute();
+			} catch (SQLException e) {
+				throw new SQLException("Error occurred while inserting consent history details for msisdn :- " + msisdn
+						+ ",operator :-" + operatorID + ",scope :-" + scope, e);
+			} catch (NamingException e) {
+				throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+			} finally {
+				closeAllConnections(preparedStatement, connection, resultSet);
+			}
+	}
+	
+	public static Operator getOperatorDetails(String operator) throws SQLException, NamingException {
+		Connection connection = null;
+		PreparedStatement preparedStatement = null;
+		ResultSet resultSet = null;
+		Operator parameters = new Operator();
+		String queryToGetOperatorDetails = "SELECT ID FROM operators WHERE operatorname=?";
+		try {
+			connection = getConnectDBConnection();
+			preparedStatement = connection.prepareStatement(queryToGetOperatorDetails);
+			preparedStatement.setString(1, operator);
+			resultSet = preparedStatement.executeQuery();
+
+			while (resultSet.next()) {
+				parameters.setOperatorId(resultSet.getInt("ID"));
+			}
+		} catch (SQLException e) {
+			throw new SQLException("Error occurred while retrieving operator details for operator : " + operator, e);
+		} catch (NamingException e) {
+			throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+		} finally {
+			closeAllConnections(preparedStatement, connection, resultSet);
+		}
+		return parameters;
+	}
+	
+	public static String getSPConfigValue(String operator, String clientID, String key)
+			throws SQLException, NamingException {
+			Connection connection = null;
+			PreparedStatement preparedStatement = null;
+			ResultSet resultSet = null;
+			String queryToGetConsent = "SELECT config_value FROM sp_configuration WHERE client_id=? AND operator=? AND config_key=?";
+			try {
+				connection = getConnectDBConnection();
+				preparedStatement = connection.prepareStatement(queryToGetConsent);
+				preparedStatement.setString(1,clientID);
+				preparedStatement.setString(2,operator);
+				preparedStatement.setString(3, key);
+				resultSet = preparedStatement.executeQuery();
+				while (resultSet.next()) {
+					return resultSet.getString("config_value");
+				}
+			} catch (SQLException e) {
+				throw new SQLException("Error occurred while retrieving config_value for client_id : " + clientID,
+						e);
+			} catch (NamingException e) {
+				throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+			} finally {
+				closeAllConnections(preparedStatement, connection, resultSet);
+			}
+		return null;
 	}
 
 	private static void closeAllConnections(PreparedStatement preparedStatement, Connection connection,

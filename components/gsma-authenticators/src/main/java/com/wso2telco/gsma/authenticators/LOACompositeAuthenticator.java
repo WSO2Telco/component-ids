@@ -128,6 +128,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         String ipAddress = request.getParameter(Constants.IP_ADDRESS);
         String transactionId = request.getParameter(Constants.TRANSACTION_ID);
         String parentScope = request.getParameter(Constants.PARENT_SCOPE);
+        String apiScope = request.getParameter(Constants.API_SCOPES);
 
         boolean isShowTnc = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = ScopeParam.msisdnMismatchResultTypes.valueOf(
@@ -146,6 +147,8 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.IP_ADDRESS, ipAddress);
         context.setProperty(Constants.TRANSACTION_ID, transactionId);
         context.setProperty(Constants.PARENT_SCOPE, parentScope);
+        context.setProperty(Constants.API_SCOPES, apiScope);
+        context.setProperty(Constants.CLIENT_ID, serviceProvider);
 
         // set prompt variable default to false
         Boolean isFrorceOffnetDueToPromptParameter = false;
@@ -175,6 +178,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         DataPublisherUtil.UserState msisdnStatus = DataPublisherUtil.UserState.MSISDN_SET_TO_HEADER;
         if ("onnet".equals(flowType)) {
             msisdnToBeDecrypted = msisdnHeader;
+            context.setProperty(Constants.IS_OFFNET_FLOW, false);
         } else {
             //RULE: Trust msisdn header or login hint depending on scope parameter configuration or prompt param
             if (isFrorceOffnetDueToPromptParameter){
@@ -207,6 +211,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
                 msisdnToBeDecrypted = loginHintMsisdn;
                 msisdnStatus = DataPublisherUtil.UserState.MSISDN_SET_TO_LOGIN_HINT;
             }
+            context.setProperty(Constants.IS_OFFNET_FLOW, true);
         }
 
         if (StringUtils.isNotEmpty(msisdnToBeDecrypted)) {

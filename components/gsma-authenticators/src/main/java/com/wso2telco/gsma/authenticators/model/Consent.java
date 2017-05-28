@@ -4,13 +4,15 @@ public class Consent {
 
 	private String consumerKey;
 
-	private String operator;
+	private int operatorID;
 
 	private String scope;
 
 	private String status;
 
-//	private boolean is_approved;
+	private String description;
+
+	// private boolean is_approved;
 
 	public String getConsumerKey() {
 		return consumerKey;
@@ -20,12 +22,12 @@ public class Consent {
 		this.consumerKey = consumerKey;
 	}
 
-	public String getOperator() {
-		return operator;
+	public int getOperatorID() {
+		return operatorID;
 	}
 
-	public void setOperator(String operator) {
-		this.operator = operator;
+	public void setOperatorID(int operatorID) {
+		this.operatorID = operatorID;
 	}
 
 	public String getScope() {
@@ -44,12 +46,19 @@ public class Consent {
 		this.status = status;
 	}
 
-	/*public boolean getIs_approved() {
-		return is_approved;
+	public String getDescription() {
+		return description;
 	}
 
-	public void setIs_approved(boolean is_approved) {
-		this.is_approved = is_approved;
-	}*/
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	/*
+	 * public boolean getIs_approved() { return is_approved; }
+	 * 
+	 * public void setIs_approved(boolean is_approved) { this.is_approved =
+	 * is_approved; }
+	 */
 
 }
