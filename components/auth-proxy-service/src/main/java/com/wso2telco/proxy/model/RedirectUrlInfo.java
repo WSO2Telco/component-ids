@@ -35,6 +35,7 @@ public class RedirectUrlInfo {
     private ScopeParam.heFailureResults heFailureResult;
     private String transactionId;
     private String prompt;
+    private String apiScopes;
 
     public void setPrompt(String prompt) { this.prompt = prompt; }
 
@@ -143,4 +144,12 @@ public class RedirectUrlInfo {
     public String getTransactionId() {
         return transactionId;
     }
+
+	public String getApiScopes() {
+		return apiScopes;
+	}
+
+	public void setApiScopes(String apiScopes) {
+		this.apiScopes = apiScopes;
+	}
 }

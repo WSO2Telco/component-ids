@@ -18,6 +18,9 @@
 -->
 <%@ taglib uri="http://java.sun.com/jstl/core" prefix="c" %>
 <%@page import="java.util.logging.Logger" %>
+<%@ page import="java.util.Map" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.framework.cache.*" %>
+<%@ page import="org.wso2.carbon.identity.application.authentication.framework.context.*" %>
 <html class="site no-js lang--en" lang="en">
 
 <head>
@@ -28,14 +31,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
 
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-
-
+    <script src="mcx-user-registration/js/jquery-3.2.1.min.js" type="text/javascript"></script>
     <script src="mcx-user-registration/js/landing.js" type="text/javascript"></script>
-    <script src="mcx-user-registration/js/public/js/jquery.min.js" type="text/javascript"></script>
+    <script src="https://npmcdn.com/tether@1.2.4/dist/js/tether.min.js"></script>
+    <script src="mcx-user-registration/js/.min.js" type="text/javascript"></script>
     <script src="mcx-user-registration/js/public/js/main.js" type="text/javascript"></script>
     <script src="mcx-user-registration/js/public/js/modal.js" type="text/javascript"></script>
     <script src="mcx-user-registration/mcresources/js/vendor/parsley.min.js" type="text/javascript"></script>
     <link rel="stylesheet" href="mcx-user-registration/mcresources/css/style.css">
+    <link rel="stylesheet" href="mcx-user-registration/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
 
 
     <noscript>
@@ -69,16 +74,29 @@
     <script type="text/javascript" src="mcx-user-registration/mcresources/js/vendor/modernizr.js"></script>
 
     <%
-	Logger log=Logger.getLogger(this.getClass().getName());
-        String operator = request.getParameter("operator") != null ? request.getParameter("operator") : "";
+	    Logger log=Logger.getLogger(this.getClass().getName());
+        String sessionDataKey = request.getParameter("sessionDataKey");
+	    AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(sessionDataKey);
+	    Object cacheEntryObj = AuthenticationContextCache.getInstance().getValueFromCache(cacheKey);
+	    AuthenticationContext authnContext = null;
+		if (cacheEntryObj != null) {
+			authnContext = ((AuthenticationContextCacheEntry) cacheEntryObj).getContext();
+		}
+		Map<String,String> scopeDescription = (Map<String, String>)authnContext.getProperty("ScopeDescription");
+		pageContext.setAttribute("description", scopeDescription, pageContext.PAGE_SCOPE);
+        String operator = authnContext.getProperty("operator").toString();
         log.info( "operator :"+operator );
-        String token = request.getParameter("token") != null ? request.getParameter("token") : "";
-        log.info( "token :"+token );
-        String updateProfile = request.getParameter("updateProfile") != null ? request.getParameter("updateProfile") : "";
-        log.info( "updateProfile :"+updateProfile );
+        String spName = authnContext.getServiceProviderName();
+        log.info( "ServiceProvider :"+spName );
+        String spLogo = authnContext.getProperty("logo").toString();
+        log.info( "logoPath :"+spLogo );
         String authenticators = request.getParameter("authenticators");
-        String imgPath = "mcx-user-registration/mcresources/img/svg/spark_logo.svg";
+        String imgPath = "";
         String termsConditionsPath = "";
+        String scopes = request.getParameter("scope");
+        String scopesMinBracket = scopes.substring( 1, scopes.length() - 1);
+        String[] api_Scopes = scopesMinBracket.split( ", ");
+        pageContext.setAttribute("apiScopes", api_Scopes, pageContext.PAGE_SCOPE);
         if (operator != "") {
             imgPath = "mcx-user-registration/images/branding/" + operator + "_logo.svg";
             termsConditionsPath = "html/terms-conditions/" + operator + "-terms-conditions.html";
@@ -106,34 +124,34 @@
 
 
     <main class="site__main site__wrap section v-distribute v-grow">
-        <header class="page__header" id="ussdpin_header" style="display:none">
-            <h1 class="page__heading">Now, let&rsquo;s make your account&nbsp;secure</h1>
-            <p>Create a PIN for secure log-in and two questions we can ask you in case you ever forget
-                your&nbsp;PIN.</p>
-        </header>
+            <div class="grid">
+                 <div class="grid__item one-quarter">
+                     <img src='<%=spLogo%>' alt="App logo" width="100">
+                 </div>
+                 <div class="grid__item three-quarters">
+                    <h2 class="page__heading"><%=spName%></h2>
+                    <p>You are granting <b><%=spName%></b> the rights to access following API data:</p>
+                 </div>
+        </div>
+   
         <header class="page__header" id="ussdpin_update_header" style="display:none">
             <h1 class="page__heading">Looks like you have to update your account, let’s make your
                 account&nbsp;secure</h1>
             <p>Create a PIN for secure log-in and two questions we can ask you in case you ever forget
                 your&nbsp;PIN.</p>
         </header>
-        <div>
-            <section class="slider__slide">
-                <div class="slider__slide-inner v-distribute">
-                    <header class="page__header">
-                        <!--h1 class="page__heading">Private</h1-->
-                        <h4>Please provide your consent to register in order to access the <br><b>API</b></h4>
-                        <div class="page__illustration v-grow v-align-content">
-                            <div>
-                                <img src="mcx-user-registration/mcresources/img/svg/personal.svg" alt="Secure" width="106" height="126">
-                            </div>
-                        </div>
-                    </header>
-
-                </div>
-            </section>
-        </div>
-
+        <br>
+        
+<div class="grid">
+  <ul class="list-group" id="list-group-accordion">
+      <c:forEach var="scope" items="${pageScope.apiScopes}">
+               <li class="list-group-item">
+                   <p class="list-group-heading" data-toggle="collapse" data-target="#<c:out value="${scope}"/>" data-parent="#list-group-accordion">  <img src="mcx-user-registration/mcresources/img/privacy-list.jpg" alt="App logo"> Accessing <c:out value="${scope}"/> API<i class="fa fa-chevron-right pull-right"></i></p>
+                   <div id=<c:out value="${scope}"/> class="collapse"><c:out value="${pageScope.description[scope]}"/></div>
+               </li>
+      </c:forEach>
+  </ul>
+</div>
 
         <form class="form-horizontal" id="selfReg" name="selfReg" data-parsley-validate>
             <input type="hidden" name="regExp_PRIMARY" value="^[\S]{5,30}$">
@@ -147,44 +165,55 @@
                     </select>
                 </div>
             </div>
+<br>
 
-            <div class="page__copy">
-                <p id="msg">
-                    Looks like you don't yet have an account. Want to set one up? It's quick and&nbsp;easy.
-                </p>
-            </div>
-            <div id="term_ussd" class="page_term">
-                <p style="font-size:13px; margin:0px; padding:0px;" align="center">By setting up an account, you are
+		<c:if test="${param.registering=='true'}">
+            <div class="page__copy" class="page_term">
+                <label class="checkbox-inline"><input id="tc_checkbox" type="checkbox" value="">&nbsp;Looks like you don't yet have an account. Want to set one up? It's quick and&nbsp;easy.By setting up an account, you are
                     agreeing to the <a href="/authenticationendpoint/terms_and_conditions"
-                                       target="_blank">Terms and Conditions.</a></p>
-                <p style="font-size:13px;margin-top:5px;" align="center">The <a href="/authenticationendpoint/privacy_promise" target="_blank">Mobile
-                    Connect Privacy Promise</a> means that your mobile number won't be shared and no personal
-                    information will be disclosed without your consent. See our full <a href="/authenticationendpoint/privacy_policy" target="_blank">privacy
-                        policy&nbsp;here</a>.</p>
+                                       target="_blank">Terms and Conditions.</a></label>
             </div>
-
+            <br>
+        </c:if>
+      
 
             <div class="grid">
                 <div class="grid__item one-half">
-                    <a class="btn btn--fill btn--full btn--large" href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=approve">
-                        Approve
-                    </a>
+                    <c:choose>
+                       <c:when test="${param.registering=='true'}">
+                           <a onclick="TCBoxValidation('<%=request.getParameter("sessionDataKey")%>','approve')" id="approve-btn" class="btn btn--full btn--white btn--fill btn--large btn--color">
+                              Approve
+                           </a>
+                       </c:when> 
+                       <c:otherwise>
+                           <a id="approve-btn" class="btn btn--full btn--white btn--fill btn--large btn--color" href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=approve">
+                              Approve
+                           </a>
+                       </c:otherwise>
+                    </c:choose>
                 </div>
-                <div class="grid__item one-half" >
-                       <a class="btn btn--full btn--large btn-danger" href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=deny">
+                <div class="grid__item one-half">
+                    <a id="deny-btn" class="btn btn-danger btn--full btn--large" href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=deny">
                         Deny
                     </a>
-                </div>
-            </div>
-               <c:if test="${param.skipConsent=='false'}">
-                      <div class="grid space--half-top">
-                           <div class="grid__item one-whole">
-                                <a class="btn btn--full btn--large btn--outline " href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=all">
-                                Approve always
-                                </a>
-                          </div>
-                     </div>
+                 </div>
+                 <c:if test="${param.skipConsent=='false'}">
+                    <div class="grid__item one-whole">
+                       <c:choose>
+                       <c:when test="${param.registering=='true'}">
+                          <a onclick="TCBoxValidation('<%=request.getParameter("sessionDataKey")%>','all')" id="approveall-btn" class="btn btn-normal btn--full btn--large">
+                              Approve Always
+                           </a>
+                       </c:when> 
+                       <c:otherwise>
+                           <a id="approveall-btn" class="btn btn-normal btn--full btn--large" href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=all">
+                              Approve Always
+                           </a>
+                       </c:otherwise>
+                    </c:choose>
+                   </div> 
                </c:if>
+            </div>
         </form>
     </main>
 </div>
@@ -203,6 +232,19 @@
         var sessionDataKey = getParameterByName('sessionDataKey');
         window.location = "/commonauth/?sessionDataKey=" + sessionDataKey + "&action=RegConsent";
     }
+
+    $(function() {
+  $('.collapse').on('show.bs.collapse', function() {
+    var toggle = $('[data-target="#' + this.id + '"]');
+    if (toggle) {
+      var parent = toggle.attr('data-parent');
+      if (parent) {
+        $(parent).find('.collapse.in').collapse('hide');
+      }
+    }
+  });
+})
+
 
 </script>
 </body>

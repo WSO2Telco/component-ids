@@ -267,6 +267,14 @@ public class Endpoints {
                 ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo,
                         userStatus,redirectURL);
 
+                
+                String apiScopes = null;
+                if(scopeParam.isConsentPage()==true){
+                	String[] api_Scopes = scopeName.split("\\s+");
+                	api_Scopes=Arrays.copyOfRange(api_Scopes, 1, api_Scopes.length);
+                	apiScopes=Arrays.toString(api_Scopes);
+                }
+
                 String loginhint_msisdn = null;
                 try {
                     loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam,redirectURL);
@@ -326,6 +334,7 @@ public class Endpoints {
                     redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
                     redirectUrlInfo.setParentScope(scopeParam.getScope());
                     redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
+                    redirectUrlInfo.setApiScopes(apiScopes);
                     redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
 
                     DataPublisherUtil.updateAndPublishUserStatus(
@@ -432,7 +441,6 @@ public class Endpoints {
      * @throws ConfigurationException
      */
     private ScopeParam validateAndSetScopeParameters(String loginHint, String msisdnHeader, String scope,
-                                                     RedirectUrlInfo redirectUrlInfo, UserStatus userStatus,String redirectURL)
             throws AuthenticationFailedException, ConfigurationException {
         //TODO: get all scope related params. This should be move to a initialization method or add to cache later
         ScopeParam scopeParam = getScopeParam(scope, userStatus);
@@ -546,7 +554,6 @@ public class Endpoints {
     private String retunFormatVerfiedPlainTextLoginHint(String loginHint,
                                                         List<LoginHintFormatDetails>
                                                                 loginHintAllowedFormatDetailsList, UserStatus
-                                                                userStatus, String redirectURL)
             throws AuthenticationFailedException {
         boolean isValidFormatType = false; //msisdn/loginhint should be a either of defined formats
 
@@ -807,6 +814,7 @@ public class Endpoints {
         String ipAddress = redirectUrlInfo.getIpAddress();
         String prompt = redirectUrlInfo.getPrompt();
         String validationRegex=configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getValidationRegex();
+        String apiScopes = redirectUrlInfo.getApiScopes();
         boolean isShowTnc = redirectUrlInfo.isShowTnc();
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
         ScopeParam.heFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
@@ -846,6 +854,10 @@ public class Endpoints {
             if(StringUtils.isNotEmpty(validationRegex)){
                 redirectURL = redirectURL + "&" + AuthProxyConstants.MSISDN_VALIDATION_REGEX +
                         "=" + validationRegex;
+            }
+            if(apiScopes != null && !StringUtils.isEmpty(apiScopes)){
+                redirectURL = redirectURL + "&" + AuthProxyConstants.API_SCOPES +
+                        "=" + apiScopes;
             }
         } else {
             String errMsg = "AuthorizeURL could not be found in mobile-connect.xml";
