@@ -147,16 +147,19 @@ public class ConsentAuthenticator extends AbstractApplicationAuthenticator
 			List<String> approveAllScopes= new ArrayList<String>();
 			Map<String,String> scopeDescription = new HashedMap();
 			for (String apiScope:api_Scopes) {
-				Consent consent = DBUtil.getConsentDetails(apiScope, clientID, operatorID);
-				if (consent.getStatus() != null) {
-					if(consent.getStatus().equalsIgnoreCase("approve") || consent.getStatus().equalsIgnoreCase("approveall")) {
-						approveScopes.add(apiScope);
-						scopeDescription.put(apiScope, consent.getDescription());
-						if(consent.getStatus().equalsIgnoreCase("approve")){
-							consentStatus="approve";
-						}
-						else if (!consentStatus.equals("approve")){
-							consentStatus="approveall";
+				UserConsent denyConsent = DBUtil.getUserConsentDenyDetails(msisdn, apiScope, clientID, operatorID);
+				if (denyConsent.getConsumerKey() == null && denyConsent.getMsisdn() == null && denyConsent.getScope() == null) {
+					Consent consent = DBUtil.getConsentDetails(apiScope, clientID, operatorID);
+					if (consent.getStatus() != null) {
+						if(consent.getStatus().equalsIgnoreCase("approve") || consent.getStatus().equalsIgnoreCase("approveall")) {
+							approveScopes.add(apiScope);
+							scopeDescription.put(apiScope, consent.getDescription());
+							if(consent.getStatus().equalsIgnoreCase("approve")){
+								consentStatus="approve";
+							}
+							else if (!consentStatus.equals("approve")){
+								consentStatus="approveall";
+							}
 						}
 					}
 				}
