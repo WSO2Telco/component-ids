@@ -6,7 +6,7 @@ public class UserConsent {
 
 	private String consumerKey;
 
-	private String operator;
+	private int operatorID;
 
 	private String scope;
 
@@ -28,12 +28,12 @@ public class UserConsent {
 		this.consumerKey = consumerKey;
 	}
 
-	public String getOperator() {
-		return operator;
+	public int getOperatorID() {
+		return operatorID;
 	}
 
-	public void setOperator(String operator) {
-		this.operator = operator;
+	public void setOperatorID(int operatorID) {
+		this.operatorID = operatorID;
 	}
 
 	public String getScope() {

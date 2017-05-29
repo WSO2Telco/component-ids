@@ -204,6 +204,13 @@ public class Endpoints {
                 //Validate with Scope wise parameters and throw exceptions
                 ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo,
                         userStatus);
+                
+                String apiScopes = null;
+                if(scopeParam.isConsentPage()==true){
+                	String[] api_Scopes = scopeName.split("\\s+");
+                	api_Scopes=Arrays.copyOfRange(api_Scopes, 1, api_Scopes.length);
+                	apiScopes=Arrays.toString(api_Scopes);
+                }
 
                 String loginhint_msisdn = null;
                 try {
@@ -264,6 +271,7 @@ public class Endpoints {
                     redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
                     redirectUrlInfo.setParentScope(scopeParam.getScope());
                     redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
+                    redirectUrlInfo.setApiScopes(apiScopes);
                     redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
 
                     DataPublisherUtil.updateAndPublishUserStatus(
@@ -631,6 +639,7 @@ public class Endpoints {
         String parentScope = redirectUrlInfo.getParentScope();
         String ipAddress = redirectUrlInfo.getIpAddress();
         String prompt = redirectUrlInfo.getPrompt();
+        String apiScopes = redirectUrlInfo.getApiScopes();
         boolean isShowTnc = redirectUrlInfo.isShowTnc();
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
         ScopeParam.heFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
@@ -666,6 +675,12 @@ public class Endpoints {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.TELCO_PROMPT +
                         "=" + prompt;
             }
+            
+            if(apiScopes != null && !StringUtils.isEmpty(apiScopes)){
+                redirectURL = redirectURL + "&" + AuthProxyConstants.API_SCOPES +
+                        "=" + apiScopes;
+            }
+            
         } else {
             String errMsg = "AuthorizeURL could not be found in mobile-connect.xml";
             DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.CONFIGURATION_ERROR,
