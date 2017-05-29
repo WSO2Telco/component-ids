@@ -178,6 +178,42 @@ public class DBUtil {
 		}
 		return consentProp;
 	}
+	
+	public static UserConsent getUserConsentDenyDetails(String msisdn, String scope, String clientID, int operatorID)
+			throws SQLException, NamingException {
+		UserConsent consentProp = new UserConsent();
+		ScopeParam params = getScopeDetails(scope);
+		if (params.isConsentPage()) {
+			Connection connection = null;
+			PreparedStatement preparedStatement = null;
+			ResultSet resultSet = null;
+			String queryToGetUserConsentDeny = "SELECT deny FROM user_consent_deny WHERE msisdn=? AND scope_id=? AND client_id=? AND operator_id=?";
+			try {
+				connection = getConnectDBConnection();
+				preparedStatement = connection.prepareStatement(queryToGetUserConsentDeny);
+				preparedStatement.setString(1, msisdn);
+				preparedStatement.setInt(2, params.getScope_id());
+				preparedStatement.setString(3, clientID);
+				preparedStatement.setInt(4, operatorID);
+				resultSet = preparedStatement.executeQuery();
+				while (resultSet.next()) {
+						consentProp.setMsisdn(msisdn);
+						consentProp.setScope(scope);
+						consentProp.setConsumerKey(clientID);
+						consentProp.setOperatorID(operatorID);
+						consentProp.setIs_approved(resultSet.getBoolean("deny"));
+				}
+			} catch (SQLException e) {
+				throw new SQLException("Error occurred while retrieving user consent deny details for msisdn :- " + msisdn
+						+ ",operator :-" + operatorID + ",scope :-" + scope, e);
+			} catch (NamingException e) {
+				throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+			} finally {
+				closeAllConnections(preparedStatement, connection, resultSet);
+			}
+		}
+		return consentProp;
+	}
 
 	public static void insertUserConsentDetails(String msisdn, String scope, String clientID, int operatorID)
 			throws SQLException, NamingException {
