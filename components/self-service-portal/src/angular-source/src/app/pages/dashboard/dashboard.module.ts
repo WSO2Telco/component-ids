@@ -14,6 +14,7 @@ import { LoaUpgrade } from "./loaUpgrade";
 import { FeedService } from './feed/feed.service';
 import { PieChartService } from './pieChart/pieChart.service';
 import { LoginChartService } from './loginChart/loginChart.service';
+import {MomentModule} from 'angular2-moment';
 
 
 @NgModule({
@@ -21,7 +22,8 @@ import { LoginChartService } from './loginChart/loginChart.service';
     CommonModule,
     FormsModule,
     NgaModule,
-    routing
+    routing,
+    MomentModule
   ],
   declarations: [
     PinReset,

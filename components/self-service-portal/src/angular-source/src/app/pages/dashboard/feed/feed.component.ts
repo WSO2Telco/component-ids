@@ -8,6 +8,7 @@ import 'style-loader!./feed.scss';
   selector: 'feed',
   templateUrl: './feed.html'
 })
+
 export class Feed {
 
   public feed:Array<Object>;

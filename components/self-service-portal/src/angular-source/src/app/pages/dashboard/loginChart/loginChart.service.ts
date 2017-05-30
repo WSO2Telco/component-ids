@@ -2,6 +2,7 @@ import {Injectable} from '@angular/core';
 import {Http, Response} from '@angular/http';
 import {CommonService} from "../../../common.service";
 
+
 @Injectable()
 export class LoginChartService {
 
