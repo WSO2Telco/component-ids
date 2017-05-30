@@ -22,6 +22,16 @@
   }
 }
 
+.al-logo {
+  color: $sidebar-text;
+  float: left;
+  outline: none !important;
+  line-height: 60px;
+  width: 90px;
+  height: auto;
+  margin: 10px 5px;
+}
+
 a.al-logo {
   color: $sidebar-text;
   display: block;
