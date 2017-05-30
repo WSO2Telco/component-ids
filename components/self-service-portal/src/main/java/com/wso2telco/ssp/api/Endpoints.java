@@ -25,6 +25,7 @@ import com.wso2telco.ssp.service.AdminService;
 import com.wso2telco.ssp.service.DbService;
 import com.wso2telco.ssp.service.DiscoveryService;
 import com.wso2telco.ssp.service.UserService;
+import com.wso2telco.ssp.util.Helper;
 import com.wso2telco.ssp.util.Pagination;
 import com.wso2telco.ssp.util.PrepareResponse;
 import org.apache.commons.lang.StringUtils;
@@ -323,12 +324,17 @@ public class Endpoints {
 
         AdminService adminService = new AdminService();
         String current_pin = adminService.getPin(outputResponse.getString(selfServicePortalConfig.getMsisdnClaim()));
-
-        if(current.equals(current_pin)){
-            // current pin loaded from IS and provided pin are matched
-            adminService.setPin(outputResponse.getString(selfServicePortalConfig.getMsisdnClaim()), new_pin);
-        } else {
-            throw new ApiException("PIN mismatched", "pin_mismatched", Response.Status.BAD_REQUEST);
+        try {
+            String hashedCurrentInput = Helper.GetHashValue(current);
+            String hashedNewInput = Helper.GetHashValue(new_pin);
+            if (hashedCurrentInput.equals(current_pin)) {
+                // current pin loaded from IS and provided pin are matched
+                adminService.setPin(outputResponse.getString(selfServicePortalConfig.getMsisdnClaim()), hashedNewInput);
+            } else {
+                throw new ApiException("PIN mismatched", "pin_mismatched", Response.Status.BAD_REQUEST);
+            }
+        }catch (Exception e){
+            return PrepareResponse.Error(e.getMessage(), "hashed_error", Response.Status.BAD_REQUEST);
         }
 
         return PrepareResponse.Success("success", true);
