@@ -45,10 +45,13 @@
     margin-bottom: 9px;
     font-size: 18px;
     opacity: 0.9;
+    float: left;
   }
   .channel-number {
     display: inline-block;
     float: right;
+    margin-left: 15px;
+    color: #625A7D;
   }
 }
 

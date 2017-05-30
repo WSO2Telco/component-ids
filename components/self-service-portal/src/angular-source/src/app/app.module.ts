@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 import { removeNgStyles, createNewHosts, createInputTransfer } from '@angularclass/hmr';
 import {NgPipesModule} from 'ngx-pipes';
 import {Ng2PaginationModule} from 'ng2-pagination'; // <-- import the module
+import {MomentModule} from 'angular2-moment';
 
 /*
  * Platform and Environment providers/directives/pipes
@@ -53,6 +54,7 @@ export type StoreType = {
     routing,
     NgPipesModule,
     Ng2PaginationModule,
+    MomentModule
   ],
   providers: [ // expose our Services and Providers into Angular's dependency injection
     ENV_PROVIDERS,
