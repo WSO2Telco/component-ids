@@ -234,7 +234,7 @@ public class Endpoints {
         try {
             PagedResults lh = DbService.getLoginHistoryByMsisdn(
                     outputResponse.getString(selfServicePortalConfig.getMsisdnClaim()),
-                    "id", OrderByType.ASC, pagination);
+                    "id", OrderByType.DESC, pagination);
             return PrepareResponse.Success(lh);
         }catch (DBUtilException e){
             throw new ApiException(e.getMessage(), "login_history_error", Response.Status.INTERNAL_SERVER_ERROR);
