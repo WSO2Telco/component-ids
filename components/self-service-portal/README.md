@@ -30,7 +30,7 @@ npm run start
 
 ### Method 1
 
-#### 1. Build the angular-source project, clean existing content and copy compiled package to `self-service-portal/src/maim/webapp`
+#### 1. Build the angular-source project, clean existing content and copy compiled package to `self-service-portal/src/maim/webapp` by running following command
 
 ```
 npm run build:prod
