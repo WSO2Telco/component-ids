@@ -3,7 +3,6 @@ import { ModuleWithProviders } from '@angular/core';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: '*', redirectTo: 'login', pathMatch: 'full' },
   { path: '**', redirectTo: 'pages/dashboard' }
 ];
 
