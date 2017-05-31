@@ -147,8 +147,8 @@ public class ConsentAuthenticator extends AbstractApplicationAuthenticator
 			List<String> approveAllScopes= new ArrayList<String>();
 			Map<String,String> scopeDescription = new HashedMap();
 			for (String apiScope:api_Scopes) {
-				UserConsent denyConsent = DBUtil.getUserConsentDenyDetails(msisdn, apiScope, clientID, operatorID);
-				if (denyConsent.getConsumerKey() == null && denyConsent.getMsisdn() == null && denyConsent.getScope() == null) {
+				UserConsent userConsentDetails = DBUtil.getUserConsentDetails(msisdn, apiScope, clientID, operatorID);
+				if ((userConsentDetails.getConsumerKey() == null && userConsentDetails.getMsisdn() == null) ||(userConsentDetails.getConsumerKey() != null && userConsentDetails.isIs_approved()==true)) {
 					Consent consent = DBUtil.getConsentDetails(apiScope, clientID, operatorID);
 					if (consent.getStatus() != null) {
 						if(consent.getStatus().equalsIgnoreCase("approve") || consent.getStatus().equalsIgnoreCase("approveall")) {
