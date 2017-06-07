@@ -31,6 +31,7 @@ import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.util.Constants;
 import com.wso2telco.util.DbUtil;
+
 import org.apache.axis2.AxisFault;
 import org.apache.commons.lang.IncompleteArgumentException;
 import org.apache.commons.lang.StringUtils;
@@ -54,6 +55,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.hashids.Hashids;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -79,6 +81,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+
 import java.io.*;
 import java.net.URL;
 import java.rmi.RemoteException;
@@ -1387,6 +1390,7 @@ public class Endpoints {
             mePinInteractionCreateRequest.setExpiryTimeInSeconds(60);
             mePinInteractionCreateRequest.setInteractionUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
             mePinInteractionCreateRequest.setResourceUrl("mepin://authenticator/set_enrollment_status");
+            mePinInteractionCreateRequest.setDisablePush(true);
 
 
             MePinInteractionRequestResourceParams mePinInteractionRequestResourceParams = new MePinInteractionRequestResourceParams();
@@ -1394,7 +1398,8 @@ public class Endpoints {
             mePinInteractionRequestResourceParams.setHelpUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
             mePinInteractionRequestResourceParams.setPrivacyPolicyUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
             mePinInteractionRequestResourceParams.setServicesUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
-            mePinInteractionRequestResourceParams.setTermsOfServiceUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
+            //mePinInteractionRequestResourceParams.setTermsOfServiceUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
+            mePinInteractionRequestResourceParams.setTermsOfServiceUrl(getOperatorSpecificImageURL(msisdn));
 
            String operator = getMePinOperator(msisdn);
             if ("singtel".equals(operator)) {
@@ -1441,20 +1446,12 @@ public class Endpoints {
 
             log.info("xxxxxxxxxxxxx");
             log.info(new Gson().toJson(resultInteractionCreate.toString()));
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Error occurred while seding response to me pin", e);
-        } catch (SQLException e) {
-            log.error("SQL error Error occurred while seding response to me pin", e);
-        } catch (AuthenticatorException e) {
-            log.error("Auth error Error occurred while seding response to me pin", e);
-        } catch (NoSuchAlgorithmException e) {
-            log.error("Auth error Error occurred while seding response to me pin", e);
-        } catch (KeyManagementException e) {
-            log.error("Auth error Error occurred while seding response to me pin", e);
-        }
+        } 
         return Response.status(HttpStatus.SC_OK).entity(new Gson().toJson(mePinResponse)).build();
     }
-
+    
     private String getMePinOperator(String msisdn){
 
         MobileConnectConfig.MePinConfig mePinConfig = configurationService.getDataHolder().getMobileConnectConfig()
@@ -1464,6 +1461,75 @@ public class Endpoints {
         for (int i = 0; i < testMsisdns.length; i++) {
             if (testMsisdns[i].getMsisdn().equals(msisdn)) {
                 return testMsisdns[i].getOperator();
+            }
+        }
+        return null;
+    }
+
+    public String getOperatorSpecificImageURL(String msisdn) {
+
+        String imageURL = null;
+        MobileConnectConfig availableConfigs = configurationService.getDataHolder().getMobileConnectConfig();
+        String discoveryUrl = availableConfigs.getDiscoveryURL();
+        String discoveryAuthCode = availableConfigs.getDiscoveryAuthCode();
+        MobileConnectConfig.MePinConfig mePinConfig = availableConfigs.getMePinConfig();
+        if (mePinConfig == null) {
+            log.error("MePin related Configurations are not properly set ");
+            return imageURL;
+        }
+
+        Boolean isHubSet = mePinConfig.getIsHub();
+
+        try {
+
+            if (!isHubSet)
+                imageURL = mePinConfig.getDefaultImageUrl();
+            else
+                imageURL = getOperatorSpecificImage(getDiscoveredOperator(msisdn, discoveryUrl, discoveryAuthCode));
+            log.info("imageURL : " + imageURL);
+        } catch (Exception e) {
+            log.error("Error occurred while discovering operator for msisdn: " + msisdn
+                    + "via configured discoveryUrl: " + discoveryUrl + "and discoveryAuthCode:" + discoveryAuthCode, e);
+        }
+
+        return imageURL;
+
+    }
+
+    private String getDiscoveredOperator(String msisdn, String discoveryURL, String discoveryAuthCode) throws Exception {
+
+        String operator = null;
+        HttpClient client = new DefaultHttpClient();
+        HttpPost postRequest = new HttpPost(discoveryURL);
+        postRequest.addHeader("Authorization", "Basic " + discoveryAuthCode);
+        postRequest.addHeader("Cache-Control", "no-cache");
+        postRequest.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+        urlParameters.add(new BasicNameValuePair("MSISDN", msisdn));
+        UrlEncodedFormEntity requestContent = new UrlEncodedFormEntity(urlParameters);
+
+        postRequest.setEntity(requestContent);
+        HttpResponse httpResponse = client.execute(postRequest);
+
+        if ((httpResponse.getStatusLine().getStatusCode() == 200)) {
+            JSONObject responseFullPayload = new JSONObject(EntityUtils.toString(httpResponse.getEntity()));
+            JSONObject response = (JSONObject) responseFullPayload.get("response");
+            operator = response.get("serving_operator").toString();
+        }
+
+        return operator;
+    }
+
+    private String getOperatorSpecificImage(String discoveredOperator) {
+
+        MobileConnectConfig.MePinConfig mePinConfig = configurationService.getDataHolder().getMobileConnectConfig()
+                .getMePinConfig();
+
+        MobileConnectConfig.OperatorDescription[] configOperators = mePinConfig.getOperatorsList()
+                .getOperatorDescription();
+        for (int i = 0; i < configOperators.length; i++) {
+            if (configOperators[i].getName().equalsIgnoreCase(discoveredOperator)) {
+                return configOperators[i].getImageUrl();
             }
         }
         return null;

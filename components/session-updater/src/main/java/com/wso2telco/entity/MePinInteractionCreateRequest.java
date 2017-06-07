@@ -54,6 +54,17 @@ public class MePinInteractionCreateRequest {
     @SerializedName("resource_params")
     private MePinInteractionRequestResourceParams mePinInteractionRequestResourceParams;
 
+    @SerializedName("disable_push")
+    private boolean disablePush;
+
+    public boolean isDisablePush() {
+        return disablePush;
+    }
+
+    public void setDisablePush(boolean disablePush) {
+        this.disablePush = disablePush;
+    }
+    
     public String getInteractionType() {
         return interactionType;
     }
