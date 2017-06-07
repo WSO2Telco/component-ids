@@ -102,8 +102,8 @@ public class SeamlessProvisionClientAuthHandler extends AbstractClientAuthHandle
                 && serviceProvider.getAdminServiceDto().getOauthConsumerSecret() != null
                 && !serviceProvider.getAdminServiceDto().getOauthConsumerSecret().isEmpty()) {
 
-            String cutomerKey = serviceProvider.getAdminServiceDto().getOauthConsumerKey().replaceAll("x-", "");
-            String secretKey = serviceProvider.getAdminServiceDto().getOauthConsumerSecret().replaceAll("x-", "");
+            String cutomerKey = serviceProvider.getAdminServiceDto().getOauthConsumerKey();
+            String secretKey = serviceProvider.getAdminServiceDto().getOauthConsumerSecret();
             serviceProvider.getAdminServiceDto().setOauthConsumerKey(cutomerKey);
             serviceProvider.getAdminServiceDto().setOauthConsumerSecret(secretKey);
         }
@@ -174,10 +174,8 @@ public class SeamlessProvisionClientAuthHandler extends AbstractClientAuthHandle
         ServiceProviderDto serviceProviderDto = null;
         DiscoveryService discoveryService = new DiscoveryServiceImpl();
         try {
-            DiscoveryServiceConfig discoveryServiceConfig = readDiscoveryConfigs();
-            discoveryServiceConfig.setDiscoverOnlyLocal(true);
-            serviceProviderDto = discoveryService.servceProviderEksDiscovery(discoveryServiceConfig,
-                    getDiscoveryServiceDto(oAuth2AccessTokenReqDTO), getServiceProviderDto(null, mobileConnectConfigs));
+            serviceProviderDto = discoveryService.servceProviderCredentialDiscovery(readDiscoveryConfigs(), getDiscoveryServiceDto(oAuth2AccessTokenReqDTO),
+                    getServiceProviderDto(null, mobileConnectConfigs));
         } catch (Exception e) {
             log.error("" + e.getMessage());
         }
@@ -192,6 +190,8 @@ public class SeamlessProvisionClientAuthHandler extends AbstractClientAuthHandle
         DiscoveryServiceDto discoveryServiceDto = new DiscoveryServiceDto();
         discoveryServiceDto.setClientId(oAuth2AccessTokenReqDTO.getClientId());
         discoveryServiceDto.setClientSecret(oAuth2AccessTokenReqDTO.getClientSecret());
+        discoveryServiceDto.setAuth_clientId(mobileConnectConfigs.getDiscoveryConfig().getAuth_clientId());
+        discoveryServiceDto.setAuth_clientSecret(mobileConnectConfigs.getDiscoveryConfig().getAuth_clientSecret());
         String sectorId = SectorUtil.getSectorIdFromUrl(oAuth2AccessTokenReqDTO.getCallbackURI());
         discoveryServiceDto.setSectorId(sectorId);
         return discoveryServiceDto;

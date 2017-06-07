@@ -354,7 +354,7 @@ public class Endpoints {
             ServiceProviderDto serviceProviderDto = discoveryService.servceProviderCredentialDiscovery(
                     TransformUtil.transformDiscoveryConfig(mobileConnectConfigs.getDiscoveryConfig(),
                             mobileConnectConfigs),
-                    TransformUtil.transofrmDiscoveryDto(client_id, redirectURL),
+                    TransformUtil.transofrmDiscoveryDto(client_id, redirectURL,mobileConnectConfigs),
                     getServiceProviderDto(null, mobileConnectConfigs));
 
             if (serviceProviderDto != null && serviceProviderDto.getExistance().equals(ProvisionType.REMOTE)
