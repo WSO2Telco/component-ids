@@ -53,6 +53,7 @@ public abstract class RemoteDiscovery extends DiscoveryLocator implements Inline
     protected static String CONTENT_TYPE_HEADER_VAL_TYPE_CR = "application/json";
     protected static String AUTHORIZATION_HEADER = "Authorization";
     protected static String HTTP_POST = "POST";
+    protected static String HTTP_GET = "GET";
     protected static String MSISDN = "msisdn";
     protected static String REDIRECT_URL = "Redirect_URL";
     protected static String CLIENT_ID = "client_id";

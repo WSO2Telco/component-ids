@@ -38,12 +38,12 @@ public class RemoteCredentialDiscovery extends RemoteDiscovery {
 
     @Override
     public ServiceProviderDto servceProviderDiscovery(DiscoveryServiceConfig discoveryServiceConfig,
-            DiscoveryServiceDto discoveryServiceDto,SpProvisionDto spProvisionDto) throws DicoveryException {
+            DiscoveryServiceDto discoveryServiceDto, SpProvisionDto spProvisionDto) throws DicoveryException {
 
         log.info("CR-> Service Provider Credentail Discovery Call");
-        String encodedBasicAuthCode = buildBasicAuthCode(discoveryServiceDto.getClientId(),
-                discoveryServiceDto.getClientSecret());
-        String requestMethod = HTTP_POST;
+        String encodedBasicAuthCode = buildBasicAuthCode(discoveryServiceDto.getAuth_clientId(),
+                discoveryServiceDto.getAuth_clientSecret());
+        String requestMethod = HTTP_GET;
         Map<String, String> requestProperties = buildRequestProperties(encodedBasicAuthCode);
 
         CrValidateRes crValidateRes = new Gson()
@@ -56,7 +56,7 @@ public class RemoteCredentialDiscovery extends RemoteDiscovery {
     public Map<String, String> buildRequestProperties(String encodedBasicAuthCode) {
         log.info("CR-> Building request properties.");
         Map<String, String> requestProperties = new HashMap<String, String>();
-        requestProperties.put(ACCEPT, CONTENT_TYPE_HEADER_VAL_TYPE_CR);
+        /*requestProperties.put(ACCEPT, CONTENT_TYPE_HEADER_VAL_TYPE_CR);*/
         requestProperties.put(AUTHORIZATION_HEADER, BASIC + SPACE + encodedBasicAuthCode);
         return requestProperties;
     }
@@ -66,8 +66,12 @@ public class RemoteCredentialDiscovery extends RemoteDiscovery {
             DiscoveryServiceDto discoveryServiceDto) {
         log.info("CR-> Build endpoint url");
         String endPointUrl = discoveryServiceConfig.getCrValidateDiscoveryConfig().getServiceUrl() + QES_OPERATOR
-                + CLIENT_ID + EQA_OPERATOR + discoveryServiceDto.getClientId() + AMP_OPERATOR + CLIENT_SECRET
-                + EQA_OPERATOR + discoveryServiceDto.getClientSecret();
+                + CLIENT_ID + EQA_OPERATOR + discoveryServiceDto.getClientId();
+        if (discoveryServiceDto != null && discoveryServiceDto.getClientSecret() != null
+                && !discoveryServiceDto.getClientSecret().isEmpty()) {
+            endPointUrl = endPointUrl + AMP_OPERATOR + CLIENT_SECRET + EQA_OPERATOR
+                    + discoveryServiceDto.getClientSecret();
+        }
         return endPointUrl;
     }
 

@@ -61,9 +61,13 @@ public class TransformUtil {
         return eksDiscoveryConfig;
     }
 
-    public static DiscoveryServiceDto transofrmDiscoveryDto(String clientId, String callbackUrl) {
+    public static DiscoveryServiceDto transofrmDiscoveryDto(String clientId, String callbackUrl,MobileConnectConfig mobileConnectConfig) {
         DiscoveryServiceDto discoveryServiceDto = new DiscoveryServiceDto();
         discoveryServiceDto.setClientId(clientId);
+        if(mobileConnectConfig != null){
+            discoveryServiceDto.setAuth_clientId(mobileConnectConfig.getDiscoveryConfig().getAuth_clientId());
+            discoveryServiceDto.setAuth_clientSecret(mobileConnectConfig.getDiscoveryConfig().getAuth_clientSecret());
+        }
         String sectorId = null;
         if (callbackUrl != null && !callbackUrl.isEmpty()) {
             sectorId = SectorUtil.getSectorIdFromUrl(callbackUrl);
