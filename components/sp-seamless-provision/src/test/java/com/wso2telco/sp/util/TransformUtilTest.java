@@ -32,7 +32,7 @@ public class TransformUtilTest extends TestCase{
 
     @Test
     public void testTransofrmDiscoveryDto() {
-        DiscoveryServiceDto discoveryDto = TransformUtil.transofrmDiscoveryDto(CLIENT_ID, URL);
+        DiscoveryServiceDto discoveryDto = TransformUtil.transofrmDiscoveryDto(CLIENT_ID, URL,null);
 
         Assert.assertEquals(discoveryDto.getClientId(), CLIENT_ID);
         Assert.assertEquals(discoveryDto.getSectorId(), SECTOR);
@@ -40,7 +40,7 @@ public class TransformUtilTest extends TestCase{
 
     @Test
     public void testTransofrmDiscoveryDtoEmptyURL() {
-        DiscoveryServiceDto discoveryDto = TransformUtil.transofrmDiscoveryDto(CLIENT_ID, EMPTY);
+        DiscoveryServiceDto discoveryDto = TransformUtil.transofrmDiscoveryDto(CLIENT_ID, EMPTY,null);
 
         Assert.assertEquals(discoveryDto.getClientId(), CLIENT_ID);
         Assert.assertEquals(discoveryDto.getSectorId(), null);
