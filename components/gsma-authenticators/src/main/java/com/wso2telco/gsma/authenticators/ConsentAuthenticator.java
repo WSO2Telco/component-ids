@@ -133,68 +133,71 @@ public class ConsentAuthenticator extends AbstractApplicationAuthenticator
 			String clientID = context.getProperty(Constants.CLIENT_ID).toString();
 			String operator = context.getProperty(Constants.OPERATOR).toString();
 			int operatorID = (DBUtil.getOperatorDetails(operator)).getOperatorId();
-			String apiScopes = context.getProperty(Constants.API_SCOPES).toString();
-			String apiScopesMinBracket = apiScopes.substring( 1, apiScopes.length() - 1);
-			String[] api_Scopes = apiScopesMinBracket.split( ", ");
 			context.setProperty(Constants.OPERATOR_ID, operatorID);
-			boolean registering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+			if(context.getProperty(Constants.API_SCOPES) == null){
+				response.sendRedirect(
+						"/commonauth/?sessionDataKey=" + context.getContextIdentifier() + "&action=default");
+			}
+			else{
+				String apiScopes = context.getProperty(Constants.API_SCOPES).toString();
+				String apiScopesMinBracket = apiScopes.substring( 1, apiScopes.length() - 1);
+				String[] api_Scopes = apiScopesMinBracket.split(", ");
+				boolean registering = (boolean) context.getProperty(Constants.IS_REGISTERING);
 
-			DataPublisherUtil.updateAndPublishUserStatus(
-					(UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-					DataPublisherUtil.UserState.REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
+				DataPublisherUtil.updateAndPublishUserStatus(
+						(UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+						DataPublisherUtil.UserState.REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
 
-			String consentStatus= "deny";
-			List<String> approveScopes= new ArrayList<String>();
-			List<String> approveAllScopes= new ArrayList<String>();
-			Map<String,String> scopeDescription = new HashedMap();
-			for (String apiScope:api_Scopes) {
-				UserConsent userConsentDetails = DBUtil.getUserConsentDetails(msisdn, apiScope, clientID, operatorID);
-				if ((userConsentDetails.getConsumerKey() == null && userConsentDetails.getMsisdn() == null) ||(userConsentDetails.getConsumerKey() != null && userConsentDetails.isIs_approved()==true)) {
-					Consent consent = DBUtil.getConsentDetails(apiScope, clientID, operatorID);
-					if (consent.getStatus() != null) {
-						if(consent.getStatus().equalsIgnoreCase("approve") || consent.getStatus().equalsIgnoreCase("approveall")) {
-							approveScopes.add(apiScope);
-							scopeDescription.put(apiScope, consent.getDescription());
-							if(consent.getStatus().equalsIgnoreCase("approve")){
-								consentStatus="approve";
-							}
-							else if (!consentStatus.equals("approve")){
-								consentStatus="approveall";
+				String consentStatus = "deny";
+				List<String> approveScopes = new ArrayList<String>();
+				List<String> approveAllScopes = new ArrayList<String>();
+				Map<String, String> scopeDescription = new HashedMap();
+				for (String apiScope : api_Scopes) {
+					UserConsent userConsentDetails = DBUtil.getUserConsentDetails(msisdn, apiScope, clientID, operatorID);
+					if ((userConsentDetails.getConsumerKey() == null && userConsentDetails.getMsisdn() == null) || (userConsentDetails.getConsumerKey() != null && userConsentDetails.isIs_approved() == true)) {
+						Consent consent = DBUtil.getConsentDetails(apiScope, clientID, operatorID);
+						if (consent.getStatus() != null) {
+							if (consent.getStatus().equalsIgnoreCase("approve") || consent.getStatus().equalsIgnoreCase("approveall")) {
+								approveScopes.add(apiScope);
+								scopeDescription.put(apiScope, consent.getDescription());
+								if (consent.getStatus().equalsIgnoreCase("approve")) {
+									consentStatus = "approve";
+								} else if (!consentStatus.equals("approve")) {
+									consentStatus = "approveall";
+								}
 							}
 						}
 					}
 				}
-			}
 
-			String scopesDisplay = Arrays.toString(approveScopes.toArray());
-			context.setProperty(Constants.APPROVED_SCOPES, scopesDisplay);
-			context.setProperty(Constants.SCOPE_DESCRIPTION, scopeDescription);
-			String logoPath = DBUtil.getSPConfigValue(operator, clientID, Constants.SP_LOGO);
-			context.setProperty(Constants.SP_LOGO, logoPath);
-			if (consentStatus.equalsIgnoreCase("approve")) {
-				response.sendRedirect("/authenticationendpoint/consent.do?sessionDataKey="
-							+ context.getContextIdentifier() + "&skipConsent=true&scope="+scopesDisplay + "&registering="+registering);
-			} else if (consentStatus.equalsIgnoreCase("approveall")) {
-				for (String apiApproveScope:approveScopes) {
-					UserConsent userConsent = DBUtil.getUserConsentDetails(msisdn, apiApproveScope, clientID, operatorID);
-					if (userConsent.getConsumerKey() == null && userConsent.getMsisdn() == null && userConsent.getScope() == null) {
-						approveAllScopes.add(apiApproveScope);
-					}
-				}
-				if(approveAllScopes.size()==0){
-					response.sendRedirect(
-							"/commonauth/?sessionDataKey=" + context.getContextIdentifier() + "&action=default");
-				}
-				else{
-					String scopesString = Arrays.toString(approveAllScopes.toArray());
-					context.setProperty(Constants.APPROVED_ALL_SCOPES, scopesString);
+				String scopesDisplay = Arrays.toString(approveScopes.toArray());
+				context.setProperty(Constants.APPROVED_SCOPES, scopesDisplay);
+				context.setProperty(Constants.SCOPE_DESCRIPTION, scopeDescription);
+				String logoPath = DBUtil.getSPConfigValue(operator, clientID, Constants.SP_LOGO);
+				context.setProperty(Constants.SP_LOGO, logoPath);
+				if (consentStatus.equalsIgnoreCase("approve")) {
 					response.sendRedirect("/authenticationendpoint/consent.do?sessionDataKey="
-							+ context.getContextIdentifier() + "&skipConsent=false&scope="+scopesString + "&registering="+registering);
+							+ context.getContextIdentifier() + "&skipConsent=true&scope=" + scopesDisplay + "&registering=" + registering);
+				} else if (consentStatus.equalsIgnoreCase("approveall")) {
+					for (String apiApproveScope : approveScopes) {
+						UserConsent userConsent = DBUtil.getUserConsentDetails(msisdn, apiApproveScope, clientID, operatorID);
+						if (userConsent.getConsumerKey() == null && userConsent.getMsisdn() == null && userConsent.getScope() == null) {
+							approveAllScopes.add(apiApproveScope);
+						}
+					}
+					if (approveAllScopes.size() == 0) {
+						response.sendRedirect(
+								"/commonauth/?sessionDataKey=" + context.getContextIdentifier() + "&action=default");
+					} else {
+						String scopesString = Arrays.toString(approveAllScopes.toArray());
+						context.setProperty(Constants.APPROVED_ALL_SCOPES, scopesString);
+						response.sendRedirect("/authenticationendpoint/consent.do?sessionDataKey="
+								+ context.getContextIdentifier() + "&skipConsent=false&scope=" + scopesString + "&registering=" + registering);
+					}
+				} else {
+					terminateAuthentication(context);
 				}
-			} else {
-				terminateAuthentication(context);
 			}
-
 		} catch (IOException e) {
 			log.error("Error occurred while redirecting request", e);
 			DataPublisherUtil.updateAndPublishUserStatus(
