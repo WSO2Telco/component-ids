@@ -56,6 +56,7 @@ import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.hashids.Hashids;
+import org.json.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -166,15 +167,15 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
             mePinTransactionRequest.setAppId("5497e675-ecb8-45e2-83c7-a9b12d3f290e");
             mePinTransactionRequest.setIdentifier(idetifier);
             mePinTransactionRequest
-                    .setCallbackUrl("http://52.53.173.127:9763/sessionupdater/tnspoints/endpoint/mepin/response");
+                    .setCallbackUrl("http://13.56.46.192:9763/sessionupdater/tnspoints/endpoint/mepin/response");
             mePinTransactionRequest.setIdentifier(mePinId);
             mePinTransactionRequest.setShortMessage("Pending authentication request");
             mePinTransactionRequest.setHeader("Welcome to MobileConnect");
 
             mePinTransactionRequest.setExpiryTimeInSeconds(60);
-            mePinTransactionRequest.setLogoUrl("");
+            mePinTransactionRequest.setLogoUrl("http://res.cloudinary.com/dyftvc4kh/image/upload/v1496904154/spark_dwcush.png");
             mePinTransactionRequest.setSpName("");
-            mePinTransactionRequest.setBgImageName("");
+            mePinTransactionRequest.setBgImageName("http://res.cloudinary.com/dyftvc4kh/image/upload/v1496904227/spark_bg2_ij3wid.jpg");
 
             if (acr == 2) {
                 mePinTransactionRequest.setMessage("Please swipe to authenticate");
@@ -446,4 +447,73 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
         APPROVED,
         REJECTED
     }
+
+//    public String getOperatorSpecificImageURL(String msisdn) {
+//
+//        String imageURL = null;
+//        MobileConnectConfig availableConfigs = configurationService.getDataHolder().getMobileConnectConfig();
+//        String discoveryUrl = availableConfigs.getDiscoveryURL();
+//        String discoveryAuthCode = availableConfigs.getDiscoveryAuthCode();
+//        MobileConnectConfig.MePinConfig mePinConfig = availableConfigs.getMePinConfig();
+//        if (mePinConfig == null) {
+//            log.error("MePin related Configurations are not properly set ");
+//            return imageURL;
+//        }
+//
+//        Boolean isHubSet = mePinConfig.getIsHub();
+//
+//        try {
+//
+//            if (!isHubSet)
+//                imageURL = mePinConfig.getDefaultImageUrl();
+//            else
+//                imageURL = getOperatorSpecificImage(getDiscoveredOperator(msisdn, discoveryUrl, discoveryAuthCode));
+//            log.info("imageURL : " + imageURL);
+//        } catch (Exception e) {
+//            log.error("Error occurred while discovering operator for msisdn: " + msisdn
+//                    + "via configured discoveryUrl: " + discoveryUrl + "and discoveryAuthCode:" + discoveryAuthCode, e);
+//        }
+//
+//        return imageURL;
+//
+//    }
+//
+//    private String getDiscoveredOperator(String msisdn, String discoveryURL, String discoveryAuthCode) throws Exception {
+//
+//        String operator = null;
+//        HttpClient client = new DefaultHttpClient();
+//        HttpPost postRequest = new HttpPost(discoveryURL);
+//        postRequest.addHeader("Authorization", "Basic " + discoveryAuthCode);
+//        postRequest.addHeader("Cache-Control", "no-cache");
+//        postRequest.addHeader("Content-Type", "application/x-www-form-urlencoded");
+//        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+//        urlParameters.add(new BasicNameValuePair("MSISDN", msisdn));
+//        UrlEncodedFormEntity requestContent = new UrlEncodedFormEntity(urlParameters);
+//
+//        postRequest.setEntity(requestContent);
+//        HttpResponse httpResponse = client.execute(postRequest);
+//
+//        if ((httpResponse.getStatusLine().getStatusCode() == 200)) {
+//            JSONObject responseFullPayload = new JSONObject(EntityUtils.toString(httpResponse.getEntity()));
+//            JSONObject response = (JSONObject) responseFullPayload.get("response");
+//            operator = response.get("serving_operator").toString();
+//        }
+//
+//        return operator;
+//    }
+//
+//    private String getOperatorSpecificImage(String discoveredOperator) {
+//
+//        MobileConnectConfig.MePinConfig mePinConfig = configurationService.getDataHolder().getMobileConnectConfig()
+//                .getMePinConfig();
+//
+//        MobileConnectConfig.OperatorDescription[] configOperators = mePinConfig.getOperatorsList()
+//                .getOperatorDescription();
+//        for (int i = 0; i < configOperators.length; i++) {
+//            if (configOperators[i].getName().equalsIgnoreCase(discoveredOperator)) {
+//                return configOperators[i].getImageUrl();
+//            }
+//        }
+//        return null;
+//    }
 }

@@ -1388,17 +1388,17 @@ public class Endpoints {
             mePinInteractionCreateRequest.setPublicKeyHash(publicKeyHash);
             mePinInteractionCreateRequest.setShortMessage("Enrollment Completed");
             mePinInteractionCreateRequest.setExpiryTimeInSeconds(60);
-            mePinInteractionCreateRequest.setInteractionUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
+            mePinInteractionCreateRequest.setInteractionUrl("http://13.56.46.192:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
             mePinInteractionCreateRequest.setResourceUrl("mepin://authenticator/set_enrollment_status");
             mePinInteractionCreateRequest.setDisablePush(true);
 
 
             MePinInteractionRequestResourceParams mePinInteractionRequestResourceParams = new MePinInteractionRequestResourceParams();
             mePinInteractionRequestResourceParams.setEnrollmentStatus("ok");
-            mePinInteractionRequestResourceParams.setHelpUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
-            mePinInteractionRequestResourceParams.setPrivacyPolicyUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
-            mePinInteractionRequestResourceParams.setServicesUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
-            //mePinInteractionRequestResourceParams.setTermsOfServiceUrl("http://52.53.173.127:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
+            mePinInteractionRequestResourceParams.setHelpUrl("http://13.56.46.192:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
+            mePinInteractionRequestResourceParams.setPrivacyPolicyUrl("http://13.56.46.192:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
+            mePinInteractionRequestResourceParams.setServicesUrl("http://13.56.46.192:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
+            //mePinInteractionRequestResourceParams.setTermsOfServiceUrl("http://13.56.46.192:9763/authenticationendpoint/mcx-user-registration/auth_registration_mepin_complete");
             mePinInteractionRequestResourceParams.setTermsOfServiceUrl(getOperatorSpecificImageURL(msisdn));
 
            String operator = getMePinOperator(msisdn);
