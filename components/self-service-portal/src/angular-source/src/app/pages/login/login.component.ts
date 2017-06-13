@@ -45,7 +45,7 @@ export class Login {
     this.submitted = true;
     if (this.form.valid){
         localStorage.setItem('msisdn', this.phone.value);
-        window.location.href = AppSettings.getAuthUrl(this.phone.value);
+        window.location.href = AppSettings.getAuthUrl(this.phone.value, "2");
     }
   }
 

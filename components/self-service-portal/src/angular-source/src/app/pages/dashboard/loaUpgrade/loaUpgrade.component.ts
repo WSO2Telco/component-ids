@@ -10,6 +10,6 @@ export class LoaUpgrade {
 
   redirectToLoa3() {
     let msisdn = localStorage.getItem('msisdn');
-    window.location.href = AppSettings.getAuthUrl(msisdn, 3);
+    window.location.href = AppSettings.getAuthUrl(msisdn, "3");
   }
 }
