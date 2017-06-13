@@ -43,7 +43,7 @@ export class PinReset {
       let new_pin = values['newPins']['newPin'];
       let token = localStorage.getItem('access_token');
 
-      this.http.post(AppSettings.BASE_API + 'user/pin_reset?access_token='+ token + '&current=' + current_pin + '&new_pin=' + new_pin).map((response:Response) => {
+      this.http.post(AppSettings.BASE_API + 'user/pin_reset', 'access_token='+ token + '&current=' + current_pin + '&new_pin=' + new_pin).map((response:Response) => {
                 console.log(response.json());
                 // handle response here
                 //response.json();
