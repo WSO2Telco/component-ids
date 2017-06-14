@@ -9,6 +9,7 @@ export class BaThemeConfigProvider {
   private basic: any;
   private colorScheme: any;
   private dashboardColors: any;
+  private dashboardChartColors: any;
   private conf: any;
 
   constructor() {
@@ -36,6 +37,21 @@ export class BaThemeConfigProvider {
       gossip: '#3c4eb9',
       white: '#ffffff',
     };
+
+     // dashboard colors for charts
+    this.dashboardChartColors = {
+      a: '#31588A',
+      b: '#393E46',
+      c: '#222831',
+      d: '#638CCC',
+      e: '#90B2E4',
+      f: '#1F5F8B',
+      g: '#1891AC',
+      h: '#D2ECF9',
+      i: '#E7EAA8'
+
+    };
+
 
     this.conf = {
       theme: {
@@ -71,6 +87,14 @@ export class BaThemeConfigProvider {
           silverTree: this.dashboardColors.silverTree,
           gossip: this.dashboardColors.gossip,
           white: this.dashboardColors.white,
+        },
+
+        chartcolor: {
+          color0: this.dashboardChartColors.a,
+          color1: this.dashboardChartColors.b,
+          color2: this.dashboardChartColors.c,
+          color3: this.dashboardChartColors.d,
+          color4: this.dashboardChartColors.e,
         },
 
         custom: {
