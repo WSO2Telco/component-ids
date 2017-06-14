@@ -34,7 +34,7 @@
     <script src="mcx-user-registration/js/jquery-3.2.1.min.js" type="text/javascript"></script>
     <script src="mcx-user-registration/js/landing.js" type="text/javascript"></script>
     <script src="https://npmcdn.com/tether@1.2.4/dist/js/tether.min.js"></script>
-    <script src="mcx-user-registration/js/.min.js" type="text/javascript"></script>
+    <script src="mcx-user-registration/js/bootstrap.min.js" type="text/javascript"></script>
     <script src="mcx-user-registration/js/public/js/main.js" type="text/javascript"></script>
     <script src="mcx-user-registration/js/public/js/modal.js" type="text/javascript"></script>
     <script src="mcx-user-registration/mcresources/js/vendor/parsley.min.js" type="text/javascript"></script>
@@ -74,7 +74,8 @@
     <script type="text/javascript" src="mcx-user-registration/mcresources/js/vendor/modernizr.js"></script>
 
     <%
-	    Logger log=Logger.getLogger(this.getClass().getName());
+	    Logger log=Logger.getLogger(this.getClass().getName()); 
+        String spLogo =null;
         String sessionDataKey = request.getParameter("sessionDataKey");
 	    AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(sessionDataKey);
 	    Object cacheEntryObj = AuthenticationContextCache.getInstance().getValueFromCache(cacheKey);
@@ -88,7 +89,9 @@
         log.info( "operator :"+operator );
         String spName = authnContext.getServiceProviderName();
         log.info( "ServiceProvider :"+spName );
-        String spLogo = authnContext.getProperty("logo").toString();
+        if(authnContext.getProperty("logo")!=null){
+        	spLogo = authnContext.getProperty("logo").toString();
+        }
         log.info( "logoPath :"+spLogo );
         String authenticators = request.getParameter("authenticators");
         String imgPath = "";

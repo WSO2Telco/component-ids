@@ -311,7 +311,7 @@ public class ConsentAuthenticator extends AbstractApplicationAuthenticator
 			}
 		}
 		AuthenticationContextHelper.setSubject(context, msisdn);
-	    if((boolean) context.getProperty(Constants.IS_OFFNET_FLOW)){
+	    if((boolean) context.getProperty(Constants.IS_OFFNET_FLOW) || ((int)context.getProperty(Constants.ACR)==3)){
 	    	context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "false");
 	    }
 	    else{	    	
