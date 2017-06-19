@@ -38,9 +38,9 @@ public class Util {
     public static void sendAsyncRequest(final HttpPost postRequest, BasicFutureCallback futureCallback)
             throws IOException {
 
-        int socketTimeout = 60000;
-        int connectTimeout = 60000;
-        int connectionRequestTimeout = 30000;
+        int socketTimeout = 180000;
+        int connectTimeout =180000;
+        int connectionRequestTimeout = 180000;
 
         try {
             MobileConnectConfig.TimeoutConfig timeoutConfig = configurationService.getDataHolder()
