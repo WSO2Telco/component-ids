@@ -28,6 +28,7 @@ import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.exception.MePinException;
 import com.wso2telco.gsma.authenticators.exception.SaaException;
+import com.wso2telco.gsma.authenticators.model.MePinImageDetails;
 import com.wso2telco.gsma.authenticators.model.MePinTransactionRequest;
 import com.wso2telco.gsma.authenticators.model.MePinTransactionResponse;
 import com.wso2telco.gsma.authenticators.saa.IsRegisteredResponse;
@@ -56,6 +57,7 @@ import org.apache.http.impl.conn.SingleClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.hashids.Hashids;
+import org.json.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
@@ -80,15 +82,14 @@ import java.util.*;
 public class MePinAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 
-    private static Log log = LogFactory.getLog(MePinAuthenticator.class);
-
     private static final String IS_FLOW_COMPLETED = "isFlowCompleted";
     private static final String PIN_CLAIM = "http://wso2.org/claims/pin";
     private static final String MSISDN = "msisdn";
     private static final String CLIENT_ID = "relyingParty";
     private static final String ACR = "acr_values";
-    private SpConfigService spConfigService = new SpConfigServiceImpl();
+    private static Log log = LogFactory.getLog(MePinAuthenticator.class);
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+    private SpConfigService spConfigService = new SpConfigServiceImpl();
 
     @Override
     public boolean canHandle(HttpServletRequest request) {
@@ -157,31 +158,30 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
                 throw new MePinException("No me pin registration found");
             }
 
+            MePinImageDetails operatorSpecificImageDetails = getOperatorSpecificImageDetails(msisdn);
             Hashids hashids = new Hashids(UUID.randomUUID().toString(), 31);
             String idetifier = hashids.encode(new java.util.Date().getTime());
 
             mePinTransactionRequest.setMePinId(mePinId);
             mePinTransactionRequest.setAction("transactions/create");
-//            mePinTransactionRequest.setAppId("bcb54836a5a71b698844e8c1923f8a42");
             mePinTransactionRequest.setAppId("5497e675-ecb8-45e2-83c7-a9b12d3f290e");
             mePinTransactionRequest.setIdentifier(idetifier);
-            mePinTransactionRequest
-                    .setCallbackUrl("http://52.53.173.127:9763/sessionupdater/tnspoints/endpoint/mepin/response");
+            mePinTransactionRequest.setCallbackUrl(mePinConfig.getCallbackUrl());
             mePinTransactionRequest.setIdentifier(mePinId);
             mePinTransactionRequest.setShortMessage("Pending authentication request");
             mePinTransactionRequest.setHeader("Welcome to MobileConnect");
 
             mePinTransactionRequest.setExpiryTimeInSeconds(60);
-            mePinTransactionRequest.setLogoUrl("");
+            mePinTransactionRequest.setLogoUrl(operatorSpecificImageDetails.getLogoUrl());
             mePinTransactionRequest.setSpName("");
-            mePinTransactionRequest.setBgImageName("");
+            mePinTransactionRequest.setBgImageName(operatorSpecificImageDetails.getBackgroundUrl());
 
             if (acr == 2) {
-                mePinTransactionRequest.setMessage("Please swipe to authenticate");
-                mePinTransactionRequest.setConfirmationPolicy("mepin_swipe");
+                mePinTransactionRequest.setMessage(mePinConfig.getBasicConfirmationPolicyMessage());
+                mePinTransactionRequest.setConfirmationPolicy(mePinConfig.getBasicConfirmationPolicies());
             } else if (acr == 3) {
-                mePinTransactionRequest.setMessage("Please provide fingerprint to authenticate");
-                mePinTransactionRequest.setConfirmationPolicy("mepin_fp");
+                mePinTransactionRequest.setMessage(mePinConfig.getAdvancedConfirmationPolicyMessage());
+                mePinTransactionRequest.setConfirmationPolicy(mePinConfig.getAdvancedConfirmationPolicies());
             }
 
             String authHeader = username + ":" + password;
@@ -299,7 +299,7 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
         }
     }
 
-    private String getMePinOperator(String msisdn){
+    private String getMePinOperator(String msisdn) {
 
         MobileConnectConfig.MePinConfig mePinConfig = configurationService.getDataHolder().getMobileConnectConfig()
                 .getMePinConfig();
@@ -386,10 +386,10 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
 
         AuthenticationContextHelper.setSubject(context, (String) context.getProperty(Constants.MSISDN));
 
-        if("true".equals(request.getParameter(Constants.IS_TERMINATED))){
+        if ("true".equals(request.getParameter(Constants.IS_TERMINATED))) {
             context.setProperty(Constants.IS_TERMINATED, true);
             throw new AuthenticationFailedException("Authenticator is terminated");
-        }else {
+        } else {
             context.setProperty(IS_FLOW_COMPLETED, true);
             context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
         }
@@ -402,7 +402,7 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
         log.info("Msisdn : " + msisdn + " operator : " + operator + " acr : " + acr);
 
 
-        if(isRegistering){
+        if (isRegistering) {
             UserProfileManager userProfileManager = new UserProfileManager();
 
             try {
@@ -438,6 +438,93 @@ public class MePinAuthenticator extends AbstractApplicationAuthenticator
     @Override
     public String getName() {
         return Constants.ME_PIN_AUTHENTICATOR_NAME;
+    }
+
+    public MePinImageDetails getOperatorSpecificImageDetails(String msisdn) {
+
+        String imageURL = null;
+        MePinImageDetails mePinImageDetails;
+        MobileConnectConfig availableConfigs = configurationService.getDataHolder().getMobileConnectConfig();
+        String discoveryUrl = availableConfigs.getDiscoveryURL();
+        String discoveryAuthCode = availableConfigs.getDiscoveryAuthCode();
+        MobileConnectConfig.MePinConfig mePinConfig = availableConfigs.getMePinConfig();
+
+        Boolean isHubSet = mePinConfig.getIsHub();
+
+        try {
+
+            if (!isHubSet) {
+                mePinImageDetails = getDefaultMePinImageDetails(mePinConfig);
+            }
+            else {
+                mePinImageDetails = getOperatorSpecificImage(getDiscoveredOperator(msisdn, discoveryUrl, discoveryAuthCode));
+            }
+            log.info("imageURL : " + imageURL);
+        } catch (Exception e) {
+            log.error("Error occurred while discovering operator for msisdn: " + msisdn
+                    + "via configured discoveryUrl: " + discoveryUrl + "and discoveryAuthCode:" + discoveryAuthCode
+                            +" Proceeding with default image urls",
+                    e);
+            mePinImageDetails = getDefaultMePinImageDetails(mePinConfig);
+        }
+
+        return mePinImageDetails;
+
+    }
+
+    private String getDiscoveredOperator(String msisdn, String discoveryURL, String discoveryAuthCode) throws Exception {
+
+        String operator = null;
+        HttpClient client = new DefaultHttpClient();
+        HttpPost postRequest = new HttpPost(discoveryURL);
+        postRequest.addHeader("Authorization", "Basic " + discoveryAuthCode);
+        postRequest.addHeader("Cache-Control", "no-cache");
+        postRequest.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        List<NameValuePair> urlParameters = new ArrayList<NameValuePair>();
+        urlParameters.add(new BasicNameValuePair("MSISDN", msisdn));
+        UrlEncodedFormEntity requestContent = new UrlEncodedFormEntity(urlParameters);
+
+        postRequest.setEntity(requestContent);
+        HttpResponse httpResponse = client.execute(postRequest);
+
+        if ((httpResponse.getStatusLine().getStatusCode() == 200)) {
+            JSONObject responseFullPayload = new JSONObject(EntityUtils.toString(httpResponse.getEntity()));
+            JSONObject response = (JSONObject) responseFullPayload.get("response");
+            operator = response.get("serving_operator").toString();
+        }
+
+        return operator;
+    }
+
+    private MePinImageDetails getOperatorSpecificImage(String discoveredOperator) {
+
+        MePinImageDetails mePinImageDetails = null;
+
+        MobileConnectConfig.MePinConfig mePinConfig = configurationService.getDataHolder().getMobileConnectConfig()
+                .getMePinConfig();
+
+        MobileConnectConfig.OperatorDescription[] configOperators = mePinConfig.getOperatorsList()
+                .getOperatorDescription();
+        for (int i = 0; i < configOperators.length; i++) {
+            if (configOperators[i].getName().equalsIgnoreCase(discoveredOperator)) {
+                mePinImageDetails = new MePinImageDetails();
+                mePinImageDetails.setLogoUrl(configOperators[i].getImageUrl());
+                mePinImageDetails.setBackgroundUrl(configOperators[i].getBackgroundUrl());
+            }
+        }
+        if (mePinImageDetails == null) {
+            mePinImageDetails = getDefaultMePinImageDetails(mePinConfig);
+        }
+
+        return mePinImageDetails;
+    }
+
+    private MePinImageDetails getDefaultMePinImageDetails(MobileConnectConfig.MePinConfig mePinConfig) {
+        MePinImageDetails mePinImageDetails;
+        mePinImageDetails = new MePinImageDetails();
+        mePinImageDetails.setBackgroundUrl(mePinConfig.getDefaultBackgroundUrl());
+        mePinImageDetails.setLogoUrl(mePinConfig.getDefaultImageUrl());
+        return mePinImageDetails;
     }
 
     private enum UserResponse {
