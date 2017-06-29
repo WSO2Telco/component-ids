@@ -27,6 +27,8 @@ public class UserStatus {
     private String xForwardIP;
     private String transactionId;
 
+    public UserStatus(){}
+
     public String getxForwardIP() {
         return xForwardIP;
     }
@@ -95,10 +97,6 @@ public class UserStatus {
         return loginHint;
     }
 
-    public String getOperator() {
-        return operator;
-    }
-
     public String getUserAgent() {
         return userAgent;
     }
@@ -146,6 +144,15 @@ public class UserStatus {
     public String getTransactionId() {
         return transactionId;
     }
+
+    public String getOperator() {
+        return operator;
+    }
+
+    public void setOperator(String operator) {
+        this.operator = operator;
+    }
+
 
     public UserStatus cloneUserStatus() {
         return new UserStatusBuilder(getSessionId()).id(id).time(time).status(status).msisdn(msisdn).state(state)
