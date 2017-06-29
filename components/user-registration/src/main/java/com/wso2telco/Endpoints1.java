@@ -1044,4 +1044,163 @@ public class Endpoints1 {
         return Response.status(Response.Status.OK).entity(null).build();
     }
 
+    @POST
+    @Path("/unregister/v1/{operator}")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Response unregisterUser(@PathParam("operator") String operator, String jsonBody) throws Exception {
+
+        List<OPERATOR> operatorList = ConfigLoader.getInstance().getMobileConnectConfig().getHEADERENRICH().getOperators();
+        boolean validOperator = false;
+        if(operatorList!= null && !operatorList.isEmpty()) {
+            for (OPERATOR configuredOperator : operatorList) {
+                if (operator.equalsIgnoreCase(configuredOperator.getOperatorName())) {
+                    validOperator = true;
+                    break;
+                }
+            }
+        }
+        //Validate operator
+        if (!validOperator) {
+            return buildErrorResponse(400, ERR_INVALID_OPERATOR, "Invalid operator");
+        }
+
+        ReadMobileConnectConfig readMobileConnectConfig = new ReadMobileConnectConfig();
+        Map<String, String> readMobileConnectConfigResult = null;
+        try {
+            readMobileConnectConfigResult = readMobileConnectConfig.query("UserUnRegistrationAPI");
+        } catch (ParserConfigurationException e) {
+            log.error("Parser error occurred while reading MobileConnectConfig :" + e);
+        } catch (SAXException e) {
+            log.error("SAX Exception occurred while reading MobileConnectConfig :" + e);
+        } catch (XPathExpressionException e) {
+            log.error("XPath ExpressionException error occurred while reading MobileConnectConfig :" + e);
+        }
+
+        int MAX_MSISDN_LIMIT=1;
+        if(readMobileConnectConfigResult!=null) {
+            try {
+                MAX_MSISDN_LIMIT = Integer.parseInt(readMobileConnectConfigResult.get("MaxMSISDNLimit"));
+            }catch(Exception e){
+                log.error("Exception error occurred while reading MaxMSISDNLimit :" + e);
+                MAX_MSISDN_LIMIT=1;
+            }
+
+        }
+        //returnUserRegistrationStatusList will maintain the msisdn wise status details
+
+        UserUnRegistrationResponse response = new UserUnRegistrationResponse();
+        Gson userStatusInfosJson = new Gson();
+
+        List<UnRegisterUserStatusInfo> userUnRegistrationStatusList = new ArrayList<UnRegisterUserStatusInfo>();
+        response.setStatusInfo(userUnRegistrationStatusList);
+
+        JSONArray msisdnArr = null;
+
+        //Cast the jsonBody to json object
+        org.json.JSONObject jsonObj;
+        try {
+            jsonObj = new org.json.JSONObject(jsonBody);
+            if (log.isDebugEnabled()) {
+                log.debug("Json body : " + jsonBody);
+            }
+            msisdnArr = jsonObj.getJSONArray("msisdn");
+        } catch (JSONException e) {
+            log.error("Invalid message format", e);
+        }
+
+        if (msisdnArr == null ){
+            return buildErrorResponse(400, ERR_INVALID_MESSAGE_FORMAT, "Invalid message format");
+        }
+
+        //Validate msisdn list is not empty or the element is empty
+        if (msisdnArr.length() == 0 ) {
+            return buildErrorResponse(400, ERR_MSISDN_LIST_EMPTY, "msisdn list cannot be empty");
+        }
+
+        if (msisdnArr.length() > MAX_MSISDN_LIMIT) {
+            return buildErrorResponse(400, ERR_MSISDN_EXCEED_LIMIT, "Provided list of numbers exceeds allowed limit");
+        }
+
+        try {
+
+            /**
+             * UserStore Service url of the WSO2 Carbon Server
+             */
+            String serviceEndPoint = FileUtil.getApplicationProperty("isadminurl") + "/services/" + Constants.SERVICE;
+            /**
+             * Axis2 configuration context
+             */
+            ConfigurationContext configContext;
+
+            configContext = ConfigurationContextFactory.createConfigurationContextFromFileSystem(null, null);
+            /**
+             * create stub and service client
+             */
+            RemoteUserStoreManagerServiceStub adminStub = new RemoteUserStoreManagerServiceStub(configContext, serviceEndPoint);
+            ServiceClient client = adminStub._getServiceClient();
+            Options option = client.getOptions();
+            /**
+             * Setting a authenticated cookie that is received from Carbon server.
+             * If you have authenticated with Carbon server earlier, you can use that cookie, if
+             * it has not been expired
+             */
+            option.setProperty(HTTPConstants.COOKIE_STRING, null);
+            /**
+             * Setting basic auth headers for authentication for carbon server
+             */
+            HttpTransportProperties.Authenticator auth = new HttpTransportProperties.Authenticator();
+            auth.setUsername(FileUtil.getApplicationProperty("adminusername"));
+            auth.setPassword(FileUtil.getApplicationProperty("adminpassword"));
+            auth.setPreemptiveAuthentication(true);
+            option.setProperty(org.apache.axis2.transport.http.HTTPConstants.AUTHENTICATE, auth);
+            option.setManageSession(true);
+
+
+            //Iterate msisdn list
+            for (int i = 0; i < msisdnArr.length(); i++) {
+                String msisdn = (String) msisdnArr.get(i);
+                //individual operation status
+                UnRegisterUserStatusInfo statusInfo = new UnRegisterUserStatusInfo();
+                //set msisdn to dto
+                statusInfo.setMsisdn(msisdn);
+
+                UserStatus userStatus = new UserStatus();
+                userStatus.setMsisdn(msisdn);
+                userStatus.setOperator(operator);
+                //validate msisdn
+                UnRegisterUserStatusInfo.unregisterStatus msisdnValidationCode = validateUnregisterMsisdn(msisdn);
+                if (msisdnValidationCode != null) {
+                    statusInfo.setStatus(msisdnValidationCode);
+                    userStatus.setStatus(UserState.OFFLINE_USER_UNREGISTRATION_FAILED_.name()+msisdnValidationCode);;
+                } else {
+                    if(msisdn !=null && !msisdn.isEmpty()){
+                        msisdn = msisdn.substring(5);
+                        //validate msisdn
+                        msisdnValidationCode = validateUnregisterUser(msisdn, operator, adminStub);
+                        if (msisdnValidationCode != null) {
+                            statusInfo.setStatus(msisdnValidationCode);
+                            userStatus.setStatus(UserState.OFFLINE_USER_UNREGISTRATION_FAILED_.name()+msisdnValidationCode);
+                        } else {
+                            adminStub.setUserClaimValue(msisdn,"http://wso2.org/claims/status",UserActiveStatus.Status.INACTIVE.name(),UserCoreConstants.DEFAULT_PROFILE);
+                            statusInfo.setStatus(UnRegisterUserStatusInfo.unregisterStatus.OK);
+                            userStatus.setStatus(UserState.OFFLINE_USER_UNREGISTRATION_SUCCESS.name());
+                        }
+                    }else{
+                        statusInfo.setStatus(UnRegisterUserStatusInfo.unregisterStatus.MSISDN_EMPTY);
+                        userStatus.setStatus(UserState.OFFLINE_USER_UNREGISTRATION_FAILED_.name()+statusInfo.getStatus());
+                    }
+                }
+                userUnRegistrationStatusList.add(statusInfo);
+                //Publish data
+                Utility.publishNewUserData(userStatus);
+            }
+        }catch(Exception e){
+            log.error("Error occurred while validating unregister MSISDN",e);
+            return buildErrorResponse(400, ERR_INVALID_MESSAGE_FORMAT, "Error while processing the request");
+        }
+        return Response.status(201).entity(userStatusInfosJson.toJson(response)).build();
+    }
+
+
 }

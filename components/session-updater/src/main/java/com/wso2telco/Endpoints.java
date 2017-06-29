@@ -18,6 +18,7 @@ package com.wso2telco;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.wso2telco.core.config.ConfigLoader;
 import com.wso2telco.core.config.MIFEAuthentication;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.PinConfig;
@@ -29,17 +30,18 @@ import com.wso2telco.entity.*;
 import com.wso2telco.exception.AuthenticatorException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
-import com.wso2telco.util.Constants;
-import com.wso2telco.util.DbUtil;
+import com.wso2telco.operator.FindOperatorFactory;
+import com.wso2telco.sms.SendSMS;
+import com.wso2telco.user.UserRegistration;
+import com.wso2telco.user.UserService;
+import com.wso2telco.util.*;
 import org.apache.axis2.AxisFault;
 import org.apache.commons.lang.IncompleteArgumentException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.HttpStatus;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
@@ -72,7 +74,6 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
@@ -121,7 +122,6 @@ public class Endpoints {
      * The error return.
      */
     String errorReturn = "\"" + "errorreturn" + "\"";
-
     /**
      * The log.
      */
@@ -142,7 +142,10 @@ public class Endpoints {
      */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
-    /**
+
+
+
+    /**admin_url
      * Instantiates a new endpoints.
      */
     public Endpoints() {
@@ -479,7 +482,8 @@ public class Endpoints {
             String operator = (String) authenticationContext.getProperty(Constants.OPERATOR);
             USSDRequest pinUssdRequest = getPinUssdRequest(msisdn, sessionId);
             try {
-                postRequest(getUssdEndpoint(msisdn), new Gson().toJson(pinUssdRequest), operator);
+                RestClient restClient=new RestClient();
+                restClient.postRequest(getUssdEndpoint(msisdn), new Gson().toJson(pinUssdRequest), operator);
                 validationResponse = new ValidationResponse(StatusCode.SUCCESS.getCode(), sessionId, true, true);
             } catch (IOException e) {
                 validationResponse = new ValidationResponse(StatusCode.USSD_ERROR.getCode(), sessionId, true, true);
@@ -542,30 +546,7 @@ public class Endpoints {
         return url;
     }
 
-    private void postRequest(String url, String requestStr, String operator) throws IOException {
-        MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig()
-                .getUssdConfig();
 
-        final HttpPost postRequest = new HttpPost(url);
-        postRequest.addHeader("accept", "application/json");
-        postRequest.addHeader("Authorization", "Bearer " + ussdConfig.getAuthToken());
-
-        if (operator != null) {
-            postRequest.addHeader("operator", operator);
-        }
-
-        StringEntity input = new StringEntity(requestStr);
-        input.setContentType("application/json");
-
-        postRequest.setEntity(input);
-        final CountDownLatch latch = new CountDownLatch(1);
-
-        if (log.isDebugEnabled()) {
-            log.debug("Posting data  [ " + requestStr + " ] to url [ " + url + " ]");
-        }
-        HttpClient client = new DefaultHttpClient();
-        client.execute(postRequest);
-    }
 
     private String getPinMatchedResponse(Gson gson, String sessionID, String msisdn, String ussdSessionId) {
         log.info("Pins are matched");
@@ -1492,4 +1473,86 @@ public class Endpoints {
 
         return validUserInput;
     }
+
+    @POST
+    @Path("/register/v1/{operator}")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Response registerUser(@PathParam("operator") String operator, String jsonBody) throws Exception {
+
+        List<MobileConnectConfig.OPERATOR> operatorList = ConfigLoader.getInstance().getMobileConnectConfig().getHEADERENRICH().getOperators();
+        UserRegistration userRegistration=new UserRegistration();
+        boolean validOperator = false;
+
+        for (MobileConnectConfig.OPERATOR configuredOperator : operatorList){
+            if(operator.equalsIgnoreCase(configuredOperator.getOperatorName())){
+                validOperator = true;
+                break;
+            }
+        }
+
+        //Validate operator
+        if (!validOperator) {
+            return buildErrorResponse(HttpStatus.SC_BAD_REQUEST, Constants.ERR_INVALID_OPERATOR, "Invalid operator");
+        }
+
+        final int MAX_MSISDN_LIMIT = 15;
+
+        //returnUserRegistrationStatusList will maintain the msisdn wise status details
+
+        UserRegistrationResponse response = new UserRegistrationResponse();
+        List<RegisterUserStatusInfo> userRegistrationStatusList = new ArrayList<RegisterUserStatusInfo>();
+        response.setStatusInfo(userRegistrationStatusList);
+
+        JSONArray msisdnArr = null;
+
+        //Cast the jsonBody to json object
+        org.json.JSONObject jsonObj;
+        try {
+            jsonObj = new org.json.JSONObject(jsonBody);
+            if (log.isDebugEnabled()) {
+                log.debug("Json body : " + jsonBody);
+            }
+            msisdnArr = jsonObj.getJSONArray("msisdn");
+        } catch (JSONException e) {
+            log.error("Invalid message format", e);
+        }
+
+        if (msisdnArr == null ){
+            return buildErrorResponse(HttpStatus.SC_BAD_REQUEST, Constants.ERR_INVALID_MESSAGE_FORMAT, "Invalid message format");
+        }
+        if (msisdnArr.length() == 0 ) {
+            return buildErrorResponse(HttpStatus.SC_BAD_REQUEST, Constants.ERR_MSISDN_LIST_EMPTY, "msisdn list cannot be empty");
+        }
+
+        if (msisdnArr.length() > MAX_MSISDN_LIMIT) {
+            return buildErrorResponse(HttpStatus.SC_BAD_REQUEST, Constants.ERR_MSISDN_EXCEED_LIMIT, "Provided list of numbers exceeds allowed limit");
+        }
+
+        UserService userService=new UserService();
+        userService.msisdnStatusUpdate(msisdnArr,operator,userRegistrationStatusList);
+        Gson userStatusInfosJson = new Gson();
+        return Response.status(HttpStatus.SC_CREATED).entity(userStatusInfosJson.toJson(response)).build();
+    }
+
+
+    /**
+     * Build the Faulty Response with relevant code/message
+     *
+     * @param responseCode
+     * @param errCode
+     * @param message
+     * @return Response with specified parameters
+     * @throws JSONException
+     */
+    private Response buildErrorResponse(int responseCode, String errCode, String message) throws JSONException {
+        JSONObject jsonErrMsg = new JSONObject();
+        jsonErrMsg.put("errorCode", errCode);
+        jsonErrMsg.put("message", message);
+        return Response.status(responseCode).entity(jsonErrMsg.toString()).build();
+    }
+
+
+
+
 }
