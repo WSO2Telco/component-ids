@@ -18,6 +18,7 @@ package com.wso2telco;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.wso2telco.core.config.ConfigLoader;
 import com.wso2telco.core.config.MIFEAuthentication;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.PinConfig;
@@ -29,6 +30,11 @@ import com.wso2telco.entity.*;
 import com.wso2telco.exception.AuthenticatorException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import com.wso2telco.operator.FindOperatorFactory;
+import com.wso2telco.sms.SendSMS;
+import com.wso2telco.user.UserRegistration;
+import com.wso2telco.user.UserService;
+import com.wso2telco.util.*;
 import com.wso2telco.scopevalidation.OutboundMessage;
 import com.wso2telco.scopevalidation.ScopeValidationResponse;
 import com.wso2telco.util.Constants;
@@ -38,6 +44,8 @@ import org.apache.commons.lang.IncompleteArgumentException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpStatus;
+import org.json.JSONArray;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -503,7 +511,8 @@ public class Endpoints {
             String operator = (String) authenticationContext.getProperty(Constants.OPERATOR);
             USSDRequest pinUssdRequest = getPinUssdRequest(msisdn, sessionId);
             try {
-                postRequest(getUssdEndpoint(msisdn), new Gson().toJson(pinUssdRequest), operator);
+                RestClient restClient=new RestClient();
+                restClient.postRequest(getUssdEndpoint(msisdn), new Gson().toJson(pinUssdRequest), operator);
                 validationResponse = new ValidationResponse(StatusCode.SUCCESS.getCode(), sessionId, true, true);
             } catch (IOException e) {
                 validationResponse = new ValidationResponse(StatusCode.USSD_ERROR.getCode(), sessionId, true, true);
@@ -1516,4 +1525,86 @@ public class Endpoints {
 
         return validUserInput;
     }
+
+    @POST
+    @Path("/register/v1/{operator}")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Response registerUser(@PathParam("operator") String operator, String jsonBody) throws Exception {
+
+        List<MobileConnectConfig.OPERATOR> operatorList = ConfigLoader.getInstance().getMobileConnectConfig().getHEADERENRICH().getOperators();
+        UserRegistration userRegistration=new UserRegistration();
+        boolean validOperator = false;
+
+        for (MobileConnectConfig.OPERATOR configuredOperator : operatorList){
+            if(operator.equalsIgnoreCase(configuredOperator.getOperatorName())){
+                validOperator = true;
+                break;
+            }
+        }
+
+        //Validate operator
+        if (!validOperator) {
+            return buildErrorResponse(HttpStatus.SC_BAD_REQUEST, Constants.ERR_INVALID_OPERATOR, "Invalid operator");
+        }
+
+        final int MAX_MSISDN_LIMIT = 15;
+
+        //returnUserRegistrationStatusList will maintain the msisdn wise status details
+
+        UserRegistrationResponse response = new UserRegistrationResponse();
+        List<RegisterUserStatusInfo> userRegistrationStatusList = new ArrayList<RegisterUserStatusInfo>();
+        response.setStatusInfo(userRegistrationStatusList);
+
+        JSONArray msisdnArr = null;
+
+        //Cast the jsonBody to json object
+        org.json.JSONObject jsonObj;
+        try {
+            jsonObj = new org.json.JSONObject(jsonBody);
+            if (log.isDebugEnabled()) {
+                log.debug("Json body : " + jsonBody);
+            }
+            msisdnArr = jsonObj.getJSONArray("msisdn");
+        } catch (JSONException e) {
+            log.error("Invalid message format", e);
+        }
+
+        if (msisdnArr == null ){
+            return buildErrorResponse(HttpStatus.SC_BAD_REQUEST, Constants.ERR_INVALID_MESSAGE_FORMAT, "Invalid message format");
+        }
+        if (msisdnArr.length() == 0 ) {
+            return buildErrorResponse(HttpStatus.SC_BAD_REQUEST, Constants.ERR_MSISDN_LIST_EMPTY, "msisdn list cannot be empty");
+        }
+
+        if (msisdnArr.length() > MAX_MSISDN_LIMIT) {
+            return buildErrorResponse(HttpStatus.SC_BAD_REQUEST, Constants.ERR_MSISDN_EXCEED_LIMIT, "Provided list of numbers exceeds allowed limit");
+        }
+
+        UserService userService=new UserService();
+        userService.msisdnStatusUpdate(msisdnArr,operator,userRegistrationStatusList);
+        Gson userStatusInfosJson = new Gson();
+        return Response.status(HttpStatus.SC_CREATED).entity(userStatusInfosJson.toJson(response)).build();
+    }
+
+
+    /**
+     * Build the Faulty Response with relevant code/message
+     *
+     * @param responseCode
+     * @param errCode
+     * @param message
+     * @return Response with specified parameters
+     * @throws JSONException
+     */
+    private Response buildErrorResponse(int responseCode, String errCode, String message) throws JSONException {
+        JSONObject jsonErrMsg = new JSONObject();
+        jsonErrMsg.put("errorCode", errCode);
+        jsonErrMsg.put("message", message);
+        return Response.status(responseCode).entity(jsonErrMsg.toString()).build();
+    }
+
+
+
+
 }
