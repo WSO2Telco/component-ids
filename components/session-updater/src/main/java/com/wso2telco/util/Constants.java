@@ -1,8 +1,6 @@
 package com.wso2telco.util;
 
-/**
- * Created by isuru on 12/29/16.
- */
+
 public class Constants {
 
     public static final String MTCONT = "mtcont";
@@ -35,6 +33,20 @@ public class Constants {
     public static final String CHALLENGE_QUESTION_2 = "challengeQuestion2";
     public static final String CHALLENGE_ANSWER_1 = "challengeAnswer1";
     public static final String CHALLENGE_ANSWER_2 = "challengeAnswer2";
-
+    public static final String SERVICE = "RemoteUserStoreManagerService";
+    public static final String SERVICE_URL="/services/UserRegistrationAdminService";
     public static final String USER_STATUS_DATA_PUBLISHING_PARAM = "UserStatusForDataPublishing";
+    public static final String OPERATOR_CLAIM_NAME = "http://wso2.org/claims/operator";
+    public static final String MOBILE_CLAIM_NAME = "http://wso2.org/claims/mobile";
+    public static final String LOA_CLAIM_NAME = "http://wso2.org/claims/loa";
+    public static final String REG_MODE_CLAIM_NAME = "http://wso2.org/claims/regMode";
+    public static final String CLAIM = "http://wso2.org/claims";
+    public static final String LOA_MNV_VALUE = "2";
+    public static final String ERR_INVALID_MESSAGE_FORMAT = "EX0001";
+    public static final String ERR_MSISDN_LIST_EMPTY = "EX0002";
+    public static final String ERR_MSISDN_EXCEED_LIMIT = "EX0003";
+    public static final String ERR_INVALID_OPERATOR = "EX0004";
+    public static final String REG_MODE_OFFLINE = "offline";
+    public static final String APPLICATION_PROPERTY_IS_ADMIN_URL = "admin_url";
+    public static final String DISCOVERY="discovery";
 }
