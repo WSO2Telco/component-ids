@@ -49,4 +49,5 @@ public class Constants {
     public static final String REG_MODE_OFFLINE = "offline";
     public static final String APPLICATION_PROPERTY_IS_ADMIN_URL = "admin_url";
     public static final String DISCOVERY="discovery";
+
 }
