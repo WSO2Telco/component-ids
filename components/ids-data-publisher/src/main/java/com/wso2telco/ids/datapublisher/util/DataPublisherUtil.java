@@ -36,6 +36,9 @@ public class DataPublisherUtil {
     public static final String TOKEN_ENDPOINT_STREAM_NAME = "com.wso2telco.token.endpoint";
     public static final String TOKEN_ENDPOINT_STREAM_VERSION = "1.0.0";
 
+    public static final String NEW_USER_STREAM_NAME = "com.wso2telco.offline.user.registration";
+    public static final String NEW_USER_STREAM_VERSION = "1.0.0";
+
     public static final String OAUTH2_CLIENT_TYPE = "oauth2";
 
     private static ApplicationManagementService applicationManagementService;
@@ -653,5 +656,22 @@ public class DataPublisherUtil {
         REDIRECT_TO_CONSENT_PAGE,
         REG_CONSENT_AGREED
 
+    }
+
+    /**
+     * Publish new user data
+     *
+     * @param userStatus
+     */
+    public static void publishNewUserData(UserStatus userStatus) {
+        List<Object> userStatusMetaData = new ArrayList<Object>();
+
+        userStatusMetaData.add(System.currentTimeMillis());
+        userStatusMetaData.add(userStatus.getMsisdn());
+        userStatusMetaData.add(userStatus.getOperator());
+        userStatusMetaData.add(userStatus.getStatus());
+
+        IdsAgent.getInstance().publish(NEW_USER_STREAM_NAME,
+                NEW_USER_STREAM_VERSION, System.currentTimeMillis(), userStatusMetaData.toArray());
     }
 }
