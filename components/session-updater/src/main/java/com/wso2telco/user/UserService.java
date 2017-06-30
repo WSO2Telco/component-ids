@@ -3,21 +3,28 @@ package com.wso2telco.user;
 import com.wso2telco.core.config.ConfigLoader;
 import com.wso2telco.entity.RegisterUserStatusInfo;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.operator.FindOperatorFactory;
 import com.wso2telco.sms.SendSMS;
 import com.wso2telco.util.UserState;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.api.UserStoreException;
 
 import java.io.IOException;
-import java.rmi.RemoteException;
 import java.util.List;
 import java.util.Map;
 
 public class UserService {
+    /**
+     * The log.
+     */
+    private static Log log = LogFactory.getLog(UserService.class);
 
     public void msisdnStatusUpdate(JSONArray msisdnArr,String operator, List<RegisterUserStatusInfo> userRegistrationStatusList) throws IOException, UserStoreException, RemoteUserStoreManagerServiceUserStoreExceptionException, LoginAuthenticationExceptionException, IdentityException {
 
@@ -80,7 +87,7 @@ public class UserService {
                         userStatus.setMsisdn(msisdn);
                         userStatus.setOperator(operator);
                         userStatus.setStatus(UserState.OFFLINE_USER_REGISTRATION.name());
-                        // Utility.publishNewUserData(userStatus);
+                        DataPublisherUtil.publishNewUserData(userStatus);
 
                         //send welcome sms
                         SendSMS sendSMS = new SendSMS();
@@ -93,5 +100,22 @@ public class UserService {
             }
             userRegistrationStatusList.add(statusInfo);
         }
+    }
+
+    public JSONArray getmsisdnArr(String jsonBody){
+        //Cast the jsonBody to json object
+        org.json.JSONObject jsonObj;
+        JSONArray msisdnArr = null;
+
+        try {
+            jsonObj = new org.json.JSONObject(jsonBody);
+            if (log.isDebugEnabled()) {
+                log.debug("Json body : " + jsonBody);
+            }
+            msisdnArr = jsonObj.getJSONArray("msisdn");
+        } catch (JSONException e) {
+            log.error("Invalid message format", e);
+        }
+     return msisdnArr;
     }
 }
