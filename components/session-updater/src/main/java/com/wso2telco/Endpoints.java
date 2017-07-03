@@ -135,6 +135,7 @@ public class Endpoints extends ResponseBuilder{
     private List<RegisterUserStatusInfo> userRegistrationStatusList = new ArrayList<RegisterUserStatusInfo>();
     private JSONArray msisdnArr = null;
     private UserService userService=new UserService();
+    private RegisterUserResponseBuilderRequest registerUserResponseBuilderRequest=new RegisterUserResponseBuilderRequest();
 
     /**admin_url
      * Instantiates a new endpoints.
@@ -1471,8 +1472,12 @@ public class Endpoints extends ResponseBuilder{
     @Produces("application/json")
     public Response registerUser(@PathParam("operator") String operator, String jsonBody) throws Exception {
         response.setStatusInfo(userRegistrationStatusList);
-        msisdnArr=userService.getmsisdnArr(jsonBody);
-        return registerUserResponseBuilder(msisdnArr,operator,response,userRegistrationStatusList);
+        msisdnArr = userService.getmsisdnArr(jsonBody);
+        registerUserResponseBuilderRequest.setMsisdnArr(msisdnArr);
+        registerUserResponseBuilderRequest.setOperator(operator);
+        registerUserResponseBuilderRequest.setResponse(response);
+        registerUserResponseBuilderRequest.setUserRegistrationStatusList(userRegistrationStatusList);
+        return registerUserResponseBuilder(registerUserResponseBuilderRequest);
     }
 
 
