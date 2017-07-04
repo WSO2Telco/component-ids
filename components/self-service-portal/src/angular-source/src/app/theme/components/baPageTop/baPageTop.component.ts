@@ -12,6 +12,7 @@ export class BaPageTop {
 
   public isScrolled:boolean = false;
   public isMenuCollapsed:boolean = false;
+  public msisdn = localStorage.getItem('msisdn');
 
   constructor(private _state:GlobalState) {
     this._state.subscribe('menu.isCollapsed', (isCollapsed) => {
