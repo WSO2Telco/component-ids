@@ -52,9 +52,15 @@ a.al-logo:hover {
 }
 
 .user-profile {
-  float: right;
-  min-width: 230px;
-  margin-top: 10px;
+    float: right;
+    min-width: 60px;
+    margin-top: 10px;
+}
+
+.user-profile-number {
+    float: right;
+    min-width: 117px;
+    margin-top: 24px;
 }
 
 .al-user-profile {
