@@ -4,15 +4,14 @@
   <!--a routerLink="/pages/dashboard" class="al-logo clearfix"><span>Mobile</span>Connect</a-->
   <a href (click)="toggleMenu()" class="collapse-menu-link ion-navicon"></a>
 
-  <!--div class="search">
-    <i class="ion-ios-search-strong" ng-click="startSearch()"></i>
-    <input id="searchInput" type="text" placeholder="Search for...">
-  </div -->
-
-  <div class="user-profile clearfix">
+  <div class="search">
+   <!-- <i class="ion-ios-search-strong" ng-click="startSearch()"></i>
+    <input id="searchInput" type="text" placeholder="Search for..." --> 
+  </div>
+    <div class="user-profile clearfix">
     <div class="dropdown al-user-profile">
       <a class="profile-toggle-link dropdown-toggle" id="user-profile-dd" data-toggle="dropdown" aria-expanded="false">
-        <img src="{{ ( 'mcusers' | baProfilePicture ) }}">
+        <img src="{{ ( 'mcusers' | baProfilePicture ) }}"> 
       </a>
       <ul class="dropdown-menu top-dropdown-menu profile-dropdown" aria-labelledby="user-profile-dd">
         <li class="dropdown-item"><i class="dropdown-arr"></i></li>
@@ -23,4 +22,5 @@
     </div>
     <!--ba-msg-center></ba-msg-center -->
   </div>
+ <div class="user-profile-number clearfix"> <p style="color:white"> {{msisdn}} </p> </div>
 </div>
