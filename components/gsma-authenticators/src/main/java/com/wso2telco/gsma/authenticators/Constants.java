@@ -195,6 +195,15 @@ public final class Constants {
     public static final String SELF_AUTHENTICATOR_NAME = "SelfAuthenticator";
 
     /**
+     * The Constant VOICECALL_AUTHENTICATOR_NAME.
+     */
+    public static final String VOICECALL_AUTHENTICATOR_NAME = "VoiceCallAuthenticator";
+    /**
+     * The Constant VOICECALL_AUTHENTICATOR_FRIENDLY_NAME.
+     */
+    public static final String VOICECALL_AUTHENTICATOR_FRIENDLY_NAME = "voice";
+
+    /**
      * The Constant SELF_AUTHENTICATOR_FRIENDLY_NAME.
      */
     public static final String SELF_AUTHENTICATOR_FRIENDLY_NAME = "self";
