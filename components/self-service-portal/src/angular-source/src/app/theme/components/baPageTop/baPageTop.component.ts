@@ -29,4 +29,9 @@ export class BaPageTop {
   public scrolledChanged(isScrolled) {
     this.isScrolled = isScrolled;
   }
+
+   redirectToLogin() {
+     localStorage.clear();
+     window.location.href = "/selfserviceportal/";
+  }
 }
