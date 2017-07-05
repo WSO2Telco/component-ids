@@ -43,7 +43,7 @@ public class ValidSoftJsonHelper {
     public void setUserRegistrationAndAuthenticationJson(String logId , String msisdn){
 
         // remove msisdn modifiation line this from when going to prod
-        msisdn = "0094"+ msisdn.substring(3,12);
+        msisdn = "94"+ msisdn.substring(3,12);
         //
 
         String jsonTemplate = "{"+
