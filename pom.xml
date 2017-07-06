@@ -74,7 +74,8 @@
 		<module>components/dashboard</module>
 		<module>components/authentication-endpoint</module>
         <module>components/saa-server</module>
-		<module>features</module>
+        <module>components/self-service-portal</module>
+        <module>features</module>
         <module>components/openid-extension</module>
     </modules>
 
@@ -106,7 +107,7 @@
                     <preparationGoals>clean install</preparationGoals>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                 </configuration>
-		<dependencies>
+		    <dependencies>
                 <dependency>
                     <groupId>org.apache.maven.scm</groupId>
                     <artifactId>maven-scm-provider-gitexe</artifactId>
