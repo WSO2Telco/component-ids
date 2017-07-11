@@ -1,7 +1,7 @@
 export class AppSettings {
 
-    public static port = window.location.origin;
-    public static BASE_API = AppSettings.port+'/selfserviceportal/api/v1/';
+    public static PORT = window.location.origin;
+    public static BASE_API = AppSettings.PORT+'/selfserviceportal/api/v1/';
 
    public static getAuthUrl(msisdn:string, acr:string):string{
        if(acr == null)
