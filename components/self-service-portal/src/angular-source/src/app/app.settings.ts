@@ -1,5 +1,7 @@
 export class AppSettings {
-   public static BASE_API = 'https://localhost:9443/selfserviceportal/api/v1/';
+
+    public static port = window.location.origin;
+    public static BASE_API = AppSettings.port+'/selfserviceportal/api/v1/';
 
    public static getAuthUrl(msisdn:string, acr:string):string{
        if(acr == null)
@@ -7,4 +9,5 @@ export class AppSettings {
        else
            return this.BASE_API + "auth/login?acr=" + acr + "&msisdn=" + msisdn;
    }
+
 }
