@@ -8,6 +8,7 @@ import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.entity.RegisterUserStatusInfo;
 import com.wso2telco.ids.datapublisher.util.FileUtil;
 import com.wso2telco.util.Constants;
+import com.wso2telco.util.UserState;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.context.ConfigurationContext;
@@ -65,7 +66,6 @@ public class UserRegistration {
     public String getRegisteredOperator(String username)
             throws IdentityException, UserStoreException, RemoteException, LoginAuthenticationExceptionException,
             RemoteUserStoreManagerServiceUserStoreExceptionException {
-
         RemoteUserStoreManagerServiceStub remoteUserStoreManagerServiceStub = getUserStoreManagerStub();
         return remoteUserStoreManagerServiceStub.getUserClaimValue(username, Constants.OPERATOR_CLAIM_NAME, null);
     }
@@ -77,6 +77,12 @@ public class UserRegistration {
         return remoteUserStoreManagerServiceStub.isExistingUser(username);
     }
 
+    public String getUserStatus(String username)
+            throws IdentityException, UserStoreException, RemoteException, LoginAuthenticationExceptionException,
+            RemoteUserStoreManagerServiceUserStoreExceptionException {
+        RemoteUserStoreManagerServiceStub remoteUserStoreManagerServiceStub = getUserStoreManagerStub();
+        return remoteUserStoreManagerServiceStub.getUserClaimValue(username, Constants.STATUS_CLAIM_NAME, null);
+    }
 
     /**
      * If the provided operator is not matching with the existing operator, update the operator
@@ -91,8 +97,8 @@ public class UserRegistration {
             throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException,
             LoginAuthenticationExceptionException {
         RemoteUserStoreManagerServiceStub remoteUserStoreManagerServiceStub = getUserStoreManagerStub();
-        remoteUserStoreManagerServiceStub.setUserClaimValue(msisdn, Constants.OPERATOR_CLAIM_NAME, operator,
-                UserCoreConstants.DEFAULT_PROFILE);
+        remoteUserStoreManagerServiceStub.setUserClaimValue(msisdn, Constants.OPERATOR_CLAIM_NAME, operator,UserCoreConstants.DEFAULT_PROFILE);
+        remoteUserStoreManagerServiceStub.setUserClaimValue(msisdn, Constants.STATUS_CLAIM_NAME, UserState.ACTIVE.name(),UserCoreConstants.DEFAULT_PROFILE);
     }
 
     /**
@@ -169,10 +175,8 @@ public class UserRegistration {
 
         MobileConnectConfig.SessionUpdaterConfig sessionUpdaterConfig = configurationService.getDataHolder().getMobileConnectConfig().getSessionUpdaterConfig();
 
-        String serviceEndPoint =  sessionUpdaterConfig.getAdmin_url() + "/services/" +
-                Constants.SERVICE;
-        ConfigurationContext configContext = ConfigurationContextFactory.createConfigurationContextFromFileSystem(null,
-                null);
+        String serviceEndPoint =  sessionUpdaterConfig.getAdmin_url() + "/services/" +Constants.SERVICE;
+        ConfigurationContext configContext = ConfigurationContextFactory.createConfigurationContextFromFileSystem(null,null);
         RemoteUserStoreManagerServiceStub remoteUserStoreManagerServiceStub;
         remoteUserStoreManagerServiceStub = new RemoteUserStoreManagerServiceStub(configContext, serviceEndPoint);
 
@@ -200,5 +204,41 @@ public class UserRegistration {
     public String generateRandomPassword() {
         SecureRandom random = new SecureRandom();
         return new BigInteger(130, random).toString(32);
+    }
+
+    /**
+     * Check if the msisdn format is under valid criteria
+     *
+     * @param msisdn
+     * @return Error code if any, or null
+     */
+    public RegisterUserStatusInfo.registerStatus validateUnregisterUser(String msisdn, String operator,RemoteUserStoreManagerServiceStub adminStub) {
+        try {
+            if (adminStub.isExistingUser(msisdn)){
+                String useroperator=adminStub.getUserClaimValue(msisdn,Constants.OPERATOR_CLAIM_NAME,UserCoreConstants.DEFAULT_PROFILE);
+                if(useroperator!=null && !useroperator.isEmpty() && useroperator.equalsIgnoreCase(operator)){
+                    String status=null;
+                    try{
+                        status=adminStub.getUserClaimValue(msisdn,Constants.STATUS_CLAIM_NAME,UserCoreConstants.DEFAULT_PROFILE);
+                    }catch (Exception e){
+                        log.info(msisdn + ": status not found");
+                    }
+                    if(!(status!=null && !status.isEmpty() && status.equals(UserState.INACTIVE.name())) ) {
+                        return null;
+                    }else{
+                        return RegisterUserStatusInfo.registerStatus.MSISDN_NOT_FOUND;
+                    }
+                }else{
+                    return RegisterUserStatusInfo.registerStatus.OPERATOR_VERIFICATION_FAILED;
+                }
+            }else{
+                log.info(msisdn + ": is not a registered user for un-registration");
+                return RegisterUserStatusInfo.registerStatus.MSISDN_NOT_FOUND;
+            }
+        }
+        catch (Exception e){
+            log.error("Error occurred while validating unregister MSISDN",e);
+            return RegisterUserStatusInfo.registerStatus.PROCESSING_FAILED;
+        }
     }
 }
