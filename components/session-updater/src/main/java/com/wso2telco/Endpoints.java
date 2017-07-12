@@ -32,10 +32,17 @@ import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.user.UserService;
 import com.wso2telco.util.*;
 import org.apache.axis2.AxisFault;
+import org.apache.axis2.client.Options;
+import org.apache.axis2.client.ServiceClient;
+import org.apache.axis2.context.ConfigurationContext;
+import org.apache.axis2.context.ConfigurationContextFactory;
+import org.apache.axis2.transport.http.HTTPConstants;
+import org.apache.axis2.transport.http.HttpTransportProperties;
 import org.apache.commons.lang.IncompleteArgumentException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpStatus;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,7 +53,10 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Authe
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.mgt.stub.UserIdentityManagementAdminServiceIdentityMgtServiceExceptionException;
+import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceStub;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
+import org.wso2.carbon.user.core.UserCoreConstants;
+import org.xml.sax.SAXException;
 
 
 import javax.ws.rs.Consumes;
@@ -60,6 +70,8 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.rmi.RemoteException;
@@ -1478,6 +1490,20 @@ public class Endpoints extends ResponseBuilder{
         registerUserResponseBuilderRequest.setResponse(response);
         registerUserResponseBuilderRequest.setUserRegistrationStatusList(userRegistrationStatusList);
         return registerUserResponseBuilder(registerUserResponseBuilderRequest);
+    }
+
+    @POST
+    @Path("/unregister/v1/{operator}")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Response unregisterUser(@PathParam("operator") String operator, String jsonBody) throws Exception {
+        response.setStatusInfo(userRegistrationStatusList);
+        msisdnArr = userService.getmsisdnArr(jsonBody);
+        registerUserResponseBuilderRequest.setMsisdnArr(msisdnArr);
+        registerUserResponseBuilderRequest.setOperator(operator);
+        registerUserResponseBuilderRequest.setResponse(response);
+        registerUserResponseBuilderRequest.setUserRegistrationStatusList(userRegistrationStatusList);
+        return unRegisterUserResponseBuilder(registerUserResponseBuilderRequest);
     }
 
 

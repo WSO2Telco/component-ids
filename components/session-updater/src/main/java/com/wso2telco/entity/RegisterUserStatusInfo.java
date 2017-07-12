@@ -12,7 +12,10 @@ public class RegisterUserStatusInfo {
         DENIED,
         INVALID_MSISDN_FORMAT,
         MSISDN_EMPTY,
-        UPDATED
+        UPDATED,
+        OPERATOR_VERIFICATION_FAILED,
+        MSISDN_NOT_FOUND,
+        PROCESSING_FAILED,
     }
 
 
