@@ -17,7 +17,7 @@ public class Validation {
 
     public boolean validateOperator(String operator) {
         boolean validOperator = false;
-        List<MobileConnectConfig.OPERATOR> operatorList = configurationService.getDataHolder().getMobileConnectConfig().getHEADERENRICH().getOperators()
+        List<MobileConnectConfig.OPERATOR> operatorList = configurationService.getDataHolder().getMobileConnectConfig().getHEADERENRICH().getOperators();
         for (MobileConnectConfig.OPERATOR configuredOperator : operatorList) {
             if (operator.equalsIgnoreCase(configuredOperator.getOperatorName())) {
                 validOperator = true;
