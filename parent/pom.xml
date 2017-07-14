@@ -820,6 +820,16 @@
 				<version>${com.wso2telco.core.version}</version>
 			</dependency>
 			<dependency>
+                <groupId>com.wso2telco.core</groupId>
+				<artifactId>pcr-service</artifactId>
+                <version>${com.wso2telco.core.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.wso2telco.core</groupId>
+            	<artifactId>sp-config-util</artifactId>
+                <version>${com.wso2telco.core.version}</version>
+            </dependency>
+			<dependency>
 				<groupId>com.wso2telco.ids</groupId>
 				<artifactId>gsma-authenticator</artifactId>
 				<version>${com.wso2telco.ids.version}</version>

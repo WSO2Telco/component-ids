@@ -95,6 +95,10 @@
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.wso2telco.core</groupId>
+            <artifactId>sp-config-util</artifactId>
+        </dependency>
 	<dependency>
 		<groupId>org.wso2.carbon.identity</groupId>
 		<artifactId>org.wso2.carbon.um.ws.api.stub</artifactId>
@@ -112,13 +116,7 @@
 			<type>jar</type>
 			<scope>provided</scope>
 		</dependency>
-        <dependency>
-            <groupId>com.wso2telco.core</groupId>
-            <artifactId>sp-config-util</artifactId>
-            <version>2.0.21</version>
-			<scope>provided</scope>
-        </dependency>
-        <dependency>
+         <dependency>
             <groupId>com.wso2telco.ids</groupId>
             <artifactId>ids-data-publisher</artifactId>
             <version>2.2.0-SNAPSHOT</version>
