@@ -201,6 +201,7 @@ public class MIFEOpenIDTokenBuilder implements
         String applicationName = oAuthAppDO.getApplicationName();
         String applicationClientId = oAuthAppDO.getOauthConsumerKey();
         String callbackUrl = oAuthAppDO.getCallbackUrl();
+        String scope = Arrays.toString(request.getScope());
 
         // Get authenticators used
         String amr[] = getValuesFromCache(request, "amr").split(",");
@@ -282,7 +283,7 @@ public class MIFEOpenIDTokenBuilder implements
             String plainIDToken = builder.buildIDToken();
             String accessToken = tokenRespDTO.getAccessToken();
             try {
-                TransactionDAO.insertTokenScopeLog(accessToken, subject);
+                TransactionDAO.insertTokenScopeLog(accessToken,scope,subject);
             } catch (Exception e) {
                 log.error("Error inserting to sub value Scope Log ", e);
             }
