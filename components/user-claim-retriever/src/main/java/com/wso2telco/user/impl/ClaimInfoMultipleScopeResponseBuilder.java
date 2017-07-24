@@ -161,8 +161,13 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         Map<String, Object> requestedClaims = new HashMap<String, Object>();
         if (scopeConfigs != null) {
             if (ArrayUtils.contains(scopes, hashPhoneScope)) {
-                String hashed_msisdn = getHashedClaimValue((String) totalClaims.get(phone_number_claim));
-                requestedClaims.put(phone_number_claim, hashed_msisdn);
+            	if(totalClaims.get(phone_number_claim) == null){
+            		requestedClaims.put(phone_number_claim, "");
+            	}
+            	else{
+            		String hashed_msisdn = getHashedClaimValue((String) totalClaims.get(phone_number_claim));
+                    requestedClaims.put(phone_number_claim, hashed_msisdn);
+            	}               
             } else {
                 for (Scope scope : scopeConfigs.getScopes().getScopeList()) {
                     if (ArrayUtils.contains(scopes, scope.getName())) {
