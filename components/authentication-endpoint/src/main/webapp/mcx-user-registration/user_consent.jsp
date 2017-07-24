@@ -33,7 +33,7 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <script src="mcx-user-registration/js/jquery-3.2.1.min.js" type="text/javascript"></script>
     <script src="mcx-user-registration/js/landing.js" type="text/javascript"></script>
-    <script src="https://npmcdn.com/tether@1.2.4/dist/js/tether.min.js"></script>
+    <script src="mcx-user-registration/js/tether.min.js" type="text/javascript"></script>
     <script src="mcx-user-registration/js/bootstrap.min.js" type="text/javascript"></script>
     <script src="mcx-user-registration/js/public/js/main.js" type="text/javascript"></script>
     <script src="mcx-user-registration/js/public/js/modal.js" type="text/javascript"></script>

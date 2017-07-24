@@ -129,75 +129,81 @@ public class ConsentAuthenticator extends AbstractApplicationAuthenticator
 		log.info("Initiating authentication request");
 
 		try {
-			String msisdn = context.getProperty(Constants.MSISDN).toString();
-			String clientID = context.getProperty(Constants.CLIENT_ID).toString();
-			String operator = context.getProperty(Constants.OPERATOR).toString();
-			int operatorID = (DBUtil.getOperatorDetails(operator)).getOperatorId();
-			context.setProperty(Constants.OPERATOR_ID, operatorID);
-			if(context.getProperty(Constants.API_SCOPES) == null){
-				response.sendRedirect(
-						"/commonauth/?sessionDataKey=" + context.getContextIdentifier() + "&action=default");
-			}
-			else{
-				String apiScopes = context.getProperty(Constants.API_SCOPES).toString();
-				String apiScopesMinBracket = apiScopes.substring( 1, apiScopes.length() - 1);
-				String[] api_Scopes = apiScopesMinBracket.split(", ");
-				boolean registering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+			if(context.getProperty(Constants.MSISDN)!=null){
+				String msisdn = context.getProperty(Constants.MSISDN).toString();
+				String clientID = context.getProperty(Constants.CLIENT_ID).toString();
+				String operator = context.getProperty(Constants.OPERATOR).toString();
+				int operatorID = (DBUtil.getOperatorDetails(operator)).getOperatorId();
+				context.setProperty(Constants.OPERATOR_ID, operatorID);
+				if(context.getProperty(Constants.API_SCOPES) == null){
+					response.sendRedirect(
+							"/commonauth/?sessionDataKey=" + context.getContextIdentifier() + "&action=default");
+				}
+				else{
+					String apiScopes = context.getProperty(Constants.API_SCOPES).toString();
+					String apiScopesMinBracket = apiScopes.substring( 1, apiScopes.length() - 1);
+					String[] api_Scopes = apiScopesMinBracket.split(", ");
+					boolean registering = (boolean) context.getProperty(Constants.IS_REGISTERING);
 
-				DataPublisherUtil.updateAndPublishUserStatus(
-						(UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-						DataPublisherUtil.UserState.REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
+					DataPublisherUtil.updateAndPublishUserStatus(
+							(UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+							DataPublisherUtil.UserState.REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
 
-				String consentStatus = "deny";
-				List<String> approveScopes = new ArrayList<String>();
-				List<String> approveAllScopes = new ArrayList<String>();
-				Map<String, String> scopeDescription = new HashedMap();
-				for (String apiScope : api_Scopes) {
-					UserConsent userConsentDetails = DBUtil.getUserConsentDetails(msisdn, apiScope, clientID, operatorID);
-					if ((userConsentDetails.getConsumerKey() == null && userConsentDetails.getMsisdn() == null) || (userConsentDetails.getConsumerKey() != null && userConsentDetails.isIs_approved() == true)) {
-						Consent consent = DBUtil.getConsentDetails(apiScope, clientID, operatorID);
-						if (consent.getStatus() != null) {
-							if (consent.getStatus().equalsIgnoreCase("approve") || consent.getStatus().equalsIgnoreCase("approveall")) {
-								approveScopes.add(apiScope);
-								scopeDescription.put(apiScope, consent.getDescription());
-								if (consent.getStatus().equalsIgnoreCase("approve")) {
-									consentStatus = "approve";
-								} else if (!consentStatus.equals("approve")) {
-									consentStatus = "approveall";
+					String consentStatus = "deny";
+					List<String> approveScopes = new ArrayList<String>();
+					List<String> approveAllScopes = new ArrayList<String>();
+					Map<String, String> scopeDescription = new HashedMap();
+					for (String apiScope : api_Scopes) {
+						UserConsent userConsentDetails = DBUtil.getUserConsentDetails(msisdn, apiScope, clientID, operatorID);
+						if ((userConsentDetails.getConsumerKey() == null && userConsentDetails.getMsisdn() == null) || (userConsentDetails.getConsumerKey() != null && userConsentDetails.isIs_approved() == true)) {
+							Consent consent = DBUtil.getConsentDetails(apiScope, clientID, operatorID);
+							if (consent.getStatus() != null) {
+								if (consent.getStatus().equalsIgnoreCase("approve") || consent.getStatus().equalsIgnoreCase("approveall")) {
+									approveScopes.add(apiScope);
+									scopeDescription.put(apiScope, consent.getDescription());
+									if (consent.getStatus().equalsIgnoreCase("approve")) {
+										consentStatus = "approve";
+									} else if (!consentStatus.equals("approve")) {
+										consentStatus = "approveall";
+									}
 								}
 							}
 						}
 					}
-				}
 
-				String scopesDisplay = Arrays.toString(approveScopes.toArray());
-				context.setProperty(Constants.APPROVED_SCOPES, scopesDisplay);
-				context.setProperty(Constants.SCOPE_DESCRIPTION, scopeDescription);
-				String logoPath = DBUtil.getSPConfigValue(operator, clientID, Constants.SP_LOGO);
-				context.setProperty(Constants.SP_LOGO, logoPath);
-				if (consentStatus.equalsIgnoreCase("approve")) {
-					response.sendRedirect("/authenticationendpoint/consent.do?sessionDataKey="
-							+ context.getContextIdentifier() + "&skipConsent=true&scope=" + scopesDisplay + "&registering=" + registering);
-				} else if (consentStatus.equalsIgnoreCase("approveall")) {
-					for (String apiApproveScope : approveScopes) {
-						UserConsent userConsent = DBUtil.getUserConsentDetails(msisdn, apiApproveScope, clientID, operatorID);
-						if (userConsent.getConsumerKey() == null && userConsent.getMsisdn() == null && userConsent.getScope() == null) {
-							approveAllScopes.add(apiApproveScope);
-						}
-					}
-					if (approveAllScopes.size() == 0) {
-						response.sendRedirect(
-								"/commonauth/?sessionDataKey=" + context.getContextIdentifier() + "&action=default");
-					} else {
-						String scopesString = Arrays.toString(approveAllScopes.toArray());
-						context.setProperty(Constants.APPROVED_ALL_SCOPES, scopesString);
+					String scopesDisplay = Arrays.toString(approveScopes.toArray());
+					context.setProperty(Constants.APPROVED_SCOPES, scopesDisplay);
+					context.setProperty(Constants.SCOPE_DESCRIPTION, scopeDescription);
+					String logoPath = DBUtil.getSPConfigValue(operator, clientID, Constants.SP_LOGO);
+					context.setProperty(Constants.SP_LOGO, logoPath);
+					if (consentStatus.equalsIgnoreCase("approve")) {
 						response.sendRedirect("/authenticationendpoint/consent.do?sessionDataKey="
-								+ context.getContextIdentifier() + "&skipConsent=false&scope=" + scopesString + "&registering=" + registering);
+								+ context.getContextIdentifier() + "&skipConsent=true&scope=" + scopesDisplay + "&registering=" + registering);
+					} else if (consentStatus.equalsIgnoreCase("approveall")) {
+						for (String apiApproveScope : approveScopes) {
+							UserConsent userConsent = DBUtil.getUserConsentDetails(msisdn, apiApproveScope, clientID, operatorID);
+							if (userConsent.getConsumerKey() == null && userConsent.getMsisdn() == null && userConsent.getScope() == null) {
+								approveAllScopes.add(apiApproveScope);
+							}
+						}
+						if (approveAllScopes.size() == 0) {
+							response.sendRedirect(
+									"/commonauth/?sessionDataKey=" + context.getContextIdentifier() + "&action=default");
+						} else {
+							String scopesString = Arrays.toString(approveAllScopes.toArray());
+							context.setProperty(Constants.APPROVED_ALL_SCOPES, scopesString);
+							response.sendRedirect("/authenticationendpoint/consent.do?sessionDataKey="
+									+ context.getContextIdentifier() + "&skipConsent=false&scope=" + scopesString + "&registering=" + registering);
+						}
+					} else {
+						terminateAuthentication(context);
 					}
-				} else {
-					terminateAuthentication(context);
-				}
+				}			
 			}
+			else{
+				terminateAuthentication(context);
+			}
+			
 		} catch (IOException e) {
 			log.error("Error occurred while redirecting request", e);
 			DataPublisherUtil.updateAndPublishUserStatus(
@@ -227,98 +233,100 @@ public class ConsentAuthenticator extends AbstractApplicationAuthenticator
 		String msisdn = context.getProperty(Constants.MSISDN).toString();
 		String clientID = context.getProperty(Constants.CLIENT_ID).toString();
 		String operator = context.getProperty(Constants.OPERATOR).toString();
-		int operatorID = (int) context.getProperty(Constants.OPERATOR_ID);
+		if(context.getProperty(Constants.OPERATOR_ID)!=null){
+			int operatorID = (int) context.getProperty(Constants.OPERATOR_ID);
+			String userAction = request.getParameter(Constants.ACTION);
+			if (userAction != null && !userAction.isEmpty()) {
+				// Change behaviour depending on user action
+				switch (userAction) {
+					case Constants.APPROVEALL:
+						String scopesString = context.getProperty(Constants.APPROVED_ALL_SCOPES).toString();
+						String scopesStringMinBracket = scopesString.substring( 1, scopesString.length() - 1);
+						String[] api_Scopes = scopesStringMinBracket.split( ", ");
+						log.debug("MSISDN before inserting :" + msisdn);
+						log.debug("Service Provider Name before inserting:" + clientID);
+						log.debug("operator before inserting:" + operator);
+						log.debug("scope before inserting:" + api_Scopes);
+						try {
+							for(String apiScope : api_Scopes){
+								DBUtil.insertUserConsentDetails(msisdn, apiScope, clientID, operatorID);
+								DBUtil.insertConsentHistoryDetails(msisdn, apiScope, clientID, operatorID, "approveall");
+							}
+						} catch (SQLException | NamingException e) {
+							e.printStackTrace();
+						}
+						break;
+					case Constants.APPROVE:
+						if(context.getProperty(Constants.APPROVED_SCOPES)!=null){
+							String approvedScopesString = context.getProperty(Constants.APPROVED_SCOPES).toString();
+							String approvedScopesStringMinBracket = approvedScopesString.substring( 1, approvedScopesString.length() - 1);
+							String[] approved_scopes = approvedScopesStringMinBracket.split( ", ");
+							try {
+								for(String apprScope : approved_scopes){
+									DBUtil.insertConsentHistoryDetails(msisdn, apprScope, clientID, operatorID, "approve");
+								}
+							} catch (SQLException | NamingException e) {
+								e.printStackTrace();
+							}
+						}
 
-		String userAction = request.getParameter(Constants.ACTION);
-		if (userAction != null && !userAction.isEmpty()) {
-			// Change behaviour depending on user action
-			switch (userAction) {
-			case Constants.APPROVEALL:
-				String scopesString = context.getProperty(Constants.APPROVED_ALL_SCOPES).toString();
-				String scopesStringMinBracket = scopesString.substring( 1, scopesString.length() - 1);
-				String[] api_Scopes = scopesStringMinBracket.split( ", ");				
-				log.debug("MSISDN before inserting :" + msisdn);
-				log.debug("Service Provider Name before inserting:" + clientID);
-				log.debug("operator before inserting:" + operator);
-				log.debug("scope before inserting:" + api_Scopes);
-				try {
-					for(String apiScope : api_Scopes){
-						DBUtil.insertUserConsentDetails(msisdn, apiScope, clientID, operatorID);
-						DBUtil.insertConsentHistoryDetails(msisdn, apiScope, clientID, operatorID, "approveall");
-					}
-				} catch (SQLException | NamingException e) {
-					e.printStackTrace();
+						else if(context.getProperty(Constants.APPROVED_ALL_SCOPES)!=null){
+							String approvedScopesString = context.getProperty(Constants.APPROVED_ALL_SCOPES).toString();
+							String approvedScopesStringMinBracket = approvedScopesString.substring( 1, approvedScopesString.length() - 1);
+							String[] approved_scopes = approvedScopesStringMinBracket.split( ", ");
+							try {
+								for(String apprScope : approved_scopes){
+									DBUtil.insertConsentHistoryDetails(msisdn, apprScope, clientID, operatorID, "approve");
+								}
+							} catch (SQLException | NamingException e) {
+								e.printStackTrace();
+							}
+						}
+						break;
+					case Constants.DENY:
+						if(context.getProperty(Constants.APPROVED_SCOPES)!=null){
+							String approvedScopesString = context.getProperty(Constants.APPROVED_SCOPES).toString();
+							String approvedScopesStringMinBracket = approvedScopesString.substring( 1, approvedScopesString.length() - 1);
+							String[] approved_scopes = approvedScopesStringMinBracket.split( ", ");
+							try {
+								for(String apprScope : approved_scopes){
+									DBUtil.insertConsentHistoryDetails(msisdn, apprScope, clientID, operatorID, "deny");
+								}
+							} catch (SQLException | NamingException e) {
+								e.printStackTrace();
+							}
+						}
+
+						else if(context.getProperty(Constants.APPROVED_ALL_SCOPES)!=null){
+							String approvedScopesString = context.getProperty(Constants.APPROVED_ALL_SCOPES).toString();
+							String approvedScopesStringMinBracket = approvedScopesString.substring( 1, approvedScopesString.length() - 1);
+							String[] approved_scopes = approvedScopesStringMinBracket.split( ", ");
+							try {
+								for(String apprScope : approved_scopes){
+									DBUtil.insertConsentHistoryDetails(msisdn, apprScope, clientID, operatorID, "deny");
+								}
+							} catch (SQLException | NamingException e) {
+								e.printStackTrace();
+							}
+						}
+						terminateAuthentication(context);
+						break;
+					default:
+						// do nothing
+						break;
 				}
-				break;
-			case Constants.APPROVE:
-				if(context.getProperty(Constants.APPROVED_SCOPES)!=null){
-					String approvedScopesString = context.getProperty(Constants.APPROVED_SCOPES).toString();
-					String approvedScopesStringMinBracket = approvedScopesString.substring( 1, approvedScopesString.length() - 1);
-					String[] approved_scopes = approvedScopesStringMinBracket.split( ", ");	
-					try {
-						for(String apprScope : approved_scopes){
-							DBUtil.insertConsentHistoryDetails(msisdn, apprScope, clientID, operatorID, "approve");
-						}
-					} catch (SQLException | NamingException e) {
-						e.printStackTrace();
-					}
-				}
-				
-				else if(context.getProperty(Constants.APPROVED_ALL_SCOPES)!=null){
-					String approvedScopesString = context.getProperty(Constants.APPROVED_ALL_SCOPES).toString();
-					String approvedScopesStringMinBracket = approvedScopesString.substring( 1, approvedScopesString.length() - 1);
-					String[] approved_scopes = approvedScopesStringMinBracket.split( ", ");	
-					try {
-						for(String apprScope : approved_scopes){
-							DBUtil.insertConsentHistoryDetails(msisdn, apprScope, clientID, operatorID, "approve");
-						}
-					} catch (SQLException | NamingException e) {
-						e.printStackTrace();
-					}
-				}			
-				break;
-			case Constants.DENY:
-				if(context.getProperty(Constants.APPROVED_SCOPES)!=null){
-					String approvedScopesString = context.getProperty(Constants.APPROVED_SCOPES).toString();
-					String approvedScopesStringMinBracket = approvedScopesString.substring( 1, approvedScopesString.length() - 1);
-					String[] approved_scopes = approvedScopesStringMinBracket.split( ", ");	
-					try {
-						for(String apprScope : approved_scopes){
-							DBUtil.insertConsentHistoryDetails(msisdn, apprScope, clientID, operatorID, "deny");
-						}
-					} catch (SQLException | NamingException e) {
-						e.printStackTrace();
-					}
-				}
-				
-				else if(context.getProperty(Constants.APPROVED_ALL_SCOPES)!=null){
-					String approvedScopesString = context.getProperty(Constants.APPROVED_ALL_SCOPES).toString();
-					String approvedScopesStringMinBracket = approvedScopesString.substring( 1, approvedScopesString.length() - 1);
-					String[] approved_scopes = approvedScopesStringMinBracket.split( ", ");	
-					try {
-						for(String apprScope : approved_scopes){
-							DBUtil.insertConsentHistoryDetails(msisdn, apprScope, clientID, operatorID, "deny");
-						}
-					} catch (SQLException | NamingException e) {
-						e.printStackTrace();
-					}
-				}		
-				terminateAuthentication(context);
-				break;
-			default:
-				// do nothing
-				break;
+			}
+			AuthenticationContextHelper.setSubject(context, msisdn);
+			if(!(boolean) context.getProperty(Constants.IS_OFFNET_FLOW) && ((int)context.getProperty(Constants.ACR)==2)){
+				context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+			}
+			else{
+				context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "false");
 			}
 		}
-		AuthenticationContextHelper.setSubject(context, msisdn);
-	    if((boolean) context.getProperty(Constants.IS_OFFNET_FLOW) || ((int)context.getProperty(Constants.ACR)==3)){
-	    	context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "false");
-	    }
-	    else{	    	
-	    	context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
-	    }
-	
-		
+		else{
+			terminateAuthentication(context);
+		}
 	}
 
 	public AuthenticatorFlowStatus processRequest(HttpServletRequest request, HttpServletResponse response,
