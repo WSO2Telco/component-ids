@@ -89,16 +89,17 @@ public class TransactionDAO {
      * @param sub   the status code
      * @throws Exception the exception
      */
-    public static void insertTokenScopeLog(String token, String sub) throws Exception {
+    public static void insertTokenScopeLog(String token, String scope, String sub) throws Exception {
         Connection conn = null;
         PreparedStatement ps = null;
         try {
             conn = DbUtil.getConnectDBConnection();
-            String query = "INSERT INTO scope_log ( access_token,sub) VALUES " +
-                    "(? ,?);";
+            String query = "INSERT INTO scope_log ( access_token,scope,sub) VALUES " +
+                    "(?,?,?);";
             ps = conn.prepareStatement(query);
             ps.setString(1, token);
-            ps.setString(2, sub);
+            ps.setString(2, scope);
+            ps.setString(3, sub);
             ps.execute();
             log.debug("Sub value inserted successfully");
         } catch (SQLException e) {

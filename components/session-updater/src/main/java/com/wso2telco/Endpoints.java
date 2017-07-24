@@ -29,6 +29,8 @@ import com.wso2telco.entity.*;
 import com.wso2telco.exception.AuthenticatorException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import com.wso2telco.scopevalidation.OutboundMessage;
+import com.wso2telco.scopevalidation.ScopeValidationResponse;
 import com.wso2telco.util.Constants;
 import com.wso2telco.util.DbUtil;
 import org.apache.axis2.AxisFault;
@@ -169,6 +171,28 @@ public class Endpoints {
         }
         log.info("Updated saa status " + saaResponse);
         return response;
+    }
+    
+    @POST
+    @Path("/scope/token")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Response scopesForToken(String jsonBody) throws SQLException, JSONException, IOException {
+        log.info("Received scope request for token");
+        String scopes= "";
+        JSONObject jsonObjReq = new JSONObject(jsonBody);
+        log.info("JSON body Recieved "+jsonObjReq);
+        String token = jsonObjReq.getJSONObject("scopeValidationRequest").getString("token");
+        if(token != null && !token.equals("")){
+        	scopes=DatabaseUtils.getScopes(token);
+        }
+        OutboundMessage outboundMessage = new OutboundMessage();
+        ScopeValidationResponse scopeValidationResponse = new ScopeValidationResponse();
+        scopeValidationResponse.setScopes(scopes);
+        outboundMessage.setScopeValidationResponse(scopeValidationResponse);
+        Gson gson = new GsonBuilder().serializeNulls().create();
+        String responseString = gson.toJson((Object)outboundMessage);
+        return Response.status((int)200).entity((Object)responseString).build();
     }
 
     /**
