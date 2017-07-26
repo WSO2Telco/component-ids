@@ -53,6 +53,24 @@
         <param-value>true</param-value>
     </context-param>
 
+<context-param>
+        <param-name>
+            javax.servlet.jsp.jstl.fmt.locale
+        </param-name>
+        <param-value>
+            pt-BR
+        </param-value>
+    </context-param>
+    <!-- Set desired default Locale here -->
+    <context-param>
+        <param-name>
+            javax.servlet.jsp.jstl.fmt.locale
+        </param-name>
+        <param-value>
+            pt-BR
+        </param-value>
+    </context-param>
+
     <filter>
         <filter-name>HttpHeaderSecurityFilter</filter-name>
         <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>

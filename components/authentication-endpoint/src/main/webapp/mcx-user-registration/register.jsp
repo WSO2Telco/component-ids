@@ -1,3 +1,5 @@
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<fmt:bundle basename="org.wso2.carbon.identity.application.authentication.endpoint.i18n.register.Resources">
 <!doctype html>
 <!--
 /*******************************************************************************
@@ -106,23 +108,21 @@
 
     <main class="site__main site__wrap section v-distribute v-grow">
         <header class="page__header" id="ussdpin_header" style="display:none">
-            <h1 class="page__heading">Now, let&rsquo;s make your account&nbsp;secure</h1>
-            <p>Create a PIN for secure log-in and two questions we can ask you in case you ever forget
-                your&nbsp;PIN.</p>
+            <h1 class="page__heading"><fmt:message key='security-heading'/></h1>
+            <p><fmt:message key='security-intro'/></p>
         </header>
         <header class="page__header" id="ussdpin_update_header" style="display:none">
             <h1 class="page__heading">Looks like you have to update your account, let’s make your
                 account&nbsp;secure</h1>
-            <p>Create a PIN for secure log-in and two questions we can ask you in case you ever forget
-                your&nbsp;PIN.</p>
+            <p><fmt:message key='security-intro'/></p>
         </header>
         <div class="slider slider--all slick v-grow" id="slider">
             <section class="slider__slide">
                 <div class="slider__slide-inner v-distribute">
                     <header class="page__header">
-                        <h1 class="page__heading">Secure</h1>
-                        <p>A safer, more secure way to&nbsp;log-in.</p>
-                        <a href="https://mobileconnect.io/" class="cta">Learn more</a>
+                        <h1 class="page__heading"><fmt:message key='register-prompt-heading-1'/></h1>
+                        <p><fmt:message key='register-prompt-intro-1'/></p>
+                        <a href="https://mobileconnect.io/" class="cta"><fmt:message key='misc-learn-more'/></a>
                     </header>
                     <div class="page__illustration v-grow v-align-content">
                         <div>
@@ -135,9 +135,9 @@
             <section class="slider__slide">
                 <div class="slider__slide-inner v-distribute">
                     <header class="page__header">
-                        <h1 class="page__heading">Private</h1>
-                        <p>Your personal data is never shared without your&nbsp;permission.</p>
-                        <a href="https://mobileconnect.io/" class="cta">Learn more</a>
+                        <h1 class="page__heading"><fmt:message key='register-prompt-heading-2'/></h1>
+                        <p><fmt:message key='register-prompt-intro-2'/></p>
+                        <a href="https://mobileconnect.io/" class="cta"><fmt:message key='misc-learn-more'/></a>
                     </header>
                     <div class="page__illustration v-grow v-align-content">
                         <div>
@@ -150,9 +150,9 @@
             <section class="slider__slide">
                 <div class="slider__slide-inner v-distribute">
                     <header class="page__header">
-                        <h1 class="page__heading">Convenient</h1>
-                        <p>No need for multiple passwords or&nbsp;usernames.</p>
-                        <a href="https://mobileconnect.io/" class="cta">Learn more</a>
+                        <h1 class="page__heading"><fmt:message key='register-prompt-heading-3'/></h1>
+                        <p><fmt:message key='register-prompt-intro-3'/></p>
+                        <a href="https://mobileconnect.io/" class="cta"><fmt:message key='misc-learn-more'/></a>
                     </header>
                     <div class="page__illustration v-grow v-align-content">
                         <div>
@@ -178,9 +178,7 @@
             </div>
 
             <div class="page__copy">
-                <p id="msg">
-                    Looks like you don't yet have an account. Want to set one up? It's quick and&nbsp;easy.
-                </p>
+                <p id="msg"><fmt:message key='register-prompt-request'/></p>
             </div>
             <div id="term_ussd" class="page_term">
                 <p style="font-size:13px; margin:0px; padding:0px;" align="center">By setting up an account, you are
@@ -196,13 +194,13 @@
             <div class="grid">
                 <div class="grid__item one-half">
                     <a onclick="cancelProcessToRegister()" class="btn btn--outline btn--full btn--large">
-                        No thanks
+                        <fmt:message key='misc-no-thanks-button'/>
                     </a>
                 </div>
                 <div class="grid__item one-half">
                     <button type="button" id="validate-btn1" onclick="accept()" name="action" value="yes"
                             class="btn btn--full btn--fill btn--large btn--color">
-                        Yes
+                         <fmt:message key='misc-yes-button'/>
                     </button>
                 </div>
             </div>
