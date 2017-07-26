@@ -2,7 +2,7 @@
 <%@ page import="javax.xml.parsers.ParserConfigurationException" %>
 <%@ page import="org.xml.sax.SAXException" %>
 <%@ page import="javax.xml.xpath.XPathExpressionException" %>
-
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <input type="hidden" name="sessionDataKey" id="sessionDataKey" value='<%=sessionDataKey%>'/>
 <div class="site__root" id="content-placeholder">
 
@@ -13,9 +13,7 @@
 <script id="results-template" type="text/x-handlebars-template">
 	<main class="site__main site__wrap section v-distribute">
 		<header class="page__header">
-			<h1 class="page__heading">
-				{{continue-on-device-heading}}
-			</h1>
+			<h1 class="page__heading"><fmt:message key='waiting-label-continue-on-device-heading'/></h1>
 			<p>
 
 				<%
@@ -27,7 +25,7 @@
 				%>
 				{{continue-on-device-intro-otp-sms}}
 				<%} else if(authenticators != null && authenticators.contains("SMSAuthenticator")) { %>
-				{{continue-on-device-intro-sms}}
+				<fmt:message key='waiting-label-continue-on-device-intro-sms'/>
 				<%} else if (authenticators != null && authenticators.contains("USSDAuthenticator")) {
 					showSMSLink = true; %>
 				{{continue-on-device-intro-ussd}}

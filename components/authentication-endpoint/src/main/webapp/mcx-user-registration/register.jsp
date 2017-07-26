@@ -1,3 +1,4 @@
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!doctype html>
 <!--
 /*******************************************************************************
@@ -106,23 +107,21 @@
 
     <main class="site__main site__wrap section v-distribute v-grow">
         <header class="page__header" id="ussdpin_header" style="display:none">
-            <h1 class="page__heading">Now, let&rsquo;s make your account&nbsp;secure</h1>
-            <p>Create a PIN for secure log-in and two questions we can ask you in case you ever forget
-                your&nbsp;PIN.</p>
+            <h1 class="page__heading"><fmt:message key='common-label-security-heading'/></h1>
+            <p><fmt:message key='common-label-security-intro'/></p>
         </header>
         <header class="page__header" id="ussdpin_update_header" style="display:none">
             <h1 class="page__heading">Looks like you have to update your account, let’s make your
                 account&nbsp;secure</h1>
-            <p>Create a PIN for secure log-in and two questions we can ask you in case you ever forget
-                your&nbsp;PIN.</p>
+            <p><fmt:message key='common-label-security-intro'/></p>
         </header>
         <div class="slider slider--all slick v-grow" id="slider">
             <section class="slider__slide">
                 <div class="slider__slide-inner v-distribute">
                     <header class="page__header">
-                        <h1 class="page__heading">Secure</h1>
-                        <p>A safer, more secure way to&nbsp;log-in.</p>
-                        <a href="https://mobileconnect.io/" class="cta">Learn more</a>
+                        <h1 class="page__heading"><fmt:message key='register-label-prompt-heading-1'/></h1>
+                        <p><fmt:message key='register-label-prompt-intro-1'/></p>
+                        <a href="https://mobileconnect.io/" class="cta"><fmt:message key='common-label-misc-learn-more'/></a>
                     </header>
                     <div class="page__illustration v-grow v-align-content">
                         <div>
@@ -135,9 +134,9 @@
             <section class="slider__slide">
                 <div class="slider__slide-inner v-distribute">
                     <header class="page__header">
-                        <h1 class="page__heading">Private</h1>
-                        <p>Your personal data is never shared without your&nbsp;permission.</p>
-                        <a href="https://mobileconnect.io/" class="cta">Learn more</a>
+                        <h1 class="page__heading"><fmt:message key='register-label-prompt-heading-2'/></h1>
+                        <p><fmt:message key='register-label-prompt-intro-2'/></p>
+                        <a href="https://mobileconnect.io/" class="cta"><fmt:message key='common-label-misc-learn-more'/></a>
                     </header>
                     <div class="page__illustration v-grow v-align-content">
                         <div>
@@ -150,9 +149,9 @@
             <section class="slider__slide">
                 <div class="slider__slide-inner v-distribute">
                     <header class="page__header">
-                        <h1 class="page__heading">Convenient</h1>
-                        <p>No need for multiple passwords or&nbsp;usernames.</p>
-                        <a href="https://mobileconnect.io/" class="cta">Learn more</a>
+                        <h1 class="page__heading"><fmt:message key='register-label-prompt-heading-3'/></h1>
+                        <p><fmt:message key='register-label-prompt-intro-3'/></p>
+                        <a href="https://mobileconnect.io/" class="cta"><fmt:message key='common-label-misc-learn-more'/></a>
                     </header>
                     <div class="page__illustration v-grow v-align-content">
                         <div>
@@ -178,31 +177,38 @@
             </div>
 
             <div class="page__copy">
-                <p id="msg">
-                    Looks like you don't yet have an account. Want to set one up? It's quick and&nbsp;easy.
-                </p>
+                <p id="msg"><fmt:message key='register-label-prompt-request'/></p>
             </div>
             <div id="term_ussd" class="page_term">
-                <p style="font-size:13px; margin:0px; padding:0px;" align="center">By setting up an account, you are
-                    agreeing to the <a href="/authenticationendpoint/terms_and_conditions"
-                                       target="_blank">Terms and Conditions.</a></p>
-                <p style="font-size:13px;margin-top:5px;" align="center">The <a href="/authenticationendpoint/privacy_promise" target="_blank">Mobile
-                    Connect Privacy Promise</a> means that your mobile number won't be shared and no personal
-                    information will be disclosed without your consent. See our full <a href="/authenticationendpoint/privacy_policy" target="_blank">privacy
-                        policy&nbsp;here</a>.</p>
+                <fmt:message key="common-label-security-terms-policy" var="terms" />
+                <%
+                String terms=pageContext.getAttribute("terms").toString();
+                String linked_terms = String.format(terms, "<a href='/authenticationendpoint/terms_and_conditions' target='_blank'>","</a>");
+                %>
+                <p style="font-size:13px; margin:0px; padding:0px;" align="center"><%=linked_terms%></p>
+
+                <fmt:message key="common-label-account-setup-privacy-policy" var="privacy" />
+                <fmt:message key="common-label-account-setup-privacy-policy-link-pph" var="policy" />
+                <%
+                String privacy=pageContext.getAttribute("privacy").toString();
+                String mc_linked_privacy = String.format(privacy, "<a href='/authenticationendpoint/privacy_promise' target='_blank'>","</a>");             
+                String policy=pageContext.getAttribute("policy").toString();
+                String linked_statement=String.format(mc_linked_privacy.replace(policy,"%s"+policy+"%s"),"<a href='/authenticationendpoint/privacy_policy' target='_blank'>","</a>");
+                %>
+                <p style="font-size:13px;margin-top:5px;" align="center"><%=linked_statement%></p>
             </div>
 
 
             <div class="grid">
                 <div class="grid__item one-half">
                     <a onclick="cancelProcessToRegister()" class="btn btn--outline btn--full btn--large">
-                        No thanks
+                        <fmt:message key='common-button-misc-no-thanks'/>
                     </a>
                 </div>
                 <div class="grid__item one-half">
                     <button type="button" id="validate-btn1" onclick="accept()" name="action" value="yes"
                             class="btn btn--full btn--fill btn--large btn--color">
-                        Yes
+                         <fmt:message key='common-button-misc-yes'/>
                     </button>
                 </div>
             </div>
