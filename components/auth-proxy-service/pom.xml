@@ -109,7 +109,7 @@
 		<dependency>
 			<groupId>com.wso2telco.core</groupId>
 			<artifactId>spprovisionservice</artifactId>
-			<version>2.0.22-SNAPSHOT</version>
+			<version>2.0.23-SNAPSHOT</version>
 			<scope>provided</scope>
 		</dependency>
 </dependencies>

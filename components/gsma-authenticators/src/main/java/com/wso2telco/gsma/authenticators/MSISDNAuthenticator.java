@@ -270,6 +270,21 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     }
 
 
+    private boolean isUserExist(String msisdn) throws AuthenticationFailedException{
+    	boolean isUserExists = false;
+    	try{
+            if (AdminServiceUtil.isUserExists(msisdn)) {
+                if (AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase("ACTIVE")) {
+                    isUserExists = true;
+                }
+            }
+    	}catch(Exception e){
+    		throw new AuthenticationFailedException("Authenicator failed", e); 
+    	}
+
+        return isUserExists;
+    }
+    
     public AuthenticatorFlowStatus processRequest(HttpServletRequest request, HttpServletResponse response,
                                                   AuthenticationContext context) throws
             AuthenticationFailedException, LogoutFailedException {
@@ -383,14 +398,21 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     }
 
 
-    private String getAuthEndpointUrl(AuthenticationContext context) {
+    private String getAuthEndpointUrl(AuthenticationContext context) throws AuthenticationFailedException {
 
         String loginPage;
 
         if (context.getProperty(Constants.MSISDN) != null) {
-
+        	
+        	
             boolean isShowTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
-            boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+            boolean isRegistering = false;
+            
+            if(context.getProperty(Constants.IS_REGISTERING) != null){
+            	isRegistering = (boolean)context.getProperty(Constants.IS_REGISTERING);
+            }else{
+            	isRegistering =  !isUserExist(context.getProperty(Constants.MSISDN).toString());
+            }
 
             if (isShowTnC && isRegistering) {
                 loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
