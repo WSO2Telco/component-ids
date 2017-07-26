@@ -1,4 +1,5 @@
 <!doctype html>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <html class="site no-js lang--en" lang="en">
 
 <head>
@@ -113,9 +114,7 @@
 
     <main class="site__main site__wrap section v-distribute">
       <header class="page__header">
-        <h1 class="page__heading">
-          We've sent a message to your&nbsp;mobile
-        </h1>
+        <h1 class="page__heading"><fmt:message key='waiting-label-continue-on-device-heading'/></h1>
         <div id="instruction_USSDAuthenticator">
          <p><strong>Reply with 1 to continue with your Registration.</strong></p>
 
@@ -150,9 +149,7 @@
     <div align="center" id ="sms_fallback" style="display:block">
       <p>No message arrived? <br><u><a onclick="sendSms()" style="cursor: pointer;">Click to get a text message instead.</a><u></p>
     </div>
-    <a onclick="cancelProcessToRegister(true)" class="btn btn--outline btn--full btn--large">
-      Cancel
-    </a>
+    <a onclick="cancelProcessToRegister(true)" class="btn btn--outline btn--full btn--large"><fmt:message key='common-button-misc-cancel'/></a>
   </main>
 </div>
 
@@ -209,5 +206,4 @@ var getUrlParameter = function getUrlParameter(sParam) {
 
 </script>
 </body>
-
 </html>
