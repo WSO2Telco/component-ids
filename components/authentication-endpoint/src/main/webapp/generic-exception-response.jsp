@@ -17,14 +17,16 @@
  -->
 <%@ page import="com.wso2telco.identity.application.authentication.endpoint.util.CharacterEncoder"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-
+<%@ page import="java.util.Locale" %>
+<%@ page import="java.util.ResourceBundle" %>
 <%
 
     String stat = CharacterEncoder.getSafeText(request.getParameter("status"));
     String statusMessage = CharacterEncoder.getSafeText(request.getParameter("statusMsg"));
     if(stat == null || statusMessage == null){
-        stat = "Authentication Error !";
-        statusMessage = "Something went wrong during the authentication process. Please try signing in again.";
+      ResourceBundle rb = ResourceBundle.getBundle("org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources",Locale.forLanguageTag(getServletContext().getInitParameter("javax.servlet.jsp.jstl.fmt.locale")));
+            stat = rb.getString("error-message");
+            statusMessage = rb.getString("error-description");
     }
     session.invalidate();
 %>

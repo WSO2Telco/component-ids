@@ -2,7 +2,8 @@
 <%@ page import="javax.xml.parsers.ParserConfigurationException" %>
 <%@ page import="org.xml.sax.SAXException" %>
 <%@ page import="javax.xml.xpath.XPathExpressionException" %>
-
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<fmt:bundle basename="org.wso2.carbon.identity.application.authentication.endpoint.i18n.waiting.Resources">
 <input type="hidden" name="sessionDataKey" id="sessionDataKey" value='<%=request.getParameter("sessionDataKey")%>'/>
 <div class="site__root" id="content-placeholder">
 
@@ -13,9 +14,7 @@
 <script id="results-template" type="text/x-handlebars-template">
 	<main class="site__main site__wrap section v-distribute">
 		<header class="page__header">
-			<h1 class="page__heading">
-				{{continue-on-device-heading}}
-			</h1>
+			<h1 class="page__heading"><fmt:message key='continue-on-device-heading'/></h1>
 			<p>
 
 				<%
@@ -23,7 +22,7 @@
 					Boolean showSMSLink = false;
 					if(authenticators != null && authenticators.contains("SMSAuthenticator")) {
 				%>
-				{{continue-on-device-intro-sms}}
+				<fmt:message key='continue-on-device-intro-sms'/>
 				<%} else if (authenticators != null && authenticators.contains("USSDAuthenticator")) {
 					showSMSLink = true; %>
 				{{continue-on-device-intro-ussd}}
@@ -79,3 +78,4 @@
 	</main>
 </script>
 <script src="mcx-user-registration/js/waiting/existing-user/waiting.js"></script>
+</fmt:bundle>
