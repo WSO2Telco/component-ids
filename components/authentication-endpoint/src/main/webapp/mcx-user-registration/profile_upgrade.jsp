@@ -17,6 +17,7 @@
 ******************************************************************************/
 -->
 <%@page import="java.util.logging.Logger" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <html class="site no-js lang--en" lang="en">
 
 <head>
@@ -117,8 +118,7 @@
         <header class="page__header" style="display:block">
             <h1 class="page__heading">Looks like you have to update your account, let's make your
                 account&nbsp;secure</h1>
-            <p>Create a PIN for secure log-in and two questions we can ask you in case you ever forget
-                your&nbsp;PIN.</p>
+            <p><fmt:message key='common-label-security-intro'/></p>
         </header>
 
         <form class="form-horizontal" id="selfReg" name="selfReg" data-parsley-validate>
@@ -140,47 +140,44 @@
 
 
                 <li class="field--select field--select-block">
-                    <label for="field-account-security-question-1">Choose a security&nbsp;question</label>
+                    <label for="field-account-security-question-1"><fmt:message key='common-label-security-question-1'/></label>
                     <select name="challengeQuestion1" id="q1" class="field__select-native" required="" autofocus
                             data-parsley-required-message="Please choose a security&nbsp;question.">
-                        <option disabled selected value="">Choose a&nbsp;question</option>
+                        <option disabled selected value=""><fmt:message key='common-label-security-question-option-blank'/></option>
 
-                        <option name="q" value="City where you were born ?">City where you were born ?</option>
+                        <option name="q" value="City where you were born ?"><fmt:message key='common-label-security-question-option-city'/></option>
 
-                        <option name="q" value="Favorite vacation location ?">Favorite vacation location ?</option>
+                        <option name="q" value="Favorite vacation location ?"><fmt:message key='common-label-security-question-option-vacation'/></option>
 
-                        <option name="q" value="Father's middle name ?">Father's middle name ?</option>
+                        <option name="q" value="Father's middle name ?"><fmt:message key='common-label-security-question-option-father'/></option>
 
-                        <option name="q" value="Favorite food ?">Favorite food ?</option>
+                        <option name="q" value="Favorite food ?"><fmt:message key='common-label-security-question-option-food'/></option>
                     </select>
                 </li>
                 <li>
-                    <label for="field-account-security-answer-1">Type the answer to your question&nbsp;here</label>
+                    <label for="field-account-security-answer-1"><fmt:message key='scommon-label-security-answer-1'/></label>
                     <input type="text" name="challengeAns1" +="" json.fieldvalues.return[i].fieldname="" ""=""
                     id="field-account-security-answer-1" placeholder="Answer your&nbsp;question" required autofocus
                     data-parsley-error-message="Please answer your security&nbsp;question.">
                 </li>
                 <li class="field--select field--select-block">
-                    <label for="field-account-security-question-2">Choose a second&nbsp;question</label>
+                    <label for="field-account-security-question-2"><fmt:message key='common-label-security-question-2'/></label>
                     <select id="q2" name="challengeQuestion2" class="field__select-native" required=""
                             data-parsley-notequalto="#field-account-security-question-1"
                             data-parsley-required-message="Please choose a security&nbsp;question."
                             data-parsley-notequalto-message="Please choose a different security&nbsp;question.">
-                        <option disabled selected value="">Choose a&nbsp;question</option>
-                        <option name="q" value="Favorite sport ?">Favorite sport ?</option>
+                        <option disabled selected value=""><fmt:message key='common-label-security-question-option-blank'/></option>
+                        <option name="q" value="Favorite sport ?"><fmt:message key='common-label-security-question-option-sport'/></option>
 
-                        <option name="q" value="Name of the hospital where you were born ?">Name of the hospital where
-                            you were born ?
-                        </option>
+                        <option name="q" value="Name of the hospital where you were born ?"><fmt:message key='common-label-security-question-option-hospital'/></option>
 
-                        <option name="q" value="Name of your first pet ?">Name of your first pet ?</option>
+                        <option name="q" value="Name of your first pet ?"><fmt:message key='common-label-security-question-option-pet'/></option>
 
-                        <option name="q" value="Model of your first car ?">Model of your first car ?</option>
+                        <option name="q" value="Model of your first car ?"><fmt:message key='common-label-security-question-option-car'/></option>
                     </select>
                 </li>
                 <li>
-                    <label for="field-account-security-answer-2">Type the answer to your second
-                        question&nbsp;here</label>
+                    <label for="field-account-security-answer-2"><fmt:message key='common-label-security-answer-2'/></label>
                     <input type="text" name="challengeAns2" +="" json.fieldvalues.return[i].fieldname="" ""=""
                     id="field-account-security-answer-2" placeholder="Answer your&nbsp;question" required
                     data-parsley-error-message="Please answer your security&nbsp;question.">

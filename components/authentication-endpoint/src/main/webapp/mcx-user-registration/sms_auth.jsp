@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!doctype html>
 <html class="site no-js lang--en" lang="en">
 
@@ -89,13 +90,13 @@
     <main class="site__main site__wrap section v-distribute">
         <header class="page__header">
             <h1 class="page__heading">
-                SMS Authenticator
+               <fmt:message key='sms-label-authenticator'/>
             </h1>
             <p id="failedText" style="display:none;">
-                Your session expired.
+               <fmt:message key='sms-label-authenticator-fail'/>
             </p>
             <p id="successText" style="display: none">
-                You are successfully authenticated via mobile connect.
+               <fmt:message key='sms-label-authenticator-success'/>
             </p>
         </header>
 
@@ -111,7 +112,6 @@
 </div>
 </body>
 </html>
-
 
 
 

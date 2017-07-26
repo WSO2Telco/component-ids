@@ -53,6 +53,28 @@
         <param-value>true</param-value>
     </context-param>
 
+    <!-- Set desired default Locale here -->
+    <context-param>
+        <param-name>
+            javax.servlet.jsp.jstl.fmt.locale
+        </param-name>
+        <param-value>
+            pt-BR
+        </param-value>
+    </context-param>
+
+    <!-- Set default Locale Resource Path here -->
+    <context-param> 
+    <param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
+    <param-value>org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources</param-value> 
+    </context-param> 
+
+    <!-- Set falllback Locale here -->
+    <context-param> 
+        <param-name>javax.servlet.jsp.jstl.i18n.fallbackLocale</param-name> 
+        <param-value>en-US</param-value> 
+    </context-param> 
+
     <filter>
         <filter-name>HttpHeaderSecurityFilter</filter-name>
         <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
