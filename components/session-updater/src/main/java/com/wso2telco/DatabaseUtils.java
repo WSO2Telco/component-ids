@@ -18,6 +18,7 @@ package com.wso2telco;
 import com.wso2telco.entity.LoginHistory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -41,7 +42,7 @@ public class DatabaseUtils {
     /**
      * The ussd datasource.
      */
-    private static volatile DataSource ussdDatasource = null;
+    private static volatile DataSource connectDBDatasource = null;
 
     // private static final org.apache.log4j.Logger LOG = org.apache.log4j.Logger.getLogger(Endpoints.class.getName());
 
@@ -56,7 +57,7 @@ public class DatabaseUtils {
      * @throws NamingException the naming exception
      */
     public static void initializeDataSource() throws NamingException {
-        if (ussdDatasource != null) {
+        if (connectDBDatasource != null) {
             return;
         }
 
@@ -65,7 +66,7 @@ public class DatabaseUtils {
         if (statdataSourceName != null) {
             try {
                 Context ctx = new InitialContext();
-                ussdDatasource = (DataSource) ctx.lookup(statdataSourceName);
+                connectDBDatasource = (DataSource) ctx.lookup(statdataSourceName);
             } catch (NamingException e) {
                 //log.error(e);
                 throw e;
@@ -88,7 +89,7 @@ public class DatabaseUtils {
         String sql = "INSERT INTO `clientstatus` (`SessionID`, `Status`) VALUES (?, ?);";
 
         try {
-            connection = getUssdDBConnection();
+            connection = getConnectDBConnection();
 
             ps = connection.prepareStatement(sql);
 
@@ -126,7 +127,7 @@ public class DatabaseUtils {
                         + "uuid=?;";
 
         try {
-            connection = getUssdDBConnection();
+            connection = getConnectDBConnection();
 
             ps = connection.prepareStatement(sql);
 
@@ -165,7 +166,7 @@ public class DatabaseUtils {
                         + "uuid=?;";
 
         try {
-            connection = getUssdDBConnection();
+            connection = getConnectDBConnection();
 
             ps = connection.prepareStatement(sql);
 
@@ -204,7 +205,7 @@ public class DatabaseUtils {
                         + "SessionID=?;";
 
         try {
-            connection = getUssdDBConnection();
+            connection = getConnectDBConnection();
 
             ps = connection.prepareStatement(sql);
 
@@ -249,7 +250,7 @@ public class DatabaseUtils {
 
         try {
 
-            connection = getUssdDBConnection();
+            connection = getConnectDBConnection();
 
 
             ps = connection.prepareStatement(sql);
@@ -300,7 +301,7 @@ public class DatabaseUtils {
         String sql = "select status from regstatus where uuid=?";
 
         try {
-            connection = getUssdDBConnection();
+            connection = getConnectDBConnection();
 
             ps = connection.prepareStatement(sql);
 
@@ -328,18 +329,18 @@ public class DatabaseUtils {
 
 
     /**
-     * Gets the ussd db connection.
+     * Gets the connect db connection.
      *
-     * @return the ussd db connection
+     * @return the connect db connection
      * @throws SQLException    the SQL exception
      * @throws NamingException the naming exception
      */
-    public static Connection getUssdDBConnection() throws SQLException, NamingException {
+    public static Connection getConnectDBConnection() throws SQLException, NamingException {
         initializeDataSource();
-        if (ussdDatasource != null) {
-            return ussdDatasource.getConnection();
+        if (connectDBDatasource != null) {
+            return connectDBDatasource.getConnection();
         } else {
-            throw new SQLException("USSD Datasource not initialized properly");
+            throw new SQLException("Connect DB Datasource not initialized properly");
         }
     }
 
@@ -359,7 +360,7 @@ public class DatabaseUtils {
 
         String sql = "select attempts from `multiplepasswords` where " + "username=?;";
         try {
-            connection = getUssdDBConnection();
+            connection = getConnectDBConnection();
             ps = connection.prepareStatement(sql);
             ps.setString(1, username);
             rs = ps.executeQuery();
@@ -391,7 +392,7 @@ public class DatabaseUtils {
 
         String sql = "select count(*) as total from `multiplepasswords` where " + "username=?;";
         try {
-            connection = getUssdDBConnection();
+            connection = getConnectDBConnection();
             ps = connection.prepareStatement(sql);
             ps.setString(1, username);
             rs = ps.executeQuery();
@@ -431,7 +432,7 @@ public class DatabaseUtils {
                     + "username=?;";
         }
         try {
-            connection = getUssdDBConnection();
+            connection = getConnectDBConnection();
             ps = connection.prepareStatement(sql);
             ps.setInt(1, attempts);
             ps.setString(2, username);
@@ -456,7 +457,7 @@ public class DatabaseUtils {
         Connection connection = null;
         String sql = "delete from `multiplepasswords` where " + "username=?;";
         try {
-            connection = getUssdDBConnection();
+            connection = getConnectDBConnection();
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, username);
             ps.execute();
@@ -505,7 +506,7 @@ public class DatabaseUtils {
         }
 
         try {
-            connection = getUssdDBConnection();
+            connection = getConnectDBConnection();
             ps = connection.prepareStatement(sql);
             ps.setString(1, application);
             ps.setString(2, userId);
@@ -553,7 +554,7 @@ public class DatabaseUtils {
                 + "WHERE authenticated_user = ?";
 
         try {
-            connection = getUssdDBConnection();
+            connection = getConnectDBConnection();
             ps = connection.prepareStatement(sql);
             ps.setString(1, userId);
             rs = ps.executeQuery();
@@ -606,7 +607,7 @@ public class DatabaseUtils {
         String sql = "SELECT session_id FROM mepin_transactions WHERE transaction_id = ?";
 
         try {
-            connection = getUssdDBConnection();
+            connection = getConnectDBConnection();
             ps = connection.prepareStatement(sql);
             ps.setString(1, transactionId);
             rs = ps.executeQuery();
@@ -639,7 +640,7 @@ public class DatabaseUtils {
                         + "from `regstatus` where " + "uuid=?;";
 
         try {
-            connection = getUssdDBConnection();
+            connection = getConnectDBConnection();
 
             ps = connection.prepareStatement(sql);
 
@@ -657,5 +658,40 @@ public class DatabaseUtils {
         }
     }
 
+
+    /**
+     * Gets the otp for session id.
+     *
+     * @param session_id the transaction id
+     * @return the otp for session id
+     * @throws SQLException the SQL exception
+     */
+    public static String getSMSOTP(String session_id) throws SQLException {
+        String otp = null;
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        String sql = "SELECT otp FROM sms_otp WHERE session_id = ?";
+
+        try {
+            connection = getConnectDBConnection();
+            ps = connection.prepareStatement(sql);
+            ps.setString(1, session_id);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                otp = rs.getString(1);
+            }
+
+        } catch (NamingException ex) {
+            log.error("Error while connecting to DB", ex);
+        } catch (SQLException e) {
+            log.error("Error in querying DB", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, rs, ps);
+        }
+        return otp;
+    }
 
 }

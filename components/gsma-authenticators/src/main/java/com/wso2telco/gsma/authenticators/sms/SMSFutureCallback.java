@@ -26,32 +26,62 @@ public class SMSFutureCallback extends BasicFutureCallback {
     private static Log log = LogFactory.getLog(SMSFutureCallback.class);
 
     private UserStatus userStatus;
+    private String type;
 
     public SMSFutureCallback() {
     }
 
-    public SMSFutureCallback(UserStatus userStatus) {
+    public SMSFutureCallback(UserStatus userStatus, String type) {
         this.userStatus = userStatus;
+        this.type=type;
     }
 
     public void completed(HttpResponse response) {
+        String typetext="SMS";
+        DataPublisherUtil.UserState userState=null;
         if ((response.getStatusLine().getStatusCode() == 200)) {
+            if(type.equalsIgnoreCase("SMS")){
+                userState=DataPublisherUtil.UserState.SEND_SMS;
+            }else if(type.equalsIgnoreCase("SMSOTP")){
+                userState=DataPublisherUtil.UserState.SEND_SMS_OTP;
+                typetext="SMS OTP";
+            }else{
+                userState=DataPublisherUtil.UserState.SEND_SMS;
+            }
             log.info("Success Request - " + postRequest.getURI().getSchemeSpecificPart());
             DataPublisherUtil
-                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SEND_SMS, "SMS sent");
+                    .updateAndPublishUserStatus(userStatus, userState, typetext+" sent");
 
         } else {
+            if(type.equalsIgnoreCase("SMS")){
+                userState=DataPublisherUtil.UserState.SEND_SMS_FAIL;
+            }else if(type.equalsIgnoreCase("SMSOTP")){
+                userState=DataPublisherUtil.UserState.SEND_SMS_OTP_FAIL;
+                typetext="SMS OTP";
+            }else{
+                userState=DataPublisherUtil.UserState.SEND_SMS_FAIL;
+            }
             log.error("Failed Request - " + postRequest.getURI().getSchemeSpecificPart());
             DataPublisherUtil
-                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SEND_SMS_FAIL, "SMS sending " +
+                    .updateAndPublishUserStatus(userStatus, userState, typetext+" sending " +
                             "failed");
         }
         closeClient();
     }
 
     public void failed(Exception exception) {
+        String typetext="SMS";
+        DataPublisherUtil.UserState userState=null;
+        if(type.equalsIgnoreCase("SMS")){
+            userState=DataPublisherUtil.UserState.SEND_SMS_FAIL;
+        }else if(type.equalsIgnoreCase("SMSOTP")){
+            userState=DataPublisherUtil.UserState.SEND_SMS_OTP_FAIL;
+            typetext="SMS OTP";
+        }else{
+            userState=DataPublisherUtil.UserState.SEND_SMS_FAIL;
+        }
         DataPublisherUtil
-                .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SEND_SMS_FAIL, "SMS sending " +
+                .updateAndPublishUserStatus(userStatus,userState, typetext+" sending " +
                         "failed");
         super.failed(exception);
     }
