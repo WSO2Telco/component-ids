@@ -69,6 +69,10 @@ public class UserProfileManager {
 
     private static final String STATUS_ACTIVE = "ACTIVE";
 
+    private static final String STATUS_PARTIALLY_ACTIVE = "PARTIALLY_ACTIVE";
+
+    private static final String STATUS_INACTIVE = "INACTIVE";
+
     private static Log log = LogFactory.getLog(UserProfileManager.class);
 
     private static RemoteUserStoreServiceAdminClient remoteUserStoreServiceAdminClient;
