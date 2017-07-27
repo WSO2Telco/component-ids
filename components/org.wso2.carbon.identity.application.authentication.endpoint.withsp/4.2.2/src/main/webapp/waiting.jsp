@@ -16,12 +16,15 @@
 
 	    	<% 
 	    	String authenticators = request.getParameter("authenticators");
-	    	if(authenticators != null && authenticators.contains("SMSAuthenticator")) {
+			Boolean smsotp =false;
+	    	if(authenticators != null && authenticators.contains("SMSOTPAuthenticator")) {
+				smsotp=true;
 	    	%>
-	    		{{continue-on-device-intro-sms}}
-	    	<%} else if (authenticators != null && authenticators.contains("USSDAuthenticator")) { %>
+	    		{{continue-on-device-intro-otp-sms}}
+	    	<%} else if(authenticators != null && authenticators.contains("SMSAuthenticator")) { %>
+				{{continue-on-device-intro-sms}}
+			<%} else if (authenticators != null && authenticators.contains("USSDAuthenticator")) { %>
 	    		{{continue-on-device-intro-ussd}}
-	    		
 	    	<%} else if (authenticators != null && authenticators.contains("USSDPinAuthenticator")){%>
 	    		{{continue-on-device-intro-ussd-pin}}
 
@@ -57,7 +60,15 @@
 			</p>
 			<br>
 			<br>
-		<%} %>
+		<%}
+			if (smsotp) { %>
+		<div>
+			<input id="smsotp" type="number" name="smsotp"  placeholder="Enter OTP in SMS" />
+			<a onclick="sendSMSOTP('<%=sessionDataKey%>');" class="btn btn--outline btn--full btn--large">
+				{{misc-submit-button}}
+			</a>
+		</div>
+		<%	} %>
       <a onclick="handleTermination();" class="btn btn--outline btn--full btn--large">
 			{{misc-cancel-button}}
 		</a>
