@@ -3,7 +3,7 @@
 <%@ page import="org.xml.sax.SAXException" %>
 <%@ page import="javax.xml.xpath.XPathExpressionException" %>
 
-<input type="hidden" name="sessionDataKey" id="sessionDataKey" value='<%=request.getParameter("sessionDataKey")%>'/>
+<input type="hidden" name="sessionDataKey" id="sessionDataKey" value='<%=sessionDataKey%>'/>
 <div class="site__root" id="content-placeholder">
 
 
@@ -21,8 +21,12 @@
 				<%
 					String authenticators = request.getParameter("authenticators");
 					Boolean showSMSLink = false;
-					if(authenticators != null && authenticators.contains("SMSAuthenticator")) {
+					Boolean smsotp =false;
+					if(authenticators != null && authenticators.contains("SMSOTPAuthenticator")) {
+						smsotp=true;
 				%>
+				{{continue-on-device-intro-otp-sms}}
+				<%} else if(authenticators != null && authenticators.contains("SMSAuthenticator")) { %>
 				{{continue-on-device-intro-sms}}
 				<%} else if (authenticators != null && authenticators.contains("USSDAuthenticator")) {
 					showSMSLink = true; %>
@@ -66,16 +70,34 @@
 		%>
 		<p class="page__copy flush">{{ussd-sent-resend-sms-prompt}}
 			<br>
-			<a onclick="sendSMS('<%=request.getParameter("sessionDataKey")%>');" style="cursor:pointer"><u>
+			<a onclick="sendSMS('<%=sessionDataKey%>');" style="cursor:pointer"><u>
 				{{ussd-sent-resend-sms-button}}
 			</u></a>
 		</p>
 		<br>
 		<br>
-		<%} %>
+		<%  }
+			if (smsotp) { %>
+				<div id="otperror" class="parsley-errors-list filled" style="text-align: center;display: none">
+				</div>
+				<div>
+					<ul class="form-fields">
+						<li>
+							<input  id="smsotp" type="number" name="smsotp"  onselectstart="return false" onpaste="return false;" onCopy="return false" onCut="return false" onDrag="return false" onDrop="return false" autocomplete=off placeholder="{{continue-on-device-otp-prompt}}" />
+						</li>
+						<li>
+							<button id="smsotpsubmit" type="button" onclick="sendSMSOTP('<%=sessionDataKey%>');"  class="btn btn--outline btn--large btn--full" >
+								{{misc-submit-button}}
+							</button>
+						</li>
+					</ul>
+				</div>
+				<br>
+		<%	} %>
 		<a onclick="handleTermination(true);" class="btn btn--outline btn--full btn--large">
 			{{misc-cancel-button}}
 		</a>
 	</main>
 </script>
+<script src="js/sha256.js"></script>
 <script src="mcx-user-registration/js/waiting/existing-user/waiting.js"></script>
