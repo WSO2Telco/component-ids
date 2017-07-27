@@ -11,6 +11,7 @@ var STATUS_APPROVED = "APPROVED";
 var pinResetUrl;
 var smsRequested = false;
 var xhr;
+var otp_error_msg_data;
 
 $(document).ready(function(){
 
@@ -32,6 +33,7 @@ $(document).ready(function(){
 
 	$.getJSON(baseurl+'/mcx-user-registration/languages/en.json', function(data) {
 		resultsPlaceholder.innerHTML = template(data);
+		otp_error_msg_data=data;
 	});
 
 	pollingVar = setInterval(pollForStatus, pollingInterval);
@@ -160,4 +162,53 @@ function getUrlVars()
 		vars[hash[0]] = hash[1];
 	}
 	return vars;
+}
+
+/*
+ * Invoke the endpoint to send OTP SMS.
+ */
+function sendSMSOTP(session_id) {
+
+	var input=document.getElementById('smsotp').value;
+	if(input && input.length>3) {
+		otpError(false,"");
+		var data = {};
+		data.session_id = session_id;
+		data.otp = SHA256(input);
+		var json = JSON.stringify(data);
+		$.ajax({
+			type: "post",
+			url: "../sessionupdater/tnspoints/endpoint/smsotp/send",
+			async: true,
+			cache: false,
+			data: json,
+			contentType: "application/json",
+			success: function (result) {
+			}, statusCode: {
+				200: function (response) {
+					otpError(false,"");
+				},
+				403: function (response) {
+					otpError(true,otp_error_msg_data['{{continue-on-device-otp-mismatch}}']);
+				},
+				400: function (response) {
+					otpError(true,otp_error_msg_data['{{continue-on-device-otp-error-process}}']);
+				}
+			}
+		});
+		document.getElementById("smsotpsubmit").disabled = true;
+	}else{
+		otpError(true,otp_error_msg_data['continue-on-device-otp-invalid']);
+	}
+
+}
+
+function otpError(show,msg) {
+	var erromsg = document.getElementById('otperror');
+	if(show){
+		erromsg.style.display = 'block';
+	}else{
+		erromsg.style.display = 'none';
+	}
+	$("#otperror").text(msg);
 }

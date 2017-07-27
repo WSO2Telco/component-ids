@@ -79,13 +79,6 @@ import java.util.concurrent.FutureTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-//import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCache;
-//import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheEntry;
-//import org.wso2.carbon.identity.application.authentication.framework.cache.AuthenticationContextCacheKey;
-//import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-
-
-// TODO: Auto-generated Javadoc
 
 /**
  * The Class Endpoints.
@@ -1331,6 +1324,7 @@ public class Endpoints {
             for (MIFEAuthentication.MIFEAbstractAuthenticator mifeAbstractAuthenticator : authenticatorList) {
                 String authenticatorName = mifeAbstractAuthenticator.getAuthenticator();
                 if (Constants.smsAuthenticator.equalsIgnoreCase(authenticatorName)
+                        || Constants.smsotpAuthenticator.equalsIgnoreCase(authenticatorName)
                         || Constants.ussdAuthenticator.equalsIgnoreCase(authenticatorName)
                         || Constants.ussdPinAuthenticator.equalsIgnoreCase(authenticatorName)) {
                     String msg = "Found valid authenticator: " + authenticatorName;
@@ -1491,5 +1485,43 @@ public class Endpoints {
         }
 
         return validUserInput;
+    }
+
+    /**
+     * Return the status, based on otp validation for user input
+     *
+     * @param jsonBody value of the request input.
+     * @return Json string with status.
+     */
+    @POST @Path("smsotp/send") @Consumes("application/json") @Produces("application/json") public Response validateSMSOTP(
+            String jsonBody) {
+        String response = null;
+        int statusCode=Response.Status.BAD_REQUEST.getStatusCode();
+        log.info("Received OTP SMS from client " + jsonBody);
+        org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
+        String session_id = jsonObj.getString("session_id");
+        String otp = jsonObj.getString("otp");
+        try {
+            DataPublisherUtil.UserState userState=null;
+            String state="failed";
+            String smsotp = DatabaseUtils.getSMSOTP(session_id);
+            if (smsotp.equalsIgnoreCase(otp)) {
+                DatabaseUtils.updateStatus(session_id, "Approved");
+                statusCode=Response.Status.OK.getStatusCode();
+                userState=DataPublisherUtil.UserState.SMS_OTP_AUTH_SUCCESS;
+                state="success";
+            }else{
+                DatabaseUtils.updateStatus(session_id, "Rejected");
+                statusCode=Response.Status.FORBIDDEN.getStatusCode();
+                userState=DataPublisherUtil.UserState.SMS_OTP_AUTH_FAIL;
+            }
+            AuthenticationContext authenticationContext = getAuthenticationContext(session_id);
+            DataPublisherUtil.updateAndPublishUserStatus(
+                    (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                    userState, "SMS OTP "+state);
+        } catch (SQLException e) {
+            log.error("Error occurred while updating sms otp status", e);
+        }
+        return Response.status(statusCode).entity(response).build();
     }
 }

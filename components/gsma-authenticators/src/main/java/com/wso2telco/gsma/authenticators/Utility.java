@@ -19,10 +19,13 @@ package com.wso2telco.gsma.authenticators;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
+import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class Utility {
 
@@ -56,4 +59,48 @@ public class Utility {
 
         return multiScopes;
     }
+
+    /**
+     * Returns the OTP for defined length with minimum length should be 4
+     * @param length for the otp
+     */
+    public static String genarateOTP(int length) {
+        if (length < 4) {
+            length = 4;
+        }
+        String numbers = "0123456789";
+        // Using random method
+        Random rndm_method = new Random();
+        char[] password = new char[length];
+        for (int i = 0; i < length; i++) {
+            // Use of charAt() method : to get character value
+            // Use of nextInt() as it is scanning the value as int
+            password[i] = numbers.charAt(rndm_method.nextInt(numbers.length()));
+        }
+        return String.valueOf(password);
+    }
+
+    /**
+     * Returns the sha256 digest for a given string
+     * @param input for the retrieving the sha256 hash
+     */
+    public static String generateSHA256Hash(String input) throws AuthenticationFailedException {
+        String returnValue=null;
+        try{
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(input.getBytes());
+            byte byteData[] = md.digest();
+            //convert the byte to hex format
+            StringBuffer sb = new StringBuffer();
+            for (int i = 0; i < byteData.length; i++) {
+                sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
+            }
+            returnValue=sb.toString();
+        }catch (Exception e){
+            throw new AuthenticationFailedException("Failure while hashing the input value",e);
+        }
+        return returnValue;
+    }
+
+
 }

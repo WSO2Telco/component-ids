@@ -26,6 +26,7 @@ import com.wso2telco.core.config.ConfigLoader;
 import com.wso2telco.core.config.MIFEAuthentication;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.authenticators.sms.SMSOTPAuthenticator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
@@ -90,6 +91,8 @@ public class Activator implements BundleActivator {
                 new USSDPinAuthenticator(), null);
         bundleContext.registerService(ApplicationAuthenticator.class.getName(),
                 new SMSAuthenticator(), null);
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new SMSOTPAuthenticator(), null);
         bundleContext.registerService(ApplicationAuthenticator.class.getName(),
                 new MSSAuthenticator(), null);
         bundleContext.registerService(ApplicationAuthenticator.class.getName(),
