@@ -51,7 +51,7 @@ public class ResponseBuilder extends BaseResponseBuilder {
             return buildErrorResponse(HttpStatus.SC_BAD_REQUEST, ErrorCode.ERR_INVALID_MESSAGE_FORMAT.getCode(), ErrorCode.ERR_INVALID_MESSAGE_FORMAT.getDescription());
         } else if (registerUserResponseBuilderRequest.getMsisdnArr().length() == 0) {
             return buildErrorResponse(HttpStatus.SC_BAD_REQUEST, ErrorCode.ERR_MSISDN_LIST_EMPTY.getCode(), ErrorCode.ERR_MSISDN_LIST_EMPTY.getDescription());
-        } else if (registerUserResponseBuilderRequest.getMsisdnArr().length() > maxMsisdnLimit) {
+        } else if (registerUserResponseBuilderRequest.getMsisdnArr().length() >= maxMsisdnLimit) {
             return buildErrorResponse(HttpStatus.SC_BAD_REQUEST, ErrorCode.ERR_MSISDN_EXCEED_LIMIT.getCode(), ErrorCode.ERR_MSISDN_EXCEED_LIMIT.getDescription());
         }
 
@@ -70,7 +70,7 @@ public class ResponseBuilder extends BaseResponseBuilder {
             return buildErrorResponse(HttpStatus.SC_BAD_REQUEST, ErrorCode.ERR_INVALID_MESSAGE_FORMAT.getCode(), ErrorCode.ERR_INVALID_MESSAGE_FORMAT.getDescription());
         } else if (registerUserResponseBuilderRequest.getMsisdnArr().length() == 0) {
             return buildErrorResponse(HttpStatus.SC_BAD_REQUEST, ErrorCode.ERR_MSISDN_LIST_EMPTY.getCode(), ErrorCode.ERR_MSISDN_LIST_EMPTY.getDescription());
-        } else if (registerUserResponseBuilderRequest.getMsisdnArr().length() > maxMsisdnLimit) {
+        } else if (registerUserResponseBuilderRequest.getMsisdnArr().length() >= maxMsisdnLimit) {
             return buildErrorResponse(HttpStatus.SC_BAD_REQUEST, ErrorCode.ERR_MSISDN_EXCEED_LIMIT.getCode(), ErrorCode.ERR_MSISDN_EXCEED_LIMIT.getDescription());
         }
 

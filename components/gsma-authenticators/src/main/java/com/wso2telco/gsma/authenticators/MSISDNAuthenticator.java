@@ -183,7 +183,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 context.setProperty(Constants.MSISDN, msisdn);
                 boolean isUserExists = false;
                 if (AdminServiceUtil.isUserExists(msisdn)) {
-                    if (AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase("ACTIVE")) {
+                    if (AdminServiceUtil.getUserStatus(msisdn)!=null & AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(Constants.ACTIVE)) {
                         isUserExists = true;
                     }
                 }
