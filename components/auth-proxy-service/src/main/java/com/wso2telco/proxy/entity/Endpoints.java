@@ -19,6 +19,7 @@ import com.google.gdata.util.common.util.Base64DecoderException;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.wso2telco.core.config.model.LoginHintFormatDetails;
 import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.model.ScopeDetailsConfig;
 import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
@@ -71,8 +72,12 @@ public class Endpoints {
     private static Log log = LogFactory.getLog(Endpoints.class);
     private static HashMap<String, MSISDNDecryption> msisdnDecryptorsClassObjectMap = null;
     private static MobileConnectConfig mobileConnectConfigs = null;
+    private static ScopeDetailsConfig scopeDetailsConfigs = null;
     private static Map<String, List<MSISDNHeader>> operatorsMSISDNHeadersMap;
     private static Map<String, MobileConnectConfig.OPERATOR> operatorPropertiesMap = null;
+    private static Map<String, ScopeDetailsConfig.Scope> scopeMap = null;
+    private static Map<String, List<String>> optionalScopesWithRequestMap = null;
+    private static Map<String, List<String>> mandatoryScopesWithRequestMap = null;
 
     /**
      * The Configuration service
@@ -100,14 +105,26 @@ public class Endpoints {
         try {
             //Load mobile-connect.xml file.
             mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
+            //Load scope-config.xml file.
+            scopeDetailsConfigs = configurationService.getDataHolder().getScopeDetailsConfig();
             //Load msisdn header properties.
             operatorsMSISDNHeadersMap = DBUtils.getOperatorsMSISDNHeaderProperties();
+
             //Load operator properties.
             operatorPropertiesMap = new HashMap<String, MobileConnectConfig.OPERATOR>();
             List<MobileConnectConfig.OPERATOR> operators = mobileConnectConfigs.getHEADERENRICH().getOperators();
             for (MobileConnectConfig.OPERATOR op : operators) {
                 operatorPropertiesMap.put(op.getOperatorName(), op);
             }
+
+            //Load scope related request optional parameters.
+            scopeMap = new HashMap<String, ScopeDetailsConfig.Scope>();
+            List<ScopeDetailsConfig.Scope> scopes = scopeDetailsConfigs.getScope();
+
+            for (ScopeDetailsConfig.Scope sc : scopes) {
+                scopeMap.put(sc.getName(), sc);
+            }
+
         } catch (SQLException e) {
             log.error("Error occurred while retrieving operator MSISDN properties of operators.");
         } catch (NamingException e) {
@@ -127,34 +144,34 @@ public class Endpoints {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         String clientId = queryParams.getFirst("client_id");
         String state = queryParams.getFirst("state");
-        String redirectURL =null;
-        String scopeName =null;
-        String responseType =null;
+        String redirectURL = null;
+        String scopeName = null;
+        String responseType = null;
 
-	    org.apache.log4j.MDC.put("REF_ID", state);
+        org.apache.log4j.MDC.put("REF_ID", state);
         log.info("Request processing started from proxy");
 
-        boolean invalid=false;
-        if(queryParams.get(AuthProxyConstants.REDIRECT_URI)!=null) {
+        boolean invalid = false;
+        if (queryParams.get(AuthProxyConstants.REDIRECT_URI) != null) {
             redirectURL = queryParams.get(AuthProxyConstants.REDIRECT_URI).get(0);
-            invalid=!DBUtils.isValidCallback(redirectURL,clientId);
-        }else{
-            invalid=true;
+            invalid = !DBUtils.isValidCallback(redirectURL, clientId);
+        } else {
+            invalid = true;
         }
 
-        if(queryParams.get(AuthProxyConstants.SCOPE)!=null) {
+        if (queryParams.get(AuthProxyConstants.SCOPE) != null) {
             scopeName = queryParams.get(AuthProxyConstants.SCOPE).get(0);
-        }else if(!invalid){
-            invalid=true;
+        } else if (!invalid) {
+            invalid = true;
         }
 
-        if(queryParams.get(AuthProxyConstants.RESPONSE_TYPE)!=null) {
+        if (queryParams.get(AuthProxyConstants.RESPONSE_TYPE) != null) {
             responseType = queryParams.get(AuthProxyConstants.RESPONSE_TYPE).get(0);
-        }else if(!invalid){
-            invalid=true;
+        } else if (!invalid) {
+            invalid = true;
         }
 
-        if(!invalid){
+        if (!invalid) {
 
             //maintain userstatus related to request for data publishing purpose
             UserStatus userStatus = DataPublisherUtil.buildUserStatusFromRequest(httpServletRequest, null);
@@ -170,7 +187,8 @@ public class Endpoints {
 
             userStatus.setStatus(DataPublisherUtil.UserState.PROXY_PROCESSING.name());
             DataPublisherUtil.publishUserStatusMetaData(userStatus);
-            DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.PROXY_PROCESSING, null);
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.PROXY_PROCESSING,
+                    null);
 
 
             if (!configurationService.getDataHolder().getMobileConnectConfig().isSpValidationDisabled() && !isValidScope
@@ -181,7 +199,7 @@ public class Endpoints {
                         userStatus, DataPublisherUtil.UserState.INVALID_REQUEST, errMsg);
 
                 redirectURL = redirectURL + "?error=access_denied";
-                invalid=true;
+                invalid = true;
             } else {
                 String loginHint = null;
                 String ipAddress = null;
@@ -227,13 +245,28 @@ public class Endpoints {
                             }
                         }
                     }
-                    ipAddress = getIpAddress(httpHeaders,httpServletRequest, operatorName);
+                    ipAddress = getIpAddress(httpHeaders, httpServletRequest, operatorName);
 
                     //Validate with Scope wise parameters and throw exceptions
                     ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo,
-                            userStatus,redirectURL);
+                            userStatus, redirectURL);
 
-                    String loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam,redirectURL);
+                    //Get attribute sharing scopes from user passed scopes
+                    Map<String, String> attributeSharingScopesDetails = DBUtils.getIsAttributeScopes(scopeName);
+                    List<String> attributeSharingScopes = null;
+
+                    for (Map.Entry<String, String> entry : attributeSharingScopesDetails.entrySet()) {
+                        if (entry.getValue().equals("true")) {
+                            attributeSharingScopes.add(entry.getKey());
+                        }
+                    }
+
+                    String loginhint_msisdn = null;
+                    try {
+                        loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam, redirectURL);
+                    } catch (Exception e) {
+                        log.debug("Error retrieving loginhint msisdn : " + e);
+                    }
 
                     Boolean isScopeExists = queryParams.containsKey(AuthProxyConstants.SCOPE);
                     String operatorScopeWithClaims;
@@ -244,7 +277,8 @@ public class Endpoints {
                         // Check if scope list contains openid scope, and append if it does not contain
                         if (queryParams.containsKey(AuthProxyConstants.SCOPE) && queryParams.get(AuthProxyConstants
                                 .SCOPE).get(0) != null) {
-                            List<String> scopes = new ArrayList<>(Arrays.asList(queryParams.get(AuthProxyConstants.SCOPE)
+                            List<String> scopes = new ArrayList<>(Arrays.asList(queryParams.get(AuthProxyConstants
+                                    .SCOPE)
                                     .get(0).split(" ")));
                             if (!scopes.contains(AuthProxyConstants.SCOPE_OPENID)) {
                                 queryParams.get(AuthProxyConstants.SCOPE)
@@ -253,7 +287,7 @@ public class Endpoints {
                         }
 
                         List<String> promptValues = queryParams.get(AuthProxyConstants.PROMPT);
-                        if(promptValues != null && !promptValues.isEmpty()) {
+                        if (promptValues != null && !promptValues.isEmpty()) {
                             redirectUrlInfo.setPrompt(promptValues.get(0));
                             queryParams.remove(AuthProxyConstants.PROMPT);
                         }
@@ -279,12 +313,17 @@ public class Endpoints {
                         } else {
                             loginhint_msisdn = "";
                         }
+                        if (log.isDebugEnabled()) {
+                            log.debug("redirectURL : " + redirectURL);
+                        }
+
                         redirectUrlInfo.setMsisdnHeader(msisdn);
                         redirectUrlInfo.setLoginhintMsisdn(loginhint_msisdn);
                         redirectUrlInfo.setQueryString(queryString);
                         redirectUrlInfo.setIpAddress(ipAddress);
                         redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
                         redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
+                        redirectUrlInfo.setAttributeSharingScope(attributeSharingScopes);
                         redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
 
                         DataPublisherUtil.updateAndPublishUserStatus(
@@ -298,27 +337,21 @@ public class Endpoints {
                     DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.OTHER_ERROR,
                             e.getMessage());
                 }
-
-                if (log.isDebugEnabled()) {
-                    log.debug("redirectURL : " + redirectURL);
-                }
             }
-
         }
 
-        if(invalid) {
-            if(redirectURL==null){
+        if (invalid) {
+            if (redirectURL == null) {
                 throw new Exception("Invalid Request- Redirect URL not found");
             }
-            httpServletResponse.sendError(HttpServletResponse.SC_BAD_REQUEST,"Invalid Request");
-        }else{
-	    log.info(String.format("Redirecting to : %s", redirectURL));
+            httpServletResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid Request");
+        } else {
+            log.info(String.format("Redirecting to : %s", redirectURL));
             httpServletResponse.sendRedirect(redirectURL);
         }
 
 
     }
-
 
     /**
      * Check if the Scope is allowed for SP
@@ -345,7 +378,8 @@ public class Endpoints {
      * @throws ConfigurationException
      */
     private ScopeParam validateAndSetScopeParameters(String loginHint, String msisdnHeader, String scope,
-                                                     RedirectUrlInfo redirectUrlInfo, UserStatus userStatus,String redirectURL)
+                                                     RedirectUrlInfo redirectUrlInfo, UserStatus userStatus, String
+                                                             redirectURL)
             throws AuthenticationFailedException, ConfigurationException {
         //TODO: get all scope related params. This should be move to a initialization method or add to cache later
         ScopeParam scopeParam = getScopeParam(scope, userStatus);
@@ -473,7 +507,8 @@ public class Endpoints {
                         log.debug("Plain text login hint : " + plainTextLoginHint);
                     }
                     if (StringUtils.isNotEmpty(loginHint) && (!loginHint.startsWith(LOGIN_HINT_ENCRYPTED_PREFIX) &&
-                            !loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX) && !loginHint.startsWith(LOGIN_HINT_PCR))) {
+                            !loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX) && !loginHint.startsWith
+                            (LOGIN_HINT_PCR))) {
                         plainTextLoginHint = loginHint;
                         isValidFormatType = true;
                     }
@@ -513,7 +548,7 @@ public class Endpoints {
                     }
                     break;
                 case PCR:
-                    if (StringUtils.isNotEmpty(loginHint) && loginHint.startsWith(LOGIN_HINT_PCR) ) {
+                    if (StringUtils.isNotEmpty(loginHint) && loginHint.startsWith(LOGIN_HINT_PCR)) {
 
                         pcrValue = loginHint.replace(LOGIN_HINT_PCR, "");
                         isValidFormatType = true;
@@ -556,7 +591,7 @@ public class Endpoints {
     }
 
 
-    private String retreiveLoginHintMsisdn(String loginHint, ScopeParam scopeParam,String callbackurl)
+    private String retreiveLoginHintMsisdn(String loginHint, ScopeParam scopeParam, String callbackurl)
             throws AuthenticationFailedException, ConfigurationException {
         boolean isValidFormatType = false; //msisdn/loginhint should be a either of defined formats
         String msisdn = null;
@@ -602,15 +637,17 @@ public class Endpoints {
                     if (StringUtils.isNotEmpty(loginHint)) {
                         if (loginHint.startsWith(LOGIN_HINT_PCR)) {
                             try {
-                                String retreivedMsisdn= getMSISDNbyPcr(callbackurl,loginHint.replace(LOGIN_HINT_PCR, ""));
-                                if(StringUtils.isNotEmpty(retreivedMsisdn)){
-                                    msisdn=retreivedMsisdn;
+                                String retreivedMsisdn = getMSISDNbyPcr(callbackurl, loginHint.replace
+                                        (LOGIN_HINT_PCR, ""));
+                                if (StringUtils.isNotEmpty(retreivedMsisdn)) {
+                                    msisdn = retreivedMsisdn;
                                 } else {
                                     log.error("No MSISDN for the given PCR");
-                                    throw new AuthenticationFailedException("Cannot find MSISDN from pcr in the login hint");
+                                    throw new AuthenticationFailedException("Cannot find MSISDN from pcr in the login" +
+                                            " hint");
                                 }
 
-                            } catch (Exception e){
+                            } catch (Exception e) {
                                 throw new AuthenticationFailedException("pcr in the login hint cannot be accepted");
                             }
                             isValidFormatType = true;
@@ -650,8 +687,8 @@ public class Endpoints {
     private String getMSISDNbyPcr(String callbackUrl, String pcr) throws PCRException {
         String retrievedMsisdn = "";
         if (StringUtils.isNotEmpty(pcr)) {
-                MIFEOpenIDTokenBuilder mifeOpenIDTokenBuilder = new MIFEOpenIDTokenBuilder();
-                retrievedMsisdn = mifeOpenIDTokenBuilder.getMSISDNbyPcr(callbackUrl, pcr);
+            MIFEOpenIDTokenBuilder mifeOpenIDTokenBuilder = new MIFEOpenIDTokenBuilder();
+            retrievedMsisdn = mifeOpenIDTokenBuilder.getMSISDNbyPcr(callbackUrl, pcr);
         }
         return retrievedMsisdn;
     }
@@ -685,7 +722,7 @@ public class Endpoints {
         return msisdn;
     }
 
-    private String getIpAddress(HttpHeaders httpHeaders,HttpServletRequest httpServletRequest, String operatorName) {
+    private String getIpAddress(HttpHeaders httpHeaders, HttpServletRequest httpServletRequest, String operatorName) {
         String ipAddress = null;
         boolean isOverrideIpHeader = mobileConnectConfigs.getHEADERENRICH().isOverrideIpheader();
         MobileConnectConfig.OPERATOR operatorProperties = operatorPropertiesMap.get(operatorName);
@@ -696,16 +733,17 @@ public class Endpoints {
                 if (httpHeaders.getRequestHeader(ipHeaderName) != null) {
                     ipAddress = httpHeaders.getRequestHeader(ipHeaderName).get(0);
                 }
-                ipAddress = ( ((ipAddress == null) || isOverrideIpHeader )  ? captureIpFallbackRemoteHost(httpServletRequest) : ipAddress);
+                ipAddress = (((ipAddress == null) || isOverrideIpHeader) ? captureIpFallbackRemoteHost
+                        (httpServletRequest) : ipAddress);
             }
         }
         return ipAddress;
     }
 
-    private String captureIpFallbackRemoteHost(HttpServletRequest httpServletRequest){
-    	String remoteIpAddress = null;
-    	remoteIpAddress = httpServletRequest.getRemoteAddr();
-    	return remoteIpAddress;
+    private String captureIpFallbackRemoteHost(HttpServletRequest httpServletRequest) {
+        String remoteIpAddress = null;
+        remoteIpAddress = httpServletRequest.getRemoteAddr();
+        return remoteIpAddress;
     }
 
     private String constructRedirectUrl(RedirectUrlInfo redirectUrlInfo, UserStatus userStatus) throws
@@ -719,7 +757,8 @@ public class Endpoints {
         String telcoScope = redirectUrlInfo.getTelcoScope();
         String ipAddress = redirectUrlInfo.getIpAddress();
         String prompt = redirectUrlInfo.getPrompt();
-        String validationRegex=configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getValidationRegex();
+        String validationRegex = configurationService.getDataHolder().getMobileConnectConfig().getMsisdn()
+                .getValidationRegex();
         boolean isShowTnc = redirectUrlInfo.isShowTnc();
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
         ScopeParam.heFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
@@ -751,12 +790,12 @@ public class Endpoints {
                         "=" + transactionId;
             }
 
-            if(StringUtils.isNotEmpty(prompt)){
+            if (StringUtils.isNotEmpty(prompt)) {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.TELCO_PROMPT +
                         "=" + prompt;
             }
 
-            if(StringUtils.isNotEmpty(validationRegex)){
+            if (StringUtils.isNotEmpty(validationRegex)) {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.MSISDN_VALIDATION_REGEX +
                         "=" + validationRegex;
             }
@@ -821,6 +860,42 @@ public class Endpoints {
         userDTO.setUserFields(userFieldDTOs);
         userDTO.setUserName(username);
         userRegistrationAdminService.addUser(userDTO);
+    }
+
+    /**
+     * Get the expected optional scope parameters pass with the request
+     *
+     * @param scopeName
+     * @return
+     */
+    private List<String> getOptionScopeWithRequest(String scopeName) {
+        ScopeDetailsConfig.Scope scopeValue = null;
+        List<ScopeDetailsConfig.Request> requestValue;
+
+        if (scopeMap != null && !scopeMap.isEmpty()) {
+            scopeValue = scopeMap.get(scopeName);
+        }
+
+        requestValue = scopeValue.getRequest();
+        return requestValue.get(1).getOptionalValues();
+    }
+
+    /**
+     * Get the expected mandatory scope parameters pass with the request
+     *
+     * @param scopeName
+     * @return
+     */
+    private List<String> getMandatoryScopeWithRequest(String scopeName) {
+        ScopeDetailsConfig.Scope scopeValue = null;
+        List<ScopeDetailsConfig.Request> requestValue;
+
+        if (scopeMap != null && !scopeMap.isEmpty()) {
+            scopeValue = scopeMap.get(scopeName);
+        }
+
+        requestValue = scopeValue.getRequest();
+        return requestValue.get(1).getMandatoryValues();
     }
 }
 

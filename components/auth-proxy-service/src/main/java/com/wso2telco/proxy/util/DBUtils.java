@@ -352,6 +352,54 @@ public class DBUtils {
         return scopeParamsMap;
     }
 
+    /**
+     * Get the is attribute sharing scope values related to scope
+     *
+     * @return map of scope vs isAttributeShared scope
+     * @throws AuthenticatorException on errors
+     */
+    public static Map<String,String> getIsAttributeScopes(String scope) throws AuthenticatorException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet results = null;
+        String[] scopeValues = scope.split("\\s+|\\+");
+        StringBuilder params = new StringBuilder("?");
+        for (int i = 1; i < scopeValues.length; i++) {
+            params.append(",?");
+        }
+        String sql = "SELECT * FROM `scope_parameter` WHERE scope in (" + params + ")";
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query " + sql);
+        }
+
+        Map attributeSharedScopeList = new HashMap();
+        try {
+            conn = getConnectDBConnection();
+            ps = conn.prepareStatement(sql);
+            for (int i = 0; i < scopeValues.length; i++) {
+                ps.setString(i + 1, scopeValues[i]);
+            }
+            results = ps.executeQuery();
+
+            while (results.next()) {
+                Boolean isAttributeShareScope = results.getBoolean("is_attribute_share_scope");
+                String scopeName = results.getString("scope");
+                attributeSharedScopeList.put(scopeName,isAttributeShareScope);
+            }
+
+        } catch (SQLException e) {
+            handleException("Error occurred while getting scope parameters from the database", e);
+        } catch (ConfigurationException e) {
+            handleException(e.getMessage(), e);
+        } catch (NamingException e) {
+            log.error("Naming exception ", e);
+        } finally {
+            closeAllConnections(ps, conn, results);
+        }
+        return attributeSharedScopeList;
+    }
+
     private static List<LoginHintFormatDetails> getLoginHintFormatTypeDetails(int paramId, Connection conn)
             throws AuthenticatorException, SQLException {
         PreparedStatement ps = null;
