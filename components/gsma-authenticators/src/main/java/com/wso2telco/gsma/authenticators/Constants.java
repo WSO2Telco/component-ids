@@ -417,7 +417,7 @@ public final class Constants {
     public static final String SCOPE = "scope";
 
     public static final String PROMPT = "telco_prompt";
-    
+
     public static final String OPERATOR_ID = "operatorID";
 
     public static final String ACTIVE = "ACTIVE";
