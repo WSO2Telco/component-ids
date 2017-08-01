@@ -112,7 +112,7 @@ public final class Constants {
      * The Constant USSD_AUTHENTICATOR_FRIENDLY_NAME.
      */
     public static final String USSD_AUTHENTICATOR_FRIENDLY_NAME = "ussd";
-    
+
     /**
      * The Constant CONSENT_AUTHENTICATOR_NAME.
      */
@@ -311,14 +311,6 @@ public final class Constants {
     public static final String SAA_ENPOINT = "Endpoint";
 
     public static final String TRANSACTION_ID = "transactionId";
-    
-    public static final String PARENT_SCOPE = "parent_scope";
-
-    public static final String API_SCOPES = "api_scope";
-    
-    public static final String APPROVED_SCOPES = "approved_scope";
-    
-    public static final String APPROVED_ALL_SCOPES = "approved_all_scope";
 
     public static final String USER_STATUS_STREAM_NAME = "com.wso2telco.userstatus";
 
@@ -411,18 +403,18 @@ public final class Constants {
     public static final String USER_ACTION_USER_TIMEOUT = "userTimeout";
 
     public static final String SCOPE = "scope";
-    
-    public static final String SCOPE_DESCRIPTION = "ScopeDescription"; 
-    
-    public static final String SP_LOGO = "logo"; 
-    
+
+    public static final String SCOPE_DESCRIPTION = "ScopeDescription";
+
+    public static final String SP_LOGO = "logo";
+
     public static final String APPROVE = "approve";
-    
+
     public static final String APPROVEALL = "all";
-    
+
     public static final String DENY = "deny";
 
     public static final String PROMPT = "telco_prompt";
-    
-    public static final String OPERATOR_ID = "operatorID";
+
+    public static final String ACTIVE = "ACTIVE";
 }
