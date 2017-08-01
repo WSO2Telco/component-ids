@@ -142,6 +142,8 @@ public class UserRegistration {
                 userFieldDTOs[count].setFieldValue(username);
             } else if (Constants.REG_MODE_CLAIM_NAME.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
                 userFieldDTOs[count].setFieldValue(Constants.REG_MODE_OFFLINE);
+            } else if (Constants.STATUS_CLAIM_NAME.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
+                userFieldDTOs[count].setFieldValue(UserState.ACTIVE.name());
             } else {
                 userFieldDTOs[count].setFieldValue("");
             }
