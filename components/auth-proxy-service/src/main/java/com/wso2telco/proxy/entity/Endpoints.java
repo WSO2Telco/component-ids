@@ -19,6 +19,7 @@ import com.google.gdata.util.common.util.Base64DecoderException;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.wso2telco.core.config.model.LoginHintFormatDetails;
 import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.model.ScopeDetailsConfig;
 import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
@@ -71,8 +72,12 @@ public class Endpoints {
     private static Log log = LogFactory.getLog(Endpoints.class);
     private static HashMap<String, MSISDNDecryption> msisdnDecryptorsClassObjectMap = null;
     private static MobileConnectConfig mobileConnectConfigs = null;
+    private static ScopeDetailsConfig scopeDetailsConfigs = null;
     private static Map<String, List<MSISDNHeader>> operatorsMSISDNHeadersMap;
     private static Map<String, MobileConnectConfig.OPERATOR> operatorPropertiesMap = null;
+    private static Map<String, ScopeDetailsConfig.Scope> scopeMap = null;
+    private static Map<String, List<String>> optionalScopesWithRequestMap = null;
+    private static Map<String, List<String>> mandatoryScopesWithRequestMap = null;
 
     /**
      * The Configuration service
@@ -100,14 +105,26 @@ public class Endpoints {
         try {
             //Load mobile-connect.xml file.
             mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
+            //Load scope-config.xml file.
+            scopeDetailsConfigs = configurationService.getDataHolder().getScopeDetailsConfig();
             //Load msisdn header properties.
             operatorsMSISDNHeadersMap = DBUtils.getOperatorsMSISDNHeaderProperties();
+
             //Load operator properties.
             operatorPropertiesMap = new HashMap<String, MobileConnectConfig.OPERATOR>();
             List<MobileConnectConfig.OPERATOR> operators = mobileConnectConfigs.getHEADERENRICH().getOperators();
             for (MobileConnectConfig.OPERATOR op : operators) {
                 operatorPropertiesMap.put(op.getOperatorName(), op);
             }
+
+            //Load scope related request optional parameters.
+            scopeMap = new HashMap<String, ScopeDetailsConfig.Scope>();
+            List<ScopeDetailsConfig.Scope> scopes = scopeDetailsConfigs.getScope();
+
+            for (ScopeDetailsConfig.Scope sc : scopes) {
+                scopeMap.put(sc.getName(), sc);
+            }
+
         } catch (SQLException e) {
             log.error("Error occurred while retrieving operator MSISDN properties of operators.");
         } catch (NamingException e) {
@@ -209,6 +226,16 @@ public class Endpoints {
                 ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo,
                         userStatus,redirectURL);
 
+                //Get attribute sharing scopes from user passed scopes
+                Map<String, String> attributeSharingScopesDetails = DBUtils.getIsAttributeScopes(scopeName);
+                List<String> attributeSharingScopes = null;
+
+                for (Map.Entry<String, String> entry : attributeSharingScopesDetails.entrySet()) {
+                    if (entry.getValue().equals("true")) {
+                        attributeSharingScopes.add(entry.getKey());
+                    }
+                }
+
                 String loginhint_msisdn = null;
                 try {
                     loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam,redirectURL);
@@ -234,7 +261,7 @@ public class Endpoints {
                     }
 
                     List<String> promptValues = queryParams.get(AuthProxyConstants.PROMPT);
-                    if(promptValues != null && !promptValues.isEmpty()) {
+                    if (promptValues != null && !promptValues.isEmpty()) {
                         redirectUrlInfo.setPrompt(promptValues.get(0));
                         queryParams.remove(AuthProxyConstants.PROMPT);
                     }
@@ -267,6 +294,7 @@ public class Endpoints {
                     redirectUrlInfo.setIpAddress(ipAddress);
                     redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
                     redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
+                    redirectUrlInfo.setAttributeSharingScope(attributeSharingScopes);
                     redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
 
                     DataPublisherUtil.updateAndPublishUserStatus(
@@ -288,7 +316,6 @@ public class Endpoints {
 
         httpServletResponse.sendRedirect(redirectURL);
     }
-
 
     /**
      * Check if the Scope is allowed for SP
@@ -720,7 +747,7 @@ public class Endpoints {
                         "=" + transactionId;
             }
 
-            if(StringUtils.isNotEmpty(prompt)){
+            if (StringUtils.isNotEmpty(prompt)) {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.TELCO_PROMPT +
                         "=" + prompt;
             }
@@ -790,6 +817,42 @@ public class Endpoints {
         userDTO.setUserFields(userFieldDTOs);
         userDTO.setUserName(username);
         userRegistrationAdminService.addUser(userDTO);
+    }
+
+    /**
+     * Get the expected optional scope parameters pass with the request
+     *
+     * @param scopeName
+     * @return
+     */
+    private List<String> getOptionScopeWithRequest(String scopeName) {
+        ScopeDetailsConfig.Scope scopeValue = null;
+        List<ScopeDetailsConfig.Request> requestValue;
+
+        if (scopeMap != null && !scopeMap.isEmpty()) {
+            scopeValue = scopeMap.get(scopeName);
+        }
+
+        requestValue = scopeValue.getRequest();
+        return requestValue.get(1).getOptionalValues();
+    }
+
+    /**
+     * Get the expected mandatory scope parameters pass with the request
+     *
+     * @param scopeName
+     * @return
+     */
+    private List<String> getMandatoryScopeWithRequest(String scopeName) {
+        ScopeDetailsConfig.Scope scopeValue = null;
+        List<ScopeDetailsConfig.Request> requestValue;
+
+        if (scopeMap != null && !scopeMap.isEmpty()) {
+            scopeValue = scopeMap.get(scopeName);
+        }
+
+        requestValue = scopeValue.getRequest();
+        return requestValue.get(1).getMandatoryValues();
     }
 }
 
