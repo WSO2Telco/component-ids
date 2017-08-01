@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) 
+ * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com)
  *
  * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -334,6 +334,14 @@ public final class Constants {
 
     public static final String TRANSACTION_ID = "transactionId";
 
+    public static final String PARENT_SCOPE = "parent_scope";
+
+    public static final String API_SCOPES = "api_scope";
+
+    public static final String APPROVED_SCOPES = "approved_scope";
+
+    public static final String APPROVED_ALL_SCOPES = "approved_all_scope";
+
     public static final String USER_STATUS_STREAM_NAME = "com.wso2telco.userstatus";
 
     public static final String USER_STATUS_STREAM_VERSION = "1.0.0";
@@ -437,6 +445,8 @@ public final class Constants {
     public static final String DENY = "deny";
 
     public static final String PROMPT = "telco_prompt";
+
+    public static final String OPERATOR_ID = "operatorID";
 
     public static final String ACTIVE = "ACTIVE";
 }
