@@ -79,12 +79,8 @@
 				<div>
 					<ul class="form-fields">
 						<li>
-<<<<<<< a0346b28625d834112ae557d86dbbd9550ee9a82
-							<input  id="smsotp" type="number" name="smsotp"  onselectstart="return false" onpaste="return false;" onCopy="return false" onCut="return false" onDrag="return false" onDrop="return false" autocomplete=off placeholder='<%=pageContext.getAttribute("prompt") %>' />
-=======
-							<input  id="smsotp" type="text" onkeyup="this.value=this.value.replace(/[^\d]/,'')"  onselectstart="return false" onpaste="return false;" onCopy="return false" onCut="return false" onDrag="return false" onDrop="return false" autocomplete=off placeholder="{{continue-on-device-otp-prompt}}"
+							<input  id="smsotp" type="text" onkeyup="this.value=this.value.replace(/[^\d]/,'')"  onselectstart="return false" onpaste="return false;" onCopy="return false" onCut="return false" onDrag="return false" onDrop="return false" autocomplete=off placeholder='<%=pageContext.getAttribute("prompt") %>'
 									  onkeypress="return event.keyCode != 13;"/>
->>>>>>> [IDSDEV-668], [IDSDEV-662], [IDSDEV-664] Fixed
 						</li>
 						<li>
 							<button id="smsotpsubmit" type="button" onclick="sendSMSOTP('<%=sessionDataKey%>');"  class="btn btn--outline btn--large btn--full" >
