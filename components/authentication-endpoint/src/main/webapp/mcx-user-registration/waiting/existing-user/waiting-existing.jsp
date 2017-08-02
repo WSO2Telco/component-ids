@@ -96,4 +96,11 @@
 	</main>
 </script>
 <script src="js/sha256.js"></script>
+<script type="text/javascript">
+	var error_messages = {
+	  invalid: '<fmt:message key="waiting-label-continue-on-device-otp-invalid"/>',
+	  mismatch: '<fmt:message key="waiting-label-continue-on-device-otp-mismatch"/>',
+	  error_process: '<fmt:message key="waiting-label-continue-on-device-otp-error-process"/>'
+	 };
+</script>
 <script src="mcx-user-registration/js/waiting/existing-user/waiting.js"></script>
