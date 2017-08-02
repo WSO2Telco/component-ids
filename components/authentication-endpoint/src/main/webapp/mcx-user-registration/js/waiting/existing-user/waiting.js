@@ -11,7 +11,6 @@ var STATUS_APPROVED = "APPROVED";
 var pinResetUrl;
 var smsRequested = false;
 var xhr;
-var otp_error_msg_data;
 
 $(document).ready(function(){
 
@@ -33,7 +32,6 @@ $(document).ready(function(){
 
 	$.getJSON(baseurl+'/mcx-user-registration/languages/en.json', function(data) {
 		resultsPlaceholder.innerHTML = template(data);
-		otp_error_msg_data=data;
 	});
 
 	pollingVar = setInterval(pollForStatus, pollingInterval);
@@ -189,16 +187,16 @@ function sendSMSOTP(session_id) {
 					otpError(false,"");
 				},
 				403: function (response) {
-					otpError(true,otp_error_msg_data['continue-on-device-otp-mismatch']);
+					otpError(true,error_messages.mismatch);
 				},
 				400: function (response) {
-					otpError(true,otp_error_msg_data['continue-on-device-otp-error-process']);
+					otpError(true,error_messages.error_process);
 				}
 			}
 		});
 		document.getElementById("smsotpsubmit").disabled = true;
 	}else{
-		otpError(true,otp_error_msg_data['continue-on-device-otp-invalid']);
+		otpError(true,error_messages.invalid);
 	}
 
 }

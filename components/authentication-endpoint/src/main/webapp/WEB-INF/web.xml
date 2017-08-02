@@ -59,7 +59,7 @@
             javax.servlet.jsp.jstl.fmt.locale
         </param-name>
         <param-value>
-            pt-BR
+            en-US
         </param-value>
     </context-param>
 
