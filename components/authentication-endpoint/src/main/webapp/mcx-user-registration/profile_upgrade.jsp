@@ -155,7 +155,7 @@
                     </select>
                 </li>
                 <li>
-                    <label for="field-account-security-answer-1"><fmt:message key='scommon-label-security-answer-1'/></label>
+                    <label for="field-account-security-answer-1"><fmt:message key='common-label-security-answer-1'/></label>
                     <input type="text" name="challengeAns1" +="" json.fieldvalues.return[i].fieldname="" ""=""
                     id="field-account-security-answer-1" placeholder="Answer your&nbsp;question" required autofocus
                     data-parsley-error-message="Please answer your security&nbsp;question.">

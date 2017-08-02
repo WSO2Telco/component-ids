@@ -4,10 +4,8 @@
 <%@ page import="javax.xml.xpath.XPathExpressionException" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <input type="hidden" name="sessionDataKey" id="sessionDataKey" value='<%=sessionDataKey%>'/>
-<div class="site__root" id="content-placeholder">
-
-
-</div>
+<div class="site__root" id="content-placeholder"></div>
+<fmt:message key="waiting-label-continue-on-device-otp-prompt" var="prompt" />
 
 <!-- The handlebar template -->
 <script id="results-template" type="text/x-handlebars-template">
@@ -81,11 +79,11 @@
 				<div>
 					<ul class="form-fields">
 						<li>
-							<input  id="smsotp" type="number" name="smsotp"  onselectstart="return false" onpaste="return false;" onCopy="return false" onCut="return false" onDrag="return false" onDrop="return false" autocomplete=off placeholder="{{continue-on-device-otp-prompt}}" />
+							<input  id="smsotp" type="number" name="smsotp"  onselectstart="return false" onpaste="return false;" onCopy="return false" onCut="return false" onDrag="return false" onDrop="return false" autocomplete=off placeholder='<%=pageContext.getAttribute("prompt") %>' />
 						</li>
 						<li>
 							<button id="smsotpsubmit" type="button" onclick="sendSMSOTP('<%=sessionDataKey%>');"  class="btn btn--outline btn--large btn--full" >
-								{{misc-submit-button}}
+								<fmt:message key='common-button-misc-submit'/>
 							</button>
 						</li>
 					</ul>
@@ -93,7 +91,7 @@
 				<br>
 		<%	} %>
 		<a onclick="handleTermination(true);" class="btn btn--outline btn--full btn--large">
-			{{misc-cancel-button}}
+			<fmt:message key='common-button-misc-cancel'/>
 		</a>
 	</main>
 </script>
