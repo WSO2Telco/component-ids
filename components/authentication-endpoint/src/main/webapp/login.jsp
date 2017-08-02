@@ -246,9 +246,20 @@
 	<header class="site-header">
 		<div class="site-header__inner site__wrap">
 			<h1 class="visuallyhidden">Mobile&nbsp;Connect</h1>
-			<a href="mcx-user-registration/selfcare/index.html"><img src="images/svg/mobile-connect.svg"
+			<%
+            if(getServletContext().getInitParameter("javax.servlet.jsp.jstl.fmt.locale")=="en-US"){
+            %>
+            <a href="mcx-user-registration/selfcare/index.html"><img src="images/svg/mobile-connect.svg"
 																	 alt="Mobile Connect&nbsp;Logo" width="150"
 																	 class="site-header__logo"></a>
+																	  <%
+            }else{
+            %>
+ 			<img src="images/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo">
+             <%
+            }
+            %>
+
 			<% if (!operator.isEmpty()) {
 				String imgPath = "images/branding/" + operator + "_logo.svg";
 			%>
