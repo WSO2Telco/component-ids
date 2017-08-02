@@ -629,6 +629,7 @@ public class Endpoints {
         String telcoScope = redirectUrlInfo.getTelcoScope();
         String ipAddress = redirectUrlInfo.getIpAddress();
         String prompt = redirectUrlInfo.getPrompt();
+        String validationRegex=configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getValidationRegex();
         boolean isShowTnc = redirectUrlInfo.isShowTnc();
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
         ScopeParam.heFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
@@ -663,6 +664,11 @@ public class Endpoints {
             if(StringUtils.isNotEmpty(prompt)){
                 redirectURL = redirectURL + "&" + AuthProxyConstants.TELCO_PROMPT +
                         "=" + prompt;
+            }
+
+            if(StringUtils.isNotEmpty(validationRegex)){
+                redirectURL = redirectURL + "&" + AuthProxyConstants.MSISDN_VALIDATION_REGEX +
+                        "=" + validationRegex;
             }
         } else {
             String errMsg = "AuthorizeURL could not be found in mobile-connect.xml";

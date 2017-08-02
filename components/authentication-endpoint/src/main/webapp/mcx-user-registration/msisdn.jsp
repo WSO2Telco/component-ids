@@ -1,6 +1,11 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <fmt:message key="msdin-label-entry-phone-number-error" var="error" />
-
+<%
+    String validationRegex = request.getParameter("validationRegex");
+    if(validationRegex==null || validationRegex.isEmpty()){
+        validationRegex="^\\d{12}$";
+    }
+%>
 <head>
   
 </head>
@@ -23,7 +28,7 @@
          <ul class="form-fields">
             <li>
                <label for="msisdn"><fmt:message key='msisdn-label-entry-mobile'/></label>
-               <input type="tel"  id="msisdn" onfocus="this.value = this.value;"  name="msisdn" autofocus required pattern="^\d{12}$" data-parsley-error-message='<%=pageContext.getAttribute("error") %>'>{{set_msisdn this}}</input>
+               <input type="tel"  id="msisdn" onfocus="this.value = this.value;"  name="msisdn" autofocus required pattern="<%=validationRegex%>" data-parsley-error-message='<%=pageContext.getAttribute("error") %>'>{{set_msisdn this}}</input>
             </li>
             <li>
                <button type="submit" class="btn btn--outline btn--large btn--full" onclick="submitLoginForm()" >
