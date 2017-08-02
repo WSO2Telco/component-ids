@@ -457,12 +457,12 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
     }
 
     private boolean isMNObasedAunthenticatorSelectionEnabled() {
-        return "true".equals(configurationService.getDataHolder().getMobileConnectConfig()
+        return Boolean.valueOf(configurationService.getDataHolder().getMobileConnectConfig()
                 .getAuthenticatorSelectionConfig().getMobileNetworkOperatorBasedSelectionEnabled());
     }
 
     private boolean isSPBasedAuthenticatorSelectionEnabled() {
-        return "true".equals(configurationService.getDataHolder().getMobileConnectConfig()
+        return Boolean.valueOf(configurationService.getDataHolder().getMobileConnectConfig()
                 .getAuthenticatorSelectionConfig().getServiceProviderBasedSelectionEnabled());
     }
 
