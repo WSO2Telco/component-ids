@@ -78,7 +78,7 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
                 int otpLength = smsConfig.getOTPLength();
                 String otp =Utility.genarateOTP(otpLength);
                 String hashedotp = Utility.generateSHA256Hash(otp);
-                String sessionDataKey = request.getParameter(Constants.SESSION_DATA_KEY);
+                String sessionDataKey = context.getContextIdentifier();
                 DBUtils.insertOTPForSMS(sessionDataKey,hashedotp,UserResponse.PENDING.name());
                 // prepare the USSD message from template
                 HashMap<String, String> variableMap = new HashMap<String, String>();
