@@ -1505,7 +1505,7 @@ public class Endpoints {
             DataPublisherUtil.UserState userState=null;
             String state="failed";
             String smsotp = DatabaseUtils.getSMSOTP(session_id);
-            if (smsotp.equalsIgnoreCase(otp)) {
+            if (smsotp!=null && smsotp.equalsIgnoreCase(otp)) {
                 DatabaseUtils.updateStatus(session_id, "Approved");
                 statusCode=Response.Status.OK.getStatusCode();
                 userState=DataPublisherUtil.UserState.SMS_OTP_AUTH_SUCCESS;
