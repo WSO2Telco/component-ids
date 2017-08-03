@@ -211,6 +211,8 @@ public class UserProfileManager {
                             userFieldDTOs[count].setFieldValue(challengeAnswer2);
                         } else if (UserProfileClaimsConstant.PIN.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
                             userFieldDTOs[count].setFieldValue(getHashValue(pin));
+                        } else if (STATUS_CLAIM_NAME.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
+                            userFieldDTOs[count].setFieldValue(STATUS_ACTIVE);
                         } else {
                             userFieldDTOs[count].setFieldValue("");
                         }
@@ -515,15 +517,51 @@ public class UserProfileManager {
 //        }
 //    }
 
-  /**
-   * update user profile status
-   *
-   * @throws RemoteUserStoreManagerServiceUserStoreExceptionException
-   * @throws RemoteException                                          fieldValues, userName
-   */
-   private void updateUserStatus(String userName) throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException {
-        /* updating loa claim for status */
-                 remoteUserStoreServiceAdminClient.setUserClaim(userName, STATUS_CLAIM_NAME, STATUS_ACTIVE,UserCoreConstants.DEFAULT_PROFILE);
-   }
+    /**
+     * update user profile status
+     *
+     * @throws RemoteUserStoreManagerServiceUserStoreExceptionException
+     * @throws RemoteException                                          fieldValues, userName
+     */
+
+    private void updateUserStatus(String userName)
+            throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException {
+
+        String userStatus;
+            try {
+                userStatus = AdminServiceUtil.getUserStatus(userName);
+                if(isAttributeScope) {
+                    updateUserStatus(userStatus,userName,STATUS_PARTIALLY_ACTIVE);
+                }else{
+                    updateUserStatus(userStatus,userName,STATUS_ACTIVE);
+                }
+
+            } catch (IdentityException e) {
+                log.error("IdentityException for User- "+userName+":" + e.getMessage());
+            } catch (UserStoreException e) {
+                log.error("UserStoreException- "+userName+":" + e.getMessage());
+            } catch (LoginAuthenticationExceptionException e) {
+                log.error("LoginAuthenticationExceptionException- "+userName+":" + e.getMessage());
+            }
+    }
+
+    private void updateUserStatus(String userStatus,String userName,String statusToBeUpdate){
+        try {
+            switch (userStatus) {
+                case STATUS_INACTIVE:
+                    remoteUserStoreServiceAdminClient.setUserClaim(userName, STATUS_CLAIM_NAME, statusToBeUpdate,
+                            UserCoreConstants.DEFAULT_PROFILE);
+                    break;
+                case STATUS_PARTIALLY_ACTIVE:
+                    remoteUserStoreServiceAdminClient.setUserClaim(userName, STATUS_CLAIM_NAME, statusToBeUpdate,
+                            UserCoreConstants.DEFAULT_PROFILE);
+                    break;
+            }
+        } catch (RemoteException e) {
+            log.error("RemoteException- "+userName+":" + e.getMessage());
+        } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+            log.error("RemoteUserStoreManagerServiceUserStoreExceptionException- "+userName+":" + e.getMessage());
+        }
+  }
 
 }
