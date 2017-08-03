@@ -435,4 +435,10 @@ public final class Constants {
 
     public static final String IS_ATTRIBUTE_SHARING_SCOPE = "isAttrScope";
 
+    public static final String EXP_PERIOD= "exp_period" ;
+
+    public static final String CONSENT_VALITITY_TYPE= "consent_valitity_type" ;
+
+    public static final String CONSENT_TYPE = "consent_type";
+
 }
