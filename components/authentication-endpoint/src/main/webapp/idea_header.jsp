@@ -3,7 +3,7 @@
        onclick="jagg.sessionAwareJS({redirect:'/dashboard/landing.html?',e:event})">
         <img
                 alt="API Store"
-                src="/authenticationendpoint/images/branding/idea_logo.jpg"
+                src="images/branding/idea_logo.jpg"
                 >
     </a>
 
