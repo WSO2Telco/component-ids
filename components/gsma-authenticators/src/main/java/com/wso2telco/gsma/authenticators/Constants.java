@@ -423,4 +423,7 @@ public final class Constants {
     public static final String ACTIVE = "ACTIVE";
 
     public static final String SP_TYPE = "spType";
+
+    public static final String IS_ATTRIBUTE_SHARING_SCOPE = "isAttrScope";
+
 }

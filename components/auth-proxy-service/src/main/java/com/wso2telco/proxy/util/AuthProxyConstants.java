@@ -63,5 +63,5 @@ public class AuthProxyConstants {
     public static final String CLIENT_ID = "client_id";
     public static final String TRANSACTION_ID = "transactionId";
     public static final String MSISDN_VALIDATION_REGEX =  "validationRegex";
-
+    public static final String ATTR_SHARE_SCOPE = "isAttrScope";
 }

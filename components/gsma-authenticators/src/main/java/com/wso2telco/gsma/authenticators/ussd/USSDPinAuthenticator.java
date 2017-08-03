@@ -587,6 +587,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         String challengeQuestion2 = (String) context.getProperty(Constants.CHALLENGE_QUESTION_2);
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         String operator = (String) context.getProperty(Constants.OPERATOR);
+        boolean isAttributeScope = (Boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
         PinConfig pinConfig = PinConfigUtil.getPinConfig(context);
 
         if (pinConfig.isPinsMatched()) {
@@ -602,7 +603,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             challengeAnswer2 = challengeQuestion2 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer2;
 
             new UserProfileManager().createUserProfileLoa3(msisdn, operator, challengeAnswer1, challengeAnswer2,
-                    pinConfig.getRegisteredPin());
+                    pinConfig.getRegisteredPin(),isAttributeScope);
 
             MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
             if (!smsConfig.getWelcomeMessageDisabled()) {

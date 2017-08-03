@@ -360,6 +360,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             String msisdn = context.getProperty(Constants.MSISDN).toString();
             String operator = context.getProperty(Constants.OPERATOR).toString();
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+            boolean isAttributeScope = (Boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
 
             boolean validOperator = isValidOperator(request, context, msisdn, operator, userStatus);
 
@@ -374,7 +375,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                         // if acr is 2, do the registration. register user if a new msisdn and remove other
                         // authenticators from step map
                         try {
-                            new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
+                            new UserProfileManager().createUserProfileLoa2(msisdn, operator,isAttributeScope);
 
                             MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
                             if (!smsConfig.getWelcomeMessageDisabled()) {

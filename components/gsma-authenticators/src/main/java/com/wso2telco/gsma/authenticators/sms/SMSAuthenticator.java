@@ -275,6 +275,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             throw new AuthenticatorException("Authentication Failed");
         } else {
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+            boolean isAttributeScope = (Boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
             if (isRegistering) {
                 UserProfileManager userProfileManager = new UserProfileManager();
                 userProfileManager.createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);

@@ -226,13 +226,14 @@ public class Endpoints {
                 ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo,
                         userStatus,redirectURL);
 
-                //Get attribute sharing scopes from user passed scopes
+                //Check IsAttribute Sharing scope available
                 Map<String, String> attributeSharingScopesDetails = DBUtils.getIsAttributeScopes(scopeName);
-                List<String> attributeSharingScopes = null;
+                boolean attributeSharingScopes = false;
 
                 for (Map.Entry<String, String> entry : attributeSharingScopesDetails.entrySet()) {
                     if (entry.getValue().equals("true")) {
-                        attributeSharingScopes.add(entry.getKey());
+                        attributeSharingScopes = true ;
+                        break;
                     }
                 }
 
@@ -716,6 +717,7 @@ public class Endpoints {
         String ipAddress = redirectUrlInfo.getIpAddress();
         String prompt = redirectUrlInfo.getPrompt();
         String validationRegex=configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getValidationRegex();
+        boolean isAttrScope= redirectUrlInfo.isAttributeSharingScope();
         boolean isShowTnc = redirectUrlInfo.isShowTnc();
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
         ScopeParam.heFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
@@ -726,7 +728,8 @@ public class Endpoints {
                     operatorName + "&" + AuthProxyConstants.TELCO_SCOPE + "=" + telcoScope + "&" +
                     AuthProxyConstants.SHOW_TNC + "=" + isShowTnc + "&" + AuthProxyConstants.HEADER_MISMATCH_RESULT +
                     "=" + headerMismatchResult + "&" + AuthProxyConstants.HE_FAILURE_RESULT +
-                    "=" + heFailureResult;
+                    "=" + heFailureResult + "&" + AuthProxyConstants.ATTR_SHARE_SCOPE +
+                    "=" + isAttrScope;
 
             if (msisdnHeader != null && StringUtils.isNotEmpty(msisdnHeader)) {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.MSISDN_HEADER + "=" + msisdnHeader;
