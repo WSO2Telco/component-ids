@@ -78,9 +78,9 @@
         log.info( "updateProfile :"+updateProfile );
         String imgPath = "";
         if (operator != "") {
-            imgPath = "images/branding/" + operator + "_logo.svg";
+            imgPath = "../images/branding/" + operator + "_logo.svg";
     %>
-    <link href="css/branding/<%=operator%>-style.css" rel="stylesheet">
+    <link href="../css/branding/<%=operator%>-style.css" rel="stylesheet">
     <%
         }
     %>
