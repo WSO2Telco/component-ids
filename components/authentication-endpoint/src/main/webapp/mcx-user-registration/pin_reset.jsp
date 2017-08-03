@@ -319,7 +319,7 @@
     <%--<%}%>--%>
 
 </head>
-</head>
+
 
 
 <body class="theme--light">

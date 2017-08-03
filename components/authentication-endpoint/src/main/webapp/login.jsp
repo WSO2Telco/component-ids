@@ -103,7 +103,7 @@
 			String operator = request.getParameter("operator") != null ? request.getParameter("operator") : "";
 			if (!operator.isEmpty()) {
 		%>
-		<link href="/authenticationendpoint/css/branding/<%=operator%>-style.css" rel="stylesheet">
+		<link href="css/branding/<%=operator%>-style.css" rel="stylesheet">
 		<%}%>
 
 	</head>

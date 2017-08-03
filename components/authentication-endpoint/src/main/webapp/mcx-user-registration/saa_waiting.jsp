@@ -58,7 +58,7 @@
 
         if(operator != ""){
         %>
-        <link href="css/branding/<%=operator%>-style.css" rel="stylesheet">
+        <link href="../css/branding/<%=operator%>-style.css" rel="stylesheet">
         <%}%>
         <script type="text/javascript">
         var values = {};
@@ -82,7 +82,7 @@
               <a href="/"><img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo"></a>
               
               <% if(operator != ""){ 
-              String imgPath = "img/branding/" + operator + "_logo.svg";
+              String imgPath = "../images/branding/" + operator + "_logo.svg";
               %>
               <p class="site-header__powered-by">powered&nbsp;by      
               </p>

@@ -59,7 +59,7 @@
 
         if(operator != ""){
         %>
-        <link href="css/branding/<%=operator%>-style.css" rel="stylesheet">
+        <link href="../css/branding/<%=operator%>-style.css" rel="stylesheet">
         <%}%>
         <script type="text/javascript">
         var values = {};
@@ -92,7 +92,7 @@
             }
             %>
               <% if(operator != ""){ 
-              String imgPath = "img/branding/" + operator + "_logo.svg";
+              String imgPath = "../images/branding/" + operator + "_logo.svg";
               %>
               <p class="site-header__powered-by">powered&nbsp;by      
               </p>
