@@ -24,6 +24,7 @@ import com.wso2telco.core.sp.config.utils.exception.DataAccessException;
 import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.IPRangeChecker;
+import com.wso2telco.gsma.authenticators.attributeShare.AttributeShareFactory;
 import com.wso2telco.gsma.authenticators.util.*;
 import com.wso2telco.gsma.manager.client.ClaimManagementClient;
 import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
@@ -45,6 +46,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.api.UserStoreException;
@@ -53,10 +55,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.rmi.RemoteException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 // TODO: Auto-generated Javadoc
 
@@ -288,6 +287,20 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         try {
 
+          boolean  isattribute=true;  //context.getProperty("isAttributeShare")
+            if (isattribute) {
+
+                Map<String, List<String>> attributeset = AttributeShareFactory.getAttributeSharable(operator, context.getProperty(Constants.CLIENT_ID).toString()).getAttributeMap(context);
+
+                String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
+                if (!attributeset.get("explicitScopes").isEmpty()) {
+                    String displayScopes = Arrays.toString(attributeset.get("explicitScopes").toArray());
+                    response.sendRedirect("/authenticationendpoint/attributeconsent.do?" + OAuthConstants.SESSION_DATA_KEY_CONSENT + "="
+                            + context.getContextIdentifier() + "&skipConsent=true&scope=" + displayScopes + "&registering=" + false);
+                }
+
+            }
+
             String loginPage = getAuthEndpointUrl(showTnC, isRegistering);
 
             DataPublisherUtil
@@ -303,6 +316,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     .updateAndPublishUserStatus(userStatus,
                             DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL, e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(), e);
+        } catch (Exception e) {
+            log.debug("error occurred while doing  the attribute share ");
         }
         return;
 
