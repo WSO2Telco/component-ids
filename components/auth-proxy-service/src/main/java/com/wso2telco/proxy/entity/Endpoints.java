@@ -251,90 +251,93 @@ public class Endpoints {
                     ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo,
                             userStatus, redirectURL);
 
-                    //Get attribute sharing scopes from user passed scopes
+                    //Check IsAttribute Sharing scope available
                     Map<String, String> attributeSharingScopesDetails = DBUtils.getIsAttributeScopes(scopeName);
-                    List<String> attributeSharingScopes = null;
+                    boolean attributeSharingScopes = false;
 
                     for (Map.Entry<String, String> entry : attributeSharingScopesDetails.entrySet()) {
                         if (entry.getValue().equals("true")) {
-                            attributeSharingScopes.add(entry.getKey());
+                            attributeSharingScopes = true;
+                            break;
                         }
-                    }
 
-                    String loginhint_msisdn = null;
-                    try {
-                        loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam, redirectURL);
-                    } catch (Exception e) {
-                        log.debug("Error retrieving loginhint msisdn : " + e);
-                    }
+                        String loginhint_msisdn = null;
+                        try {
+                            loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam, redirectURL);
+                        } catch (Exception e) {
+                            log.debug("Error retrieving loginhint msisdn : " + e);
+                        }
 
-                    Boolean isScopeExists = queryParams.containsKey(AuthProxyConstants.SCOPE);
-                    String operatorScopeWithClaims;
+                        Boolean isScopeExists = queryParams.containsKey(AuthProxyConstants.SCOPE);
+                        String operatorScopeWithClaims;
 
-                    if (isScopeExists) {
-                        operatorScopeWithClaims = queryParams.get(AuthProxyConstants.SCOPE).get(0);
+                        if (isScopeExists) {
+                            operatorScopeWithClaims = queryParams.get(AuthProxyConstants.SCOPE).get(0);
 
-                        // Check if scope list contains openid scope, and append if it does not contain
-                        if (queryParams.containsKey(AuthProxyConstants.SCOPE) && queryParams.get(AuthProxyConstants
-                                .SCOPE).get(0) != null) {
-                            List<String> scopes = new ArrayList<>(Arrays.asList(queryParams.get(AuthProxyConstants
-                                    .SCOPE)
-                                    .get(0).split(" ")));
-                            if (!scopes.contains(AuthProxyConstants.SCOPE_OPENID)) {
-                                queryParams.get(AuthProxyConstants.SCOPE)
-                                        .set(0, scopeName + " " + AuthProxyConstants.SCOPE_OPENID);
+                            // Check if scope list contains openid scope, and append if it does not contain
+                            if (queryParams.containsKey(AuthProxyConstants.SCOPE) && queryParams.get(AuthProxyConstants
+                                    .SCOPE).get(0) != null) {
+                                List<String> scopes = new ArrayList<>(Arrays.asList(queryParams.get(AuthProxyConstants
+                                        .SCOPE)
+                                        .get(0).split(" ")));
+                                if (!scopes.contains(AuthProxyConstants.SCOPE_OPENID)) {
+                                    queryParams.get(AuthProxyConstants.SCOPE)
+                                            .set(0, scopeName + " " + AuthProxyConstants.SCOPE_OPENID);
+                                }
                             }
+
+                            List<String> promptValues = queryParams.get(AuthProxyConstants.PROMPT);
+                            if (promptValues != null && !promptValues.isEmpty()) {
+                                redirectUrlInfo.setPrompt(promptValues.get(0));
+                                queryParams.remove(AuthProxyConstants.PROMPT);
+                            }
+
+                            queryString = processQueryString(queryParams, queryString);
+
+                            // Encrypt MSISDN
+                            msisdn = EncryptAES.encrypt(msisdn);
+
+                            // Encrypt login-hint msisdn
+                            loginhint_msisdn = EncryptAES.encrypt(loginhint_msisdn);
+
+                            // URL encode
+                            if (msisdn != null) {
+                                msisdn = URLEncoder.encode(msisdn, AuthProxyConstants.UTF_ENCODER);
+                            } else {
+                                msisdn = "";
+                            }
+
+                            // URL encode login hint msisdn
+                            if (loginhint_msisdn != null) {
+                                loginhint_msisdn = URLEncoder.encode(loginhint_msisdn, AuthProxyConstants.UTF_ENCODER);
+                            } else {
+                                loginhint_msisdn = "";
+                            }
+                            if (log.isDebugEnabled()) {
+                                log.debug("redirectURL : " + redirectURL);
+                            }
+
+                            redirectUrlInfo.setMsisdnHeader(msisdn);
+                            redirectUrlInfo.setLoginhintMsisdn(loginhint_msisdn);
+                            redirectUrlInfo.setQueryString(queryString);
+                            redirectUrlInfo.setIpAddress(ipAddress);
+                            redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
+                            redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
+                            redirectUrlInfo.setAttributeSharingScope(attributeSharingScopes);
+                            redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
+
+                            DataPublisherUtil.updateAndPublishUserStatus(
+                                    userStatus, DataPublisherUtil.UserState.PROXY_REQUEST_FORWARDED_TO_IS, "Redirect " +
+                                            "URL : "
+                                            + redirectURL);
                         }
-
-                        List<String> promptValues = queryParams.get(AuthProxyConstants.PROMPT);
-                        if (promptValues != null && !promptValues.isEmpty()) {
-                            redirectUrlInfo.setPrompt(promptValues.get(0));
-                            queryParams.remove(AuthProxyConstants.PROMPT);
-                        }
-
-                        queryString = processQueryString(queryParams, queryString);
-
-                        // Encrypt MSISDN
-                        msisdn = EncryptAES.encrypt(msisdn);
-
-                        // Encrypt login-hint msisdn
-                        loginhint_msisdn = EncryptAES.encrypt(loginhint_msisdn);
-
-                        // URL encode
-                        if (msisdn != null) {
-                            msisdn = URLEncoder.encode(msisdn, AuthProxyConstants.UTF_ENCODER);
-                        } else {
-                            msisdn = "";
-                        }
-
-                        // URL encode login hint msisdn
-                        if (loginhint_msisdn != null) {
-                            loginhint_msisdn = URLEncoder.encode(loginhint_msisdn, AuthProxyConstants.UTF_ENCODER);
-                        } else {
-                            loginhint_msisdn = "";
-                        }
-                        if (log.isDebugEnabled()) {
-                            log.debug("redirectURL : " + redirectURL);
-                        }
-
-                        redirectUrlInfo.setMsisdnHeader(msisdn);
-                        redirectUrlInfo.setLoginhintMsisdn(loginhint_msisdn);
-                        redirectUrlInfo.setQueryString(queryString);
-                        redirectUrlInfo.setIpAddress(ipAddress);
-                        redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
-                        redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
-                        redirectUrlInfo.setAttributeSharingScope(attributeSharingScopes);
-                        redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
-
-                        DataPublisherUtil.updateAndPublishUserStatus(
-                                userStatus, DataPublisherUtil.UserState.PROXY_REQUEST_FORWARDED_TO_IS, "Redirect URL : "
-                                        + redirectURL);
                     }
                 } catch (Exception e) {
                     log.error("Exception : " + e.getMessage());
                     //todo: dynamically set error description depending on scope parameters
                     redirectURL = redirectURL + "?error=access_denied&error_description=" + e.getMessage();
-                    DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.OTHER_ERROR,
+                    DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState
+                                    .OTHER_ERROR,
                             e.getMessage());
                 }
             }
@@ -350,7 +353,6 @@ public class Endpoints {
             httpServletResponse.sendRedirect(redirectURL);
         }
 
-
     }
 
     /**
@@ -360,6 +362,7 @@ public class Endpoints {
      * @param clientId
      * @return true if scope is allowed, else false
      */
+
     private boolean isValidScope(String scopeName, String clientId)
             throws AuthenticatorException, ConfigurationException {
         return DBUtils.isSPAllowedScope(scopeName, clientId);
@@ -759,6 +762,8 @@ public class Endpoints {
         String prompt = redirectUrlInfo.getPrompt();
         String validationRegex = configurationService.getDataHolder().getMobileConnectConfig().getMsisdn()
                 .getValidationRegex();
+        boolean isAttrScope = redirectUrlInfo.isAttributeSharingScope();
+
         boolean isShowTnc = redirectUrlInfo.isShowTnc();
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
         ScopeParam.heFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
@@ -769,7 +774,8 @@ public class Endpoints {
                     operatorName + "&" + AuthProxyConstants.TELCO_SCOPE + "=" + telcoScope + "&" +
                     AuthProxyConstants.SHOW_TNC + "=" + isShowTnc + "&" + AuthProxyConstants.HEADER_MISMATCH_RESULT +
                     "=" + headerMismatchResult + "&" + AuthProxyConstants.HE_FAILURE_RESULT +
-                    "=" + heFailureResult;
+                    "=" + heFailureResult + "&" + AuthProxyConstants.ATTR_SHARE_SCOPE +
+                    "=" + isAttrScope;
 
             if (msisdnHeader != null && StringUtils.isNotEmpty(msisdnHeader)) {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.MSISDN_HEADER + "=" + msisdnHeader;

@@ -268,7 +268,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
         boolean showTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
 
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("Detected MSISDN : " + msisdn);
         }
 
@@ -372,6 +372,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             populateAuthEndpointData(request, context);
 
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+            boolean isAttributeScope = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
 
             validateOperator(request, context, msisdn, operator, userStatus);
 
@@ -385,9 +386,10 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     // if acr is 2, do the registration. register user if a new msisdn and remove other
                     // authenticators from step map
                     try {
-                        new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
+                        new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope);
 
-                        MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
+                        MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder()
+                                .getMobileConnectConfig().getSmsConfig();
                         if (!smsConfig.getWelcomeMessageDisabled()) {
                             WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
                         }

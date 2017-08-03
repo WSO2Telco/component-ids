@@ -36,7 +36,7 @@ public class RedirectUrlInfo {
     private ScopeParam.heFailureResults heFailureResult;
     private String transactionId;
     private String prompt;
-    private List<String> attributeSharingScope;
+    private boolean attributeSharingScope;
 
     public void setPrompt(String prompt) { this.prompt = prompt; }
 
@@ -138,11 +138,11 @@ public class RedirectUrlInfo {
         return transactionId;
     }
 
-    public List<String> getAttributeSharingScope() {
+    public boolean isAttributeSharingScope() {
         return attributeSharingScope;
     }
 
-    public void setAttributeSharingScope(List<String> attributeSharingScope) {
+    public void setAttributeSharingScope(boolean attributeSharingScope) {
         this.attributeSharingScope = attributeSharingScope;
     }
 }
