@@ -98,7 +98,7 @@
             <%
             if(getServletContext().getInitParameter("javax.servlet.jsp.jstl.fmt.locale")=="en-US"){
             %>
-            <a href="/"><img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150"
+            <a href="#"><img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150"
                              class="site-header__logo"></a>
             <%
             }else{
