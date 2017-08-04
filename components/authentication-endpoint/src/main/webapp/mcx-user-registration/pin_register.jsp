@@ -95,7 +95,7 @@
     <header class="site-header">
         <div class="site-header__inner site__wrap">
             <h1 class="visuallyhidden">Mobile Connect</h1>
-            <a href="/"><img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150"
+            <a href="#"><img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150"
                              class="site-header__logo"></a>
 
             <p class="site-header__powered-by">powered by
