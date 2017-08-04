@@ -103,10 +103,13 @@ public class Endpoints {
 
     static {
         try {
+
             //Load mobile-connect.xml file.
             mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
+            log.info("Load Mobile Connect");
             //Load scope-config.xml file.
             scopeDetailsConfigs = configurationService.getDataHolder().getScopeDetailsConfig();
+            log.info("Load Scope-Config Connect");
             //Load msisdn header properties.
             operatorsMSISDNHeadersMap = DBUtils.getOperatorsMSISDNHeaderProperties();
 
@@ -147,7 +150,6 @@ public class Endpoints {
         String clientId = queryParams.getFirst("client_id");
         String redirectURL = queryParams.get(AuthProxyConstants.REDIRECT_URI).get(0);
         String scopeName = queryParams.get(AuthProxyConstants.SCOPE).get(0);
-
 
         //maintain userstatus related to request for data publishing purpose
         UserStatus userStatus = DataPublisherUtil.buildUserStatusFromRequest(httpServletRequest, null);
