@@ -48,10 +48,6 @@
     <!-- *************** End of Global configurations ********************** -->
 
     <!--Display scopes in the consent page.-->
-    <listener>       
-      <listener-class>com.wso2telco.identity.application.authentication.endpoint.InitVariables</listener-class>
-   	</listener>  
-   
     <context-param>
         <param-name>displayScopes</param-name>
         <param-value>true</param-value>
@@ -63,14 +59,20 @@
             javax.servlet.jsp.jstl.fmt.locale
         </param-name>
         <param-value>
-            ${javax.servlet.jsp.jstl.fmt.locale}
+            en-US
         </param-value>
     </context-param>
 
     <!-- Set default Locale Resource Path here -->
     <context-param> 
-    	<param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
-    	<param-value>org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources</param-value> 
+    <param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
+    <param-value>org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources</param-value> 
+    </context-param> 
+
+    <!-- Set falllback Locale here -->
+    <context-param> 
+        <param-name>javax.servlet.jsp.jstl.i18n.fallbackLocale</param-name> 
+        <param-value>en-US</param-value> 
     </context-param> 
 
     <filter>
