@@ -329,22 +329,22 @@ public class DBUtils {
      * @return map of scope vs isAttributeShared scope
      * @throws AuthenticatorException on errors
      */
-    public static Map<String,String> getIsAttributeScopes(String scope) throws AuthenticatorException {
+    public static Boolean getIsAttributeScopes(String scope) throws AuthenticatorException {
         Connection conn = null;
         PreparedStatement ps = null;
         ResultSet results = null;
+        Boolean isAttributeShareScope = false;
         String[] scopeValues = scope.split("\\s+|\\+");
         StringBuilder params = new StringBuilder("?");
         for (int i = 1; i < scopeValues.length; i++) {
             params.append(",?");
         }
-        String sql = "SELECT * FROM `scope_parameter` WHERE scope in (" + params + ")";
+        String sql = "SELECT is_attribute_share_scope FROM `scope_parameter` WHERE scope in (" + params + ")";
 
         if (log.isDebugEnabled()) {
             log.debug("Executing the query " + sql);
         }
 
-        Map attributeSharedScopeList = new HashMap();
         try {
             conn = getConnectDBConnection();
             ps = conn.prepareStatement(sql);
@@ -354,9 +354,11 @@ public class DBUtils {
             results = ps.executeQuery();
 
             while (results.next()) {
-                Boolean isAttributeShareScope = results.getBoolean("is_attribute_share_scope");
-                String scopeName = results.getString("scope");
-                attributeSharedScopeList.put(scopeName,isAttributeShareScope);
+                isAttributeShareScope = results.getBoolean("is_attribute_share_scope");
+
+                if(isAttributeShareScope){
+                    break;
+                }
             }
 
         } catch (SQLException e) {
@@ -368,7 +370,7 @@ public class DBUtils {
         } finally {
             closeAllConnections(ps, conn, results);
         }
-        return attributeSharedScopeList;
+        return isAttributeShareScope;
     }
 
     private static List<LoginHintFormatDetails> getLoginHintFormatTypeDetails(int paramId, Connection conn)
