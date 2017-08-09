@@ -29,6 +29,7 @@
 <%@page import="org.apache.log4j.Logger" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ page import="javax.servlet.jsp.jstl.core.Config" %>
 <%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants" %>
 <%@ page import="org.apache.log4j.Logger" %>
 <%@ page import="org.wso2.carbon.identity.oauth2.model.OAuth2Parameters" %>
@@ -44,8 +45,6 @@
 <%@ page import="org.wso2.carbon.identity.application.authentication.framework.context.*" %>
 
 <%! static Logger logger = Logger.getLogger(login_jsp.class); %>
-
-<fmt:bundle basename="org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources">
 
 	<html class="site no-js lang--en" lang="en">
 	<input type="hidden" id="baseURL"
@@ -247,8 +246,8 @@
 		<div class="site-header__inner site__wrap">
 			<h1 class="visuallyhidden">Mobile&nbsp;Connect</h1>
 			<%
-            if(getServletContext().getInitParameter("javax.servlet.jsp.jstl.fmt.locale")=="en-US"){
-            %>
+			    if (Config.get(getServletContext(), Config.FMT_LOCALE).toString().equals("en-US")) {
+			%>
             <a href="mcx-user-registration/selfcare/index.html"><img src="images/svg/mobile-connect.svg"
 																	 alt="Mobile Connect&nbsp;Logo" width="150"
 																	 class="site-header__logo"></a>
@@ -605,5 +604,3 @@
 
 	</body>
 	</html>
-
-</fmt:bundle>

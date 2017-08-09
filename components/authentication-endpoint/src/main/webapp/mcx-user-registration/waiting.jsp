@@ -1,5 +1,6 @@
 <!doctype html>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ page import="javax.servlet.jsp.jstl.core.Config" %>
 <html class="site no-js lang--en" lang="en">
 
 <head>
@@ -81,7 +82,7 @@
             <div class="site-header__inner site__wrap">
               <h1 class="visuallyhidden">Mobile&nbsp;Connect</h1>
             <%
-            if(getServletContext().getInitParameter("javax.servlet.jsp.jstl.fmt.locale")=="en-US"){
+		    if (Config.get(getServletContext(), Config.FMT_LOCALE).toString().equals("en-US")) {
             %>
             <a href="#"><img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo"></a>
               <%
