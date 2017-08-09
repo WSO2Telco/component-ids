@@ -69,6 +69,7 @@ import java.util.Map.Entry;
 
 @Path("/")
 public class Endpoints {
+
     private static Log log = LogFactory.getLog(Endpoints.class);
     private static HashMap<String, MSISDNDecryption> msisdnDecryptorsClassObjectMap = null;
     private static MobileConnectConfig mobileConnectConfigs = null;
