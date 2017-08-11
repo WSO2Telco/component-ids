@@ -46,6 +46,15 @@ import java.util.Map;
 public class DBUtils {
     private static final Log log = LogFactory.getLog(DBUtils.class);
     private static DataSource dataSource = null;
+    private static List<String> attributeSharingScopes;
+
+    public static List<String> getAttributeSharingScopes() {
+        return attributeSharingScopes;
+    }
+
+    public static void setAttributeSharingScopes(List<String> attributeSharingScopes) {
+        DBUtils.attributeSharingScopes = attributeSharingScopes;
+    }
 
     /**
      * The m connect datasource.
@@ -363,12 +372,13 @@ public class DBUtils {
         PreparedStatement ps = null;
         ResultSet results = null;
         Boolean isAttributeShareScope = false;
+        attributeSharingScopes = new ArrayList<String>();
         String[] scopeValues = scope.split("\\s+|\\+");
         StringBuilder params = new StringBuilder("?");
         for (int i = 1; i < scopeValues.length; i++) {
             params.append(",?");
         }
-        String sql = "SELECT is_attribute_share_scope FROM `scope_parameter` WHERE scope in (" + params + ")";
+        String sql = "SELECT scope,is_attribute_share_scope FROM `scope_parameter` WHERE scope in (" + params + ")";
 
         if (log.isDebugEnabled()) {
             log.debug("Executing the query " + sql);
@@ -385,11 +395,11 @@ public class DBUtils {
             while (results.next()) {
                 isAttributeShareScope = results.getBoolean("is_attribute_share_scope");
 
-                if(isAttributeShareScope){
-                    break;
+                if (isAttributeShareScope) {
+                    isAttributeShareScope = true;
+                    attributeSharingScopes.add(results.getString("scope"));
                 }
             }
-
         } catch (SQLException e) {
             handleException("Error occurred while getting scope parameters from the database", e);
         } catch (ConfigurationException e) {
