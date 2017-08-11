@@ -230,14 +230,32 @@ public class Endpoints {
                         userStatus,redirectURL);
 
                 //Check IsAttribute Sharing scope available
-                Map<String, String> attributeSharingScopesDetails = DBUtils.getIsAttributeScopes(scopeName);
-                boolean attributeSharingScopes = false;
+                boolean attributeSharingScopes  = DBUtils.getIsAttributeScopes(scopeName);
 
-                for (Map.Entry<String, String> entry : attributeSharingScopesDetails.entrySet()) {
-                    if (entry.getValue().equals("true")) {
-                        attributeSharingScopes = true ;
-                        break;
+                //Check all mandatory scope parameters pass with the request
+                if (attributeSharingScopes) {
+                    List<String> attributeSharingScopeList = DBUtils.getAttributeSharingScopes();
+                    List<String> mandatoryParams = new ArrayList<String>();
+                    mandatoryParams.clear();
+
+                    for (int i = 0; i < attributeSharingScopeList.size(); i++) {
+                        List<String> x = getMandatoryScopeWithRequest(attributeSharingScopeList.get(i));
+                        if (x != null && !x.isEmpty()) {
+                            for (int j = 0; j < x.size(); j++) {
+                                if (!mandatoryParams.contains(x.get(j))) {
+                                    mandatoryParams.add(x.get(j));
+                                }
+                            }
+                        }
                     }
+
+                    if (mandatoryParams != null) {
+                        for (int i = 0; i < mandatoryParams.size(); i++) {
+                            log.info("Nadotory Param Set: " + mandatoryParams.get(i));
+                        }
+                    }
+
+                    //checkMandatoryParams(queryParams,mandatoryParams);
                 }
 
                 String loginhint_msisdn = null;
@@ -825,24 +843,24 @@ public class Endpoints {
         userRegistrationAdminService.addUser(userDTO);
     }
 
-    /**
-     * Get the expected optional scope parameters pass with the request
-     *
-     * @param scopeName
-     * @return
-     */
-    private List<String> getOptionScopeWithRequest(String scopeName) {
-        ScopeDetailsConfig.Scope scopeValue = null;
-        List<ScopeDetailsConfig.Request> requestValue;
-
-        if (scopeMap != null && !scopeMap.isEmpty()) {
-            scopeValue = scopeMap.get(scopeName);
-        }
-
-        requestValue = scopeValue.getRequest();
-        return requestValue.get(1).getOptionalValues();
-    }
-
+//    /**
+//     * Get the expected optional scope parameters pass with the request
+//     *
+//     * @param scopeName
+//     * @return
+//     */
+//    private List<String> getOptionScopeWithRequest(String scopeName) {
+//        ScopeDetailsConfig.Scope scopeValue = null;
+//        List<ScopeDetailsConfig.Request> requestValue;
+//
+//        if (scopeMap != null && !scopeMap.isEmpty()) {
+//            scopeValue = scopeMap.get(scopeName);
+//        }
+//
+//        requestValue = scopeValue.getRequest();
+//        return requestValue.get(1).getOptionalValues();
+//    }
+//
     /**
      * Get the expected mandatory scope parameters pass with the request
      *
@@ -851,14 +869,32 @@ public class Endpoints {
      */
     private List<String> getMandatoryScopeWithRequest(String scopeName) {
         ScopeDetailsConfig.Scope scopeValue = null;
-        List<ScopeDetailsConfig.Request> requestValue;
+        List<String> requestValue;
 
         if (scopeMap != null && !scopeMap.isEmpty()) {
             scopeValue = scopeMap.get(scopeName);
         }
 
-        requestValue = scopeValue.getRequest();
-        return requestValue.get(1).getMandatoryValues();
+        requestValue = scopeValue.getMandatoryValues();
+        return requestValue;
+    }
+
+    /**
+     * Validate whether all requested Mandatory parameters passed with the query params
+     *
+     * @param queryParams
+     * @return
+     */
+    private boolean checkMandatoryParams(MultivaluedMap<String, String> queryParams, List<String> mandatoryParameters) {
+        boolean isAllParamsAvail = true;
+
+        if (queryParams != null && mandatoryParameters != null) {
+            for (int scope = 0; scope < mandatoryParameters.size(); scope++) {
+                if (!queryParams.containsKey(mandatoryParameters))
+                    isAllParamsAvail = false;
+            }
+        }
+        return isAllParamsAvail;
     }
 }
 
