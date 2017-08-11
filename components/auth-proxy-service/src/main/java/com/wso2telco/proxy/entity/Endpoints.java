@@ -249,13 +249,14 @@ public class Endpoints {
                         }
                     }
 
-                    if (mandatoryParams != null) {
-                        for (int i = 0; i < mandatoryParams.size(); i++) {
-                            log.info("Nadotory Param Set: " + mandatoryParams.get(i));
+                    if (queryParams != null && mandatoryParams != null) {
+                        if (!checkMandatoryParams(queryParams, mandatoryParams)) {
+                            String errMsg = "Please Pass all the Mandatory parameters when using Attribute Sharing";
+                            DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.CONFIGURATION_ERROR,
+                                    errMsg);
+                            throw new ConfigurationException(errMsg);
                         }
                     }
-
-                    //checkMandatoryParams(queryParams,mandatoryParams);
                 }
 
                 String loginhint_msisdn = null;
@@ -861,6 +862,7 @@ public class Endpoints {
 //        return requestValue.get(1).getOptionalValues();
 //    }
 //
+
     /**
      * Get the expected mandatory scope parameters pass with the request
      *
@@ -883,16 +885,15 @@ public class Endpoints {
      * Validate whether all requested Mandatory parameters passed with the query params
      *
      * @param queryParams
+     * @param mandatoryParameters
      * @return
      */
     private boolean checkMandatoryParams(MultivaluedMap<String, String> queryParams, List<String> mandatoryParameters) {
         boolean isAllParamsAvail = true;
 
-        if (queryParams != null && mandatoryParameters != null) {
-            for (int scope = 0; scope < mandatoryParameters.size(); scope++) {
-                if (!queryParams.containsKey(mandatoryParameters))
-                    isAllParamsAvail = false;
-            }
+        for (int scope = 0; scope < mandatoryParameters.size(); scope++) {
+            if (!queryParams.containsKey(mandatoryParameters.get(scope)))
+                isAllParamsAvail = false;
         }
         return isAllParamsAvail;
     }
