@@ -270,14 +270,6 @@ public class Endpoints {
                                 }
                             }
                         }
-
-                        if (mandatoryParams != null) {
-                            for (int i = 0; i < mandatoryParams.size(); i++) {
-                                log.info("Nadotory Param Set: " + mandatoryParams.get(i));
-                            }
-                        }
-
-                        //checkMandatoryParams(queryParams,mandatoryParams);
                     }
 
                     //Validate with Scope wise parameters and throw exceptions
@@ -942,16 +934,15 @@ public class Endpoints {
      * Validate whether all requested Mandatory parameters passed with the query params
      *
      * @param queryParams
+     * @param mandatoryParameters
      * @return
      */
     private boolean checkMandatoryParams(MultivaluedMap<String, String> queryParams, List<String> mandatoryParameters) {
         boolean isAllParamsAvail = true;
 
-        if (queryParams != null && mandatoryParameters != null) {
-            for (int scope = 0; scope < mandatoryParameters.size(); scope++) {
-                if (!queryParams.containsKey(mandatoryParameters))
-                    isAllParamsAvail = false;
-            }
+        for (int scope = 0; scope < mandatoryParameters.size(); scope++) {
+            if (!queryParams.containsKey(mandatoryParameters.get(scope)))
+                isAllParamsAvail = false;
         }
         return isAllParamsAvail;
     }
