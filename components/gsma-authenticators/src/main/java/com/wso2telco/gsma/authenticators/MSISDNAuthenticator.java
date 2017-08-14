@@ -65,6 +65,10 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
      */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
+    private static final String STATUS_ACTIVE = "ACTIVE";
+
+    private static final String STATUS_PARTIALLY_ACTIVE = "PARTIALLY_ACTIVE";
+
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
      * .servlet.http.HttpServletRequest)
@@ -182,10 +186,14 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 msisdn = request.getParameter(Constants.MSISDN);
                 context.setProperty(Constants.MSISDN, msisdn);
                 boolean isUserExists = false;
+                boolean isConvertToActive = false;
 
                 if (AdminServiceUtil.isUserExists(msisdn)) {
-                    if (AdminServiceUtil.getUserStatus(msisdn)!=null & AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(Constants.ACTIVE)) {
+                    if (AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(STATUS_ACTIVE) || AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(STATUS_PARTIALLY_ACTIVE)) {
                         isUserExists = true;
+                        if((AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(STATUS_PARTIALLY_ACTIVE))&&((Boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE))){
+                            isConvertToActive = true;
+                        }
                     }
                 }
                 context.setProperty(Constants.IS_REGISTERING, !isUserExists);
