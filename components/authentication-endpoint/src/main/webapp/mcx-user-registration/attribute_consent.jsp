@@ -188,7 +188,7 @@
                            </a>
                        </c:when> 
                        <c:otherwise>
-                           <a id="approve-btn" class="btn btn--full btn--white btn--fill btn--large btn--color" href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=approve">
+                           <a id="approve-btn" class="btn btn--full btn--white btn--fill btn--large btn--color" href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=ok">
                               Approve
                            </a>
                        </c:otherwise>

@@ -17,8 +17,8 @@
 package com.wso2telco.gsma.authenticators.attributeShare;
 
 import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.authenticators.dao.SpconfigDAO;
-import com.wso2telco.gsma.authenticators.dao.impl.SpconfigDAOimpl;
+import com.wso2telco.gsma.authenticators.dao.AttributeConfigDAO;
+import com.wso2telco.gsma.authenticators.dao.impl.AttributeConfigDAOimpl;
 import com.wso2telco.gsma.authenticators.attributeShare.internal.SPType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -27,11 +27,16 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import javax.naming.NamingException;
 import java.sql.SQLException;
 
-/*This factory description*/
+/*This factory class created because the user consent mechanism can be vary with the SP type.
+* TSP1 consent mechanisms not included yet.
+* Currently created one object for both TSP2 and Normal because it seems same same functionality.
+* In future these funcionality can be changed
+*/
 public class AttributeShareFactory {
 
     private static Log log = LogFactory.getLog(AttributeShareFactory.class);
     static ConsentedSP consentedSP;
+    static TrustedSP trustedSP;
 
     public static AttributeSharable getAttributeSharable(String operator, String clientID) throws Exception {
 
@@ -40,15 +45,19 @@ public class AttributeShareFactory {
         String spType;
         try {
 
-            SpconfigDAO spconfigDAO = new SpconfigDAOimpl();
-            spType = spconfigDAO.getSPConfigValue(operator, clientID, Constants.SP_TYPE);
-
+            AttributeConfigDAO attributeConfigDAO = new AttributeConfigDAOimpl();
+            spType = attributeConfigDAO.getSPConfigValue(operator, clientID, Constants.SP_TYPE);
 
             if (spType != null && (spType.equalsIgnoreCase(SPType.TSP2.name()) || spType.equalsIgnoreCase(SPType.NORMAL.name()))) {
                 if (consentedSP == null) {
                     consentedSP = new ConsentedSP();
                 }
                 attributeSharable = consentedSP;
+
+            } if(spType != null && (spType.equalsIgnoreCase(SPType.TSP1.name()))){
+                if (trustedSP == null) {
+                    trustedSP = new TrustedSP();
+                }
             }
 
         } catch (SQLException e) {
