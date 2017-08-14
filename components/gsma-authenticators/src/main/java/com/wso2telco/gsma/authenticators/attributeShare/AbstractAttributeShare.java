@@ -1,13 +1,13 @@
 package com.wso2telco.gsma.authenticators.attributeShare;
 
+import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtil;
 import com.wso2telco.gsma.authenticators.attributeShare.internal.ConsentType;
 import com.wso2telco.gsma.authenticators.attributeShare.internal.UserConsentStatus;
 import com.wso2telco.gsma.authenticators.attributeShare.internal.ValidityType;
-import com.wso2telco.gsma.authenticators.dao.SpconfigDAO;
-import com.wso2telco.gsma.authenticators.dao.impl.SpconfigDAOimpl;
-import com.wso2telco.gsma.authenticators.model.SPConsent;
+import com.wso2telco.gsma.authenticators.dao.AttributeConfigDAO;
+import com.wso2telco.gsma.authenticators.dao.impl.AttributeConfigDAOimpl;
 import com.wso2telco.gsma.authenticators.model.UserConsentDetails;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,17 +33,17 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
         List<String> implicitScopes = new ArrayList();
         Map<String,List<String>> scopesList= new HashMap();
 
-        String[] scopes = context.getProperty(Constants.SCOPE).toString().split("\\s+");
+        AttributeConfigDAO attributeConfigDAO = new AttributeConfigDAOimpl();
+        List<ScopeParam>  scopeParamList = attributeConfigDAO.getScopeParams(context.getProperty(Constants.TELCO_SCOPE).toString());
 
-        for(String scope:scopes){
+        for (ScopeParam scopeParam: scopeParamList){
+            String consentType= scopeParam.getConsentType();
+            String validityType = scopeParam.getConsent_validity_type();
+            String scope = scopeParam.getScope();
 
-            SPConsent spConsent = getConsentType(context);
-            String consentType= spConsent.getConsentType();
-            String validityType = spConsent.getValidityType();
-
-            if(consentType.equalsIgnoreCase(ConsentType.EXPLICIT.name()) && isValidited(context, validityType)) {
+            if(consentType.equalsIgnoreCase(ConsentType.EXPLICIT.name()) && isValidited(context, validityType,scope)) {
                 explicitScopes.add(scope);
-            } else if (consentType.equalsIgnoreCase(ConsentType.IMPLICIT.name()) && isValidited(context,validityType))
+            } else if (consentType.equalsIgnoreCase(ConsentType.IMPLICIT.name()) && isValidited(context,validityType,scope))
                 implicitScopes.add(scope);
 
         }
@@ -52,35 +52,21 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
         scopesList.put("implicitScopes",implicitScopes);
 
         return scopesList;
-    }
+        }
 
-
-    private SPConsent getConsentType(AuthenticationContext context) throws Exception {
-
-
-        SpconfigDAO spconfigDAO = new SpconfigDAOimpl();
-
-        SPConsent spConsent = new SPConsent();
-        spConsent.setOperatorID((DBUtil.getOperatorDetails(context.getProperty(Constants.OPERATOR).toString())).getOperatorId());
-        spConsent.setConsumerKey(context.getProperty(Constants.CLIENT_ID).toString());
-        spConsent.setScope(context.getProperty(Constants.SCOPE).toString());
-        spConsent = spconfigDAO.getSpConsentDetails(spConsent);
-
-        return spConsent;
-    }
 
     private UserConsentDetails getUserConsentDetails(AuthenticationContext context) throws Exception {
-        SpconfigDAO spconfigDAO = new SpconfigDAOimpl();
+        AttributeConfigDAO attributeConfigDAO = new AttributeConfigDAOimpl();
         UserConsentDetails userConsentDetails = new UserConsentDetails();
         userConsentDetails.setConsumerKey(context.getProperty(Constants.CLIENT_ID).toString());
         userConsentDetails.setOperatorID((DBUtil.getOperatorDetails(context.getProperty(Constants.OPERATOR).toString())).getOperatorId());
-        userConsentDetails.setScope(context.getProperty(Constants.SCOPE).toString());
+        userConsentDetails.setScope(context.getProperty(Constants.TELCO_SCOPE).toString());
         userConsentDetails.setMsisdn(context.getProperty(Constants.MSISDN).toString());
-        return spconfigDAO.getUserConsentDetails(userConsentDetails);
+        return attributeConfigDAO.getUserConsentDetails(userConsentDetails);
 
     }
 
-    private boolean isValidited(AuthenticationContext context, String validityTyp) throws Exception {
+    private boolean isValidited(AuthenticationContext context, String validityTyp,String scope) throws Exception {
 
         ValidityType validityType = ValidityType.get(validityTyp);
         switch (validityType) {
@@ -88,7 +74,7 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
                 return true;
 
             case LONG_LIVE:
-                return isLongLiveConsent(context);
+                return isLongLiveConsent(context,scope);
 
             default:
                 break;
@@ -98,24 +84,40 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
         return false;
     }
 
-    private boolean isLongLiveConsent(AuthenticationContext context) throws Exception {
+    private boolean isLongLiveConsent(AuthenticationContext context,String scope) throws Exception {
 
         boolean isConsent=false;
 
-        try {
 
+        try {
+            List<String> longlivedScopes = new ArrayList();
             UserConsentDetails userConsentDetails = getUserConsentDetails(context);
-            if (userConsentDetails.getRevokeStatus().equalsIgnoreCase(UserConsentStatus.ACTIVE.name())) {
-                Date today = new Date();
-                DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+            if(userConsentDetails == null){
+                isConsent = true;
+                longlivedScopes.add(scope);
+
+            } else {
+
+                if (userConsentDetails.getRevokeStatus().equalsIgnoreCase(UserConsentStatus.ACTIVE.name())) {
+                    Date today = new Date();
+                    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
                     if (today.after(dateFormat.parse(userConsentDetails.getConsentExpireDatetime()))) {
                         isConsent= true;
+                        longlivedScopes.add(scope);
                     }
 
-            } else if (userConsentDetails.getRevokeStatus().equalsIgnoreCase(UserConsentStatus.REVOKED.name())) {
-                isConsent= true;
+                } else if (userConsentDetails.getRevokeStatus().equalsIgnoreCase(UserConsentStatus.REVOKED.name())) {
+                    isConsent= true;
+                    longlivedScopes.add(scope);
+                }
+
             }
+
+            if(!longlivedScopes.isEmpty()){
+                context.setProperty("longlivedScopes",longlivedScopes.toArray());
+            }
+
         } catch (SQLException e) {
             log.debug("error occurred while accessing the database table" + e);
 

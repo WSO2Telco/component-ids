@@ -9,7 +9,7 @@ public class SPConsent {
 
     private int operatorID;
 
-    private String scope;
+    private int scopeId;
 
     private int expPeriod;
 
@@ -34,12 +34,12 @@ public class SPConsent {
         this.operatorID = operatorID;
     }
 
-    public String getScope() {
-        return scope;
+    public int getScope() {
+        return scopeId;
     }
 
-    public void setScope(String scope) {
-        this.scope = scope;
+    public void setScope(int scope) {
+        this.scopeId = scope;
     }
 
     public int getExpPeriod() {

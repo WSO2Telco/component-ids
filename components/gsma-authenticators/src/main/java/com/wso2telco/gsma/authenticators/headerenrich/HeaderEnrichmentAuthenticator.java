@@ -25,6 +25,7 @@ import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.IPRangeChecker;
 import com.wso2telco.gsma.authenticators.attributeShare.AttributeShareFactory;
+import com.wso2telco.gsma.authenticators.attributeShare.ConsentedSP;
 import com.wso2telco.gsma.authenticators.util.*;
 import com.wso2telco.gsma.manager.client.ClaimManagementClient;
 import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
@@ -296,16 +297,19 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         try {
 
-          boolean  isattribute=true;  //context.getProperty("isAttributeShare")
+            boolean isattribute = true;  //context.getProperty("isAttributeShare")
             if (isattribute) {
 
-                Map<String, List<String>> attributeset = AttributeShareFactory.getAttributeSharable(operator, context.getProperty(Constants.CLIENT_ID).toString()).getAttributeMap(context);
+                Map<String, List<String>> attributeset = AttributeShareFactory.getAttributeSharable(operator, context
+                        .getProperty(Constants.CLIENT_ID).toString()).getAttributeMap(context);
 
                 String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
                 if (!attributeset.get("explicitScopes").isEmpty()) {
                     String displayScopes = Arrays.toString(attributeset.get("explicitScopes").toArray());
-                    response.sendRedirect("/authenticationendpoint/attributeconsent.do?" + OAuthConstants.SESSION_DATA_KEY_CONSENT + "="
-                            + context.getContextIdentifier() + "&skipConsent=true&scope=" + displayScopes + "&registering=" + false);
+                    response.sendRedirect("/authenticationendpoint/attributeconsent.do?" + OAuthConstants
+                            .SESSION_DATA_KEY_CONSENT + "="
+                            + context.getContextIdentifier() + "&skipConsent=true&scope=" + displayScopes +
+                            "&registering=" + false);
                 }
 
             }
@@ -408,6 +412,14 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                         if (!smsConfig.getWelcomeMessageDisabled()) {
                             WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
                         }
+                        if (isAttributeScope && context.getProperty("longlivedScopes").toString() != null) {
+                            //ToDO
+                            //01.get longlived scopes and scope's exp_period one by one
+                            //02.calculate the expiration time for each scopes
+                            //03.insert records into user_consent table
+                            ConsentedSP.PersistConsentedScopeDetails(context);
+
+                        }
 
                     } catch (RemoteException | UserRegistrationAdminServiceIdentityException e) {
                         DataPublisherUtil.updateAndPublishUserStatus(userStatus,
@@ -438,6 +450,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                             e.getMessage());
             actionBasedOnHEFailureResult(context);
             throw e;
+        } catch (Exception e) {
+            log.debug("this message should be changed");
         }
 
         log.info("Authentication success");

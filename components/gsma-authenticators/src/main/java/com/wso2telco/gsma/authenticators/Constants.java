@@ -437,7 +437,7 @@ public final class Constants {
 
     public static final String EXP_PERIOD= "exp_period" ;
 
-    public static final String CONSENT_VALITITY_TYPE= "consent_valitity_type" ;
+    public static final String TELCO_SCOPE = "telco_scope";
 
     public static final String CONSENT_TYPE = "consent_type";
 

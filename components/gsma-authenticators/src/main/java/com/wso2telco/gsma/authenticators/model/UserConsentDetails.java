@@ -19,6 +19,8 @@ public class UserConsentDetails {
 
     private String consentExpireDatetime;
     private String consentRevokeDatetime;
+    private String consent_date;
+    private String consent_status;
 
     public String getMsisdn() {
         return msisdn;
@@ -74,5 +76,21 @@ public class UserConsentDetails {
 
     public void setConsentRevokeDatetime(String consentRevokeDatetime) {
         this.consentRevokeDatetime = consentRevokeDatetime;
+    }
+
+    public String getConsent_date() {
+        return consent_date;
+    }
+
+    public void setConsent_date(String consent_date) {
+        this.consent_date = consent_date;
+    }
+
+    public String getConsent_status() {
+        return consent_status;
+    }
+
+    public void setConsent_status(String consent_status) {
+        this.consent_status = consent_status;
     }
 }
