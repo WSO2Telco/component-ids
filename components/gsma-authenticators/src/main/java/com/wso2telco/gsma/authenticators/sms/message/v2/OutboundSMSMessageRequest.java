@@ -13,36 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.gsma.authenticators.sms;
+package com.wso2telco.gsma.authenticators.sms.message.v2;
 
-// TODO: Auto-generated Javadoc
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * The Class OutboundSMSTextMessage.
+ * The Class OutboundSMSMessageRequest.
  */
-public class OutboundSMSTextMessage {
+public class OutboundSMSMessageRequest extends
+        com.wso2telco.gsma.authenticators.sms.message.v1.OutboundSMSMessageRequest {
+
 
     /**
-     * The message.
+     * The sender address.
      */
-    private String message;
+    private List<SenderAddress> senderAddresses = new ArrayList<>();
+
 
     /**
-     * Gets the message.
+     * Instantiates a new outbound sms message request.
+     */
+    public OutboundSMSMessageRequest() {
+    }
+
+
+    /**
+     * Gets the senderAddresses.
      *
-     * @return the message
+     * @return the senderAddresses
      */
-    public String getMessage() {
-        return message;
+    public List<SenderAddress> getSenderAddresses() {
+        return senderAddresses;
     }
 
     /**
-     * Sets the message.
+     * Sets the senderAddresses.
      *
-     * @param message the new message
+     * @param senderAddresses the new senderAddresses
      */
-    public void setMessage(String message) {
-        this.message = message;
+    public void setSenderAddresses(List<SenderAddress> senderAddresses) {
+        this.senderAddresses = senderAddresses;
     }
-
 }
