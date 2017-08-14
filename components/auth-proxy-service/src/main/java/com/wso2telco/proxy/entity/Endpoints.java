@@ -199,7 +199,7 @@ public class Endpoints {
                         }
                     }
                 }
-                ipAddress = getIpAddress(httpHeaders, operatorName);
+                ipAddress = getIpAddress(httpHeaders,httpServletRequest, operatorName);
 
                 //Validate with Scope wise parameters and throw exceptions
                 ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo,
@@ -603,8 +603,9 @@ public class Endpoints {
         return msisdn;
     }
 
-    private String getIpAddress(HttpHeaders httpHeaders, String operatorName) {
+    private String getIpAddress(HttpHeaders httpHeaders,HttpServletRequest httpServletRequest, String operatorName) {
         String ipAddress = null;
+        boolean isOverrideIpHeader = mobileConnectConfigs.getHEADERENRICH().isOverrideIpheader();
         MobileConnectConfig.OPERATOR operatorProperties = operatorPropertiesMap.get(operatorName);
         String ipHeaderName = mobileConnectConfigs.getHEADERENRICH().getIPHeaderName();
         if (StringUtils.isNotEmpty(ipHeaderName) && operatorProperties != null) {
@@ -613,9 +614,16 @@ public class Endpoints {
                 if (httpHeaders.getRequestHeader(ipHeaderName) != null) {
                     ipAddress = httpHeaders.getRequestHeader(ipHeaderName).get(0);
                 }
+                ipAddress = ( ((ipAddress == null) || isOverrideIpHeader )  ? captureIpFallbackRemoteHost(httpServletRequest) : ipAddress);
             }
         }
         return ipAddress;
+    }
+
+    private String captureIpFallbackRemoteHost(HttpServletRequest httpServletRequest){
+    	String remoteIpAddress = null;
+    	remoteIpAddress = httpServletRequest.getRemoteAddr();
+    	return remoteIpAddress;
     }
 
     private String constructRedirectUrl(RedirectUrlInfo redirectUrlInfo, UserStatus userStatus) throws
