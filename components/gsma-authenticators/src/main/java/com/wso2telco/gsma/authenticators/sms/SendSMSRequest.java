@@ -15,6 +15,8 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.sms;
 
+import com.wso2telco.gsma.authenticators.sms.message.v1.OutboundSMSMessageRequest;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 // TODO: Auto-generated Javadoc
