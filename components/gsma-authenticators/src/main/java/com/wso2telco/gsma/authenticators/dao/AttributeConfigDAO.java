@@ -4,6 +4,7 @@ import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.gsma.authenticators.model.SPConsent;
 import com.wso2telco.gsma.authenticators.model.UserConsentDetails;
 import com.wso2telco.gsma.authenticators.model.UserConsentHistory;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import javax.naming.NamingException;
 import java.sql.SQLException;
@@ -14,7 +15,7 @@ import java.util.List;
  */
 public interface AttributeConfigDAO {
 
-    List<SPConsent> getScopeExprieTime(String operator, String consumerKey, String scopes) throws SQLException, NamingException;
+    List<SPConsent> getScopeExprieTime(String operator, String consumerKey, String scope) throws SQLException, NamingException;
 
     UserConsentDetails getUserConsentDetails(UserConsentDetails userConsentDetails) throws SQLException, NamingException;
 

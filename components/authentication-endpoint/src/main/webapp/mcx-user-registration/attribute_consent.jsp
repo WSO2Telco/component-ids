@@ -97,8 +97,8 @@
         String termsConditionsPath = "";
         String scopes = request.getParameter("scope");
         String scopesMinBracket = scopes.substring( 1, scopes.length() - 1);
-        String[] api_Scopes = scopesMinBracket.split( ", ");
-        pageContext.setAttribute("apiScopes", api_Scopes, pageContext.PAGE_SCOPE);
+        String[] attribute_Scopes = scopesMinBracket.split( ", ");
+        pageContext.setAttribute("attributeScopes", attribute_Scopes, pageContext.PAGE_SCOPE);
         if (operator != "") {
             imgPath = "mcx-user-registration/images/branding/" + operator + "_logo.svg";
             termsConditionsPath = "html/terms-conditions/" + operator + "-terms-conditions.html";
@@ -132,7 +132,7 @@
                  </div>
                  <div class="grid__item three-quarters">
                     <h2 class="page__heading"><%=spName%></h2>
-                    <p>You are granting <b><%=spName%></b> the rights to access following API data:</p>
+                    <p>You are granting <b><%=spName%></b> the rights to access following attribute data:</p>
                  </div>
         </div>
    
@@ -146,9 +146,9 @@
         
 <div class="grid">
   <ul class="list-group" id="list-group-accordion">
-      <c:forEach var="scope" items="${pageScope.apiScopes}">
+      <c:forEach var="scope" items="${pageScope.attributeScopes}">
                <li class="list-group-item">
-                   <p class="list-group-heading" data-toggle="collapse" data-target="#<c:out value="${scope}"/>" data-parent="#list-group-accordion">  <img src="mcx-user-registration/mcresources/img/privacy-list.jpg" alt="App logo"> Accessing <c:out value="${scope}"/> API<i class="fa fa-chevron-right pull-right"></i></p>
+                   <p class="list-group-heading" data-toggle="collapse" data-target="#<c:out value="${scope}"/>" data-parent="#list-group-accordion">  <img src="mcx-user-registration/mcresources/img/privacy-list.jpg" alt="App logo"><c:out value="${scope}"/></p>
 
                </li>
       </c:forEach>

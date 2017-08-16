@@ -12,6 +12,7 @@ import com.wso2telco.gsma.authenticators.model.UserConsentHistory;
 import com.wso2telco.gsma.authenticators.util.TableName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import javax.naming.ConfigurationException;
@@ -82,14 +83,14 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
         throw new SQLException("Connect Datasource not initialized properly");
     }
 
-    public List<SPConsent> getScopeExprieTime(String operator, String consumerKey, String scopes)
+    public List<SPConsent> getScopeExprieTime(String operator, String consumerKey, String scope)
             throws SQLException, NamingException {
 
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
 
-        String[] scopeValues = scopes.split("\\s+|\\+");
+        String[] scopeValues =(scope.toString().substring(1,scope.toString().length()-1)).split(",") ;
 
         StringBuilder params = new StringBuilder("(select param_id from scope_parameter where scope= ?)");
         for (int i = 1; i < scopeValues.length; i++) {
@@ -114,7 +115,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
             preparedStatement.setInt(1, 1);
             preparedStatement.setString(2, consumerKey);
             for (int i = 0; i < scopeValues.length; i++) {
-                preparedStatement.setString(i + 3, scopeValues[i]);
+                preparedStatement.setString(i + 3, scopeValues[i].trim());
             }
 
 
@@ -248,10 +249,10 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
 
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("INSERT INTO ");
-        sqlBuilder.append(TableName.CONSENT_HISTORY + "usercon");
-        sqlBuilder.append("msisdn,client_id,scope_id,operator_id,consent_date,consent_expire_time,consent_revoked_time,consent_status");
+        sqlBuilder.append(TableName.CONSENT_HISTORY + " (");
+        sqlBuilder.append("msisdn,client_id,scope_id,operator_id,consent_date,consent_expire_time,consent_status )");
         sqlBuilder.append("VALUES ");
-        sqlBuilder.append("?,?,?,?,?,?,?,? ");
+        sqlBuilder.append("( ?,?,?,?,?,?,? )");
 
 
         try {
@@ -265,8 +266,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
                 preparedStatement.setInt(4, userConsentHistory1.getOperator_id());
                 preparedStatement.setString(5, userConsentHistory1.getConsent_date());
                 preparedStatement.setString(6, userConsentHistory1.getConsent_expire_time());
-                preparedStatement.setString(7, userConsentHistory1.getConsent_revoked_time());
-                preparedStatement.setString(8, userConsentHistory1.getConsent_status());
+                preparedStatement.setString(7, userConsentHistory1.getConsent_status());
                 preparedStatement.addBatch();
             }
 
