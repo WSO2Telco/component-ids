@@ -21,21 +21,26 @@
 		<author email="core-product-tech@wso2telco.com">Core Team</author>		
 	</properties>
 	<body>
-		<release version="1.0.0" date="2016-02-03" description="First release">
-			<action dev="Yasith Lokuge" type="add" issue="PRODEV-8">
-               OSGI Feature released for Session Updater artifact.
+        <release version="1.0.0" date="2016-02-03" description="First release">
+            <action dev="Yasith Lokuge" type="add" issue="PRODEV-8">
+                OSGI Feature released for Session Updater artifact.
             </action>
-		</release>
+        </release>
 
-    <release version="1.0.0" date="2016-02-09" description="First release">
-      <action dev="Wishmika" type="add" issue="PRODEV-136">
-               Session updater not bundling problem fixed
+        <release version="1.0.0" date="2016-02-09" description="First release">
+            <action dev="Wishmika" type="add" issue="PRODEV-136">
+                Session updater not bundling problem fixed
             </action>
-    </release>
-    <release version="2.0.13_0002" date="2016-07-01" description="bug fix">
+        </release>
+        <release version="2.0.13_0002" date="2016-07-01" description="bug fix">
             <action dev="Nilan" type="bug" issue="IDSDEV-36">
                 Failure in USSD Abort scenario
             </action>
-     </release>
+        </release>
+        <release version="2.1.0_10003" date="2017-08-16" description="bug fix">
+            <action dev="Nilan" type="bug" issue="IDSDEV-690">
+                LOA 3 Pin reset flow last USSD message error
+            </action>
+        </release>
     </body>
 </document>
