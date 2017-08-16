@@ -25,6 +25,7 @@ import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.ReceiptRequest;
 import com.wso2telco.gsma.authenticators.sms.message.OutboundSMSTextMessage;
 import com.wso2telco.gsma.authenticators.sms.message.v1.OutboundSMSMessageRequest;
+import com.wso2telco.gsma.authenticators.sms.message.v1.SendSMSRequest;
 import com.wso2telco.gsma.authenticators.sms.message.v2.SenderAddress;
 import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
 import org.apache.http.client.HttpClient;
@@ -87,6 +88,7 @@ public class SendSMS {
 
         OutboundSMSMessageRequest outbound = new OutboundSMSMessageRequest();
         String smsversion=smsConfig.getSMSMessageVersion();
+
         if(smsversion!=null && smsversion.equalsIgnoreCase("V2")){
             com.wso2telco.gsma.authenticators.sms.message.v2.OutboundSMSMessageRequest outboundv2 = new com.wso2telco.gsma.authenticators.sms.message.v2.OutboundSMSMessageRequest();
 
@@ -106,7 +108,12 @@ public class SendSMS {
             }
             if(!senderAddresses.isEmpty()) {
                 outboundv2.setSenderAddresses(senderAddresses);
-                outbound = outboundv2;
+                outboundv2.setReceiptRequest(receipt);
+                outboundv2.setOutboundTextMessage(messageObj);
+                outboundv2.setAddress(address);
+                com.wso2telco.gsma.authenticators.sms.message.v2.SendSMSRequest req = new com.wso2telco.gsma.authenticators.sms.message.v2.SendSMSRequest();
+                req.setOutboundSMSMessageRequest(outboundv2);
+                returnString = new GsonBuilder().serializeNulls().create().toJson(req);
             }else{
                 throw new AuthenticationFailedException("SMS Authentication failed, operator mapping invalid to send SMS");
             }
@@ -114,19 +121,13 @@ public class SendSMS {
             String senderAddress = smsConfig.getSenderAddress();
             senderAddress = senderAddress.trim() == null ? "26451" : senderAddress.trim();
             outbound.setSenderAddress(senderAddress);
+            outbound.setReceiptRequest(receipt);
+            outbound.setOutboundTextMessage(messageObj);
+            outbound.setAddress(address);
+            SendSMSRequest req = new SendSMSRequest();
+            req.setOutboundSMSMessageRequest(outbound);
+            returnString = new GsonBuilder().serializeNulls().create().toJson(req);
         }
-
-        outbound.setReceiptRequest(receipt);
-        outbound.setOutboundTextMessage(messageObj);
-        outbound.setAddress(address);
-
-        SendSMSRequest req = new SendSMSRequest();
-
-        req.setOutboundSMSMessageRequest(outbound);
-
-        Gson gson = new GsonBuilder().serializeNulls().create();
-
-        returnString = gson.toJson(req);
 
         postRequest(smsConfig.getEndpoint(), returnString, operator, futureCallback);
 
