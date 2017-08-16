@@ -27,32 +27,39 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
 
     private static Log log = LogFactory.getLog(AbstractAttributeShare.class);
 
-    public Map<String,List<String>> getAttributeMap(AuthenticationContext context) throws Exception {
+    public Map<String, List<String>> getAttributeMap(AuthenticationContext context) throws Exception {
 
         List<String> explicitScopes = new ArrayList();
         List<String> implicitScopes = new ArrayList();
-        Map<String,List<String>> scopesList= new HashMap();
+        Map<String, List<String>> scopesList = new HashMap();
+        List<String> longlivedScopes = new ArrayList();
 
         AttributeConfigDAO attributeConfigDAO = new AttributeConfigDAOimpl();
-        List<ScopeParam>  scopeParamList = attributeConfigDAO.getScopeParams(context.getProperty(Constants.TELCO_SCOPE).toString());
+        List<ScopeParam> scopeParamList = attributeConfigDAO.getScopeParams(context.getProperty(Constants.TELCO_SCOPE).toString());
 
-        for (ScopeParam scopeParam: scopeParamList){
-            String consentType= scopeParam.getConsentType();
+        for (ScopeParam scopeParam : scopeParamList) {
+            String consentType = scopeParam.getConsentType();
             String validityType = scopeParam.getConsent_validity_type();
             String scope = scopeParam.getScope();
+            Map<String, String> valityMap = getValiditeProcess(context, validityType, scope);
 
-            if(consentType.equalsIgnoreCase(ConsentType.EXPLICIT.name()) && isValidited(context, validityType,scope)) {
+            if (consentType.equalsIgnoreCase(ConsentType.EXPLICIT.name()) && "true".equalsIgnoreCase(valityMap.get("isConsent"))) {
                 explicitScopes.add(scope);
-            } else if (consentType.equalsIgnoreCase(ConsentType.IMPLICIT.name()) && isValidited(context,validityType,scope))
+                if (valityMap.get("validityType").equalsIgnoreCase(ValidityType.LONG_LIVE.name())) {
+                    longlivedScopes.add(scope);
+                }
+
+            } else if (consentType.equalsIgnoreCase(ConsentType.IMPLICIT.name()) && "true".equalsIgnoreCase(valityMap.get("isConsent")))
                 implicitScopes.add(scope);
 
         }
-
-        scopesList.put("explicitScopes",explicitScopes);
-        scopesList.put("implicitScopes",implicitScopes);
-
-        return scopesList;
+        scopesList.put("explicitScopes", explicitScopes);
+        scopesList.put("implicitScopes", implicitScopes);
+        if (!longlivedScopes.isEmpty()) {
+            context.setProperty("longlivedScopes", longlivedScopes.toString());
         }
+        return scopesList;
+    }
 
 
     private UserConsentDetails getUserConsentDetails(AuthenticationContext context) throws Exception {
@@ -66,35 +73,47 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
 
     }
 
-    private boolean isValidited(AuthenticationContext context, String validityTyp,String scope) throws Exception {
+    private Map<String, String> getValiditeProcess(AuthenticationContext context, String validityTyp, String scope) throws Exception {
 
         ValidityType validityType = ValidityType.get(validityTyp);
+        Map<String, String> valityMap = new HashMap();
         switch (validityType) {
+
             case TRANSACTIONAL:
-                return true;
+                valityMap.put("validityType", ValidityType.TRANSACTIONAL.name());
+                valityMap.put("isConsent", "true");
+                return valityMap;
 
             case LONG_LIVE:
-                return isLongLiveConsent(context,scope);
+
+                valityMap.put("validityType", ValidityType.LONG_LIVE.name());
+                if (isLongLiveConsent(context, scope)) {
+                    valityMap.put("isConsent", "true");
+                } else {
+                    valityMap.put("isConsent", "false");
+                }
+                return valityMap;
 
             default:
-                break;
+                valityMap.put("validityType", ValidityType.UNDEFINED.name());
+                valityMap.put("isConsent", "false");
+                return valityMap;
+
 
         }
 
-        return false;
     }
 
-    private boolean isLongLiveConsent(AuthenticationContext context,String scope) throws Exception {
+    private boolean isLongLiveConsent(AuthenticationContext context, String scope) throws Exception {
 
-        boolean isConsent=false;
+        boolean isConsent = false;
 
 
         try {
-            List<String> longlivedScopes = new ArrayList();
+
             UserConsentDetails userConsentDetails = getUserConsentDetails(context);
-            if(userConsentDetails == null){
+            if (userConsentDetails == null) {
                 isConsent = true;
-                longlivedScopes.add(scope);
 
             } else {
 
@@ -103,20 +122,15 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
                     DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
                     if (today.after(dateFormat.parse(userConsentDetails.getConsentExpireDatetime()))) {
-                        isConsent= true;
-                        longlivedScopes.add(scope);
+                        isConsent = true;
                     }
 
                 } else if (userConsentDetails.getRevokeStatus().equalsIgnoreCase(UserConsentStatus.REVOKED.name())) {
-                    isConsent= true;
-                    longlivedScopes.add(scope);
+                    isConsent = true;
                 }
 
             }
 
-            if(!longlivedScopes.isEmpty()){
-                context.setProperty("longlivedScopes",longlivedScopes.toArray());
-            }
 
         } catch (SQLException e) {
             log.debug("error occurred while accessing the database table" + e);

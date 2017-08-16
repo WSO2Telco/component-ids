@@ -24,7 +24,7 @@ public class ConsentedSP extends AbstractAttributeShare {
        return super.getAttributeMap(context);
     }
 
-    public static void PersistConsentedScopeDetails(AuthenticationContext context) throws Exception {
+    public static void persistConsentedScopeDetails(AuthenticationContext context) throws Exception {
 
         AttributeConfigDAO attributeConfigDAO = new AttributeConfigDAOimpl();
 
@@ -36,7 +36,7 @@ public class ConsentedSP extends AbstractAttributeShare {
         List<UserConsentHistory> userConsentHistoryList = new ArrayList();
 
         for(SPConsent spConsent: spConsentDetailsList){
-            DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             Date today = new Date();
 
             Calendar calendar = Calendar.getInstance();
@@ -51,6 +51,7 @@ public class ConsentedSP extends AbstractAttributeShare {
             userConsentHistory.setScope_id(spConsent.getScope());
             userConsentHistory.setConsent_expire_time(dateFormat.format(calendar.getTime()));
             userConsentHistory.setConsent_status(UserConsentHistory.CONSENT_STATUS_TYPES.ACTIVE.name());
+
             userConsentHistoryList.add(userConsentHistory);
         }
         attributeConfigDAO.saveUserConsentedAttributes(userConsentHistoryList);
