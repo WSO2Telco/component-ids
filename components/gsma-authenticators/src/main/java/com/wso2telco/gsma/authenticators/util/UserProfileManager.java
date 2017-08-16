@@ -545,22 +545,17 @@ public class UserProfileManager {
             }
     }
 
-    private void updateUserStatus(String userStatus,String userName,String statusToBeUpdate){
+    private void updateUserStatus(String userStatus, String userName, String statusToBeUpdate) {
         try {
-            switch (userStatus) {
-                case STATUS_INACTIVE:
-                    remoteUserStoreServiceAdminClient.setUserClaim(userName, STATUS_CLAIM_NAME, statusToBeUpdate,
-                            UserCoreConstants.DEFAULT_PROFILE);
-                    break;
-                case STATUS_PARTIALLY_ACTIVE:
-                    remoteUserStoreServiceAdminClient.setUserClaim(userName, STATUS_CLAIM_NAME, statusToBeUpdate,
-                            UserCoreConstants.DEFAULT_PROFILE);
-                    break;
+
+            if (userStatus.equals(STATUS_INACTIVE) || userStatus.equals(STATUS_PARTIALLY_ACTIVE)) {
+                remoteUserStoreServiceAdminClient.setUserClaim(userName, STATUS_CLAIM_NAME, statusToBeUpdate,
+                        UserCoreConstants.DEFAULT_PROFILE);
             }
         } catch (RemoteException e) {
-            log.error("RemoteException- "+userName+":" + e.getMessage());
+            log.error("RemoteException- " + userName + ":" + e.getMessage());
         } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
-            log.error("RemoteUserStoreManagerServiceUserStoreExceptionException- "+userName+":" + e.getMessage());
+            log.error("RemoteUserStoreManagerServiceUserStoreExceptionException- " + userName + ":" + e.getMessage());
         }
   }
 

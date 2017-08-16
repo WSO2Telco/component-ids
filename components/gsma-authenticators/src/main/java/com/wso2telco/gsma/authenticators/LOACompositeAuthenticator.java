@@ -65,6 +65,8 @@ import java.util.Set;
 public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         LocalApplicationAuthenticator {
 
+    private static final String STATUS_PARTIALLY_ACTIVE = "PARTIALLY_ACTIVE";
+
     /**
      * The Constant serialVersionUID.
      */
@@ -219,6 +221,15 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
                 String decryptedMsisdn = DecryptionAES.decrypt(msisdnToBeDecrypted);
                 context.setProperty(Constants.MSISDN, decryptedMsisdn);
                 boolean isUserExists = AdminServiceUtil.isUserExists(decryptedMsisdn);
+                boolean isConvertToActive = false;
+
+                if (isUserExists) {
+                        if((AdminServiceUtil.getUserStatus(decryptedMsisdn).equalsIgnoreCase(STATUS_PARTIALLY_ACTIVE))&&(!(Boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE))){
+                            isConvertToActive = true;
+                        }
+                }
+
+                context.setProperty(Constants.IS_STATUS_TO_CHANGE, isConvertToActive);
                 context.setProperty(Constants.IS_REGISTERING, !isUserExists);
                 DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getProperty(
                         Constants.USER_STATUS_DATA_PUBLISHING_PARAM), msisdnStatus,

@@ -432,4 +432,6 @@ public final class Constants {
 
     public static final String CONSENT_TYPE = "consent_type";
 
+    public static final String IS_STATUS_TO_CHANGE = "status_claim_update";
+
 }
