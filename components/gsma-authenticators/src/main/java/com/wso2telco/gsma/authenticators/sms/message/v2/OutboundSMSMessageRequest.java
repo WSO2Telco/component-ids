@@ -16,14 +16,16 @@
 package com.wso2telco.gsma.authenticators.sms.message.v2;
 
 
+import com.wso2telco.gsma.authenticators.model.ReceiptRequest;
+import com.wso2telco.gsma.authenticators.sms.message.OutboundSMSTextMessage;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * The Class OutboundSMSMessageRequest.
  */
-public class OutboundSMSMessageRequest extends
-        com.wso2telco.gsma.authenticators.sms.message.v1.OutboundSMSMessageRequest {
+public class OutboundSMSMessageRequest {
 
 
     /**
@@ -56,4 +58,103 @@ public class OutboundSMSMessageRequest extends
     public void setSenderAddresses(List<SenderAddress> senderAddresses) {
         this.senderAddresses = senderAddresses;
     }
+
+    /**
+     * The client correlator.
+     */
+    protected String clientCorrelator = new String();
+
+    /**
+     * The address.
+     */
+    //    private String callbackData = new String();
+    protected List<String> address;
+
+    /**
+     * The outbound sms text message.
+     */
+    protected OutboundSMSTextMessage outboundSMSTextMessage;
+
+    /**
+     * The receipt request.
+     */
+    protected ReceiptRequest receiptRequest;
+
+
+    /**
+     * Gets the client correlator.
+     *
+     * @return the client correlator
+     */
+    public String getClientCorrelator() {
+        return clientCorrelator;
+    }
+
+    /**
+     * Sets the client correlator.
+     *
+     * @param clientCorrelator the new client correlator
+     */
+    public void setClientCorrelator(String clientCorrelator) {
+        this.clientCorrelator = clientCorrelator;
+    }
+
+
+    /**
+     * Gets the address.
+     *
+     * @return the address
+     */
+    public List<String> getAddress() {
+        return address;
+    }
+
+    /**
+     * Sets the address.
+     *
+     * @param address the new address
+     */
+    public void setAddress(List<String> address) {
+        this.address = address;
+    }
+
+    /**
+     * Gets the outbound text message.
+     *
+     * @return the outbound text message
+     */
+    public OutboundSMSTextMessage getOutboundTextMessage() {
+        return outboundSMSTextMessage;
+    }
+
+    /**
+     * Sets the outbound text message.
+     *
+     * @param outboundSMSTextMessage the new outbound text message
+     */
+    public void setOutboundTextMessage(OutboundSMSTextMessage outboundSMSTextMessage) {
+        this.outboundSMSTextMessage = outboundSMSTextMessage;
+    }
+
+    /**
+     * Gets the receipt request.
+     *
+     * @return the receipt request
+     */
+    public ReceiptRequest getReceiptRequest() {
+        return receiptRequest;
+    }
+
+    /**
+     * Sets the receipt request.
+     *
+     * @param receiptRequest the new receipt request
+     */
+    public void setReceiptRequest(ReceiptRequest receiptRequest) {
+        this.receiptRequest = receiptRequest;
+    }
+
+
+
+
 }
