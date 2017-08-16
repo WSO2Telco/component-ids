@@ -258,6 +258,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
         String sessionDataKey = request.getParameter("sessionDataKey");
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+        boolean isStatusUpdate =  (boolean)context.getProperty(Constants.IS_STATUS_TO_CHANGE);
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         String operator = (String) context.getProperty(Constants.OPERATOR);
         boolean isAttributeScope = (Boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
@@ -274,7 +275,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
             if (responseStatus != null && responseStatus.equalsIgnoreCase(UserResponse.APPROVED.toString())) {
 
-                if (isRegistering) {
+                if (isRegistering || isStatusUpdate) {
                     new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope);
 
                     MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();

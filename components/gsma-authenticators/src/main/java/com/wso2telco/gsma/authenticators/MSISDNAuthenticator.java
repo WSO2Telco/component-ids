@@ -21,6 +21,7 @@ import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
+import com.wso2telco.gsma.authenticators.util.UserProfileManager;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.lang.StringUtils;
@@ -68,6 +69,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     private static final String STATUS_ACTIVE = "ACTIVE";
 
     private static final String STATUS_PARTIALLY_ACTIVE = "PARTIALLY_ACTIVE";
+
+    private static final int ACR3 = 3;
 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
@@ -177,7 +180,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         boolean isShowTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
 
         try {
-            //MSISDN is captured by MSISDNAuthenticator
             if (context.getProperty(Constants.MSISDN) == null && (request.getParameter(Constants.MSISDN) != null &&
                     !request.getParameter(Constants.MSISDN).isEmpty())) {
                 msisdn = request.getParameter(Constants.MSISDN);
@@ -186,23 +188,27 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 boolean isConvertToActive = false;
 
                 if (AdminServiceUtil.isUserExists(msisdn)) {
-                    if (AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(STATUS_ACTIVE) || AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(STATUS_PARTIALLY_ACTIVE)) {
+                    if (AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(STATUS_ACTIVE) || AdminServiceUtil
+                            .getUserStatus(msisdn).equalsIgnoreCase(STATUS_PARTIALLY_ACTIVE)) {
                         isUserExists = true;
-                        if((AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(STATUS_PARTIALLY_ACTIVE))&&((Boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE))){
+                        if ((AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(STATUS_PARTIALLY_ACTIVE)) && (!
+                                (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE))) {
                             isConvertToActive = true;
                         }
                     }
                 }
                 context.setProperty(Constants.IS_REGISTERING, !isUserExists);
+                context.setProperty(Constants.IS_STATUS_TO_CHANGE, isConvertToActive);
                 DataPublisherUtil.updateAndPublishUserStatus(
                         (UserStatus) context.getProperty(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.MSISDN_SET_TO_USER_INPUT,
                         "MSISDN set to user input in MSISDNAuthenticator", msisdn, isUserExists ? 0 : 1);
                 int requestedLoa = (int) context.getProperty(Constants.ACR);
+                String operator = (String) context.getProperty(Constants.OPERATOR);
                 boolean isProfileUpgrade = Util.isProfileUpgrade(msisdn, requestedLoa, isUserExists);
                 context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade);
 
-                if(log.isDebugEnabled()){
+                if (log.isDebugEnabled()) {
                     log.debug("User entered MSISDN : " + msisdn);
                 }
 
@@ -210,15 +216,17 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     retryAuthenticatorForConsent(context);
                 }
 
-
+                if ((requestedLoa == ACR3) && (isConvertToActive)) {
+                    new UserProfileManager().createUserProfileLoa3(msisdn, operator, null, null,
+                            null, (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE));
+                }
             } else {
                 msisdn = context.getProperty(Constants.MSISDN).toString();
 
-                if(log.isDebugEnabled()){
+                if (log.isDebugEnabled()) {
                     log.debug("Detected MSISDN : " + msisdn);
                 }
 
-                //We already have the MSISDN
                 String userAction = request.getParameter(Constants.ACTION);
                 if (userAction != null && !userAction.isEmpty()) {
                     // Change behaviour depending on user action
@@ -246,12 +254,19 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     }
                 } else {
                     boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+                    boolean isConvertToActive = (boolean) context.getProperty(Constants.IS_STATUS_TO_CHANGE);
+                    int requestedLoa = (int) context.getProperty(Constants.ACR);
+                    String operator = (String) context.getProperty(Constants.OPERATOR);
 
                     if (isRegistering && isShowTnC) {
                         retryAuthenticatorForConsent(context);
                     }
-                }
 
+                    if ((requestedLoa == Integer.getInteger(Constants.LOA3)) && (isConvertToActive)) {
+                        new UserProfileManager().createUserProfileLoa3(msisdn, operator, null, null,
+                                null, (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE));
+                    }
+                }
             }
 
             org.apache.log4j.MDC.put("MSISDN", msisdn);
@@ -275,7 +290,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                             DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING_FAIL, ex.getMessage());
             throw new AuthenticationFailedException("Authenicator failed", ex);
         }
-
     }
 
     private void retryAuthenticatorForConsent(AuthenticationContext context) throws AuthenticationFailedException {

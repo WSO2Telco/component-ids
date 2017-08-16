@@ -77,8 +77,6 @@ public class Endpoints {
     private static Map<String, List<MSISDNHeader>> operatorsMSISDNHeadersMap;
     private static Map<String, MobileConnectConfig.OPERATOR> operatorPropertiesMap = null;
     private static Map<String, ScopeDetailsConfig.Scope> scopeMap = null;
-    private static Map<String, List<String>> optionalScopesWithRequestMap = null;
-    private static Map<String, List<String>> mandatoryScopesWithRequestMap = null;
 
     /**
      * The Configuration service
@@ -107,10 +105,8 @@ public class Endpoints {
 
             //Load mobile-connect.xml file.
             mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
-            log.info("Load Mobile Connect");
             //Load scope-config.xml file.
             scopeDetailsConfigs = configurationService.getDataHolder().getScopeDetailsConfig();
-            log.info("Load Scope-Config Connect");
             //Load msisdn header properties.
             operatorsMSISDNHeadersMap = DBUtils.getOperatorsMSISDNHeaderProperties();
 
