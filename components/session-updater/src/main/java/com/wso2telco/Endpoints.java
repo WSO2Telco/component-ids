@@ -1450,7 +1450,7 @@ public class Endpoints {
         outboundUSSDMessageRequest.setAddress("tel:+" + msisdn);
         outboundUSSDMessageRequest.setShortCode(ussdConfig.getShortCode());
         outboundUSSDMessageRequest.setKeyword(ussdConfig.getKeyword());
-
+        outboundUSSDMessageRequest.setOutboundUSSDMessage(ussdConfig.getPinRegistrationMessage());
         outboundUSSDMessageRequest.setClientCorrelator(sessionID);
 
         ResponseRequest responseRequest = new ResponseRequest();
