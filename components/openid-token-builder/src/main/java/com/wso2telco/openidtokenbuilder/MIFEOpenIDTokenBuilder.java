@@ -22,6 +22,8 @@ import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.dbutils.DbService;
+import com.wso2telco.core.dbutils.model.FederatedIdpMappingDTO;
 import com.wso2telco.core.pcrservice.PCRFactory;
 import com.wso2telco.core.pcrservice.PCRGeneratable;
 import com.wso2telco.core.pcrservice.Returnable;
@@ -32,6 +34,8 @@ import com.wso2telco.dao.TransactionDAO;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.internal.OpenIdTokenBuilderDataHolder;
 import com.wso2telco.util.AuthenticationHealper;
+
+import org.apache.axiom.util.base64.Base64Utils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -40,11 +44,13 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.oltu.openidconnect.as.OIDC;
 import org.apache.oltu.openidconnect.as.messages.IDToken;
 import org.apache.oltu.openidconnect.as.messages.IDTokenException;
 import org.codehaus.jettison.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.common.cache.BaseCache;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
@@ -63,11 +69,19 @@ import org.wso2.carbon.identity.oauth2.model.AccessTokenDO;
 import org.wso2.carbon.identity.oauth2.token.OAuthTokenReqMessageContext;
 import org.wso2.carbon.identity.oauth2.util.OAuth2Util;
 import org.wso2.carbon.identity.openidconnect.CustomClaimsCallbackHandler;
+import org.wso2.carbon.identity.openidconnect.IDTokenBuilder;
 
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
+
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -75,13 +89,13 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
 // TODO: Auto-generated Javadoc
 
 /**
  * The Class MIFEOpenIDTokenBuilder.
  */
-public class MIFEOpenIDTokenBuilder implements
-        org.wso2.carbon.identity.openidconnect.IDTokenBuilder {
+public class MIFEOpenIDTokenBuilder implements IDTokenBuilder {
 
     private static MobileConnectConfig mobileConnectConfig = null;
 
@@ -153,6 +167,29 @@ public class MIFEOpenIDTokenBuilder implements
      * The acr app id.
      */
     private String acrAppID;
+    
+    /**
+     * FIDP configurations
+     */
+    private static MobileConnectConfig.FederatedIdentityProviders federatedIdps = mobileConnectConfig
+            .getFederatedIdentityProviders();
+
+    /**
+     * FIDP configuration map holder
+     */
+    private static HashMap<String, MobileConnectConfig.Provider> federatedIdpMap = new HashMap<>();
+
+    /**
+     * The DB service
+     */
+    private static DbService dbConnection = new DbService();
+    
+    
+    private static final String TOKEN_AUTHORIZATION = "Authorization";
+    private static final String TOKEN_CONTENT_TYPE = "Content-Type";
+    private static final String TOKEN_CONTENT_TYPE_VALUE = "application/x-www-form-urlencoded";
+    private static final String TOKEN_CODE = "code";
+    private static final String TOKEN_GRANT_TYPE = "authorization_code";
 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.openidconnect.IDTokenBuilder#buildIDToken(org.wso2.carbon.identity.oauth2.token
@@ -160,16 +197,133 @@ public class MIFEOpenIDTokenBuilder implements
      */
     public String buildIDToken(OAuthTokenReqMessageContext request,
                                OAuth2AccessTokenRespDTO tokenRespDTO) throws IdentityOAuth2Exception {
+        
+
         if (log.isDebugEnabled()) {
             log.debug("MSISDN : " + request.getAuthorizedUser().getUserName());
             log.debug("Generated access token : [" + tokenRespDTO.getAccessToken() + "]  for Authorization Code :  "
                     + request.getProperty("AuthorizationCode"));
         }
 
+        FederatedIdpMappingDTO fidpInstance = new FederatedIdpMappingDTO();
+
+        String accessTokenIssuedTime = getAccessTokenIssuedTime(tokenRespDTO.getAccessToken(), request);
+        String atHash = new String(Base64.encodeBase64(tokenRespDTO.getAccessToken().getBytes()));
+        String plainIDToken = null;
+        int curTime = (int) Calendar.getInstance().getTimeInMillis();
+
         OAuthServerConfiguration config = OAuthServerConfiguration.getInstance();
+        
         String issuer = config.getOpenIDConnectIDTokenIssuerIdentifier();
         int lifetime = Integer.parseInt(config.getOpenIDConnectIDTokenExpiration()) * 1000;
-        int curTime = (int) Calendar.getInstance().getTimeInMillis();
+
+        CustomIDTokenBuilder builder = new CustomIDTokenBuilder();
+        builder.setIssuer(issuer);
+        builder.setAudience(request.getOauth2AccessTokenReqDTO().getClientId());
+        builder.setAuthorizedParty(request.getOauth2AccessTokenReqDTO().getClientId());
+        builder.setExpiration(curTime + lifetime);
+        builder.setIssuedAt(curTime);
+        builder.setAtHash(atHash);
+        builder.setAuthTime(accessTokenIssuedTime);
+        boolean dataPublisherEnabled = mobileConnectConfig.getDataPublisher().isEnabled();
+        
+        try {
+
+            fidpInstance = dbConnection.retrieveFederatedAuthCodeMappings(request.getOauth2AccessTokenReqDTO()
+                    .getAuthorizationCode());
+        } catch (Exception e) {
+            log.error("Error while retrieving federated mapping information hence continuing regular flow"
+                    + request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
+        }
+
+        if (fidpInstance.getFidpAuthCode() != null) {
+
+            log.info("Federated Identity Access Token Flow initiated");
+            
+            for (MobileConnectConfig.Provider prv : federatedIdps.getProvider()) {
+                federatedIdpMap.put(prv.getOperator(), prv);
+            }
+            
+            
+            try {
+
+                JSONObject fidpIDToken = tokenAuthenticationRequest(request, fidpInstance);
+
+                if (fidpIDToken.optString("access_token") != null) {
+
+                    dbConnection.insertFederatedTokenMappings(tokenRespDTO.getAccessToken(), request
+                            .getOauth2AccessTokenReqDTO().getAuthorizationCode(), fidpIDToken.get("access_token")
+                            .toString());
+                    
+                    String[] jwttoken = fidpIDToken.get(OIDC.Response.ID_TOKEN).toString().split("\\.");
+                    byte[] decoded = Base64.decodeBase64(jwttoken[1]);
+                    String jwtbody = new String(decoded);
+                    org.codehaus.jettison.json.JSONObject jwtobj = null;
+
+                    try {
+
+                        jwtobj = new org.codehaus.jettison.json.JSONObject(jwtbody);
+
+                        builder.setSubject(jwtobj.get(IDToken.SUB).toString());
+                        builder.setClaim(IDToken.ACR, jwtobj.get(IDToken.ACR).toString());
+                        builder.setAmr((jwtobj.getJSONArray("amr")));
+                        builder.setClaim(IDToken.NONCE, jwtobj.get(IDToken.NONCE).toString());
+
+                    } catch (org.codehaus.jettison.json.JSONException ex) {
+                        log.error("Error while processing the IDToken contents from Federeated Idp", ex);
+                        throw new IdentityOAuth2Exception("Error while processing the IDToken contents from Federeated Idp", ex);
+                    }
+
+                    plainIDToken = builder.buildIDToken();
+                    
+                    if (dataPublisherEnabled) {
+
+                        Map<String, String> tokenMap = new HashMap<String, String>();
+                        tokenMap.put("Timestamp", String.valueOf(new java.util.Date().getTime()));
+                        tokenMap.put("AuthenticatedUser", request.getAuthorizedUser().toString());
+                        tokenMap.put("Nonce", jwtobj.get(IDToken.NONCE).toString());
+                        tokenMap.put("Amr", jwtobj.getJSONArray("amr").toString());
+                        tokenMap.put("AuthenticationCode", request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
+                        tokenMap.put("AccessToken", tokenRespDTO.getAccessToken());
+                        tokenMap.put("ClientId", request.getOauth2AccessTokenReqDTO().getClientId());
+                        tokenMap.put("RefreshToken", tokenRespDTO.getRefreshToken());
+                        //tokenMap.put("sessionId", getValuesFromCache(request, "sessionId"));
+                        //tokenMap.put("State", getValuesFromCache(request, "state"));
+                        //tokenMap.put("TokenClaims", getClaimValues(request));
+                        tokenMap.put(TOKEN_CONTENT_TYPE, TOKEN_CONTENT_TYPE_VALUE);
+                        tokenMap.put("ReturnedResult", plainIDToken);
+                        if (tokenRespDTO.getAccessToken() != null) {
+                            tokenMap.put("StatusCode", "200");
+                        } else {
+                            tokenMap.put("StatusCode", "400");
+                        }
+
+                        if (DEBUG) {
+                            for (Map.Entry<String, String> entry : tokenMap.entrySet()) {
+                                log.debug(entry.getKey() + " : " + entry.getValue());
+                            }
+                        }
+                        DataPublisherUtil.publishTokenEndpointData(tokenMap);
+                    }
+                    
+                    return new PlainJWT((com.nimbusds.jwt.JWTClaimsSet) PlainJWT.parse(plainIDToken).getJWTClaimsSet())
+                            .serialize();
+                } else {
+                    log.error("Error response from Federated IDP : "+ fidpIDToken.toString());
+                    throw new AuthenticationFailedException(fidpIDToken.opt("error_description").toString());
+                }
+            } catch (IDTokenException e) {
+                log.error("Error occurred while generating the Federeated IDToken"+ e.getMessage());
+                throw new IdentityOAuth2Exception("Error occurred while generating the Federeated IDToken", e);
+            } catch (ParseException e) {
+                log.error("Error while parsing the federated IDToken"+ e.getMessage());
+                throw new IdentityOAuth2Exception("Error while parsing the Federeated IDToken", e);
+            } catch (Exception e) {
+                log.error("Error while parsing the federated IDToken"+ e.getMessage());
+                throw new IdentityOAuth2Exception("Error while parsing the Federeated IDToken", e);
+            }
+
+        }
 
         //String msisdn = request.getAuthorizedUser().replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
         String msisdn = AuthenticationHealper.getUser(request).replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
@@ -194,10 +348,6 @@ public class MIFEOpenIDTokenBuilder implements
         // Set ACR (PCR) to sub
         String subject = null;
 
-        ConfigurationService configurationService = new ConfigurationServiceImpl();
-        DataHolder dataHolder = configurationService.getDataHolder();
-        MobileConnectConfig mobileConnectConfig = dataHolder.getMobileConnectConfig();
-
         try {
             if (mobileConnectConfig.isPcrServiceEnabled()) {
                 log.info("Generating UUID based PCR");
@@ -214,12 +364,6 @@ public class MIFEOpenIDTokenBuilder implements
         } catch (PCRException e) {
             log.error("Error", e);
         }
-
-        // Get access token issued time
-        String accessTokenIssuedTime = getAccessTokenIssuedTime(tokenRespDTO.getAccessToken(), request);
-
-        // Set base64 encoded value of the access token to atHash
-        String atHash = new String(Base64.encodeBase64(tokenRespDTO.getAccessToken().getBytes()));
 
         // Get LOA used
         String acr = getValuesFromCache(request, "acr");
@@ -245,7 +389,6 @@ public class MIFEOpenIDTokenBuilder implements
 
         try {
 
-            CustomIDTokenBuilder builder = new CustomIDTokenBuilder();
             builder.setIssuer(issuer);
             builder.setSubject(subject);
             builder.setAudience(request.getOauth2AccessTokenReqDTO().getClientId());
@@ -263,15 +406,13 @@ public class MIFEOpenIDTokenBuilder implements
             //TODO CODE COMMENTED#
             //claimsCallBackHandler.handleCustomClaims(builder, request);
 
-            String plainIDToken = builder.buildIDToken();
+            plainIDToken = builder.buildIDToken();
             String accessToken = tokenRespDTO.getAccessToken();
             try {
                 TransactionDAO.insertTokenScopeLog(accessToken, subject);
             } catch (Exception e) {
                 log.error("Error inserting to sub value Scope Log ", e);
             }
-            boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher()
-                    .isEnabled();
 
             if (dataPublisherEnabled) {
                 //Publish event
@@ -316,6 +457,65 @@ public class MIFEOpenIDTokenBuilder implements
             throw new IdentityOAuth2Exception("Error while parsing the IDToken", e);
         }
     }
+    
+    
+    private JSONObject tokenAuthenticationRequest(OAuthTokenReqMessageContext request,
+            FederatedIdpMappingDTO fidpInstance) throws AuthenticationFailedException {
+
+        HttpURLConnection connection = null;
+        StringBuilder stringBuilder = new StringBuilder();
+
+        MobileConnectConfig.Provider federatedIdp = federatedIdpMap.get(fidpInstance.getOperator());
+        String tokenEndpoint = federatedIdp.getTokenEndpoint();
+        String authorizationClientId = request.getOauth2AccessTokenReqDTO().getClientId();
+        String authorizationSecret = request.getOauth2AccessTokenReqDTO().getClientSecret();
+        String redirectURL = mobileConnectConfig.getFederatedCallbackUrl();
+        String code = fidpInstance.getFidpAuthCode();
+        String userPass = authorizationClientId + ":" + authorizationSecret;
+        String authorizationHeader = "Basic " + Base64Utils.encode(userPass.getBytes(StandardCharsets.UTF_8));
+
+        try {
+
+            redirectURL = URLEncoder.encode(redirectURL, String.valueOf(StandardCharsets.UTF_8));
+            String queryParameters = "grant_type=" + TOKEN_GRANT_TYPE + "&redirect_uri=" + redirectURL;
+            String url = tokenEndpoint + "?" + TOKEN_CODE + "=" + code + "&" + queryParameters;
+
+            URL obj = new URL(url);
+            connection = (HttpURLConnection) obj.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty(TOKEN_AUTHORIZATION, authorizationHeader);
+            connection.setRequestProperty(TOKEN_CONTENT_TYPE, TOKEN_CONTENT_TYPE_VALUE);
+            connection.setRequestProperty("charset", StandardCharsets.UTF_8.toString());
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(),
+                    StandardCharsets.UTF_8));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            String responseString = stringBuilder.toString();
+            reader.close();
+            JSONObject jsonObject = new JSONObject(responseString);
+
+            if (log.isDebugEnabled()) {
+                log.debug("Token response code from Federated IDP " + fidpInstance.getOperator() + ":"
+                        + connection.getResponseCode());
+                log.debug("Token response message from Federated IDP :  " + fidpInstance.getOperator() + ":"
+                        + responseString);
+            }
+            return jsonObject;
+
+        } catch (Exception e) {
+            log.error("Token Call for Federated IDP failed with " + e.getMessage());
+            throw new AuthenticationFailedException(e.getMessage(), e);
+        } finally {
+
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
+    
 
     /**
      * Gets the values from cache.

@@ -36,7 +36,6 @@ public class ClaimInfoRequestValidator implements UserInfoRequestValidator {
      */
     public String validateRequest(HttpServletRequest request) throws UserInfoEndpointException {
 
-        String schema = request.getParameter("schema");
         String authzHeaders = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (authzHeaders == null) {
