@@ -364,9 +364,9 @@ public class DBUtils {
             results = ps.executeQuery();
 
             while (results.next()) {
-                isAttributeShareScope = results.getBoolean("is_attribute_share_scope");
+                boolean isAttrShareScope = results.getBoolean("is_attribute_share_scope");
 
-                if (isAttributeShareScope) {
+                if (isAttrShareScope) {
                     isAttributeShareScope = true;
                     attributeSharingScopes.add(results.getString("scope"));
                 }
