@@ -425,7 +425,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                         if (!smsConfig.getWelcomeMessageDisabled()) {
                             WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
                         }
-                        if (isAttributeScope && context.getProperty("longlivedScopes").toString() != null) {
+                        if (isAttributeScope && context.getProperty("longlivedScopes") != null) {
                             //ToDO
                             //01.get longlived scopes and scope's exp_period one by one
                             //02.calculate the expiration time for each scopes
@@ -440,14 +440,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                         throw new AuthenticationFailedException(e.getMessage(), e);
                     } catch (DataAccessException | IOException e) {
                         log.error("Welcome SMS sending failed", e);
-                    }
-                    if (isAttributeScope && context.getProperty("longlivedScopes").toString() != null) {
-                        //ToDO
-                        //01.get longlived scopes and scope's exp_period one by one
-                        //02.calculate the expiration time for each scopes
-                        //03.insert records into user_consent table
-                        ConsentedSP.PersistConsentedScopeDetails(context);
-
                     }
                 }
             } else {
