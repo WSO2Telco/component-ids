@@ -100,6 +100,10 @@ public class Endpoints {
      */
     private static final String LOGIN_HINT_SEPARATOR = "|";
 
+    public static Map<String, ScopeDetailsConfig.Scope> getScopeMap() {
+        return scopeMap;
+    }
+
     static {
         try {
 
@@ -888,25 +892,6 @@ public class Endpoints {
         userDTO.setUserName(username);
         userRegistrationAdminService.addUser(userDTO);
     }
-
-//    /**
-//     * Get the expected optional scope parameters pass with the request
-//     *
-//     * @param scopeName
-//     * @return
-//     */
-//    private List<String> getOptionScopeWithRequest(String scopeName) {
-//        ScopeDetailsConfig.Scope scopeValue = null;
-//        List<ScopeDetailsConfig.Request> requestValue;
-//
-//        if (scopeMap != null && !scopeMap.isEmpty()) {
-//            scopeValue = scopeMap.get(scopeName);
-//        }
-//
-//        requestValue = scopeValue.getRequest();
-//        return requestValue.get(1).getOptionalValues();
-//    }
-//
 
     /**
      * Get the expected mandatory scope parameters pass with the request

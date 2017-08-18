@@ -18,6 +18,7 @@ package com.wso2telco.gsma.authenticators.headerenrich;
 
 import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.model.ScopeDetailsConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.sp.config.utils.exception.DataAccessException;
@@ -294,7 +295,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             log.debug("Query parameters : " + queryParams);
         }
 
-
         try {
 
             boolean isattribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
@@ -316,26 +316,14 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                             .SESSION_DATA_KEY + "="
                             + context.getContextIdentifier() + "&skipConsent=true&scope=" + displayScopes +
                             "&registering=" + isRegistering);
+
+                } else {
+                    String loginPage = getAuthEndpointUrl(showTnC, isRegistering, isattribute);
+                    response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams))
+                            + "&redirect_uri=" + request.getParameter("redirect_uri")
+                            + "&authenticators=" + getName() + ":" + "LOCAL");
                 }
-
-
-            } else {
-                String loginPage = getAuthEndpointUrl(showTnC, isRegistering);
-                response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams))
-                        + "&redirect_uri=" + request.getParameter("redirect_uri")
-                        + "&authenticators=" + getName() + ":" + "LOCAL");
             }
-
-            String loginPage = getAuthEndpointUrl(showTnC, isRegistering);
-
-            DataPublisherUtil
-                    .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
-                            .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
-                            .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
-
-            response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams))
-                    + "&redirect_uri=" + request.getParameter("redirect_uri")
-                    + "&authenticators=" + getName() + ":" + "LOCAL");
         } catch (IOException e) {
             DataPublisherUtil
                     .updateAndPublishUserStatus(userStatus,
@@ -430,7 +418,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                             //01.get longlived scopes and scope's exp_period one by one
                             //02.calculate the expiration time for each scopes
                             //03.insert records into user_consent table
-                            ConsentedSP.PersistConsentedScopeDetails(context);
+                            ConsentedSP.persistConsentedScopeDetails(context);
 
                         }
 
@@ -648,11 +636,12 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
      * @throws LoginAuthenticationExceptionException
      * @throws RemoteUserStoreManagerServiceUserStoreExceptionException
      */
-    private String getAuthEndpointUrl(boolean isShowTnc, boolean isRegistering) {
+    private String getAuthEndpointUrl(boolean isShowTnc, boolean isRegistering, boolean isattribute) {
 
         String loginPage;
 
         if (isRegistering && isShowTnc) {
+
             loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
                     Constants.CONSENT_JSP;
         } else {
