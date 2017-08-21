@@ -439,8 +439,20 @@ public final class Constants {
 
     public static final String TELCO_SCOPE = "telco_scope";
 
-    public static final String CONSENT_TYPE = "consent_type";
+    public static final String IS_CONSENT = "isConsented";
 
     public static final String IS_STATUS_TO_CHANGE = "status_claim_update";
+
+    public static final String NO = "no";
+
+    public static final String YES = "yes";
+
+    public static final String EXPLICIT_SCOPES = "explicitScopes";
+
+    public static final String IMPLICIT_SCOPES = "explicitScopes";
+
+    public static final String LONGLIVEDSCOPES = " longlivedScopes";
+
+
 
 }

@@ -53,10 +53,10 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
                 implicitScopes.add(scope);
 
         }
-        scopesList.put("explicitScopes", explicitScopes);
-        scopesList.put("implicitScopes", implicitScopes);
+        scopesList.put(Constants.EXPLICIT_SCOPES, explicitScopes);
+        scopesList.put(Constants.IMPLICIT_SCOPES, implicitScopes);
         if (!longlivedScopes.isEmpty()) {
-            context.setProperty("longlivedScopes", longlivedScopes.toString());
+            context.setProperty(Constants.LONGLIVEDSCOPES, longlivedScopes.toString());
         }
         return scopesList;
     }
