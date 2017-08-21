@@ -100,10 +100,6 @@ public class Endpoints {
      */
     private static final String LOGIN_HINT_SEPARATOR = "|";
 
-    public static Map<String, ScopeDetailsConfig.Scope> getScopeMap() {
-        return scopeMap;
-    }
-
     static {
         try {
 
