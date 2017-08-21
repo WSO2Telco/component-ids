@@ -86,11 +86,10 @@ public class SendSMS {
         receipt.setCallbackData("");
         receipt.setNotifyURL("");
 
-        OutboundSMSMessageRequest outbound = new OutboundSMSMessageRequest();
-        String smsversion=smsConfig.getSMSMessageVersion();
 
-        if(smsversion!=null && smsversion.equalsIgnoreCase("V2")){
-            com.wso2telco.gsma.authenticators.sms.message.v2.OutboundSMSMessageRequest outboundv2 = new com.wso2telco.gsma.authenticators.sms.message.v2.OutboundSMSMessageRequest();
+        String smsVersion=smsConfig.getSMSMessageVersion();
+        if(smsVersion!=null && smsVersion.equalsIgnoreCase("V2")){
+            com.wso2telco.gsma.authenticators.sms.message.v2.OutboundSMSMessageRequest outbound = new com.wso2telco.gsma.authenticators.sms.message.v2.OutboundSMSMessageRequest();
 
             List<SenderAddress> senderAddresses = new ArrayList<>();
             List<OperatorMapping> operators = smsConfig.getOperatorMappings();
@@ -107,12 +106,12 @@ public class SendSMS {
                 }
             }
             if(!senderAddresses.isEmpty()) {
-                outboundv2.setSenderAddresses(senderAddresses);
-                outboundv2.setReceiptRequest(receipt);
-                outboundv2.setOutboundTextMessage(messageObj);
-                outboundv2.setAddress(address);
+                outbound.setSenderAddresses(senderAddresses);
+                outbound.setReceiptRequest(receipt);
+                outbound.setOutboundTextMessage(messageObj);
+                outbound.setAddress(address);
                 com.wso2telco.gsma.authenticators.sms.message.v2.SendSMSRequest req = new com.wso2telco.gsma.authenticators.sms.message.v2.SendSMSRequest();
-                req.setOutboundSMSMessageRequest(outboundv2);
+                req.setOutboundSMSMessageRequest(outbound);
                 returnString = new GsonBuilder().serializeNulls().create().toJson(req);
             }else{
                 throw new AuthenticationFailedException("SMS Authentication failed, operator mapping invalid to send SMS");
@@ -120,6 +119,7 @@ public class SendSMS {
         }else{
             String senderAddress = smsConfig.getSenderAddress();
             senderAddress = senderAddress.trim() == null ? "26451" : senderAddress.trim();
+            OutboundSMSMessageRequest outbound = new OutboundSMSMessageRequest();
             outbound.setSenderAddress(senderAddress);
             outbound.setReceiptRequest(receipt);
             outbound.setOutboundTextMessage(messageObj);
