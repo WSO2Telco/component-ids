@@ -58,6 +58,7 @@ public class AttributeShareFactory {
                 if (trustedSP == null) {
                     trustedSP = new TrustedSP();
                 }
+                attributeSharable = trustedSP;
             }
 
         } catch (SQLException e) {
