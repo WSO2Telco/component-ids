@@ -396,6 +396,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
+
         String msisdn = context.getProperty(Constants.MSISDN).toString();
         String operator = context.getProperty(Constants.OPERATOR).toString();
 
