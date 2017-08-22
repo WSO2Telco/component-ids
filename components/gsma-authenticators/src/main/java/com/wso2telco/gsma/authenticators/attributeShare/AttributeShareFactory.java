@@ -16,16 +16,24 @@
 
 package com.wso2telco.gsma.authenticators.attributeShare;
 
+import com.wso2telco.core.config.model.ScopeDetailsConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.dao.AttributeConfigDAO;
 import com.wso2telco.gsma.authenticators.dao.impl.AttributeConfigDAOimpl;
 import com.wso2telco.gsma.authenticators.attributeShare.internal.SPType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
 import javax.naming.NamingException;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /*This factory class created because the user consent mechanism can be vary with the SP type.
 * TSP1 consent mechanisms not included yet.
@@ -35,8 +43,25 @@ import java.sql.SQLException;
 public class AttributeShareFactory {
 
     private static Log log = LogFactory.getLog(AttributeShareFactory.class);
+    private static ScopeDetailsConfig scopeDetailsConfigs = null;
+    private static Map<String, ScopeDetailsConfig.Scope> scopeMap = null;
     static ConsentedSP consentedSP;
     static TrustedSP trustedSP;
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
+    static {
+        //Load scope-config.xml file.
+        scopeDetailsConfigs = configurationService.getDataHolder().getScopeDetailsConfig();
+
+        //Load scope related request optional parameters.
+        scopeMap = new HashMap<String, ScopeDetailsConfig.Scope>();
+        List<ScopeDetailsConfig.Scope> scopes = scopeDetailsConfigs.getScope();
+
+        for (ScopeDetailsConfig.Scope sc : scopes) {
+            scopeMap.put(sc.getName(), sc);
+        }
+    }
+
 
     public static AttributeSharable getAttributeSharable(String operator, String clientID) throws Exception {
 
@@ -71,5 +96,23 @@ public class AttributeShareFactory {
         return attributeSharable;
     }
 
+    public static List<String> getScopestoDisplay(Map<String, List<String>> attributeSet) {
+
+        List<String> consentAttribute = new ArrayList<>();
+        List<String> claimSet;
+
+        if (!attributeSet.get("explicitScopes").isEmpty()) {
+
+            for (int i = 0; i < attributeSet.get("explicitScopes").size(); i++) {
+                claimSet = scopeMap.get(attributeSet.get("explicitScopes").get(i)).getClaimSet();
+                for (int j = 0; j < claimSet.size(); j++) {
+                    if (!consentAttribute.contains(claimSet.get(j))) {
+                        consentAttribute.add(claimSet.get(j));
+                    }
+                }
+            }
+        }
+        return consentAttribute;
+    }
 
 }
