@@ -96,9 +96,16 @@
         String imgPath = "";
         String termsConditionsPath = "";
         String scopes = request.getParameter("scope");
-        String scopesMinBracket = scopes.substring( 1, scopes.length() - 1);
-        String[] attribute_Scopes = scopesMinBracket.split( ", ");
-        pageContext.setAttribute("attributeScopes", attribute_Scopes, pageContext.PAGE_SCOPE);
+        String[] attribute_Scopes;
+        if(!scopes.equals("") || !scopes.isEmpty()){
+            String scopesMinBracket = scopes.substring( 1, scopes.length() - 1);
+            attribute_Scopes = scopesMinBracket.split( ", ");
+            pageContext.setAttribute("attributeScopes", attribute_Scopes, pageContext.PAGE_SCOPE);
+        } else{
+            pageContext.setAttribute("attributeScopes",scopes, pageContext.PAGE_SCOPE);
+        }
+//        String[] attribute_Scopes = scopesMinBracket.split( ", ");
+//        pageContext.setAttribute("attributeScopes", attribute_Scopes, pageContext.PAGE_SCOPE);
         if (operator != "") {
             imgPath = "mcx-user-registration/images/branding/" + operator + "_logo.svg";
             termsConditionsPath = "html/terms-conditions/" + operator + "-terms-conditions.html";
