@@ -32,7 +32,7 @@ public class ConsentedSP extends AbstractAttributeShare {
         String operator = context.getProperty(Constants.OPERATOR).toString();
         String clientId = context.getProperty(Constants.CLIENT_ID).toString();
 
-        List<SPConsent> spConsentDetailsList = attributeConfigDAO.getScopeExprieTime(operator,clientId,context.getProperty("longlivedScopes").toString());
+        List<SPConsent> spConsentDetailsList = attributeConfigDAO.getScopeExprieTime(operator,clientId,context.getProperty(Constants.LONGLIVEDSCOPES).toString());
         List<UserConsentHistory> userConsentHistoryList = new ArrayList();
 
         for(SPConsent spConsent: spConsentDetailsList){
