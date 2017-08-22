@@ -440,7 +440,7 @@ public final class Constants {
 
     public static final String EXPLICIT_SCOPES = "explicitScopes";
 
-    public static final String IMPLICIT_SCOPES = "explicitScopes";
+    public static final String IMPLICIT_SCOPES = "implicitScopes";
 
     public static final String LONGLIVEDSCOPES = " longlivedScopes";
 
