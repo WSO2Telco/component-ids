@@ -208,6 +208,18 @@ public final class Constants {
      * The Constant SELF_AUTHENTICATOR_FRIENDLY_NAME.
      */
     public static final String SELF_AUTHENTICATOR_FRIENDLY_NAME = "self";
+    /**
+     * The Constant FEDERATED_AUTHENTICATOR_NAME.
+     */
+    public static final String FEDERATED_AUTHENTICATOR_NAME = "FederatedAuthenticator";
+    /**
+     * The Constant FEDERATED_AUTHENTICATOR_FRIENDLY_NAME.
+     */
+    public static final String FEDERATED_AUTHENTICATOR_FRIENDLY_NAME = "federatedIdp";
+
+    public static final String FEDERATED_AUTHENTICATOR_TRIGGERED = "FATriggered";
+
+
     public static final String USER_PROFILE_UPDATE_REQUIRED = "userProfileUpdateRequired";
 
     /**
