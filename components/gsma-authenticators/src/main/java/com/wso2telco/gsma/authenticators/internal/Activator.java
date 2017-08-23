@@ -26,6 +26,7 @@ import com.wso2telco.core.config.ConfigLoader;
 import com.wso2telco.core.config.MIFEAuthentication;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.authenticators.federated.FederatedAuthenticator;
 import com.wso2telco.gsma.authenticators.sms.SMSOTPAuthenticator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -99,6 +100,9 @@ public class Activator implements BundleActivator {
                 new MSSPinAuthenticator(), null);
         bundleContext.registerService(ApplicationAuthenticator.class.getName(),
                 new SelfAuthenticator(), null);
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new FederatedAuthenticator(), null);
+
 
         if (log.isDebugEnabled()) {
             log.debug("Authenticators registered");
