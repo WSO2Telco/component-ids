@@ -205,7 +205,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
         sqlBuilder.append(TableName.CONSENT_HISTORY + " usercon ");
         sqlBuilder.append("INNER JOIN scope_parameter scp ON scp.param_id=usercon.scope_id");
         sqlBuilder.append(" where");
-        sqlBuilder.append(" usercon.scope_id=? ");
+        sqlBuilder.append(" scp.scope=? ");
         sqlBuilder.append(" AND usercon.operator_id=? ");
         sqlBuilder.append(" AND usercon.client_id=? ");
         sqlBuilder.append("AND usercon.msisdn=?");

@@ -62,12 +62,12 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
     }
 
 
-    private UserConsentDetails getUserConsentDetails(AuthenticationContext context) throws Exception {
+    private UserConsentDetails getUserConsentDetails(AuthenticationContext context, String scope) throws Exception {
         AttributeConfigDAO attributeConfigDAO = new AttributeConfigDAOimpl();
         UserConsentDetails userConsentDetails = new UserConsentDetails();
         userConsentDetails.setConsumerKey(context.getProperty(Constants.CLIENT_ID).toString());
         userConsentDetails.setOperatorID((DBUtil.getOperatorDetails(context.getProperty(Constants.OPERATOR).toString())).getOperatorId());
-        userConsentDetails.setScope(context.getProperty(Constants.TELCO_SCOPE).toString());
+        userConsentDetails.setScope(scope);
         userConsentDetails.setMsisdn(context.getProperty(Constants.MSISDN).toString());
         return attributeConfigDAO.getUserConsentDetails(userConsentDetails);
 
@@ -111,7 +111,7 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
 
         try {
 
-            UserConsentDetails userConsentDetails = getUserConsentDetails(context);
+            UserConsentDetails userConsentDetails = getUserConsentDetails(context, scope);
             if (userConsentDetails == null) {
                 isConsent = true;
 
