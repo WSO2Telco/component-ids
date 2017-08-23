@@ -46,6 +46,11 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.wso2telco.core</groupId>
+			<artifactId>dbutils</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.wso2.carbon.identity</groupId>
 			<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
 		</dependency>
@@ -192,8 +197,9 @@
 						</Import-Package>
 						<Export-Package>
 							com.wso2telco.claimhandler.*, com.wso2telco.dao.*, com.wso2telco.model.*,
-							com.wso2telco.openidtokenbuilder.*, com.wso2telco.reqpathsequencehandler.*,
-							com.wso2telco.transaction.log.*, com.wso2telco.util.*,!com.wso2telco.internal.*
+							com.wso2telco.openidtokenbuilder.*,com.wso2telco.grantHandler.*,
+							 com.wso2telco.reqpathsequencehandler.*, com.wso2telco.transaction.log.*, 
+							 com.wso2telco.util.*,!com.wso2telco.internal.*
 						</Export-Package>
 						<Embed-Dependency>
 							nimbus-jose-jwt|json-smart;scope=compile|runtime;inline=false
