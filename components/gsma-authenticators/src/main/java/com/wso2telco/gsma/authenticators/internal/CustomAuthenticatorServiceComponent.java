@@ -17,6 +17,7 @@
 package com.wso2telco.gsma.authenticators.internal;
 
 import com.wso2telco.gsma.authenticators.*;
+import com.wso2telco.gsma.authenticators.federated.FederatedAuthenticator;
 import com.wso2telco.gsma.authenticators.headerenrich.HeaderEnrichmentAuthenticator;
 import com.wso2telco.gsma.authenticators.saa.SmartPhoneAppAuthenticator;
 import com.wso2telco.gsma.authenticators.sms.SMSAuthenticator;
@@ -95,6 +96,8 @@ public class CustomAuthenticatorServiceComponent {
                 new MSSPinAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new SelfAuthenticator(), null);
+        ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
+                new FederatedAuthenticator(), null);
 
         if (log.isDebugEnabled()) {
             log.debug("Custom Application Authenticator bundle is activated");
