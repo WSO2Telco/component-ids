@@ -33,6 +33,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -50,6 +51,7 @@ import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -102,26 +104,27 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
             log.debug("Generating Claim Info for Access token : " + tokenResponse.getAuthorizationContextToken()
                     .getTokenString());
         }
-        
-        FederatedIdpMappingDTO fidpInstance = new FederatedIdpMappingDTO();
-        fidpInstance = checkDbIfFederatedAccessToken(fidpInstance, tokenResponse);
+        if (mobileConnectConfig.isFederatedDeployment()) {
+            FederatedIdpMappingDTO fidpInstance = new FederatedIdpMappingDTO();
+            fidpInstance = checkDbIfFederatedAccessToken(fidpInstance, tokenResponse);
 
-        if (fidpInstance.getFidpAccessToken() != null) {
+            if (fidpInstance.getFidpAccessToken() != null) {
 
-            log.info("Federated Identity User Info Flow initiated for " + fidpInstance.getOperator()
-                    + "endpoint with access token: " + fidpInstance.getFidpAccessToken());
+                log.info("Federated Identity User Info Flow initiated for " + fidpInstance.getOperator()
+                        + "endpoint with access token: " + fidpInstance.getFidpAccessToken());
 
-            readFederatedIdentityProvidersConfigurations();
+                readFederatedIdentityProvidersConfigurations();
 
-            String userInfoJson = null;
+                String userInfoJson = null;
 
-            try {
-                userInfoJson = initiateFederatedUserInfoProcess(fidpInstance);
-            } catch (Exception e) {
-                log.error("Error occurred when invoking federated userinfo endpoint " + e.getMessage());
-                throw new UserInfoEndpointException("Error occurred invoking federated the userinfo endpoint", e);
+                try {
+                    userInfoJson = initiateFederatedUserInfoProcess(fidpInstance);
+                } catch (Exception e) {
+                    log.error("Error occurred when invoking federated userinfo endpoint " + e.getMessage());
+                    throw new UserInfoEndpointException("Error occurred invoking federated the userinfo endpoint", e);
+                }
+                return userInfoJson;
             }
-            return userInfoJson;
         }
 
         Map<ClaimMapping, String> userAttributes = getUserAttributesFromCache(tokenResponse);
@@ -301,20 +304,36 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
 
     }
 
-    private String initiateFederatedUserInfoProcess(FederatedIdpMappingDTO fidpInstance) throws Exception {
+    private String initiateFederatedUserInfoProcess(FederatedIdpMappingDTO fidpInstance)
+            throws UserInfoEndpointException {
 
-        String userInfoJson = getFederatedUserInfoResponse(fidpInstance);
+        String userInfoJson;
+        userInfoJson = getFederatedUserInfoResponse(fidpInstance);
+
         if (userInfoJson.contains("error")) {
-            throw new Exception(userInfoJson);
+            String errorMsg = userInfoJson + " prompted from federated IDP for provided access_token"
+                    + fidpInstance.getAccessToken();
+            log.error(errorMsg);
+            throw new UserInfoEndpointException(errorMsg);
         }
         return userInfoJson;
 
     }
 
-    private String getFederatedUserInfoResponse(FederatedIdpMappingDTO fidpInstance) throws Exception {
+    private String getFederatedUserInfoResponse(FederatedIdpMappingDTO fidpInstance) throws UserInfoEndpointException {
 
-        HttpResponse urlResponse = invokeFederatedUserInfoEndpoint(fidpInstance);
-        String jsonString = processFederatedUserInfoResponse(urlResponse);
+        HttpResponse urlResponse;
+        urlResponse = invokeFederatedUserInfoEndpoint(fidpInstance);
+
+        String jsonString = null;
+        try {
+            jsonString = processFederatedUserInfoResponse(urlResponse);
+        } catch (IOException e) {
+            String errorMsg = "Error while getting response from Federated IDP for userinfo request using access_token : "
+                    + fidpInstance.getAccessToken();
+            log.error(errorMsg);
+            throw new UserInfoEndpointException(errorMsg, e);
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("UserInfo response code from Federated IDP " + fidpInstance.getOperator() + ":"
@@ -325,15 +344,39 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
 
     }
 
-    private HttpResponse invokeFederatedUserInfoEndpoint(FederatedIdpMappingDTO fidpInstance) throws Exception {
+    private HttpResponse invokeFederatedUserInfoEndpoint(FederatedIdpMappingDTO fidpInstance)
+            throws UserInfoEndpointException {
 
         String url = federatedIdpMap.get(fidpInstance.getOperator()).getUserInfoEndpoint();
-        String accessToken = URLEncoder.encode(fidpInstance.getFidpAccessToken(),
-                String.valueOf(StandardCharsets.UTF_8));
-        HttpGet httpGet = new HttpGet(url);
-        httpGet.addHeader("Authorization", "Bearer " + accessToken);
-        CloseableHttpClient client = HttpClientBuilder.create().disableRedirectHandling().build();
-        return client.execute(httpGet);
+        String accessToken = null;
+
+        try {
+            accessToken = URLEncoder.encode(fidpInstance.getFidpAccessToken(), String.valueOf(StandardCharsets.UTF_8));
+            HttpGet httpGet = new HttpGet(url);
+            httpGet.addHeader("Authorization", "Bearer " + accessToken);
+            CloseableHttpClient client = HttpClientBuilder.create().disableRedirectHandling().build();
+            return client.execute(httpGet);
+        } catch (UnsupportedEncodingException e) {
+            String errorMsg = "Error while encoding the URL for federated Callback : "
+                    + mobileConnectConfig.getFederatedCallbackUrl() + " operator : " + fidpInstance.getOperator()
+                    + " endpoint : " + url;;
+            log.error(errorMsg);
+            throw new UserInfoEndpointException(errorMsg, e);
+        } catch (ClientProtocolException e) {
+            String errorMsg = "Error while executing request for federated IDP userinfo endpoint using access_token : "
+                    + accessToken + " operator : " + fidpInstance.getOperator() + " endpoint : " + url;
+            log.error(errorMsg);
+            throw new UserInfoEndpointException(errorMsg, e);
+        } catch (IOException e) {
+            String errorMsg = "Error while getting response from Federated IDP for userinfo request using access_token : "
+                    + fidpInstance.getAccessToken()
+                    + " operator : "
+                    + fidpInstance.getOperator()
+                    + " endpoint : "
+                    + url;
+            log.error(errorMsg);
+            throw new UserInfoEndpointException(errorMsg, e);
+        }
 
     }
 
@@ -347,9 +390,7 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         while ((line = bufferedReader.readLine()) != null) {
             stringBuilder.append(line).append("\n");
         }
-        if (bufferedReader != null) {
-            bufferedReader.close();
-        }
+        bufferedReader.close();
         return stringBuilder.toString();
     }
 

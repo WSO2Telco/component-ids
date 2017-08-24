@@ -21,6 +21,10 @@ import com.wso2telco.core.dbutils.model.FederatedIdpMappingDTO;
 
 public class FederatedTransactionDAO {
 
+    private FederatedTransactionDAO() {
+
+    }
+
     private static final Log log = LogFactory.getLog(FederatedTransactionDAO.class);
 
     public static AccessTokenDO getExisingTokenFromIdentityDB(OAuthTokenReqMessageContext tokReqMsgCtx,
@@ -29,7 +33,7 @@ public class FederatedTransactionDAO {
         Connection connection = IdentityDatabaseUtil.getDBConnection();
         PreparedStatement prepStmt = null;
         ResultSet resultSet = null;
-        String sql;
+        String sql = null;
         AccessTokenDO existingAccessTokenDO = null;
 
         sql = "SELECT REFRESH_TOKEN, TIME_CREATED, REFRESH_TOKEN_TIME_CREATED, VALIDITY_PERIOD, "
@@ -64,16 +68,19 @@ public class FederatedTransactionDAO {
 
             }
 
-            return existingAccessTokenDO;
-
         }
 
         catch (SQLException e) {
-            String errorMsg = "Error occurred while trying to retrieve latest 'ACTIVE' access token for Client ID : ";
+            String errorMsg = "Error occurred while trying to retrieve latest 'ACTIVE' access token for Client ID : "
+                    + tokReqMsgCtx.getOauth2AccessTokenReqDTO().getClientId() + " from identity Database";
+            log.error(errorMsg);
             throw new IdentityOAuth2Exception(errorMsg, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, prepStmt);
         }
 
+        return existingAccessTokenDO;
+
     }
+
 }
