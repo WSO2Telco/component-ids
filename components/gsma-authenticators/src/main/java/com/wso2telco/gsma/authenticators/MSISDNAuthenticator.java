@@ -18,6 +18,7 @@ package com.wso2telco.gsma.authenticators;
 import com.wso2telco.Util;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.authenticators.attributeShare.AttributeShareFactory;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
@@ -35,13 +36,12 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 // TODO: Auto-generated Javadoc
 
@@ -134,9 +134,11 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         log.info("Initiating authentication request");
 
         String loginPage;
+        boolean expliciteScope = false;
+        String displayScopes = "";
         try {
 
-            loginPage = getAuthEndpointUrl(context);
+            loginPage = getAuthEndpointUrl(context,expliciteScope);
 
             String queryParams = FrameworkUtils
                     .getQueryStringWithFrameworkContextId(context.getQueryParams(),
@@ -154,10 +156,38 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                             .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
 
 
-            response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
-                    request.getParameter("redirect_uri") + "&authenticators="
-                    + getName() + ":" + "LOCAL" + retryParam);
+            boolean isattribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+
+            if(isattribute){
+                String operator = context.getProperty(Constants.OPERATOR).toString();;
+                String clientId = context.getProperty(Constants.CLIENT_ID).toString();
+                Map<String, List<String>> attributeset = AttributeShareFactory.getAttributeSharable(operator, clientId).getAttributeMap(context);
+                if(!attributeset.get("explicitScopes").isEmpty()){
+                    expliciteScope = true;
+                    displayScopes = Arrays.toString(attributeset.get("explicitScopes").toArray());
+                }
+
+            }
+
+            if(expliciteScope){
+                response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
+                        request.getParameter("redirect_uri") + "&authenticators="
+                        + getName() + ":" + "LOCAL" + retryParam + OAuthConstants.SESSION_DATA_KEY + "="
+                        + context.getContextIdentifier() + "&skipConsent=true&scope=" + displayScopes + "&registering=" + (boolean) context.getProperty(Constants.IS_REGISTERING));
+            } else {
+                response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
+                        request.getParameter("redirect_uri") + "&authenticators="
+                        + getName() + ":" + "LOCAL" + retryParam);
+            }
+
         } catch (IOException e) {
+            log.error("Error occurred while redirecting request", e);
+            DataPublisherUtil
+                    .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
+                            .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
+                            .MSISDN_AUTH_PROCESSING_FAIL, e.getMessage());
+            throw new AuthenticationFailedException(e.getMessage(), e);
+        } catch (Exception e) {
             log.error("Error occurred while redirecting request", e);
             DataPublisherUtil
                     .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
@@ -404,7 +434,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     }
 
 
-    private String getAuthEndpointUrl(AuthenticationContext context) {
+    private String getAuthEndpointUrl(AuthenticationContext context, boolean explicitScope) {
 
         String loginPage;
 
@@ -414,8 +444,14 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
 
             if (isShowTnC && isRegistering) {
-                loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
-                        Constants.CONSENT_JSP;
+
+                if (explicitScope) {
+                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.ATTRIBUTE_CONSENT_JSP;
+                } else {
+                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+                            Constants.CONSENT_JSP;
+                }
+
             } else {
                 loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
             }

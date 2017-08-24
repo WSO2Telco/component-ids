@@ -12,7 +12,9 @@ import java.util.Map;
  */
 public interface AttributeSharable {
 
-    public Map<String,List<String>> getAttributeMap(AuthenticationContext context) throws Exception;
+     Map<String,List<String>> getAttributeMap(AuthenticationContext context) throws Exception;
+
+    public Map<String,String> getAttributeShareDetails(AuthenticationContext context) throws Exception;
 
 
 

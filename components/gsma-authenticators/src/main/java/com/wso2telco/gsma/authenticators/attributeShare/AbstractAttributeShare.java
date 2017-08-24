@@ -1,6 +1,9 @@
 package com.wso2telco.gsma.authenticators.attributeShare;
 
+import com.wso2telco.core.config.model.ScopeDetailsConfig;
 import com.wso2telco.core.config.model.ScopeParam;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtil;
 import com.wso2telco.gsma.authenticators.attributeShare.internal.ConsentType;
@@ -26,6 +29,22 @@ import java.util.*;
 public abstract class AbstractAttributeShare implements AttributeSharable {
 
     private static Log log = LogFactory.getLog(AbstractAttributeShare.class);
+    private static ScopeDetailsConfig scopeDetailsConfigs = null;
+    private static Map<String, ScopeDetailsConfig.Scope> scopeMap = null;
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
+    static {
+        //Load scope-config.xml file.
+        scopeDetailsConfigs = configurationService.getDataHolder().getScopeDetailsConfig();
+
+        //Load scope related request optional parameters.
+        scopeMap = new HashMap<String, ScopeDetailsConfig.Scope>();
+        List<ScopeDetailsConfig.Scope> scopes = scopeDetailsConfigs.getScope();
+
+        for (ScopeDetailsConfig.Scope sc : scopes) {
+            scopeMap.put(sc.getName(), sc);
+        }
+    }
 
     public Map<String, List<String>> getAttributeMap(AuthenticationContext context) throws Exception {
 
@@ -33,7 +52,6 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
         List<String> implicitScopes = new ArrayList();
         Map<String, List<String>> scopesList = new HashMap();
         List<String> longlivedScopes = new ArrayList();
-
         AttributeConfigDAO attributeConfigDAO = new AttributeConfigDAOimpl();
         List<ScopeParam> scopeParamList = attributeConfigDAO.getScopeParams(context.getProperty(Constants.TELCO_SCOPE).toString());
 
@@ -41,17 +59,17 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
             String consentType = scopeParam.getConsentType();
             String validityType = scopeParam.getConsent_validity_type();
             String scope = scopeParam.getScope();
-            Map<String, String> valityMap = getValiditeProcess(context, validityType, scope);
+            Map<String, String> validityMap = getValiditeProcess(context, validityType, scope);
 
-            if (consentType.equalsIgnoreCase(ConsentType.EXPLICIT.name()) && "true".equalsIgnoreCase(valityMap.get("isConsent"))) {
-                explicitScopes.add(scope);
-                if (valityMap.get("validityType").equalsIgnoreCase(ValidityType.LONG_LIVE.name())) {
+            if (consentType.equalsIgnoreCase(ConsentType.EXPLICIT.name()) && "true".equalsIgnoreCase(validityMap.get("isConsent"))) {
+                explicitScopes = getScopestoDisplay(explicitScopes,scope);
+                if (validityMap.get("validityType").equalsIgnoreCase(ValidityType.LONG_LIVE.name())) {
                     longlivedScopes.add(scope);
                 }
 
-            } else if (consentType.equalsIgnoreCase(ConsentType.IMPLICIT.name()) && "true".equalsIgnoreCase(valityMap.get("isConsent")))
+            } else if (consentType.equalsIgnoreCase(ConsentType.IMPLICIT.name()) && "true".equalsIgnoreCase(validityMap.get("isConsent"))){
                 implicitScopes.add(scope);
-
+            }
         }
         scopesList.put(Constants.EXPLICIT_SCOPES, explicitScopes);
         scopesList.put(Constants.IMPLICIT_SCOPES, implicitScopes);
@@ -98,8 +116,6 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
                 valityMap.put("validityType", ValidityType.UNDEFINED.name());
                 valityMap.put("isConsent", "false");
                 return valityMap;
-
-
         }
 
     }
@@ -107,7 +123,6 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
     private boolean isLongLiveConsent(AuthenticationContext context, String scope) throws Exception {
 
         boolean isConsent = false;
-
 
         try {
 
@@ -144,8 +159,19 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
 
         }
         return isConsent;
-
     }
 
+    public static List<String> getScopestoDisplay(List<String> attributeSet, String scope) {
 
+        List<String> consentAttribute = attributeSet;
+        List<String> displayAttributeSet = new ArrayList<>();
+
+        displayAttributeSet = scopeMap.get(scope).getDisplayAttributes();
+        for (int j = 0; j < displayAttributeSet.size(); j++) {
+            if (!consentAttribute.contains(displayAttributeSet.get(j))) {
+                consentAttribute.add(displayAttributeSet.get(j));
+            }
+        }
+        return consentAttribute;
+    }
 }

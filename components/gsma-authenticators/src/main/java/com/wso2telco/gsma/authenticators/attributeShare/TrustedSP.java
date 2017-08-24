@@ -2,10 +2,7 @@ package com.wso2telco.gsma.authenticators.attributeShare;
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Use this class to implement TSP1 related functionality
@@ -28,7 +25,21 @@ public class TrustedSP extends AbstractAttributeShare {
         }
         return scopesList;
 
-
-        //return super.getAttributeMap(context);
     }
+
+    @Override
+    public Map<String, String> getAttributeShareDetails(AuthenticationContext context) throws Exception {
+        String displayScopes = "";
+        String isDisplayScope = "false";
+        String isTNCForNewUser = "false";
+
+        Map<String, String> attributeShareDetails = new HashMap();
+
+        attributeShareDetails.put("isDisplayScope", isDisplayScope);
+        attributeShareDetails.put("isTNCForNewUser", isTNCForNewUser);
+        attributeShareDetails.put("displayScopes", displayScopes);
+
+        return attributeShareDetails;
+    }
+
 }
