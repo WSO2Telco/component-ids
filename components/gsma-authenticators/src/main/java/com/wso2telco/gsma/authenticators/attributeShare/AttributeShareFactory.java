@@ -42,26 +42,10 @@ import java.util.Map;
 */
 public class AttributeShareFactory {
 
-    private static Log log = LogFactory.getLog(AttributeShareFactory.class);
-    private static ScopeDetailsConfig scopeDetailsConfigs = null;
-    private static Map<String, ScopeDetailsConfig.Scope> scopeMap = null;
-    static ConsentedSP consentedSP;
+    static TrustedSP2 trustedSP2;
     static TrustedSP trustedSP;
-    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
-
-    static {
-        //Load scope-config.xml file.
-        scopeDetailsConfigs = configurationService.getDataHolder().getScopeDetailsConfig();
-
-        //Load scope related request optional parameters.
-        scopeMap = new HashMap<String, ScopeDetailsConfig.Scope>();
-        List<ScopeDetailsConfig.Scope> scopes = scopeDetailsConfigs.getScope();
-
-        for (ScopeDetailsConfig.Scope sc : scopes) {
-            scopeMap.put(sc.getName(), sc);
-        }
-    }
-
+    static NormalSP normalSP;
+    private static Log log = LogFactory.getLog(AttributeShareFactory.class);
 
     public static AttributeSharable getAttributeSharable(String operator, String clientID) throws Exception {
 
@@ -74,16 +58,24 @@ public class AttributeShareFactory {
             spType = attributeConfigDAO.getSPConfigValue(operator, clientID, Constants.SP_TYPE);
 
             if (spType != null && (spType.equalsIgnoreCase(SPType.TSP2.name()) || spType.equalsIgnoreCase(SPType.NORMAL.name()))) {
-                if (consentedSP == null) {
-                    consentedSP = new ConsentedSP();
+                if (trustedSP2 == null) {
+                    trustedSP2 = new TrustedSP2();
                 }
-                attributeSharable = consentedSP;
+                attributeSharable = trustedSP2;
 
-            } if(spType != null && (spType.equalsIgnoreCase(SPType.TSP1.name()))){
+            }
+            if (spType != null && (spType.equalsIgnoreCase(SPType.TSP1.name()))) {
                 if (trustedSP == null) {
                     trustedSP = new TrustedSP();
                 }
                 attributeSharable = trustedSP;
+            }
+            if (spType != null && (spType.equalsIgnoreCase(SPType.NORMAL.name()))) {
+                if (normalSP == null) {
+                    normalSP = new NormalSP();
+                }
+                attributeSharable = normalSP;
+
             }
 
         } catch (SQLException e) {
@@ -95,24 +87,4 @@ public class AttributeShareFactory {
         }
         return attributeSharable;
     }
-
-    public static List<String> getScopestoDisplay(Map<String, List<String>> attributeSet) {
-
-        List<String> consentAttribute = new ArrayList<>();
-        List<String> claimSet;
-
-        if (!attributeSet.get("explicitScopes").isEmpty()) {
-
-            for (int i = 0; i < attributeSet.get("explicitScopes").size(); i++) {
-                claimSet = scopeMap.get(attributeSet.get("explicitScopes").get(i)).getClaimSet();
-                for (int j = 0; j < claimSet.size(); j++) {
-                    if (!consentAttribute.contains(claimSet.get(j))) {
-                        consentAttribute.add(claimSet.get(j));
-                    }
-                }
-            }
-        }
-        return consentAttribute;
-    }
-
 }

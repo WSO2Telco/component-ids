@@ -14,15 +14,40 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 
-public class ConsentedSP extends AbstractAttributeShare {
+public class TrustedSP2 extends AbstractAttributeShare {
 
-    private static Log log = LogFactory.getLog(ConsentedSP.class);
+    private static Log log = LogFactory.getLog(TrustedSP2.class);
 
     @Override
-    public Map<String,List<String>> getAttributeMap(AuthenticationContext context) throws Exception {
+    public Map<String, List<String>> getAttributeMap(AuthenticationContext context) throws Exception {
 
        return super.getAttributeMap(context);
     }
+
+    @Override
+    public Map<String, String> getAttributeShareDetails(AuthenticationContext context) throws Exception {
+
+        String displayScopes = "";
+        String isDisplayScope = "false";
+        String isTNCForNewUser ="false";
+
+        Map<String, List<String>> attributeset = getAttributeMap(context);
+        Map<String,String> attributeShareDetails = new HashMap();
+
+
+        if(!attributeset.get(Constants.EXPLICIT_SCOPES).isEmpty()){
+            isDisplayScope = "true";
+            isTNCForNewUser = "false";
+            displayScopes = Arrays.toString(attributeset.get(Constants.EXPLICIT_SCOPES).toArray());
+        }
+        attributeShareDetails.put(Constants.IS_DISPLAYSCOPE,isDisplayScope);
+        attributeShareDetails.put(Constants.IS_TNC_FORNEWUSE,isTNCForNewUser);
+        attributeShareDetails.put(Constants.DISPLAY_SCOPES,displayScopes);
+
+        return attributeShareDetails;
+
+    }
+
 
     public static void persistConsentedScopeDetails(AuthenticationContext context) throws Exception {
 

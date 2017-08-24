@@ -196,7 +196,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
-        UserConsentDetails userConsent = null;
+        UserConsentDetails userConsent=null;
 
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("SELECT ");
@@ -220,7 +220,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
 
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-
+                userConsent = new UserConsentDetails();
                 userConsent.setConsumerKey(userConsentDetails.getConsumerKey());
                 userConsent.setScope(userConsentDetails.getScope());
                 userConsent.setOperatorID(userConsentDetails.getOperatorID());

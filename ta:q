@@ -1,0 +1,183 @@
+[1mdiff --git a/components/gsma-authenticators/src/main/java/com/wso2telco/gsma/authenticators/MSISDNAuthenticator.java b/components/gsma-authenticators/src/main/java/com/wso2telco/gsma/authenticators/MSISDNAuthenticator.java[m
+[1mindex baf31f6..2bba3d9 100644[m
+[1m--- a/components/gsma-authenticators/src/main/java/com/wso2telco/gsma/authenticators/MSISDNAuthenticator.java[m
+[1m+++ b/components/gsma-authenticators/src/main/java/com/wso2telco/gsma/authenticators/MSISDNAuthenticator.java[m
+[36m@@ -18,6 +18,7 @@[m [mpackage com.wso2telco.gsma.authenticators;[m
+ import com.wso2telco.Util;[m
+ import com.wso2telco.core.config.service.ConfigurationService;[m
+ import com.wso2telco.core.config.service.ConfigurationServiceImpl;[m
+[32m+[m[32mimport com.wso2telco.gsma.authenticators.attributeShare.AttributeShareFactory;[m
+ import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;[m
+ import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;[m
+ import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;[m
+[36m@@ -35,13 +36,12 @@[m [mimport org.wso2.carbon.identity.application.authentication.framework.exception.A[m
+ import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;[m
+ import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;[m
+ import org.wso2.carbon.identity.application.common.model.User;[m
+[32m+[m[32mimport org.wso2.carbon.identity.oauth.common.OAuthConstants;[m
+ [m
+ import javax.servlet.http.HttpServletRequest;[m
+ import javax.servlet.http.HttpServletResponse;[m
+ import java.io.IOException;[m
+[31m-import java.util.Collections;[m
+[31m-import java.util.HashMap;[m
+[31m-import java.util.Map;[m
+[32m+[m[32mimport java.util.*;[m
+ [m
+ // TODO: Auto-generated Javadoc[m
+ [m
+[36m@@ -154,9 +154,25 @@[m [mpublic class MSISDNAuthenticator extends AbstractApplicationAuthenticator[m
+                             .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");[m
+ [m
+ [m
+[31m-            response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +[m
+[32m+[m
+[32m+[m[32m            /*boolean isattribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);[m
+[32m+[m
+[32m+[m[32m           String operator = context.getProperty(Constants.OPERATOR).toString();[m
+[32m+[m
+[32m+[m[32m            if (context.getProperty(Constants.MSISDN)!=null && isattribute && !(getAttributes(operator, context.getProperty(Constants.CLIENT_ID).toString(), context).get("explicitScopes").isEmpty())) {[m
+[32m+[m[32m                String displayScopes = "";[m
+[32m+[m
+[32m+[m[32m                displayScopes = Arrays.toString(getAttributes(operator, context.getProperty(Constants.CLIENT_ID).toString(), context).get("explicitScopes").toArray());[m
+[32m+[m[32m                boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);[m
+[32m+[m[32m                response.sendRedirect("/authenticationendpoint/attributeconsent.do?" + OAuthConstants.SESSION_DATA_KEY + "="[m
+[32m+[m[32m                        + context.getContextIdentifier() + "&skipConsent=true&scope=" + displayScopes + "&registering=" + isRegistering);[m
+[32m+[m
+[32m+[m[32m            } else {*/[m
+[32m+[m[32m                  response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +[m
+                     request.getParameter("redirect_uri") + "&authenticators="[m
+                     + getName() + ":" + "LOCAL" + retryParam);[m
+[32m+[m[32m            //}[m
+[32m+[m
+         } catch (IOException e) {[m
+             log.error("Error occurred while redirecting request", e);[m
+             DataPublisherUtil[m
+[36m@@ -164,6 +180,13 @@[m [mpublic class MSISDNAuthenticator extends AbstractApplicationAuthenticator[m
+                             .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState[m
+                             .MSISDN_AUTH_PROCESSING_FAIL, e.getMessage());[m
+             throw new AuthenticationFailedException(e.getMessage(), e);[m
+[32m+[m[32m        } catch (Exception e) {[m
+[32m+[m[32m            log.error("Error occurred while redirecting request", e);[m
+[32m+[m[32m            DataPublisherUtil[m
+[32m+[m[32m                    .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants[m
+[32m+[m[32m                            .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState[m
+[32m+[m[32m                            .MSISDN_AUTH_PROCESSING_FAIL, e.getMessage());[m
+[32m+[m[32m            throw new AuthenticationFailedException(e.getMessage(), e);[m
+         }[m
+     }[m
+ [m
+[36m@@ -404,18 +427,45 @@[m [mpublic class MSISDNAuthenticator extends AbstractApplicationAuthenticator[m
+     }[m
+ [m
+ [m
+[31m-    private String getAuthEndpointUrl(AuthenticationContext context) {[m
+[32m+[m[32m    private String getAuthEndpointUrl(AuthenticationContext context) throws Exception{[m
+ [m
+         String loginPage;[m
+ [m
+         if (context.getProperty(Constants.MSISDN) != null) {[m
+[32m+[m[32m            /*/*boolean isattribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);[m
+[32m+[m
+[32m+[m[32m           String operator = context.getProperty(Constants.OPERATOR).toString();[m
+[32m+[m
+[32m+[m[32m            if (isattribute && !(getAttributes(operator, context.getProperty(Constants.CLIENT_ID).toString(), context).get("explicitScopes").isEmpty())) {[m
+[32m+[m[32m                String displayScopes = "";[m
+[32m+[m
+[32m+[m[32m                displayScopes = Arrays.toString(getAttributes(operator, context.getProperty(Constants.CLIENT_ID).toString(), context).get("explicitScopes").toArray());[m
+[32m+[m[32m                boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);[m
+[32m+[m[32m                response.sendRedirect("/authenticationendpoint/attributeconsent.do?" + OAuthConstants.SESSION_DATA_KEY + "="[m
+[32m+[m[32m                        + context.getContextIdentifier() + "&skipConsent=true&scope=" + displayScopes + "&registering=" + isRegistering);[m
+[32m+[m[32m*/[m
+ [m
+             boolean isShowTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);[m
+             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);[m
+ [m
+             if (isShowTnC && isRegistering) {[m
+[31m-                loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +[m
+[31m-                        Constants.CONSENT_JSP;[m
+[32m+[m[32m                boolean isattribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);[m
+[32m+[m
+[32m+[m[32m                String operator = context.getProperty(Constants.OPERATOR).toString();[m
+[32m+[m
+[32m+[m[32m                if (isattribute && !(getAttributes(operator, context.getProperty(Constants.CLIENT_ID).toString(), context).get("explicitScopes").isEmpty())) {[m
+[32m+[m[32m                    String displayScopes = "";[m
+[32m+[m
+[32m+[m[32m                    displayScopes = Arrays.toString(getAttributes(operator, context.getProperty(Constants.CLIENT_ID).toString(), context).get("explicitScopes").toArray());[m
+[32m+[m[32m                    response.sendRedirect("/authenticationendpoint/attributeconsent.do?" + OAuthConstants.SESSION_DATA_KEY + "="[m
+[32m+[m[32m                            + context.getContextIdentifier() + "&skipConsent=true&scope=" + displayScopes + "&registering=" + isRegistering);[m
+[32m+[m
+[32m+[m[32m                } else {[m
+[32m+[m[32m                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +[m
+[32m+[m[32m                            Constants.CONSENT_JSP;[m
+[32m+[m[32m                }[m
+[32m+[m
+[32m+[m
+             } else {[m
+                 loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();[m
+             }[m
+[36m@@ -475,4 +525,64 @@[m [mpublic class MSISDNAuthenticator extends AbstractApplicationAuthenticator[m
+     public String getAmrValue(int acr) {[m
+         return null;[m
+     }[m
+[32m+[m
+[32m+[m[32m    private Map<String, List<String>> getAttributes(String operator, String clientId, AuthenticationContext context) throws Exception{[m
+[32m+[m[32m        Map<String, List<String>> attributeset = AttributeShareFactory.getAttributeSharable(operator, clientId).getAttributeMap(context);[m
+[32m+[m[32m        return attributeset;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    private void sentRedirect(HttpServletRequest request,HttpServletResponse response, AuthenticationContext context) throws Exception{[m
+[32m+[m
+[32m+[m[32m        String loginPage;[m
+[32m+[m
+[32m+[m
+[32m+[m[32m        /*  String loginPage;[m
+[32m+[m
+[32m+[m[32m        if (isRegistering && isShowTnc) {[m
+[32m+[m
+[32m+[m[32m            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +[m
+[32m+[m[32m                    Constants.CONSENT_JSP;[m
+[32m+[m[32m        } else {[m
+[32m+[m[32m            loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();[m
+[32m+[m[32m        }[m
+[32m+[m[32m        return loginPage;*/[m
+[32m+[m
+[32m+[m
+[32m+[m[32m        if (context.getProperty(Constants.MSISDN) != null) {[m
+[32m+[m
+[32m+[m[32m            boolean isShowTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);[m
+[32m+[m[32m            boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);[m
+[32m+[m
+[32m+[m[32m            if (isShowTnC && isRegistering) {[m
+[32m+[m[32m                boolean isattribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);[m
+[32m+[m
+[32m+[m[32m                String operator = context.getProperty(Constants.OPERATOR).toString();[m
+[32m+[m
+[32m+[m[32m                if (isattribute && !(getAttributes(operator, context.getProperty(Constants.CLIENT_ID).toString(), context).get("explicitScopes").isEmpty())) {[m
+[32m+[m[32m                    String displayScopes = "";[m
+[32m+[m
+[32m+[m[32m                    displayScopes = Arrays.toString(getAttributes(operator, context.getProperty(Constants.CLIENT_ID).toString(), context).get("explicitScopes").toArray());[m
+[32m+[m[32m                    response.sendRedirect("/authenticationendpoint/attributeconsent.do?" + OAuthConstants.SESSION_DATA_KEY + "="[m
+[32m+[m[32m                            + context.getContextIdentifier() + "&skipConsent=true&scope=" + displayScopes + "&registering=" + isRegistering);[m
+[32m+[m
+[32m+[m[32m                } else {[m
+[32m+[m[32m                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +[m
+[32m+[m[32m                            Constants.CONSENT_JSP;[m
+[32m+[m[32m                }[m
+[32m+[m
+[32m+[m
+[32m+[m[32m            } else {[m
+[32m+[m[32m                loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();[m
+[32m+[m[32m            }[m
+[32m+[m
+[32m+[m[32m        } else {[m
+[32m+[m[32m            loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m
+[32m+[m
+[32m+[m[32m        response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +[m
+[32m+[m[32m                request.getParameter("redirect_uri") + "&authenticators="[m
+[32m+[m[32m                + getName() + ":" + "LOCAL" + retryParam);[m
+[32m+[m[32m    }[m
+ }[m

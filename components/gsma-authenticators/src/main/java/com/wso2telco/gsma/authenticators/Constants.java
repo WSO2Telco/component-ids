@@ -453,6 +453,14 @@ public final class Constants {
 
     public static final String LONGLIVEDSCOPES = " longlivedScopes";
 
+    public static final String ATTRIBUTE_CONSENT_JSP ="/attributeconsent.do";
+
+
+    public static final String IS_DISPLAYSCOPE = "isDisplayScope";
+    public static final String IS_TNC_FORNEWUSE ="isTNCForNewUser";
+    public static final String DISPLAY_SCOPES = "displayScopes";
+
+
 
 
 }
