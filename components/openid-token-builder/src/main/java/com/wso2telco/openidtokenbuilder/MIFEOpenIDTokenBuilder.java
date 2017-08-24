@@ -171,13 +171,13 @@ public class MIFEOpenIDTokenBuilder implements
                     + request.getProperty("AuthorizationCode"));
         }
                 
-        if (tokenRespDTO.getIDToken() != null) {
+        if (mobileConnectConfig.isFederatedDeployment() && tokenRespDTO.getIDToken() != null) {
 
             log.info("Federated Identity ID_Token Info Flow initiated for " + tokenRespDTO.getAccessToken());
 
             try {
-                String idToken = initiateFederatedIDTokenProcess(request, tokenRespDTO);
-                return idToken;
+
+                return initiateFederatedIDTokenProcess(request, tokenRespDTO);
 
             } catch (IDTokenException e) {
                 log.error("Error occurred while generating the Federeated IDToken" + e.getMessage());
@@ -186,8 +186,8 @@ public class MIFEOpenIDTokenBuilder implements
                 log.error("Error while parsing the generated Federated IDToken" + e.getMessage());
                 throw new IdentityOAuth2Exception("Error while parsing the generated Federeated IDToken", e);
             } catch (Exception e) {
-                log.error("Error while parsing the federated IDToken" + e.getMessage());
-                throw new IdentityOAuth2Exception("Error while parsing the Federeated IDToken", e);
+                log.error("Error while processing the federated IDToken" + e.getMessage());
+                throw new IdentityOAuth2Exception("Error while processing the Federeated IDToken", e);
             }
 
         }
