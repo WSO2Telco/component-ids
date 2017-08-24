@@ -90,9 +90,11 @@ public class ServiceProviderBuilder {
                 OAuthConsumerAppDTO authConsumerAppDTO = adminService.getOAuthApplicationData(adminServiceDto);
                 if (authConsumerAppDTO == null
                         && !adminService.isCredentailsEquals(adminServiceDto, authConsumerAppDTO)) {
+                    log.info("Provision OAuthApplication Data Started for clientId:"+adminServiceDto.getOauthConsumerKey());
                     adminService.registerOAuthApplicationData(adminServiceDto);
                 }
             } catch (SpProvisionServiceException e) {
+                log.error("Error Occured while creating OauthApplication Data for clientid : "+ adminServiceDto.getOauthConsumerKey());
                 throw new SpProvisionServiceException(e.getMessage());
             }
         } else {
@@ -109,14 +111,19 @@ public class ServiceProviderBuilder {
         ServiceProvider serviceProvider = null;
 
         if (serviceProviderDto != null) {
-
+            log.info("Creating sp application for client id : " + serviceProviderDto.getAdminServiceDto().getOauthConsumerKey());
             spAppManagementService.createSpApplication(serviceProviderDto);
+            log.info("Creating sp application FINISHED for client id : " + serviceProviderDto.getAdminServiceDto().getOauthConsumerKey());
             serviceProvider = spAppManagementService.getSpApplicationData(applicationName);
 
             if (serviceProvider != null) {
+                log.info("Updating sp application for client id : " + serviceProviderDto.getAdminServiceDto().getOauthConsumerKey());
                 spAppManagementService.updateSpApplication(serviceProviderDto);
+                log.info("Updating sp application FINISHED for client id : " + serviceProviderDto.getAdminServiceDto().getOauthConsumerKey());
             }
+            log.info("Reading sp application for client id : " + serviceProviderDto.getAdminServiceDto().getOauthConsumerKey());
             serviceProvider = spAppManagementService.getSpApplicationData(applicationName);
+            log.info("Reading sp application FINISHED for client id : " + serviceProviderDto.getAdminServiceDto().getOauthConsumerKey());
         }
 
         return serviceProvider;

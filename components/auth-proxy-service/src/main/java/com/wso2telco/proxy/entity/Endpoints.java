@@ -355,7 +355,7 @@ public class Endpoints {
 
             if (serviceProviderDto != null && serviceProviderDto.getExistance().equals(ProvisionType.REMOTE)
                     && serviceProviderDto.getAdminServiceDto() != null) {
-                log.info("Provisioning Service Provider to Local data store....");
+                log.info("Provisioning Service Provider to Local data store for clientid :" + client_id);
                 serviceProviderSeamlessProvision(serviceProviderDto);
             }
         }
@@ -380,7 +380,7 @@ public class Endpoints {
                 }
             }
         } catch (SpProvisionServiceException e) {
-            log.error("Error occurred in provisioning a Service Provider " + e.getMessage());
+            log.error("Error occurred in provisioning a Service Provider clientid: "+ spProvisionDto.getServiceProviderDto().getAdminServiceDto().getOauthConsumerKey() +"Error :" + e.getMessage());
         }
     }
 

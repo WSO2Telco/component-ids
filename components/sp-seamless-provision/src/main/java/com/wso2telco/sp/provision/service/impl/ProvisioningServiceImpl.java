@@ -45,7 +45,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
             provisioner.provisionServiceProvider(spProvisionDto.getServiceProviderDto(),
                     spProvisionDto.getSpProvisionConfig());
         } else {
-            log.error("Provisioner object doesn't contain mandatory details");
+            log.error("Provisioner object doesn't contain mandatory details for clientid : " + spProvisionDto.getServiceProviderDto().getAdminServiceDto().getOauthConsumerKey());
             return;
         }
     }

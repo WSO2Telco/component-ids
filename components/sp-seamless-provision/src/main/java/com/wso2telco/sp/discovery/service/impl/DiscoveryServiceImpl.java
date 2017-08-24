@@ -41,7 +41,7 @@ public class DiscoveryServiceImpl implements DiscoveryService {
             DiscoveryServiceDto discoveryServiceDto,SpProvisionDto spProvisionDto) {
         ServiceProviderDto serviceProviderDto = null;
         try {
-            log.info("Performing Credentials discovery for CR.");
+            log.info("Performing Credentials discovery for CR.ClientId : " + discoveryServiceDto.getClientId());
             discoverSp = new LocalDiscovery();
             discoverSp.setNextDiscovery(new RemoteCredentialDiscovery());
             serviceProviderDto = discoverSp.servceProviderDiscovery(discoveryServiceConfig, discoveryServiceDto,spProvisionDto);

@@ -91,6 +91,7 @@ public class RemoteCredentialDiscovery extends RemoteDiscovery {
             serviceProviderDto.setAdminServiceDto(adminServiceDto);
         }
         serviceProviderDto.setExistance(ProvisionType.REMOTE);
+        log.info("CR-> Create Service Provider DTO Finished for clientid : "+discoveryServiceDto.getClientId());
         return serviceProviderDto;
     }
 }
