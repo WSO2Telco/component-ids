@@ -1,6 +1,7 @@
 package com.wso2telco.sp.internal;
 
 import com.wso2telco.core.spprovisionservice.external.admin.service.OauthAdminService;
+import com.wso2telco.core.spprovisionservice.external.admin.service.impl.OauthAdminServiceImpl;
 
 public class SpProvisionOauthServiceDataHolder {
 
@@ -13,7 +14,7 @@ public class SpProvisionOauthServiceDataHolder {
     }
 
     public OauthAdminService getOauthAdminService() {
-        return oauthAdminService;
+        return new OauthAdminServiceImpl();
     }
 
     public void setOauthAdminService(OauthAdminService oauthAdminService) {
