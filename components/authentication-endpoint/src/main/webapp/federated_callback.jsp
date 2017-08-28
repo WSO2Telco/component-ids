@@ -1,3 +1,4 @@
+<%@page import="org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants"%>
 <%@ page language="java" contentType="text/html; charset=US-ASCII"
     pageEncoding="US-ASCII"%>
 <%@ page import="org.wso2.carbon.identity.core.util.IdentityUtil" %>
