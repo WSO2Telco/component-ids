@@ -809,6 +809,16 @@
 				<artifactId>mnc-resolver</artifactId>
 				<version>${com.wso2telco.core.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>com.wso2telco.core</groupId>
+            			<artifactId>sp-config-util</artifactId>
+				<version>${com.wso2telco.core.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.wso2telco.core</groupId>
+				<artifactId>pcr-service</artifactId>
+				<version>${com.wso2telco.core.version}</version>
+			</dependency>
             <dependency>
                 <groupId>com.wso2telco.core</groupId>
                 <artifactId>config-util</artifactId>
