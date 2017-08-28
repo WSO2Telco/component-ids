@@ -1,6 +1,7 @@
 package com.wso2telco.sp.internal;
 
 import com.wso2telco.core.spprovisionservice.external.admin.service.SpAppManagementService;
+import com.wso2telco.core.spprovisionservice.external.admin.service.impl.SpAppManagementServiceImpl;
 
 public class SpProvisionAppManagementServiceDataHolder {
 
@@ -13,7 +14,7 @@ public class SpProvisionAppManagementServiceDataHolder {
     }
 
     public SpAppManagementService getAppManagementService() {
-        return appManagementService;
+        return new SpAppManagementServiceImpl();
     }
 
     public void setAppManagementService(SpAppManagementService appManagementService) {
