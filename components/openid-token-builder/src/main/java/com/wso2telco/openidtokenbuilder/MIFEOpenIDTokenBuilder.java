@@ -166,12 +166,14 @@ public class MIFEOpenIDTokenBuilder implements
                     + request.getProperty("AuthorizationCode"));
         }
 
+        Map<String, String> tokenMap = new HashMap<String, String>();
+        
         OAuthServerConfiguration config = OAuthServerConfiguration.getInstance();
         String issuer = config.getOpenIDConnectIDTokenIssuerIdentifier();
         int lifetime = Integer.parseInt(config.getOpenIDConnectIDTokenExpiration()) * 1000;
         int curTime = (int) Calendar.getInstance().getTimeInMillis();
 
-        //String msisdn = request.getAuthorizedUser().replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
+        //String msisdn1 = request.getAuthorizedUser().replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
         String msisdn = AuthenticationHealper.getUser(request).replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
 
         // Loading respective application data
@@ -276,7 +278,7 @@ public class MIFEOpenIDTokenBuilder implements
 
             if (dataPublisherEnabled) {
                 //Publish event
-                Map<String, String> tokenMap = new HashMap<String, String>();
+                //Map<String, String> tokenMap = new HashMap<String, String>();
                 tokenMap.put("Timestamp", String.valueOf(new java.util.Date().getTime()));
                 tokenMap.put("AuthenticatedUser", msisdn);
                 tokenMap.put("Nonce", nonce);
@@ -308,14 +310,47 @@ public class MIFEOpenIDTokenBuilder implements
                     .serialize();
 
         } catch (IDTokenException e) {
+            //Push values to token map which is used for data publishers
+            setPublishingDataForError(request, tokenRespDTO, msisdn, tokenMap);
+
+            //start publishing token endpoint data
+            DataPublisherUtil.publishTokenEndpointData(tokenMap);
+            //stop publishing token endpoint data            
+            
             throw new IdentityOAuth2Exception("Error occurred while generating the IDToken", e);
         } catch (ParseException e) {
+            //Push values to token map which is used for data publishers
+        	setPublishingDataForError(request, tokenRespDTO, msisdn, tokenMap);
+
+            //start publishing token endpoint data
+            DataPublisherUtil.publishTokenEndpointData(tokenMap);
+            //stop publishing token endpoint data 
+        	
             log.error("Error while parsing the IDToken", e);
             throw new IdentityOAuth2Exception("Error while parsing the IDToken", e);
         } catch (Exception e) {
+            //Push values to token map which is used for data publishers
+            setPublishingDataForError(request, tokenRespDTO, msisdn, tokenMap);
+
+            //start publishing token endpoint data
+            DataPublisherUtil.publishTokenEndpointData(tokenMap);
+            //stop publishing token endpoint data 
+        	
             log.error("Error while parsing the IDToken", e);
             throw new IdentityOAuth2Exception("Error while parsing the IDToken", e);
-        }
+        }	
+    }
+    
+    private void setPublishingDataForError(OAuthTokenReqMessageContext request, OAuth2AccessTokenRespDTO tokenRespDTO, String msisdn, Map<String, String> tokenMap) throws IdentityOAuth2Exception {
+        tokenMap.put("StatusCode" , "400");
+        tokenMap.put("Timestamp",String.valueOf(new Date().getTime()));
+        tokenMap.put("AuthenticatedUser",msisdn);
+        tokenMap.put("ClientId", request.getOauth2AccessTokenReqDTO().getClientId());
+        tokenMap.put("RefreshToken",tokenRespDTO.getRefreshToken());
+        tokenMap.put("sessionId",getValuesFromCache(request, "sessionId"));
+        tokenMap.put("TokfenClaims",getClaimValues(request));
+        tokenMap.put("status", "ERROR_GENERATING_IDToken");
+        tokenMap.put("ContentType","application/x-www-form-urlencoded");
     }
 
     /**

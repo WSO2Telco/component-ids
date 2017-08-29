@@ -353,6 +353,10 @@ public class DataPublisherUtil {
             tokenEndpointData.add(tokenMap.get("sessionId"));
         } else {
             tokenEndpointData.add(null);
+        }if (tokenMap.get("status") != null && !tokenMap.get("status").isEmpty()) {
+            tokenEndpointData.add(tokenMap.get("status"));
+        } else {
+            tokenEndpointData.add(null);
         }
         tokenEndpointData.add(System.currentTimeMillis());
 
