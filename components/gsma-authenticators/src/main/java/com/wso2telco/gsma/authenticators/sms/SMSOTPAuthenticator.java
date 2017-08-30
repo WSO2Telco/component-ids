@@ -126,6 +126,9 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
             throw e;
         }finally {
             try{
+            	//This fix will cause not executing non of the authenticators added after the SMSOTPAuthenticator
+            	//This should be fixed in a different way.
+            	context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
                 if(sessionDataKey!=null && !sessionDataKey.isEmpty() && status!=null && !status.isEmpty()){
                     DBUtils.updateOTPForSMS(sessionDataKey,status);
                 }
