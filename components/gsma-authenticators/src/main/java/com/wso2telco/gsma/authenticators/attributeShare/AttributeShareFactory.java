@@ -57,7 +57,7 @@ public class AttributeShareFactory {
             AttributeConfigDAO attributeConfigDAO = new AttributeConfigDAOimpl();
             spType = attributeConfigDAO.getSPConfigValue(operator, clientID, Constants.SP_TYPE);
 
-            if (spType != null && (spType.equalsIgnoreCase(SPType.TSP2.name()) || spType.equalsIgnoreCase(SPType.NORMAL.name()))) {
+            if (spType != null && (spType.equalsIgnoreCase(SPType.TSP2.name()))) {
                 if (trustedSP2 == null) {
                     trustedSP2 = new TrustedSP2();
                 }

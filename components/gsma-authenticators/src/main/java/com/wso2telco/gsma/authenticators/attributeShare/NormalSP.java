@@ -1,5 +1,6 @@
 package com.wso2telco.gsma.authenticators.attributeShare;
 
+import com.wso2telco.gsma.authenticators.Constants;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.util.Arrays;
@@ -27,8 +28,11 @@ public class NormalSP extends AbstractAttributeShare {
 
 
         if(!attributeset.get("explicitScopes").isEmpty()){
+
+            if(context.getProperty(Constants.IS_REGISTERING) !=null && (boolean)context.getProperty(Constants.IS_REGISTERING)){
+                isTNCForNewUser = "true";
+            }
             isDisplayScope = "true";
-            isTNCForNewUser = "true";
             displayScopes = Arrays.toString(attributeset.get("explicitScopes").toArray());
         }
         attributeShareDetails.put("isDisplayScope",isDisplayScope);

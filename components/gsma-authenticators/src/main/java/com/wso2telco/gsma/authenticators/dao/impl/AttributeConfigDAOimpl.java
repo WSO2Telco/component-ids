@@ -12,7 +12,6 @@ import com.wso2telco.gsma.authenticators.model.UserConsentHistory;
 import com.wso2telco.gsma.authenticators.util.TableName;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import javax.naming.ConfigurationException;
@@ -173,7 +172,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
             while (resultSet.next()) {
                 ScopeParam scopeParam = new ScopeParam();
                 scopeParam.setScope(resultSet.getString("scope"));
-                scopeParam.setConsent_validity_type(resultSet.getString("validity_type"));
+                scopeParam.setConsentValidityType(resultSet.getString("validity_type"));
                 scopeParam.setConsentType(resultSet.getString("consent_type"));
                 scopeParams.add(scopeParam);
             }
