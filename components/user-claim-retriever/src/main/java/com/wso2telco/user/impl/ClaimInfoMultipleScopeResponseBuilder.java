@@ -15,13 +15,14 @@
  ******************************************************************************/
 package com.wso2telco.user.impl;
 
-
 import com.google.gson.Gson;
-import com.wso2telco.config.*;
+import com.wso2telco.claims.ClaimsRetrieverFactory;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.model.ScopeDetailsConfig;
 import com.wso2telco.dao.DBConnection;
 import com.wso2telco.dao.ScopeDetails;
 import com.wso2telco.util.ClaimUtil;
-import org.apache.amber.oauth2.common.utils.JSONUtils;
+import com.wso2telco.util.ClaimsRetrieverType;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -56,11 +57,14 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
 
     private final String phone_number_claim = "phone_number";
 
+    private final String operator = "operator1";
+
+    private List<ScopeDetailsConfig.Scope> scopes;
+
     /**
      * The openid scopes.
      */
-    List<String> openidScopes = Arrays.asList("profile", "email", "address", "phone", "openid",
-            "mc_identity_phonenumber_hashed");
+    List<String> openidScopes = Arrays.asList("profile", "email", "address", "phone", "openid","mc_identity_phonenumber_hashed");
 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder#getResponseString(org.wso2.carbon.identity
@@ -77,8 +81,9 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         Map<ClaimMapping, String> userAttributes = getUserAttributesFromCache(tokenResponse);
         Map<String, Object> claims = null;
         //read claimValues per scope from scope-config.xml
-        DataHolder.getInstance().setScopeConfigs(ConfigLoader.getInstance().getScopeConfigs());
-        ScopeConfigs scopeConfigs = DataHolder.getInstance().getScopeConfigs();
+        //   DataHolder.getInstance().setScopeConfigs(ConfigLoader.getInstance().getScopeConfigs());
+
+        ScopeDetailsConfig scopeConfigs =com.wso2telco.core.config.ConfigLoader.getInstance().getScopeDetailsConfig();
 
         if (userAttributes != null) {
             UserInfoClaimRetriever retriever = UserInfoEndpointConfig.getInstance().getUserInfoClaimRetriever();
@@ -106,10 +111,12 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
 
         String contextPath = System.getProperty("request.context.path");
         String[] requestedScopes = tokenResponse.getScope();
-
+        scopes=scopeConfigs.getPremiumInfoScope();
         if (contextPath.equals("/oauth2")) {
             //oauth2/userinfo requests should serve scopes in openid connect onl
             requestedScopes = getValidScopes(requestedScopes);
+            scopes=scopeConfigs.getUserInfoScope();
+
         }
 
         Map<String, Object> requestedClaims = null;
@@ -117,8 +124,21 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
             DBConnection dbConnection = DBConnection.getInstance();
             ScopeDetails scopeDetails = dbConnection.getScopeFromAcessToken(tokenResponse
                     .getAuthorizationContextToken().getTokenString());
-            requestedClaims = getRequestedClaims(requestedScopes, scopeConfigs, claims);
+
+            List<MobileConnectConfig.OperatorData> operators= com.wso2telco.core.config.ConfigLoader.getInstance().getMobileConnectConfig().getOperatorsList().getOperatorData();
+            String  operatorName =(String)claims.get(operator);
+            String claimsRetrieverType= ClaimsRetrieverType.Local.toString();
+
+            for (MobileConnectConfig.OperatorData operator : operators) {
+                if(operator.getOperatorName().equalsIgnoreCase(operatorName)){
+                    claimsRetrieverType=operator.getUserInfoEndPointType();
+                    break;
+                }
+            }
+
+            requestedClaims= ClaimsRetrieverFactory.getClaimsRetriever(claimsRetrieverType).getRequestedClaims(requestedScopes, scopes, claims);
             requestedClaims.put("sub", scopeDetails.getPcr());
+
         } catch (NoSuchAlgorithmException e) {
             throw new UserInfoEndpointException("Error while generating hashed claim values.");
         } catch (Exception e) {
@@ -148,43 +168,6 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         return cacheEntry.getUserAttributes();
     }
 
-    /**
-     * Gets the requested claims.
-     *
-     * @param scopes       the scopes
-     * @param scopeConfigs the scope configs
-     * @param totalClaims  the total claims
-     * @return the requested claims
-     */
-    private Map<String, Object> getRequestedClaims(String[] scopes, ScopeConfigs scopeConfigs, Map<String, Object>
-            totalClaims) throws NoSuchAlgorithmException {
-        Map<String, Object> requestedClaims = new HashMap<String, Object>();
-        if (scopeConfigs != null) {
-            if (ArrayUtils.contains(scopes, hashPhoneScope)) {
-                String hashed_msisdn = getHashedClaimValue((String) totalClaims.get(phone_number_claim));
-                requestedClaims.put(phone_number_claim, hashed_msisdn);
-            } else {
-                for (Scope scope : scopeConfigs.getScopes().getScopeList()) {
-                    if (ArrayUtils.contains(scopes, scope.getName())) {
-                        for (String claims : scope.getClaims().getClaimValues()) {
-                            if (totalClaims.get(claims) == null) {
-                                requestedClaims.put(claims, "");
-                            } else {
-                                requestedClaims.put(claims, totalClaims.get(claims));
-                            }
-                        }
-                    }
-                }
-            }
-
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Could not load user-info claims.");
-            }
-        }
-        return requestedClaims;
-    }
-
 
     /**
      * Gets the valid scopes.
@@ -201,22 +184,6 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
             validScopes.add(scope);
         }
         return validScopes.toArray(new String[validScopes.size()]);
-    }
-
-    private String getHashedClaimValue(String claimValue) throws NoSuchAlgorithmException {
-
-        MessageDigest md = MessageDigest.getInstance("SHA-256");
-        md.update(claimValue.getBytes());
-
-        byte byteData[] = md.digest();
-
-        //convert the byte to hex format
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < byteData.length; i++) {
-            sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
-        }
-
-        return sb.toString();
     }
 
 }
