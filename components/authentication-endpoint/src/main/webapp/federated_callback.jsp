@@ -14,8 +14,13 @@
 String code = request.getParameter("code");
 String state = request.getParameter("state");
 String erroDisctription = request.getParameter("error_description");
-if(erroDisctription!=null){
-	String errorRedirectURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true) +"?sessionDataKey="+state+"&error_description="+erroDisctription;
+String error = request.getParameter("error");
+if(error!=null){
+	String errorRedirectURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true) +"?sessionDataKey="+state+"&error="+error;
+	response.sendRedirect(errorRedirectURL);
+}
+else if(erroDisctription!=null){
+	String errorRedirectURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true) +"?sessionDataKey="+state+"&error="+erroDisctription;
 	response.sendRedirect(errorRedirectURL);
 }else{
 	String redirectURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true) +"?sessionDataKey="+state+"&code="+code;
