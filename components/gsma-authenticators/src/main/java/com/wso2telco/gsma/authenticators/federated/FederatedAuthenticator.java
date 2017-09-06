@@ -46,6 +46,8 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
     private static DbService dbConnection = new DbService();
     private static final String SESSION_DATA_KEY = "sessionDataKey";
     private static final String IDP_AOUTH_CODE = "code";
+    private static final String IDP_ERROR_CODE = "error_description";
+    private static final String IDP_ERROR = "error";
 
     static {
         mobileConnectConfig = configurationService.getDataHolder().getMobileConnectConfig();
@@ -175,20 +177,32 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
             throws AuthenticationFailedException {
         log.info("FederatedAuthenticator process Authentication Response Triggered");
         String federatedOuthCode = httpServletRequest.getParameter(IDP_AOUTH_CODE);
-        log.debug("Federated IDP returned AouthCode ~ " + federatedOuthCode);
-        authenticationContext.setProperty(IS_FLOW_COMPLETED, true);
-        authenticationContext.setProperty(Constants.MSISDN, federatedOuthCode);
-        log.debug("~ MSISDN : " + authenticationContext.getProperty(Constants.MSISDN));
-        String operator = (String) authenticationContext.getProperty(Constants.OPERATOR);
+        if(federatedOuthCode!=null) {
+            log.debug("Federated IDP returned AouthCode ~ " + federatedOuthCode);
+            authenticationContext.setProperty(IS_FLOW_COMPLETED, true);
+            authenticationContext.setProperty(Constants.MSISDN, federatedOuthCode);
+            log.debug("~ MSISDN : " + authenticationContext.getProperty(Constants.MSISDN));
+            String operator = (String) authenticationContext.getProperty(Constants.OPERATOR);
 
-        try {
-            dbConnection.insertFederatedAuthCodeMappings(operator, federatedOuthCode);
-        } catch (Exception e) {
-            log.error("Error Persisting Federdeated Aouth Code : " + e.getMessage());
+            try {
+                dbConnection.insertFederatedAuthCodeMappings(operator, federatedOuthCode);
+            } catch (Exception e) {
+                log.error("Error Persisting Federdeated Aouth Code : " + e.getMessage());
+            }
+            AuthenticationContextHelper.setSubject(authenticationContext,
+                    authenticationContext.getProperty(Constants.MSISDN).toString());
+            log.info("FederatedAuthenticator Authentication success");
+        }else{
+            String erroCode = httpServletRequest.getParameter(IDP_ERROR_CODE);
+            String erro = httpServletRequest.getParameter(IDP_ERROR);
+            String sessionKey = authenticationContext.getContextIdentifier();
+            String redirectUrl = (String) authenticationContext.getProperty(Constants.REDIRECT_URI);
+            log.info("FederatedAuthenticator Authentication Failed");
+            //Data Publishing Code Comes Here
+            throw new AuthenticationFailedException("Authentication Failed");
+
+
         }
-        AuthenticationContextHelper.setSubject(authenticationContext,
-                authenticationContext.getProperty(Constants.MSISDN).toString());
-        log.info("FederatedAuthenticator Authentication success");
 
     }
 
