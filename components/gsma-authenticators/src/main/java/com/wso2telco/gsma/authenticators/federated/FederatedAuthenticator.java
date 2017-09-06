@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,6 +47,8 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
     private static DbService dbConnection = new DbService();
     private static final String SESSION_DATA_KEY = "sessionDataKey";
     private static final String IDP_AOUTH_CODE = "code";
+    private static final String IDP_ERROR_CODE = "error_description";
+
 
     static {
         mobileConnectConfig = configurationService.getDataHolder().getMobileConnectConfig();
@@ -127,9 +130,11 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
         String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
                 context.getCallerSessionKey(), context.getContextIdentifier());
         Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
+        context.setProperty("redirectURI", request.getParameter("redirect_uri"));
         String sessionKey = context.getContextIdentifier();
         String operator = (String) context.getProperty(Constants.OPERATOR);
         String acrValue = paramMap.get(Constants.PARAM_ACR);
+        String scope = paramMap.get(Constants.SCOPE);
         String federatedAouthEndpoint = providers[0].getAuthzEndpoint();
         String federatedCallBackUrl = null;
         try {
@@ -147,13 +152,13 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
                 + federatedCallBackUrl + " ~ client_id : " + clientId + " ~ nonce : " + nonce);
         if (paramMap.containsKey(LOGIN_HINT)) {
             String loginHint = paramMap.get(LOGIN_HINT);
-            federatedMobileConnectCallUrl = federatedAouthEndpoint + "?response_type=code&state=" + sessionKey
-                    + "&nonce=" + nonce + "&max_age=3600&scope=openid&response_type=code&redirect_uri="
+            federatedMobileConnectCallUrl = federatedAouthEndpoint + "?scope="+scope+"&response_type=code&state=" + sessionKey
+                    + "&nonce=" + nonce + "&redirect_uri="
                     + federatedCallBackUrl + "&client_id=" + clientId + "&acr_values=" + acrValue + "&login_hint="
                     + loginHint;
         } else {
-            federatedMobileConnectCallUrl = federatedAouthEndpoint + "?response_type=code&state=" + sessionKey
-                    + "&nonce=" + nonce + "&max_age=3600&scope=openid&response_type=code&redirect_uri="
+            federatedMobileConnectCallUrl = federatedAouthEndpoint + "?scope="+scope+"&response_type=code&state=" + sessionKey
+                    + "&nonce=" + nonce + "&redirect_uri="
                     + federatedCallBackUrl + "&client_id=" + clientId + "&acr_values=" + acrValue;
         }
 
@@ -175,20 +180,37 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
             throws AuthenticationFailedException {
         log.info("FederatedAuthenticator process Authentication Response Triggered");
         String federatedOuthCode = httpServletRequest.getParameter(IDP_AOUTH_CODE);
-        log.debug("Federated IDP returned AouthCode ~ " + federatedOuthCode);
-        authenticationContext.setProperty(IS_FLOW_COMPLETED, true);
-        authenticationContext.setProperty(Constants.MSISDN, federatedOuthCode);
-        log.debug("~ MSISDN : " + authenticationContext.getProperty(Constants.MSISDN));
-        String operator = (String) authenticationContext.getProperty(Constants.OPERATOR);
 
-        try {
-            dbConnection.insertFederatedAuthCodeMappings(operator, federatedOuthCode);
-        } catch (Exception e) {
-            log.error("Error Persisting Federdeated Aouth Code : " + e.getMessage());
+        if(federatedOuthCode!=null) {
+            log.debug("Federated IDP returned AouthCode ~ " + federatedOuthCode);
+            authenticationContext.setProperty(IS_FLOW_COMPLETED, true);
+            authenticationContext.setProperty(Constants.MSISDN, federatedOuthCode);
+            log.debug("~ MSISDN : " + authenticationContext.getProperty(Constants.MSISDN));
+            String operator = (String) authenticationContext.getProperty(Constants.OPERATOR);
+
+            try {
+                dbConnection.insertFederatedAuthCodeMappings(operator, federatedOuthCode);
+            } catch (Exception e) {
+                log.error("Error Persisting Federdeated Aouth Code : " + e.getMessage());
+            }
+            AuthenticationContextHelper.setSubject(authenticationContext,
+                    authenticationContext.getProperty(Constants.MSISDN).toString());
+            log.info("FederatedAuthenticator Authentication success");
+        }else{
+            String erroCode = httpServletRequest.getParameter(IDP_ERROR_CODE);
+            String sessionKey = authenticationContext.getContextIdentifier();
+            String redirectUrl = (String) authenticationContext.getProperty(Constants.REDIRECT_URI);
+            log.info("FederatedAuthenticator Authentication Failed");
+//            try {
+//                httpServletResponse.sendRedirect(redirectUrl+"&error_description"+erroCode+);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+            //authenticationContext.setProperty(Constants.IS_TERMINATED , true);
+            throw new AuthenticationFailedException("Authentication Failed");
+
+
         }
-        AuthenticationContextHelper.setSubject(authenticationContext,
-                authenticationContext.getProperty(Constants.MSISDN).toString());
-        log.info("FederatedAuthenticator Authentication success");
 
     }
 

@@ -13,8 +13,15 @@
 <%
 String code = request.getParameter("code");
 String state = request.getParameter("state");
-String redirectURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true) +"?sessionDataKey="+state+"&code="+code;
-response.sendRedirect(redirectURL);
+String erroDisctription = request.getParameter("error_description");
+if(erroDisctription!=null){
+	String errorRedirectURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true) +"?sessionDataKey="+state+"&error_description="+erroDisctription;
+	response.sendRedirect(errorRedirectURL);
+}else{
+	String redirectURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true) +"?sessionDataKey="+state+"&code="+code;
+	response.sendRedirect(redirectURL);	
+}
+
 %>
 
 </body>
