@@ -11,22 +11,27 @@
 <body>
 	</br>
 <%
-String code = request.getParameter("code");
+    String code = request.getParameter("code");
 String state = request.getParameter("state");
 String erroDisctription = request.getParameter("error_description");
 String error = request.getParameter("error");
-if(error!=null){
-	String errorRedirectURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true) +"?sessionDataKey="+state+"&error="+error;
-	response.sendRedirect(errorRedirectURL);
-}
-else if(erroDisctription!=null){
-	String errorRedirectURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true) +"?sessionDataKey="+state+"&error="+erroDisctription;
-	response.sendRedirect(errorRedirectURL);
-}else{
-	String redirectURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true) +"?sessionDataKey="+state+"&code="+code;
-	response.sendRedirect(redirectURL);
-}
+String redirectURL = null;
 
+    if (error == null)
+        redirectURL = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true) + "?sessionDataKey="
+                + state + "&code=" + code;
+    else
+        redirectURL = (erroDisctription != null) ? IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH,
+                true, true)
+                + "?sessionDataKey="
+                + state
+                + "&error="
+                + error
+                + "&error_description="
+                + erroDisctription : IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true)
+                + "?sessionDataKey=" + state + "&error=" + error;
+
+    response.sendRedirect(redirectURL);
 %>
 </body>
 </html>
