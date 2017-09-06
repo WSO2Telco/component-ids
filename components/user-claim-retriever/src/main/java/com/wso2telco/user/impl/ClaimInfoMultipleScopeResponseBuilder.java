@@ -1,3 +1,4 @@
+
 /*******************************************************************************
  * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
  *
@@ -18,13 +19,24 @@ package com.wso2telco.user.impl;
 
 import com.google.gson.Gson;
 import com.wso2telco.config.*;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.dbutils.DbService;
+import com.wso2telco.core.dbutils.model.FederatedIdpMappingDTO;
 import com.wso2telco.dao.DBConnection;
 import com.wso2telco.dao.ScopeDetails;
 import com.wso2telco.util.ClaimUtil;
+
 import org.apache.amber.oauth2.common.utils.JSONUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.codehaus.jettison.json.JSONException;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -36,6 +48,12 @@ import org.wso2.carbon.identity.oauth.user.UserInfoEndpointException;
 import org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -62,6 +80,19 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
     List<String> openidScopes = Arrays.asList("profile", "email", "address", "phone", "openid",
             "mc_identity_phonenumber_hashed");
 
+    private static DbService dbConnection = new DbService();
+    private static MobileConnectConfig mobileConnectConfig = null;
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
+    static {
+        mobileConnectConfig = configurationService.getDataHolder().getMobileConnectConfig();
+    }
+
+    private static MobileConnectConfig.FederatedIdentityProviders federatedIdps = mobileConnectConfig
+            .getFederatedIdentityProviders();
+
+    private static HashMap<String, MobileConnectConfig.Provider> federatedIdpMap = new HashMap<>();
+ 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder#getResponseString(org.wso2.carbon.identity
      * .oauth2.dto.OAuth2TokenValidationResponseDTO)
@@ -72,6 +103,28 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         if (log.isDebugEnabled()) {
             log.debug("Generating Claim Info for Access token : " + tokenResponse.getAuthorizationContextToken()
                     .getTokenString());
+        }
+        if (mobileConnectConfig.isFederatedDeployment()) {
+            FederatedIdpMappingDTO fidpInstance = new FederatedIdpMappingDTO();
+            fidpInstance = checkDbIfFederatedAccessToken(fidpInstance, tokenResponse);
+
+            if (fidpInstance.getFidpAccessToken() != null) {
+
+                log.info("Federated Identity User Info Flow initiated for " + fidpInstance.getOperator()
+                        + "endpoint with access token: " + fidpInstance.getFidpAccessToken());
+
+                readFederatedIdentityProvidersConfigurations();
+
+                String userInfoJson = null;
+
+                try {
+                    userInfoJson = initiateFederatedUserInfoProcess(fidpInstance);
+                } catch (Exception e) {
+                    log.error("Error occurred when invoking federated userinfo endpoint " + e.getMessage());
+                    throw new UserInfoEndpointException("Error occurred invoking federated the userinfo endpoint", e);
+                }
+                return userInfoJson;
+            }
         }
 
         Map<ClaimMapping, String> userAttributes = getUserAttributesFromCache(tokenResponse);
@@ -217,6 +270,128 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         }
 
         return sb.toString();
+    }
+    
+    /**
+     * To verify whether this is federated Token request
+     * 
+     * @param fidpInstance
+     * @param tokenResponse
+     * @return db instance
+     */
+    private FederatedIdpMappingDTO checkDbIfFederatedAccessToken(FederatedIdpMappingDTO fidpInstance,
+            OAuth2TokenValidationResponseDTO tokenResponse) {
+
+        try {
+            fidpInstance = dbConnection.retrieveFederatedTokenMappings(tokenResponse.getAuthorizationContextToken()
+                    .getTokenString());
+        } catch (Exception e) {
+            log.error("Error while retrieving federated token mapping information from DB, hence continuing regular flow : "
+                    + tokenResponse.getAuthorizationContextToken().getTokenString());
+        }
+        return fidpInstance;
+
+    }
+
+    /**
+     * Load Federated Identity Provider configurations
+     */
+    private void readFederatedIdentityProvidersConfigurations() {
+
+        for (MobileConnectConfig.Provider prv : federatedIdps.getProvider()) {
+            federatedIdpMap.put(prv.getOperator(), prv);
+        }
+
+    }
+
+    private String initiateFederatedUserInfoProcess(FederatedIdpMappingDTO fidpInstance)
+            throws UserInfoEndpointException {
+
+        String userInfoJson;
+        userInfoJson = getFederatedUserInfoResponse(fidpInstance);
+
+        if (userInfoJson.contains("error")) {
+            String errorMsg = userInfoJson + " prompted from federated IDP for provided access_token"
+                    + fidpInstance.getAccessToken();
+            log.error(errorMsg);
+            throw new UserInfoEndpointException(errorMsg);
+        }
+        return userInfoJson;
+
+    }
+
+    private String getFederatedUserInfoResponse(FederatedIdpMappingDTO fidpInstance) throws UserInfoEndpointException {
+
+        HttpResponse urlResponse;
+        urlResponse = invokeFederatedUserInfoEndpoint(fidpInstance);
+
+        String jsonString = null;
+        try {
+            jsonString = processFederatedUserInfoResponse(urlResponse);
+        } catch (IOException e) {
+            String errorMsg = "Error while getting response from Federated IDP for userinfo request using access_token : "
+                    + fidpInstance.getAccessToken();
+            log.error(errorMsg);
+            throw new UserInfoEndpointException(errorMsg, e);
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("UserInfo response code from Federated IDP " + fidpInstance.getOperator() + ":"
+                    + urlResponse.getStatusLine());
+            log.debug("UserInfo response message from Federated IDP " + fidpInstance.getOperator() + ":" + jsonString);
+        }
+        return jsonString;
+
+    }
+
+    private HttpResponse invokeFederatedUserInfoEndpoint(FederatedIdpMappingDTO fidpInstance)
+            throws UserInfoEndpointException {
+
+        String url = federatedIdpMap.get(fidpInstance.getOperator()).getUserInfoEndpoint();
+        String accessToken = null;
+
+        try {
+            accessToken = URLEncoder.encode(fidpInstance.getFidpAccessToken(), String.valueOf(StandardCharsets.UTF_8));
+            HttpGet httpGet = new HttpGet(url);
+            httpGet.addHeader("Authorization", "Bearer " + accessToken);
+            CloseableHttpClient client = HttpClientBuilder.create().disableRedirectHandling().build();
+            return client.execute(httpGet);
+        } catch (UnsupportedEncodingException e) {
+            String errorMsg = "Error while encoding the URL for federated Callback : "
+                    + mobileConnectConfig.getFederatedCallbackUrl() + " operator : " + fidpInstance.getOperator()
+                    + " endpoint : " + url;;
+            log.error(errorMsg);
+            throw new UserInfoEndpointException(errorMsg, e);
+        } catch (ClientProtocolException e) {
+            String errorMsg = "Error while executing request for federated IDP userinfo endpoint using access_token : "
+                    + accessToken + " operator : " + fidpInstance.getOperator() + " endpoint : " + url;
+            log.error(errorMsg);
+            throw new UserInfoEndpointException(errorMsg, e);
+        } catch (IOException e) {
+            String errorMsg = "Error while getting response from Federated IDP for userinfo request using access_token : "
+                    + fidpInstance.getAccessToken()
+                    + " operator : "
+                    + fidpInstance.getOperator()
+                    + " endpoint : "
+                    + url;
+            log.error(errorMsg);
+            throw new UserInfoEndpointException(errorMsg, e);
+        }
+
+    }
+
+    private String processFederatedUserInfoResponse(HttpResponse urlResponse) throws IOException {
+
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlResponse.getEntity().getContent(),
+                StandardCharsets.UTF_8));
+        StringBuilder stringBuilder = new StringBuilder();
+        String line;
+
+        while ((line = bufferedReader.readLine()) != null) {
+            stringBuilder.append(line).append("\n");
+        }
+        bufferedReader.close();
+        return stringBuilder.toString();
     }
 
 }

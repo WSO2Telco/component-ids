@@ -249,11 +249,8 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         Set<String> authenticatorsAllowedForMNO = new HashSet<>();
         Set<String> authenticatorsAllowedForSP = new HashSet<>();
         if (isGlobalMNOBasedAuthenticatorSelectionEnabled) {
-            try {
-                authenticatorsAllowedForMNO = DBUtils.getAllowedAuthenticatorSetForMNO(mobileNetworkOperator);
-            } catch (AuthenticatorException e) {
-                throw new AuthenticationFailedException(e.getMessage(), e);
-            }
+            Map<String, Set<String>> authenticatorMNOMap = configurationService.getDataHolder().getAuthenticatorMNOMap();
+            authenticatorsAllowedForMNO=authenticatorMNOMap.get(mobileNetworkOperator);
         }
 
         if (isGlobalSPBasedAuthenticatorSelectionEnabled) {
@@ -267,8 +264,10 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         //Authenticator selection is enabled for a given MNO/SP only when MNO/SP based authenticator selection is
         //globally enabled AND there are database entries of allowed authenticators for that specific MNO/SP.
         boolean isAuthenticatorSelectionEnabledForMNO = isGlobalMNOBasedAuthenticatorSelectionEnabled
+                && authenticatorsAllowedForMNO!=null
                 && !authenticatorsAllowedForMNO.isEmpty();
         boolean isAuthenticatorSelectionEnabledForSP = isGlobalSPBasedAuthenticatorSelectionEnabled
+                && authenticatorsAllowedForSP!=null
                 && !authenticatorsAllowedForSP.isEmpty();
 
 

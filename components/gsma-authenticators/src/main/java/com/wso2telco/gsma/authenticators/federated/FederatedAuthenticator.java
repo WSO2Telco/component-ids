@@ -49,6 +49,7 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
     private static final String IDP_AOUTH_CODE = "code";
     private static final String IDP_ERROR_CODE = "error_description";
 
+
     static {
         mobileConnectConfig = configurationService.getDataHolder().getMobileConnectConfig();
         providers = mobileConnectConfig.getFederatedIdentityProviders().getProvider();
@@ -179,6 +180,7 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
             throws AuthenticationFailedException {
         log.info("FederatedAuthenticator process Authentication Response Triggered");
         String federatedOuthCode = httpServletRequest.getParameter(IDP_AOUTH_CODE);
+
         if(federatedOuthCode!=null) {
             log.debug("Federated IDP returned AouthCode ~ " + federatedOuthCode);
             authenticationContext.setProperty(IS_FLOW_COMPLETED, true);
@@ -209,7 +211,6 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
 
 
         }
-
 
     }
 

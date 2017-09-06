@@ -27,6 +27,7 @@ import com.wso2telco.ids.datapublisher.model.UserStatus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,7 +41,8 @@ public class WelcomeSmsUtil {
 
     public static void handleWelcomeSms(AuthenticationContext context, UserStatus userStatus, String msisdn, String
             operator,
-                                  MobileConnectConfig.SMSConfig smsConfig) throws DataAccessException, IOException {
+                                  MobileConnectConfig.SMSConfig smsConfig)
+            throws DataAccessException, IOException, AuthenticationFailedException {
 
         BasicFutureCallback futureCallback = userStatus != null ? new SMSFutureCallback(userStatus.cloneUserStatus(),"SMS") : new SMSFutureCallback();
 
@@ -86,7 +88,7 @@ public class WelcomeSmsUtil {
 
     private static void sendWelcomeSms(String msisdn, String operator, BasicFutureCallback futureCallback, SendSMS sendSMS,
                                 OperatorSmsConfig operatorSmsConfig, Map<String, String> welcomeSMSConfig, String
-                                        clientId) throws IOException {
+                                        clientId) throws IOException, AuthenticationFailedException {
 
         String welcomeSmsDisabledForCurrentSp = welcomeSMSConfig.get(operator.trim());
         

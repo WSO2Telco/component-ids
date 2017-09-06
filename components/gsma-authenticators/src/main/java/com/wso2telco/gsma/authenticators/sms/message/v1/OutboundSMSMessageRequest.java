@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.gsma.authenticators.sms;
+package com.wso2telco.gsma.authenticators.sms.message.v1;
 
 import java.util.List;
 
 import com.wso2telco.gsma.authenticators.model.ReceiptRequest;
+import com.wso2telco.gsma.authenticators.sms.message.OutboundSMSTextMessage;
+import com.wso2telco.gsma.authenticators.sms.message.v2.SenderAddress;
 
 // TODO: Auto-generated Javadoc
 
@@ -30,33 +32,33 @@ public class OutboundSMSMessageRequest {
     /**
      * The client correlator.
      */
-    private String clientCorrelator = "";
+    protected String clientCorrelator = new String();
 
     /**
      * The address.
      */
-//    private String callbackData = "";
-    private List<String> address;
+//    private String callbackData = new String();
+    protected List<String> address;
 
     /**
      * The sender address.
      */
-    private String senderAddress = "";
+    private String senderAddress = new String();
 
     /**
      * The sender name.
      */
-    private String senderName = "";
+    private String senderName = new String();
 
     /**
      * The outbound sms text message.
      */
-    private OutboundSMSTextMessage outboundSMSTextMessage;
+    protected OutboundSMSTextMessage outboundSMSTextMessage;
 
     /**
      * The receipt request.
      */
-    private ReceiptRequest receiptRequest;
+    protected ReceiptRequest receiptRequest;
 
 
     /**
@@ -173,5 +175,6 @@ public class OutboundSMSMessageRequest {
     public void setSenderName(String senderName) {
         this.senderName = senderName;
     }
+
 
 }

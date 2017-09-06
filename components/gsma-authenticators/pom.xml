@@ -115,8 +115,6 @@
         <dependency>
             <groupId>com.wso2telco.core</groupId>
             <artifactId>sp-config-util</artifactId>
-            <version>2.0.24-SNAPSHOT</version>
-			<scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.wso2telco.ids</groupId>
@@ -128,7 +126,11 @@
 			<groupId>org.hashids</groupId>
 			<artifactId>hashids</artifactId>
 		</dependency>
-    </dependencies>
+		<dependency>
+			<groupId>com.wso2telco.core</groupId>
+			<artifactId>dbutils</artifactId>
+		</dependency>
+	</dependencies>
 	<build>
 		<plugins>
 			<plugin>

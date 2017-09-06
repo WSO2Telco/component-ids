@@ -32,6 +32,7 @@ import com.wso2telco.dao.TransactionDAO;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.internal.OpenIdTokenBuilderDataHolder;
 import com.wso2telco.util.AuthenticationHealper;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -66,6 +67,7 @@ import org.wso2.carbon.identity.openidconnect.CustomClaimsCallbackHandler;
 
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
@@ -154,6 +156,9 @@ public class MIFEOpenIDTokenBuilder implements
      */
     private String acrAppID;
 
+    private static final String TOKEN_CONTENT_TYPE = "Content-Type";
+    private static final String TOKEN_CONTENT_TYPE_VALUE = "application/x-www-form-urlencoded";
+    
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.openidconnect.IDTokenBuilder#buildIDToken(org.wso2.carbon.identity.oauth2.token
      * .OAuthTokenReqMessageContext, org.wso2.carbon.identity.oauth2.dto.OAuth2AccessTokenRespDTO)
@@ -165,7 +170,28 @@ public class MIFEOpenIDTokenBuilder implements
             log.debug("Generated access token : [" + tokenRespDTO.getAccessToken() + "]  for Authorization Code :  "
                     + request.getProperty("AuthorizationCode"));
         }
+                
+        if (mobileConnectConfig.isFederatedDeployment() && tokenRespDTO.getIDToken() != null) {
 
+            log.info("Federated Identity ID_Token Info Flow initiated for " + tokenRespDTO.getAccessToken());
+
+            try {
+
+                return initiateFederatedIDTokenProcess(request, tokenRespDTO);
+
+            } catch (IDTokenException e) {
+                log.error("Error occurred while generating the Federeated IDToken" + e.getMessage());
+                throw new IdentityOAuth2Exception("Error occurred while generating the Federeated IDToken", e);
+            } catch (ParseException e) {
+                log.error("Error while parsing the generated Federated IDToken" + e.getMessage());
+                throw new IdentityOAuth2Exception("Error while parsing the generated Federeated IDToken", e);
+            } catch (Exception e) {
+                log.error("Error while processing the federated IDToken" + e.getMessage());
+                throw new IdentityOAuth2Exception("Error while processing the Federeated IDToken", e);
+            }
+
+        }
+        
         OAuthServerConfiguration config = OAuthServerConfiguration.getInstance();
         String issuer = config.getOpenIDConnectIDTokenIssuerIdentifier();
         int lifetime = Integer.parseInt(config.getOpenIDConnectIDTokenExpiration()) * 1000;
@@ -316,6 +342,7 @@ public class MIFEOpenIDTokenBuilder implements
             throw new IdentityOAuth2Exception("Error while parsing the IDToken", e);
         }
     }
+
 
     /**
      * Gets the values from cache.
@@ -525,33 +552,27 @@ public class MIFEOpenIDTokenBuilder implements
     /*public String getAccessTokenIssuedTime(String accessToken) throws IdentityOAuth2Exception {
         AccessTokenDO accessTokenDO = null;
 		TokenMgtDAO tokenMgtDAO = new TokenMgtDAO();
-
 		OAuthCache oauthCache = OAuthCache.getInstance();
 		CacheKey cacheKey = new OAuthCacheKey(accessToken);
 		//TODO CODE COMMENTED#
 		//CacheEntry result = oauthCache.getValueFromCache(cacheKey);
-
 		// cache hit, do the type check.
 		//TODO CODE COMMENTED#
 		//if (result instanceof AccessTokenDO) {
 			//accessTokenDO = (AccessTokenDO) result;
 		//}
-
 		// Cache miss, load the access token info from the database.
 		if (null == accessTokenDO) {
 			//TODO CODE COMMENTED#
 			accessTokenDO = tokenMgtDAO.retrieveAccessToken(accessToken);
 		}
-
 		// if the access token or client id is not valid
 		if (null == accessTokenDO) {
 			log.error("Error occured while getting access token based information"); //$NON-NLS-1$
 			throw new IdentityOAuth2Exception(
 					"Error occured while getting access token based information"); //$NON-NLS-1$
 		}
-
 		long timeIndMilliSeconds = accessTokenDO.getIssuedTime().getTime();
-
 		return Long.toString(timeIndMilliSeconds / 1000);
 	}*/
 
@@ -814,7 +835,98 @@ public class MIFEOpenIDTokenBuilder implements
                                OAuth2AuthorizeRespDTO tokenRespDTO) throws IdentityOAuth2Exception {
         // TODO Auto-generated method stub
         return null;
+    }   
+    
+    private String initiateFederatedIDTokenProcess(OAuthTokenReqMessageContext request,
+            OAuth2AccessTokenRespDTO tokenRespDTO) throws Exception {
+        String[] jwttoken = tokenRespDTO.getIDToken().split("\\.");
+        byte[] decoded = Base64.decodeBase64(jwttoken[1]);
+        String jwtbody = new String(decoded);
+        org.codehaus.jettison.json.JSONObject jwtobj = null;
+        CustomIDTokenBuilder builder = new CustomIDTokenBuilder();
+
+        jwtobj = new org.codehaus.jettison.json.JSONObject(jwtbody);
+        builder = prepareGeneralTokenBuilder(request, tokenRespDTO, builder);
+        builder = prepareFederatedTokenBuilder(jwtobj, builder);
+
+        String plainIDToken = builder.buildIDToken();
+        if (mobileConnectConfig.getDataPublisher().isEnabled()) {
+
+            Map<String, String> tokenMap = new HashMap<String, String>();
+            tokenMap = prepareGeneralFederatedTokenObject(request, tokenRespDTO, tokenMap);
+            tokenMap = prepareFederatedTokenObject(plainIDToken, jwtobj, tokenMap);
+            if (DEBUG) {
+                for (Map.Entry<String, String> entry : tokenMap.entrySet()) {
+                    log.debug(entry.getKey() + " : " + entry.getValue());
+                }
+            }
+            DataPublisherUtil.publishTokenEndpointData(tokenMap);
+        }
+
+        return new PlainJWT((com.nimbusds.jwt.JWTClaimsSet) PlainJWT.parse(plainIDToken).getJWTClaimsSet()).serialize();
+
     }
 
+    private Map<String, String> prepareGeneralFederatedTokenObject(OAuthTokenReqMessageContext request,
+            OAuth2AccessTokenRespDTO tokenRespDTO, Map<String, String> tokenMap) {
+        tokenMap.put("Timestamp", String.valueOf(new java.util.Date().getTime()));
+        tokenMap.put("AuthenticatedUser", request.getAuthorizedUser().toString());
+        tokenMap.put("AuthenticationCode", request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
+        tokenMap.put("AccessToken", tokenRespDTO.getAccessToken());
+        tokenMap.put("ClientId", request.getOauth2AccessTokenReqDTO().getClientId());
+        tokenMap.put("RefreshToken", tokenRespDTO.getRefreshToken());
+        if (tokenRespDTO.getAccessToken() != null) {
+            tokenMap.put("StatusCode", "200");
+        } else {
+            tokenMap.put("StatusCode", "400");
+        }
+        return tokenMap;
+    }
+
+    private Map<String, String> prepareFederatedTokenObject(String plainIDToken,
+            org.codehaus.jettison.json.JSONObject jwtobj, Map<String, String> tokenMap)
+            throws org.codehaus.jettison.json.JSONException {
+
+        tokenMap.put("Nonce", jwtobj.get(IDToken.NONCE).toString());
+        tokenMap.put("Amr", jwtobj.getJSONArray("amr").toString());
+        // tokenMap.put("sessionId", getValuesFromCache(request, "sessionId"));
+        // tokenMap.put("State", getValuesFromCache(request, "state"));
+        // tokenMap.put("TokenClaims", getClaimValues(request));
+        tokenMap.put(TOKEN_CONTENT_TYPE, TOKEN_CONTENT_TYPE_VALUE);
+        tokenMap.put("ReturnedResult", plainIDToken);
+
+        return tokenMap;
+    }
+
+    private CustomIDTokenBuilder prepareFederatedTokenBuilder(org.codehaus.jettison.json.JSONObject jwtobj,
+            CustomIDTokenBuilder builder) throws org.codehaus.jettison.json.JSONException {
+
+        builder.setSubject(jwtobj.get(IDToken.SUB).toString());
+        builder.setClaim(IDToken.ACR, jwtobj.get(IDToken.ACR).toString());
+        builder.setAmr((jwtobj.getJSONArray("amr")));
+        builder.setClaim(IDToken.NONCE, jwtobj.get(IDToken.NONCE).toString());
+
+        return builder;
+    }
+
+    private CustomIDTokenBuilder prepareGeneralTokenBuilder(OAuthTokenReqMessageContext request,
+            OAuth2AccessTokenRespDTO tokenRespDTO, CustomIDTokenBuilder builder) throws IdentityOAuth2Exception {
+
+        String accessTokenIssuedTime = getAccessTokenIssuedTime(tokenRespDTO.getAccessToken(), request);
+        String atHash = new String(Base64.encodeBase64(tokenRespDTO.getAccessToken().getBytes()));
+        int curTime = (int) Calendar.getInstance().getTimeInMillis();
+        OAuthServerConfiguration config = OAuthServerConfiguration.getInstance();
+        int lifetime = Integer.parseInt(config.getOpenIDConnectIDTokenExpiration()) * 1000;
+
+        builder.setIssuer(config.getOpenIDConnectIDTokenIssuerIdentifier());
+        builder.setAudience(request.getOauth2AccessTokenReqDTO().getClientId());
+        builder.setAuthorizedParty(request.getOauth2AccessTokenReqDTO().getClientId());
+        builder.setExpiration(curTime + lifetime);
+        builder.setIssuedAt(curTime);
+        builder.setAtHash(atHash);
+        builder.setAuthTime(accessTokenIssuedTime);
+
+        return builder;
+    }
 
 }

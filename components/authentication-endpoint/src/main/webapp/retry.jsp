@@ -22,12 +22,16 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page import="org.owasp.encoder.Encode" %>
+<%@ page import="javax.servlet.jsp.jstl.core.Config" %>
+
 
     <%
         String stat = request.getParameter("status");
         String statusMessage = request.getParameter("statusMsg");
         if (stat == null || statusMessage == null) {
-               ResourceBundle properties = ResourceBundle.getBundle(getServletContext().getInitParameter("javax.servlet.jsp.jstl.fmt.localizationContext"),Locale.forLanguageTag(getServletContext().getInitParameter("javax.servlet.jsp.jstl.fmt.locale")));
+            ResourceBundle properties = ResourceBundle.getBundle(
+                    getServletContext().getInitParameter("javax.servlet.jsp.jstl.fmt.localizationContext"),
+                    Locale.forLanguageTag(Config.get(getServletContext(), Config.FMT_LOCALE).toString()));
             stat = properties.getString("common-error-message");
             statusMessage = properties.getString("common-error-description");
         }
@@ -78,7 +82,7 @@
                 </div>
 
                 <div class="boarder-all col-lg-12 padding-top-double padding-bottom-double error-alert  ">
-                    <div class="font-medium"><strong>Attention:</strong> </div>
+                    <div class="font-medium"><strong><fmt:message key='common-error-propmt'/></strong> </div>
                     <div class="padding-bottom-double">
                         <%=Encode.forHtmlContent(statusMessage)%>
                     </div>
