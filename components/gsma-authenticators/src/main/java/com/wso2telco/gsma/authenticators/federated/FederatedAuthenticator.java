@@ -132,6 +132,7 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
         String sessionKey = context.getContextIdentifier();
         String operator = (String) context.getProperty(Constants.OPERATOR);
         String acrValue = paramMap.get(Constants.PARAM_ACR);
+        String scope = paramMap.get(Constants.SCOPE);
         String federatedAouthEndpoint = providers[0].getAuthzEndpoint();
         String federatedCallBackUrl = null;
         try {
@@ -149,13 +150,13 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
                 + federatedCallBackUrl + " ~ client_id : " + clientId + " ~ nonce : " + nonce);
         if (paramMap.containsKey(LOGIN_HINT)) {
             String loginHint = paramMap.get(LOGIN_HINT);
-            federatedMobileConnectCallUrl = federatedAouthEndpoint + "?response_type=code&state=" + sessionKey
-                    + "&nonce=" + nonce + "&max_age=3600&scope=openid&response_type=code&redirect_uri="
+            federatedMobileConnectCallUrl = federatedAouthEndpoint + "?scope="+scope+"&response_type=code&state=" + sessionKey
+                    + "&nonce=" + nonce + "&redirect_uri="
                     + federatedCallBackUrl + "&client_id=" + clientId + "&acr_values=" + acrValue + "&login_hint="
                     + loginHint;
         } else {
-            federatedMobileConnectCallUrl = federatedAouthEndpoint + "?response_type=code&state=" + sessionKey
-                    + "&nonce=" + nonce + "&max_age=3600&scope=openid&response_type=code&redirect_uri="
+            federatedMobileConnectCallUrl = federatedAouthEndpoint + "?scope="+scope+"&response_type=code&state=" + sessionKey
+                    + "&nonce=" + nonce + "&redirect_uri="
                     + federatedCallBackUrl + "&client_id=" + clientId + "&acr_values=" + acrValue;
         }
 
