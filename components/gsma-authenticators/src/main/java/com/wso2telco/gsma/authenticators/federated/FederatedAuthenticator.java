@@ -178,7 +178,7 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
             throws AuthenticationFailedException {
         log.info("FederatedAuthenticator process Authentication Response Triggered");
         String federatedOuthCode = httpServletRequest.getParameter(IDP_AOUTH_CODE);
-        if(federatedOuthCode!=null) {
+        if(federatedOuthCode!=null && !federatedOuthCode.isEmpty() && !federatedOuthCode.equalsIgnoreCase("null")) {
             log.debug("Federated IDP returned AouthCode ~ " + federatedOuthCode);
             authenticationContext.setProperty(IS_FLOW_COMPLETED, true);
             authenticationContext.setProperty(Constants.MSISDN, federatedOuthCode);
