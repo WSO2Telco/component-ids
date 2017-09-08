@@ -5,15 +5,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.axiom.util.base64.Base64Utils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.oltu.openidconnect.as.OIDC;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -45,9 +52,6 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
     private static final String TOKEN_GRANT_TYPE = "authorization_code";
     private static final String REDIRECT = "redirect_uri";
     private static final String TOKEN_TYPE = "Basic ";
-    private static final String QUESTION_MARK = "?";
-    private static final String EQUAL = "=";
-    private static final String AMPERSAND = "&";
     private static final long EXPIRY = 9223372036854775L;
     private static final long EXPIRY_MILLIS = 9223372036854775807L;
 
@@ -126,7 +130,7 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
             } catch (Exception e) {
                 String errorMsg = "Error while checking if the provided federated token already exist in database for : "
                         + fidpTokenResponse.get(ACCESS_TOKEN).toString();
-                log.error(errorMsg);
+                log.error(errorMsg + " " + e.getMessage());
                 throw new IdentityOAuth2Exception(errorMsg, e);
             }
 
@@ -160,7 +164,7 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
             invalidateAuthCode(tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode(),
                     existingAccessTokenDO.getTokenId());
             clearCacheForAuthCode(tokReqMsgCtx);
-            tokenRespDTO = prepareFromExistingToken(existingAccessTokenDO);
+            tokenRespDTO = prepareFromExistingToken(existingAccessTokenDO, tokReqMsgCtx);
 
         } else {
             tokenRespDTO = issueTokenFromIS(tokReqMsgCtx);
@@ -192,7 +196,8 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
         }
     }
 
-    private OAuth2AccessTokenRespDTO prepareFromExistingToken(AccessTokenDO existingAccessTokenDO) {
+    private OAuth2AccessTokenRespDTO prepareFromExistingToken(AccessTokenDO existingAccessTokenDO,
+            OAuthTokenReqMessageContext tokReqMsgCtx) throws IdentityOAuth2Exception {
 
         OAuth2AccessTokenRespDTO tokenRespDTO = new OAuth2AccessTokenRespDTO();
         long expireTime = OAuth2Util.getTokenExpireTimeMillis(existingAccessTokenDO);
@@ -217,7 +222,9 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
                 tokenRespDTO.setExpiresIn(EXPIRY);
                 tokenRespDTO.setExpiresInMillis(EXPIRY_MILLIS);
             }
-        }
+        } else
+            tokenRespDTO = issueTokenFromIS(tokReqMsgCtx);
+
         return tokenRespDTO;
 
     }
@@ -236,7 +243,7 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
         } catch (Exception e) {
             String errorMsg = "Database error while inserting the authToken mappings for federated provider, access_token : "
                     + tokenRespDTO.getAccessToken();
-            log.error(errorMsg);
+            log.error(errorMsg + " " + e.getMessage());
             throw new IdentityOAuth2Exception(errorMsg, e);
         }
         tokenRespDTO.setIDToken(fidpTokenResponse.get(OIDC.Response.ID_TOKEN).toString());
@@ -276,76 +283,77 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
     private JSONObject getFederatedTokenResponse(OAuthTokenReqMessageContext tokReqMsgCtx,
             FederatedIdpMappingDTO fidpInstance) throws IdentityOAuth2Exception {
 
-        HttpURLConnection connection = null;
-        InputStream is = null;
         JSONObject jsonObject = null;
         String responseString = null;
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost post = null;
+        HttpResponse response = null;
 
-        URL obj;
         try {
-            obj = new URL(prepareFederatedTokenEndpoint(fidpInstance));
-            connection = getFederatedTokenEndpointConnection(obj, tokReqMsgCtx);
-            is = responseCodeProcess(connection);
-            responseString = readFederatedTokenResponse(is);
+
+            post = prepareTokenBodyParameters(fidpInstance);
+            post = prepareTokenHeaderParameters(post, tokReqMsgCtx);
+            response = client.execute(post);
+            responseString = readFederatedTokenResponse(response.getEntity().getContent());
+
             if (responseString != null)
                 jsonObject = new JSONObject(responseString);
             if (log.isDebugEnabled()) {
                 log.debug("Token response code from Federated IDP " + fidpInstance.getOperator() + ":"
-                        + connection.getResponseCode());
+                        + response.getStatusLine().getStatusCode());
                 log.debug("Token response message from Federated IDP :  " + fidpInstance.getOperator() + ":"
                         + responseString);
             }
         } catch (Exception e) {
-            String errorMsg = "Error while invoking the Federated token endpoint for : " + fidpInstance.getOperator();
-            log.error(errorMsg);
+            String errorMsg = "Error while invoking the Federated token endpoint for : " + fidpInstance.getOperator()
+                    + " using auth code : " + fidpInstance.getFidpAuthCode();
+            log.error(errorMsg + " " + e.getMessage());
             throw new IdentityOAuth2Exception(errorMsg, e);
+        } finally {
+            if(post!=null)
+                post.releaseConnection();
         }
-
-        connection.disconnect();
-
         return jsonObject;
     }
 
-    private InputStream responseCodeProcess(HttpURLConnection connection) throws IOException {
-        return (connection.getResponseCode() == 200) ? connection.getInputStream() : connection.getErrorStream();
-    }
+    private HttpPost prepareTokenHeaderParameters(HttpPost post, OAuthTokenReqMessageContext tokReqMsgCtx) {
 
-    private HttpURLConnection getFederatedTokenEndpointConnection(URL obj, OAuthTokenReqMessageContext tokReqMsgCtx)
-            throws IOException {
-        
-        HttpURLConnection connection = null;
-        connection = (HttpURLConnection) obj.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty(TOKEN_AUTHORIZATION, prepareAuthorizationHeader(tokReqMsgCtx));
-        connection.setRequestProperty(TOKEN_CONTENT_TYPE, TOKEN_CONTENT_TYPE_VALUE);
-        connection.setRequestProperty("charset", StandardCharsets.UTF_8.toString());
-        return connection;
-    }
+        post.setHeader(TOKEN_AUTHORIZATION, prepareAuthorizationHeader(tokReqMsgCtx));
+        post.setHeader(TOKEN_CONTENT_TYPE, TOKEN_CONTENT_TYPE_VALUE);
+        post.setHeader("charset", StandardCharsets.UTF_8.toString());
 
-    private String prepareFederatedTokenEndpoint(FederatedIdpMappingDTO fidpInstance) throws IdentityOAuth2Exception {
-
-        String redirectURL;
-
-        try {
-            redirectURL = URLEncoder.encode(mobileConnectConfig.getFederatedCallbackUrl(),
-                    String.valueOf(StandardCharsets.UTF_8));
-        } catch (UnsupportedEncodingException e) {
-            String errorMsg = "Error while encoding the URL for federated Callback : "
-                    + mobileConnectConfig.getFederatedCallbackUrl();
-            log.error(errorMsg);
-            throw new IdentityOAuth2Exception(errorMsg, e);
+        if (log.isDebugEnabled()) {
+            Header[] headers = post.getAllHeaders();
+            for (Header eachHeader : headers)
+                log.debug("Federated Token request Header Key: " + eachHeader.getName() + " Value: "
+                        + eachHeader.getValue());
 
         }
-        String tokenURL = federatedIdpMap.get(fidpInstance.getOperator()).getTokenEndpoint();
-        String queryParameters = TOKEN_GRANT + TOKEN_GRANT_TYPE + AMPERSAND + REDIRECT + EQUAL + redirectURL;
-        return tokenURL + QUESTION_MARK + TOKEN_CODE + EQUAL + fidpInstance.getFidpAuthCode() + AMPERSAND
-                + queryParameters;
+
+        return post;
+    }
+
+    private HttpPost prepareTokenBodyParameters(FederatedIdpMappingDTO fidpInstance)
+            throws UnsupportedEncodingException {
+
+        HttpPost post = new HttpPost(federatedIdpMap.get(fidpInstance.getOperator()).getTokenEndpoint());
+        List<NameValuePair> urlParameters = new ArrayList<>();
+        urlParameters.add(new BasicNameValuePair(TOKEN_GRANT, TOKEN_GRANT_TYPE));
+        urlParameters.add(new BasicNameValuePair(TOKEN_CODE, fidpInstance.getFidpAuthCode()));
+        urlParameters.add(new BasicNameValuePair(REDIRECT, mobileConnectConfig.getFederatedCallbackUrl()));
+        post.setEntity(new UrlEncodedFormEntity(urlParameters));
+
+        if (log.isDebugEnabled()) {
+            log.debug("Federated Token request body parameters : " + post.getEntity());
+
+        }
+        return post;
 
     }
 
     private String readFederatedTokenResponse(InputStream is) throws IOException {
 
-        String line = null;
+        String line;
         StringBuilder stringBuilder = new StringBuilder();
         BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
 
