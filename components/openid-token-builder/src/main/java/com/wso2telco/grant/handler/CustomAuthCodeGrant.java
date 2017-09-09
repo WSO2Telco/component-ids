@@ -48,7 +48,7 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
     private static final String TOKEN_CONTENT_TYPE_VALUE = "application/x-www-form-urlencoded";
     private static final String TOKEN_CODE = "code";
     private static final String ACCESS_TOKEN = "access_token";
-    private static final String TOKEN_GRANT = "grant_type=";
+    private static final String TOKEN_GRANT = "grant_type";
     private static final String TOKEN_GRANT_TYPE = "authorization_code";
     private static final String REDIRECT = "redirect_uri";
     private static final String TOKEN_TYPE = "Basic ";
