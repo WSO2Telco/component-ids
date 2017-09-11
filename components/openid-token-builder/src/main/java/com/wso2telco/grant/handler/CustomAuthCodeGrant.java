@@ -54,6 +54,7 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
     private static final String TOKEN_TYPE = "Basic ";
     private static final long EXPIRY = 9223372036854775L;
     private static final long EXPIRY_MILLIS = 9223372036854775807L;
+    private static boolean DEBUG = log.isDebugEnabled();
 
     private static MobileConnectConfig mobileConnectConfig = null;
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
@@ -69,7 +70,8 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
 
     @Override
     public OAuth2AccessTokenRespDTO issue(OAuthTokenReqMessageContext tokReqMsgCtx) throws IdentityOAuth2Exception {
-
+    	
+    	
         OAuth2AccessTokenRespDTO tokenRespDTO = null;
 
         if (!mobileConnectConfig.isFederatedDeployment())
@@ -92,7 +94,7 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
 
     private OAuth2AccessTokenRespDTO handleFederatedTokenFlow(OAuthTokenReqMessageContext tokReqMsgCtx,
             FederatedIdpMappingDTO fidpInstance) throws IdentityOAuth2Exception {
-
+    	
         OAuth2AccessTokenRespDTO tokenRespDTO = null;
 
         if (fidpInstance != null && fidpInstance.getFidpAuthCode() != null) {

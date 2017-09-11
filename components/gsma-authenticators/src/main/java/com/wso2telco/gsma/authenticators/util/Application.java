@@ -39,7 +39,12 @@ public class Application {
      */
     public String changeApplicationName(String applicationName) {
         try {
-            applicationName = applicationName.substring(applicationName.indexOf("_") + 1);
+        	if(applicationName != null){
+                String[] applicationNameComponents = applicationName.split("_");
+                if(applicationNameComponents != null && applicationNameComponents.length >= 2 && applicationNameComponents[1] != null){
+                	applicationName = applicationNameComponents[1].toString();
+                }
+        	}
         } catch (Exception ex) {
             log.error("application name not converting ", ex);
         }
