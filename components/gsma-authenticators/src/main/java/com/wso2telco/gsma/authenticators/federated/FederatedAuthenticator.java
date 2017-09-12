@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,6 +30,8 @@ import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.dbutils.DbService;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.ids.datapublisher.model.UserStatus;
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 
 public class FederatedAuthenticator extends AbstractApplicationAuthenticator implements LocalApplicationAuthenticator {
 
@@ -46,12 +49,15 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
     private static DbService dbConnection = new DbService();
     private static final String SESSION_DATA_KEY = "sessionDataKey";
     private static final String IDP_AOUTH_CODE = "code";
-    private static final String IDP_ERROR_CODE = "error_description";
+    private static final String IDP_ERROR_DESC = "error_description";
     private static final String IDP_ERROR = "error";
+    private static HashMap<String, MobileConnectConfig.Provider> federatedIdpMap = new HashMap<>();
 
     static {
         mobileConnectConfig = configurationService.getDataHolder().getMobileConnectConfig();
-        providers = mobileConnectConfig.getFederatedIdentityProviders().getProvider();
+        for (MobileConnectConfig.Provider prv : mobileConnectConfig.getFederatedIdentityProviders().getProvider()) {
+            federatedIdpMap.put(prv.getOperator(), prv);
+        }
 
     }
 
@@ -60,6 +66,11 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
             AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
 
         log.info("FederatedAuthenticator process Triggered");
+
+        DataPublisherUtil.updateAndPublishUserStatus(
+                (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                DataPublisherUtil.UserState.FED_IDP_AUTH_PROCESSING, this.getClass().getName() + " processing started");
+
         if ((canHandle(request) && !triggerInitiateAuthRequest(context) && (request
                 .getAttribute(FrameworkConstants.REQ_ATTR_HANDLED) == null || !(Boolean) request
                 .getAttribute(FrameworkConstants.REQ_ATTR_HANDLED)))) {
@@ -133,13 +144,17 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
         String operator = (String) context.getProperty(Constants.OPERATOR);
         String acrValue = paramMap.get(Constants.PARAM_ACR);
         String scope = paramMap.get(Constants.SCOPE);
-        String federatedAouthEndpoint = providers[0].getAuthzEndpoint();
+        String federatedAouthEndpoint = federatedIdpMap.get(operator).getAuthzEndpoint();
         String federatedCallBackUrl = null;
         try {
             federatedCallBackUrl = URLEncoder.encode(mobileConnectConfig.getFederatedCallbackUrl(),
                     String.valueOf(StandardCharsets.UTF_8));
         } catch (UnsupportedEncodingException e) {
             log.error(e.getMessage());
+            DataPublisherUtil.updateAndPublishUserStatus(
+                    (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                    DataPublisherUtil.UserState.FED_IDP_AUTH_PROCESSING_FAIL, e.getMessage());
+            throw new AuthenticationFailedException(e.getMessage(), e);
         }
         String clientId = paramMap.get(Constants.CLIENT_ID);
         String nonce = paramMap.get(NONCE);
@@ -148,17 +163,13 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
         log.debug("sessionKey :" + sessionKey + " ~ operator : " + operator + " ~ acrValue : " + acrValue
                 + " ~ federatedAouthEndpoint : " + federatedAouthEndpoint + " ~ federatedCallBackUrl : "
                 + federatedCallBackUrl + " ~ client_id : " + clientId + " ~ nonce : " + nonce);
-        if (paramMap.containsKey(LOGIN_HINT)) {
-            String loginHint = paramMap.get(LOGIN_HINT);
-            federatedMobileConnectCallUrl = federatedAouthEndpoint + "?scope="+scope+"&response_type=code&state=" + sessionKey
-                    + "&nonce=" + nonce + "&redirect_uri="
-                    + federatedCallBackUrl + "&client_id=" + clientId + "&acr_values=" + acrValue + "&login_hint="
-                    + loginHint;
-        } else {
-            federatedMobileConnectCallUrl = federatedAouthEndpoint + "?scope="+scope+"&response_type=code&state=" + sessionKey
-                    + "&nonce=" + nonce + "&redirect_uri="
-                    + federatedCallBackUrl + "&client_id=" + clientId + "&acr_values=" + acrValue;
-        }
+
+        federatedMobileConnectCallUrl = federatedAouthEndpoint + "?scope=" + scope + "&response_type=code&state="
+                + sessionKey + "&nonce=" + nonce + "&redirect_uri=" + federatedCallBackUrl + "&client_id=" + clientId
+                + "&acr_values=" + acrValue;
+
+        federatedMobileConnectCallUrl = paramMap.containsKey(LOGIN_HINT) ? federatedMobileConnectCallUrl
+                + "&login_hint=" + paramMap.containsKey(LOGIN_HINT) : federatedMobileConnectCallUrl;
 
         try {
             log.debug(" ~ federatedMobileConnectCallUrl : " + federatedMobileConnectCallUrl);
@@ -169,6 +180,10 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
 
         } catch (IOException e) {
             log.error("Error Calling IDP Aouth Url : " + e.getMessage());
+            DataPublisherUtil.updateAndPublishUserStatus(
+                    (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                    DataPublisherUtil.UserState.FED_IDP_AUTH_PROCESSING_FAIL, e.getMessage());
+            throw new AuthenticationFailedException(e.getMessage(), e);
         }
     }
 
@@ -177,6 +192,7 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
             HttpServletResponse httpServletResponse, AuthenticationContext authenticationContext)
             throws AuthenticationFailedException {
         log.info("FederatedAuthenticator process Authentication Response Triggered");
+        authenticationContext.setProperty(Constants.IS_REGISTERING, false);
         String federatedOuthCode = httpServletRequest.getParameter(IDP_AOUTH_CODE);
         if(federatedOuthCode!=null && !federatedOuthCode.isEmpty() && !federatedOuthCode.equalsIgnoreCase("null")) {
             log.debug("Federated IDP returned AouthCode ~ " + federatedOuthCode);
@@ -189,19 +205,25 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
                 dbConnection.insertFederatedAuthCodeMappings(operator, federatedOuthCode);
             } catch (Exception e) {
                 log.error("Error Persisting Federdeated Aouth Code : " + e.getMessage());
+                DataPublisherUtil.updateAndPublishUserStatus(
+                        (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.FED_IDP_AUTH_PROCESSING_FAIL, e.getMessage());
+                throw new AuthenticationFailedException(e.getMessage(), e);
             }
+            DataPublisherUtil.updateAndPublishUserStatus(
+                    (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                    DataPublisherUtil.UserState.FED_IDP_AUTH_SUCCESS, "Federated Authentication success");
             AuthenticationContextHelper.setSubject(authenticationContext,
                     authenticationContext.getProperty(Constants.MSISDN).toString());
             log.info("FederatedAuthenticator Authentication success");
-        }else{
-            String erroCode = httpServletRequest.getParameter(IDP_ERROR_CODE);
-            String erro = httpServletRequest.getParameter(IDP_ERROR);
-            String sessionKey = authenticationContext.getContextIdentifier();
-            String redirectUrl = (String) authenticationContext.getProperty(Constants.REDIRECT_URI);
+        } else {
+            String error = httpServletRequest.getParameter(IDP_ERROR_DESC);
+            String errorCode = httpServletRequest.getParameter(IDP_ERROR);
             log.info("FederatedAuthenticator Authentication Failed");
-            //Data Publishing Code Comes Here
+            DataPublisherUtil.updateAndPublishUserStatus(
+                    (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                    DataPublisherUtil.UserState.FED_IDP_AUTH_RESPONSE_FAIL, error + " " + errorCode);
             throw new AuthenticationFailedException("Authentication Failed");
-
 
         }
 
