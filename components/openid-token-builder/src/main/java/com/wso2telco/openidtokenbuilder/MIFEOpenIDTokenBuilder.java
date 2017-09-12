@@ -868,13 +868,16 @@ public class MIFEOpenIDTokenBuilder implements
     }
 
     private Map<String, String> prepareGeneralFederatedTokenObject(OAuthTokenReqMessageContext request,
-            OAuth2AccessTokenRespDTO tokenRespDTO, Map<String, String> tokenMap) {
+            OAuth2AccessTokenRespDTO tokenRespDTO, Map<String, String> tokenMap) throws IdentityOAuth2Exception {
         tokenMap.put("Timestamp", String.valueOf(new java.util.Date().getTime()));
         tokenMap.put("AuthenticatedUser", request.getAuthorizedUser().toString());
         tokenMap.put("AuthenticationCode", request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
         tokenMap.put("AccessToken", tokenRespDTO.getAccessToken());
         tokenMap.put("ClientId", request.getOauth2AccessTokenReqDTO().getClientId());
         tokenMap.put("RefreshToken", tokenRespDTO.getRefreshToken());
+        //tokenMap.put("sessionId", getValuesFromCache(request, "sessionId"));
+        //tokenMap.put("State", getValuesFromCache(request, "state"));
+        //tokenMap.put("TokenClaims", getClaimValues(request));
         if (tokenRespDTO.getAccessToken() != null) {
             tokenMap.put("StatusCode", "200");
         } else {
@@ -889,9 +892,6 @@ public class MIFEOpenIDTokenBuilder implements
 
         tokenMap.put("Nonce", jwtobj.get(IDToken.NONCE).toString());
         tokenMap.put("Amr", jwtobj.getJSONArray("amr").toString());
-        // tokenMap.put("sessionId", getValuesFromCache(request, "sessionId"));
-        // tokenMap.put("State", getValuesFromCache(request, "state"));
-        // tokenMap.put("TokenClaims", getClaimValues(request));
         tokenMap.put(TOKEN_CONTENT_TYPE, TOKEN_CONTENT_TYPE_VALUE);
         tokenMap.put("ReturnedResult", plainIDToken);
 

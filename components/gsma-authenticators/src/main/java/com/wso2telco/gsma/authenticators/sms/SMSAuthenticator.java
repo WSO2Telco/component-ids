@@ -96,8 +96,9 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
      * (javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse, org.wso2.carbon.identity
      * .application.authentication.framework.context.AuthenticationContext)
      */
-    @Override public AuthenticatorFlowStatus process(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
+    @Override
+    public AuthenticatorFlowStatus process(HttpServletRequest request, HttpServletResponse response,
+        AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
         DataPublisherUtil.updateAndPublishUserStatus(
                 (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                 DataPublisherUtil.UserState.SMS_AUTH_PROCESSING, this.getClass().getName()+" processing started");
