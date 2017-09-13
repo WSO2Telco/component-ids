@@ -849,8 +849,7 @@ public class MIFEOpenIDTokenBuilder implements
         String plainIDToken = builder.buildIDToken();
         if (mobileConnectConfig.getDataPublisher().isEnabled()) {
 
-            Map<String, String> tokenMap = new HashMap<String, String>();
-            tokenMap = prepareGeneralFederatedTokenObject(request, tokenRespDTO);
+            Map<String, String> tokenMap = prepareGeneralFederatedTokenObject(request, tokenRespDTO);
             tokenMap = prepareFederatedTokenObject(plainIDToken, jwtobj, tokenMap);
             if (DEBUG) {
                 for (Map.Entry<String, String> entry : tokenMap.entrySet()) {
@@ -866,8 +865,7 @@ public class MIFEOpenIDTokenBuilder implements
 
     private Map<String, String> prepareGeneralFederatedTokenObject(OAuthTokenReqMessageContext request,
             OAuth2AccessTokenRespDTO tokenRespDTO) throws IdentityOAuth2Exception {
-        Map<String, String> tokenMap = new HashMap<String, String>();
-        
+        Map<String, String> tokenMap = new HashMap<>();
         tokenMap.put("Timestamp", String.valueOf(new java.util.Date().getTime()));
         tokenMap.put("AuthenticatedUser", request.getAuthorizedUser().toString());
         tokenMap.put("AuthenticationCode", request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
@@ -898,11 +896,8 @@ public class MIFEOpenIDTokenBuilder implements
         ClaimMapping acrKey = null;
         for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
             ClaimMapping mapping = entry.getKey();
-            if (mapping.getLocalClaim() != null) {
-                if (mapping.getLocalClaim().getClaimUri().equals(key)) {
-                    acrKey = mapping;
-                }
-            }
+            if (mapping.getLocalClaim() != null && mapping.getLocalClaim().getClaimUri().equals(key))
+                acrKey = mapping;
         }
 
         if (acrKey != null) {
