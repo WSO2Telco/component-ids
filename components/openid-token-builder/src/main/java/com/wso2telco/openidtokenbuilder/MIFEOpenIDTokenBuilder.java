@@ -892,8 +892,17 @@ public class MIFEOpenIDTokenBuilder implements
                 .getOauth2AccessTokenReqDTO().getAuthorizationCode());
         AuthorizationGrantCacheEntry authorizationGrantCacheEntry = AuthorizationGrantCache.getInstance()
                 .getValueFromCache(authorizationGrantCacheKey);
-        if (authorizationGrantCacheEntry == null)
-            return "";
+
+        ClaimMapping acrKey = getValueFromCacheClaims(authorizationGrantCacheEntry, key);
+
+        if (acrKey == null)
+            throw new IdentityOAuth2Exception("Error occured while retrieving " + key + " from cache");
+
+        return authorizationGrantCacheEntry.getUserAttributes().get(acrKey);
+
+    }
+
+    private ClaimMapping getValueFromCacheClaims(AuthorizationGrantCacheEntry authorizationGrantCacheEntry, String key) {
         Map<ClaimMapping, String> userAttributes = authorizationGrantCacheEntry.getUserAttributes();
         ClaimMapping acrKey = null;
         for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
@@ -901,13 +910,7 @@ public class MIFEOpenIDTokenBuilder implements
             if (mapping.getLocalClaim() != null && mapping.getLocalClaim().getClaimUri().equals(key))
                 acrKey = mapping;
         }
-
-        if (acrKey != null) {
-            return authorizationGrantCacheEntry.getUserAttributes().get(acrKey);
-        } else {
-            throw new IdentityOAuth2Exception("Error occured while retrieving " + key + " from cache");
-        }
-
+        return acrKey;
     }
 
     private Map<String, String> prepareFederatedTokenObject(String plainIDToken,

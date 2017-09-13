@@ -150,29 +150,30 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
 
     private String getValuesFromCacheForFederatedIDP(OAuthTokenReqMessageContext request, String key) {
 
+        String cacheResponse = "";
         AuthorizationGrantCacheKey authorizationGrantCacheKey = new AuthorizationGrantCacheKey(request
                 .getOauth2AccessTokenReqDTO().getAuthorizationCode());
         AuthorizationGrantCacheEntry authorizationGrantCacheEntry = AuthorizationGrantCache.getInstance()
                 .getValueFromCache(authorizationGrantCacheKey);
+        if (authorizationGrantCacheEntry != null)
+            cacheResponse = getValueFromCacheClaims(authorizationGrantCacheEntry, key);
+        return cacheResponse;
 
-        if (authorizationGrantCacheEntry == null)
-            return "";
+    }
 
-        Map<ClaimMapping, String> userAttributes = authorizationGrantCacheEntry.getUserAttributes();
+    private String getValueFromCacheClaims(AuthorizationGrantCacheEntry authorizationGrantCacheEntry, String key) {
+        String cacheClaim = "";
         ClaimMapping acrKey = null;
+        Map<ClaimMapping, String> userAttributes = authorizationGrantCacheEntry.getUserAttributes();
         for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
             ClaimMapping mapping = entry.getKey();
             if (mapping.getLocalClaim() != null && mapping.getLocalClaim().getClaimUri().equals(key))
                 acrKey = mapping;
 
         }
-
         if (acrKey != null)
-            return authorizationGrantCacheEntry.getUserAttributes().get(acrKey);
-        else {
-            log.error("Error occured while retrieving " + key + " from cache");
-            return "";
-        }
+            cacheClaim = authorizationGrantCacheEntry.getUserAttributes().get(acrKey);
+        return cacheClaim;
 
     }
 
