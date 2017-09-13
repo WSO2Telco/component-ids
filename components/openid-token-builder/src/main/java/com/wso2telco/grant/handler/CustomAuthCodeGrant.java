@@ -50,18 +50,11 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
 
     private static Log log = LogFactory.getLog(CustomAuthCodeGrant.class);
 
-    private static final String TOKEN_AUTHORIZATION = "Authorization";
-    private static final String TOKEN_CONTENT_TYPE = "Content-Type";
-    private static final String TOKEN_CONTENT_TYPE_VALUE = "application/x-www-form-urlencoded";
-    private static final String TOKEN_CODE = "code";
     private static final String ACCESS_TOKEN = "access_token";
-    private static final String TOKEN_GRANT = "grant_type";
-    private static final String TOKEN_GRANT_TYPE = "authorization_code";
-    private static final String REDIRECT = "redirect_uri";
-    private static final String TOKEN_TYPE = "Basic ";
     private static final long EXPIRY = 9223372036854775L;
     private static final long EXPIRY_MILLIS = 9223372036854775807L;
     private static boolean isdebug = log.isDebugEnabled();
+    private static boolean isPublishingEnabled = false;
 
     private static MobileConnectConfig mobileConnectConfig = null;
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
@@ -70,6 +63,7 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
 
     static {
         mobileConnectConfig = configurationService.getDataHolder().getMobileConnectConfig();
+        isPublishingEnabled = mobileConnectConfig.getDataPublisher().isEnabled();
         for (MobileConnectConfig.Provider prv : mobileConnectConfig.getFederatedIdentityProviders().getProvider()) {
             federatedIdpMap.put(prv.getOperator(), prv);
         }
@@ -84,16 +78,13 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
         try {
             isValidAuthCode = super.validateGrant(tokReqMsgCtx);
         } catch (Exception ex) {
-            if (mobileConnectConfig.getDataPublisher().isEnabled())
-                publishForFailureData(tokReqMsgCtx);
-
-            log.error(ex.getMessage());
+            publishForFailureData(tokReqMsgCtx, isPublishingEnabled);
+            log.error(ex);
             throw new IdentityOAuth2Exception(ex.getMessage(), ex);
-
         }
 
-        if (!isValidAuthCode && mobileConnectConfig.getDataPublisher().isEnabled())
-            publishForFailureData(tokReqMsgCtx);
+        if (!isValidAuthCode)
+            publishForFailureData(tokReqMsgCtx, isPublishingEnabled);
 
         return isValidAuthCode;
     }
@@ -104,25 +95,17 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
         log.info("Access Token process triggered for authorize code : "
                 + tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
 
-        OAuth2AccessTokenRespDTO tokenRespDTO = null;
+        OAuth2AccessTokenRespDTO tokenRespDTO;
 
         try {
             if (!mobileConnectConfig.isFederatedDeployment())
-                return issueTokenFromIS(tokReqMsgCtx);
+                tokenRespDTO = issueTokenFromIS(tokReqMsgCtx);
+            else
+                tokenRespDTO = issueTokenForFederatedIds(tokReqMsgCtx);
 
-            if (isdebug) {
-                log.debug(" Identified as FederatedIDP integrated deployment, hence modified Token flow triggered for authcode : "
-                        + tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
-            }
-
-            FederatedIdpMappingDTO fidpInstance = checkDbIfFederatedAuthToken(tokReqMsgCtx.getAuthorizedUser()
-                    .getAuthenticatedSubjectIdentifier());
-            tokenRespDTO = handleFederatedTokenFlow(tokReqMsgCtx, fidpInstance);
         } catch (Exception ex) {
-            if (mobileConnectConfig.getDataPublisher().isEnabled())
-                publishForFailureData(tokReqMsgCtx);
-
-            log.error(ex.getMessage());
+            publishForFailureData(tokReqMsgCtx, isPublishingEnabled);
+            log.error(ex);
             throw new IdentityOAuth2Exception(ex.getMessage(), ex);
         }
 
@@ -130,22 +113,40 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
 
     }
 
-    private void publishForFailureData(OAuthTokenReqMessageContext tokReqMsgCtx) {
-
-        Map<String, String> tokenMap = new HashMap<>();
-        tokenMap.put("Timestamp", String.valueOf(new Date().getTime()));
-        tokenMap.put("ClientId", tokReqMsgCtx.getOauth2AccessTokenReqDTO().getClientId());
-        tokenMap.put("ContentType", "application/x-www-form-urlencoded");
-        tokenMap.put("sessionId", getValuesFromCacheForFederatedIDP(tokReqMsgCtx, "sessionId"));
-        tokenMap.put("State", getValuesFromCacheForFederatedIDP(tokReqMsgCtx, "state"));
-        tokenMap.put("Nonce", getValuesFromCacheForFederatedIDP(tokReqMsgCtx, "nonce"));
-        tokenMap.put("StatusCode", "400");
+    private OAuth2AccessTokenRespDTO issueTokenForFederatedIds(OAuthTokenReqMessageContext tokReqMsgCtx)
+            throws IdentityOAuth2Exception {
+        OAuth2AccessTokenRespDTO tokenRespDTO;
         if (isdebug) {
-            for (Map.Entry<String, String> entry : tokenMap.entrySet()) {
-                log.debug(entry.getKey() + " : " + entry.getValue());
-            }
+            log.debug(" Identified as FederatedIDP integrated deployment, hence modified Token flow triggered for authcode : "
+                    + tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
         }
-        DataPublisherUtil.publishTokenEndpointData(tokenMap);
+
+        FederatedIdpMappingDTO fidpInstance = checkDbIfFederatedAuthToken(tokReqMsgCtx.getAuthorizedUser()
+                .getAuthenticatedSubjectIdentifier());
+        tokenRespDTO = handleFederatedTokenFlow(tokReqMsgCtx, fidpInstance);
+        return tokenRespDTO;
+
+    }
+
+    private void publishForFailureData(OAuthTokenReqMessageContext tokReqMsgCtx, boolean isPublishingEnabled) {
+
+        if (isPublishingEnabled) {
+            Map<String, String> tokenMap = new HashMap<>();
+            tokenMap.put("Timestamp", String.valueOf(new Date().getTime()));
+            tokenMap.put("ClientId", tokReqMsgCtx.getOauth2AccessTokenReqDTO().getClientId());
+            tokenMap.put("ContentType", "application/x-www-form-urlencoded");
+            tokenMap.put("sessionId", getValuesFromCacheForFederatedIDP(tokReqMsgCtx, "sessionId"));
+            tokenMap.put("State", getValuesFromCacheForFederatedIDP(tokReqMsgCtx, "state"));
+            tokenMap.put("Nonce", getValuesFromCacheForFederatedIDP(tokReqMsgCtx, "nonce"));
+            tokenMap.put("StatusCode", "400");
+            if (isdebug) {
+                for (Map.Entry<String, String> entry : tokenMap.entrySet()) {
+                    log.debug(entry.getKey() + " : " + entry.getValue());
+                }
+            }
+            DataPublisherUtil.publishTokenEndpointData(tokenMap);
+        }
+
     }
 
     private String getValuesFromCacheForFederatedIDP(OAuthTokenReqMessageContext request, String key) {
@@ -180,7 +181,7 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
     private OAuth2AccessTokenRespDTO handleFederatedTokenFlow(OAuthTokenReqMessageContext tokReqMsgCtx,
             FederatedIdpMappingDTO fidpInstance) throws IdentityOAuth2Exception {
 
-        OAuth2AccessTokenRespDTO tokenRespDTO = null;
+        OAuth2AccessTokenRespDTO tokenRespDTO;
 
         if (fidpInstance != null && fidpInstance.getFidpAuthCode() != null) {
 
@@ -188,9 +189,8 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
                     + tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
             tokenRespDTO = initiateFederatedTokenProcess(tokReqMsgCtx, fidpInstance);
 
-        } else {
+        } else
             tokenRespDTO = issueTokenFromIS(tokReqMsgCtx);
-        }
 
         return tokenRespDTO;
     }
@@ -198,36 +198,44 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
     private OAuth2AccessTokenRespDTO initiateFederatedTokenProcess(OAuthTokenReqMessageContext tokReqMsgCtx,
             FederatedIdpMappingDTO fidpInstance) throws IdentityOAuth2Exception {
 
-        OAuth2AccessTokenRespDTO tokenRespDTO = new OAuth2AccessTokenRespDTO();
+        OAuth2AccessTokenRespDTO tokenRespDTO;
         JSONObject fidpTokenResponse = getFederatedTokenResponse(tokReqMsgCtx, fidpInstance);
 
-        if (fidpTokenResponse != null && fidpTokenResponse.optString(ACCESS_TOKEN) != "") {
+        tokenRespDTO = processFederatedIDPResponseBeforeSend(fidpTokenResponse, tokReqMsgCtx);
 
-            FederatedIdpMappingDTO existingToken = null;
+        return tokenRespDTO;
+    }
 
-            try {
-                existingToken = dbConnection.checkIfExistingFederatedToken(fidpTokenResponse.get(ACCESS_TOKEN)
-                        .toString());
-            } catch (JSONException e) {
-                String errorMsg = "Error while getting the access token from federated token response for : "
-                        + tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode();
-                log.error(errorMsg + " " + e.getMessage());
-                throw new IdentityOAuth2Exception(errorMsg, e);
-            } catch (Exception e) {
-                String errorMsg = "Error while checking if the provided federated token already exist in database for : "
-                        + fidpTokenResponse.get(ACCESS_TOKEN).toString();
-                log.error(errorMsg + " " + e.getMessage());
-                throw new IdentityOAuth2Exception(errorMsg, e);
-            }
+    private OAuth2AccessTokenRespDTO processFederatedIDPResponseBeforeSend(JSONObject fidpTokenResponse,
+            OAuthTokenReqMessageContext tokReqMsgCtx) throws IdentityOAuth2Exception {
 
-            tokenRespDTO = initiateISTokenProcess(existingToken, tokReqMsgCtx);
-            tokenRespDTO = postFederatedTokenResponseHanlding(tokReqMsgCtx, tokenRespDTO, fidpTokenResponse);
+        OAuth2AccessTokenRespDTO tokenRespDTO = new OAuth2AccessTokenRespDTO();
 
-        } else if (fidpTokenResponse != null) {
+        if (fidpTokenResponse != null && fidpTokenResponse.optString(ACCESS_TOKEN) != "")
+            tokenRespDTO = processForSuccessFederatedResponse(fidpTokenResponse, tokReqMsgCtx);
+
+        else if (fidpTokenResponse != null) {
             log.error("Error response from Federated IDP : " + fidpTokenResponse.toString());
             throw new IdentityOAuth2Exception("Error response from Federated IDP : " + fidpTokenResponse.toString());
         }
+        return tokenRespDTO;
+    }
 
+    private OAuth2AccessTokenRespDTO processForSuccessFederatedResponse(JSONObject fidpTokenResponse,
+            OAuthTokenReqMessageContext tokReqMsgCtx) throws IdentityOAuth2Exception {
+        FederatedIdpMappingDTO existingToken = null;
+        OAuth2AccessTokenRespDTO tokenRespDTO;
+
+        try {
+            existingToken = dbConnection.checkIfExistingFederatedToken(fidpTokenResponse.get(ACCESS_TOKEN).toString());
+        } catch (Exception e) {
+            String errorMsg = "Error while checking if the provided federated token already exist in database for : "
+                    + fidpTokenResponse.get(ACCESS_TOKEN).toString();
+            log.error(errorMsg + " " + e.getMessage());
+        }
+
+        tokenRespDTO = initiateISTokenProcess(existingToken, tokReqMsgCtx);
+        tokenRespDTO = postFederatedTokenResponseHanlding(tokReqMsgCtx, tokenRespDTO, fidpTokenResponse);
         return tokenRespDTO;
     }
 
@@ -236,26 +244,29 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
 
         OAuth2AccessTokenRespDTO tokenRespDTO;
 
-        if (existingToken.getAccessToken() != null) {
-
-            AccessTokenDO existingAccessTokenDO = FederatedTransactionDAO.getExisingTokenFromIdentityDB(tokReqMsgCtx,
-                    existingToken);
-
-            if (isdebug) {
-                log.debug("Retrieved latest access token : " + existingAccessTokenDO.getAccessToken()
-                        + " for client Id " + tokReqMsgCtx.getOauth2AccessTokenReqDTO().getClientId()
-                        + " from database");
-            }
-
-            invalidateAuthCode(tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode(),
-                    existingAccessTokenDO.getTokenId());
-            clearCacheForAuthCode(tokReqMsgCtx);
-            tokenRespDTO = prepareFromExistingToken(existingAccessTokenDO, tokReqMsgCtx);
-
-        } else {
+        if (existingToken != null && existingToken.getAccessToken() != null)
+            tokenRespDTO = provideAlreadyISIssedToken(existingToken, tokReqMsgCtx);
+        else
             tokenRespDTO = issueTokenFromIS(tokReqMsgCtx);
 
+        return tokenRespDTO;
+    }
+
+    private OAuth2AccessTokenRespDTO provideAlreadyISIssedToken(FederatedIdpMappingDTO existingToken,
+            OAuthTokenReqMessageContext tokReqMsgCtx) throws IdentityOAuth2Exception {
+        OAuth2AccessTokenRespDTO tokenRespDTO;
+        AccessTokenDO existingAccessTokenDO = FederatedTransactionDAO.getExisingTokenFromIdentityDB(tokReqMsgCtx,
+                existingToken);
+
+        if (isdebug) {
+            log.debug("Retrieved latest access token : " + existingAccessTokenDO.getAccessToken() + " for client Id "
+                    + tokReqMsgCtx.getOauth2AccessTokenReqDTO().getClientId() + " from database");
         }
+
+        invalidateAuthCode(tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode(),
+                existingAccessTokenDO.getTokenId());
+        clearCacheForAuthCode(tokReqMsgCtx);
+        tokenRespDTO = prepareFromExistingToken(existingAccessTokenDO, tokReqMsgCtx);
         return tokenRespDTO;
     }
 
@@ -290,13 +301,13 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
 
         if ("ACTIVE".equals(existingAccessTokenDO.getTokenState()) && ((expireTime > 0L) || (expireTime < 0L))) {
             if (isdebug) {
-                if (expireTime > 0L) {
+                if (expireTime > 0L)
                     log.debug("Access token " + existingAccessTokenDO.getAccessToken() + " is valid for another "
                             + expireTime + "ms");
-                } else {
+                else
                     log.debug("Infinite lifetime Access Token " + existingAccessTokenDO.getAccessToken()
                             + " found in cache");
-                }
+
             }
             tokenRespDTO.setAccessToken(existingAccessTokenDO.getAccessToken());
             tokenRespDTO.setTokenId(existingAccessTokenDO.getTokenId());
@@ -362,7 +373,7 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
             FederatedIdpMappingDTO fidpInstance) throws IdentityOAuth2Exception {
 
         JSONObject jsonObject = null;
-        String responseString = null;
+        String responseString;
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost post = null;
         HttpResponse response = null;
@@ -396,8 +407,8 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
 
     private HttpPost prepareTokenHeaderParameters(HttpPost post, OAuthTokenReqMessageContext tokReqMsgCtx) {
 
-        post.setHeader(TOKEN_AUTHORIZATION, prepareAuthorizationHeader(tokReqMsgCtx));
-        post.setHeader(TOKEN_CONTENT_TYPE, TOKEN_CONTENT_TYPE_VALUE);
+        post.setHeader("Authorization", prepareAuthorizationHeader(tokReqMsgCtx));
+        post.setHeader("Content-Type", "application/x-www-form-urlencoded");
         post.setHeader("charset", StandardCharsets.UTF_8.toString());
 
         if (isdebug) {
@@ -416,9 +427,9 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
 
         HttpPost post = new HttpPost(federatedIdpMap.get(fidpInstance.getOperator()).getTokenEndpoint());
         List<NameValuePair> urlParameters = new ArrayList<>();
-        urlParameters.add(new BasicNameValuePair(TOKEN_GRANT, TOKEN_GRANT_TYPE));
-        urlParameters.add(new BasicNameValuePair(TOKEN_CODE, fidpInstance.getFidpAuthCode()));
-        urlParameters.add(new BasicNameValuePair(REDIRECT, mobileConnectConfig.getFederatedCallbackUrl()));
+        urlParameters.add(new BasicNameValuePair("grant_type", "authorization_code"));
+        urlParameters.add(new BasicNameValuePair("code", fidpInstance.getFidpAuthCode()));
+        urlParameters.add(new BasicNameValuePair("redirect_uri", mobileConnectConfig.getFederatedCallbackUrl()));
         post.setEntity(new UrlEncodedFormEntity(urlParameters));
 
         if (isdebug) {
@@ -447,7 +458,7 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
 
         String userPass = tokReqMsgCtx.getOauth2AccessTokenReqDTO().getClientId() + ":"
                 + tokReqMsgCtx.getOauth2AccessTokenReqDTO().getClientSecret();
-        return TOKEN_TYPE + Base64Utils.encode(userPass.getBytes(StandardCharsets.UTF_8));
+        return "Basic " + Base64Utils.encode(userPass.getBytes(StandardCharsets.UTF_8));
 
     }
 }
