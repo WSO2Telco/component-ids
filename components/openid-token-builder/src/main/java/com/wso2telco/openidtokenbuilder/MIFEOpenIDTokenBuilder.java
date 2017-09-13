@@ -156,6 +156,8 @@ public class MIFEOpenIDTokenBuilder implements
      */
     private String acrAppID;
     
+    private static final String sessionID = "sessionId";
+    
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.openidconnect.IDTokenBuilder#buildIDToken(org.wso2.carbon.identity.oauth2.token
      * .OAuthTokenReqMessageContext, org.wso2.carbon.identity.oauth2.dto.OAuth2AccessTokenRespDTO)
@@ -307,7 +309,7 @@ public class MIFEOpenIDTokenBuilder implements
                 tokenMap.put("AccessToken", accessToken);
                 tokenMap.put("ClientId", request.getOauth2AccessTokenReqDTO().getClientId());
                 tokenMap.put("RefreshToken", tokenRespDTO.getRefreshToken());
-                tokenMap.put("sessionId", getValuesFromCache(request, "sessionId"));
+                tokenMap.put(sessionID, getValuesFromCache(request, sessionID));
                 tokenMap.put("State", getValuesFromCache(request, "state"));
                 tokenMap.put("TokenClaims", getClaimValues(request));
                 tokenMap.put("ContentType", "application/x-www-form-urlencoded");
@@ -872,7 +874,7 @@ public class MIFEOpenIDTokenBuilder implements
         tokenMap.put("AccessToken", tokenRespDTO.getAccessToken());
         tokenMap.put("ClientId", request.getOauth2AccessTokenReqDTO().getClientId());
         tokenMap.put("RefreshToken", tokenRespDTO.getRefreshToken());
-        tokenMap.put("sessionId", getValuesFromCacheForFederatedIDP(request, "sessionId"));
+        tokenMap.put(sessionID, getValuesFromCacheForFederatedIDP(request, sessionID));
         tokenMap.put("State", getValuesFromCacheForFederatedIDP(request, "state"));
         tokenMap.put("TokenClaims", getClaimValues(request));
         if (tokenRespDTO.getAccessToken() != null) {
