@@ -15,6 +15,10 @@
  ******************************************************************************/
 package com.wso2telco.carbon.identity.oauth2.token.handlers.clientauth;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.oauth.IdentityOAuthAdminException;
@@ -25,6 +29,8 @@ import org.wso2.carbon.identity.oauth2.token.OAuthTokenReqMessageContext;
 import org.wso2.carbon.identity.oauth2.token.handlers.clientauth.AbstractClientAuthHandler;
 import org.wso2.carbon.identity.oauth2.util.OAuth2Util;
 
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.MobileConnectConfig.DiscoveryConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
@@ -62,11 +68,17 @@ public class SeamlessProvisionClientAuthHandler extends AbstractClientAuthHandle
         if (!isAuthenticated) {
             OAuth2AccessTokenReqDTO oAuth2AccessTokenReqDTO = tokReqMsgCtx.getOauth2AccessTokenReqDTO();
             try {
-                return OAuth2Util.authenticateClient(oAuth2AccessTokenReqDTO.getClientId(),
-                        oAuth2AccessTokenReqDTO.getClientSecret());
+   			boolean result = OAuth2Util.authenticateClient(oAuth2AccessTokenReqDTO.getClientId(),
+    	                        oAuth2AccessTokenReqDTO.getClientSecret());
+    		if(!result){    				
+    			setPublishingDataForError(tokReqMsgCtx);
+    			}
+                return result;
             } catch (IdentityOAuthAdminException e) {
-                throw new IdentityOAuth2Exception("Error while authenticating client", e);
+            	setPublishingDataForError(tokReqMsgCtx);
+                throw new IdentityOAuth2Exception("Error while authenticating client", e);              
             } catch (InvalidOAuthClientException e) {
+            	setPublishingDataForError(tokReqMsgCtx);
                 throw new IdentityOAuth2Exception("Invalid Client : " + oAuth2AccessTokenReqDTO.getClientId(), e);
             }
         } else {
@@ -206,5 +218,21 @@ public class SeamlessProvisionClientAuthHandler extends AbstractClientAuthHandle
         mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
         return mobileConnectConfigs;
     }
+   
+    public void setPublishingDataForError(OAuthTokenReqMessageContext tokReqMsgCtx) {
+        boolean dataPublisherEnabled = mobileConnectConfigs.getDataPublisher().isEnabled();
+        if (dataPublisherEnabled) {
+            String clientId = tokReqMsgCtx.getOauth2AccessTokenReqDTO().getClientId();
+            Map<String, String> tokenMap = new HashMap<>();
 
+            tokenMap.put("Timestamp", String.valueOf(new Date().getTime()));
+            tokenMap.put("ClientId", clientId);
+            tokenMap.put("AuthenticationCode", tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
+            tokenMap.put("ContentType", "application/x-www-form-urlencoded");
+            tokenMap.put("status", "CLIENT_AUTHENTICATION_FAIL");
+            tokenMap.put("StatusCode", "400");
+
+            DataPublisherUtil.publishTokenEndpointData(tokenMap);
+        }
+    }
 }

@@ -288,6 +288,7 @@ public class DataPublisherUtil {
      */
     public static void publishTokenEndpointData(Map<String, String> tokenMap) {
         List<Object> tokenEndpointData = new ArrayList<Object>(17);
+        String status = tokenMap.get("status");
 
         if (tokenMap.get("AuthenticatedUser") != null && !tokenMap.get("AuthenticatedUser").isEmpty()) {
             tokenEndpointData.add(tokenMap.get("AuthenticatedUser"));
@@ -351,6 +352,10 @@ public class DataPublisherUtil {
         }
         if (tokenMap.get("sessionId") != null && !tokenMap.get("sessionId").isEmpty()) {
             tokenEndpointData.add(tokenMap.get("sessionId"));
+        } else {
+            tokenEndpointData.add(null);
+        }if (status != null && !status.isEmpty()) {
+            tokenEndpointData.add(status);
         } else {
             tokenEndpointData.add(null);
         }
