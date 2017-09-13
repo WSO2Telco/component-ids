@@ -155,9 +155,6 @@ public class MIFEOpenIDTokenBuilder implements
      * The acr app id.
      */
     private String acrAppID;
-
-    private static final String TOKEN_CONTENT_TYPE = "Content-Type";
-    private static final String TOKEN_CONTENT_TYPE_VALUE = "application/x-www-form-urlencoded";
     
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.openidconnect.IDTokenBuilder#buildIDToken(org.wso2.carbon.identity.oauth2.token
@@ -853,7 +850,7 @@ public class MIFEOpenIDTokenBuilder implements
         if (mobileConnectConfig.getDataPublisher().isEnabled()) {
 
             Map<String, String> tokenMap = new HashMap<String, String>();
-            tokenMap = prepareGeneralFederatedTokenObject(request, tokenRespDTO, tokenMap);
+            tokenMap = prepareGeneralFederatedTokenObject(request, tokenRespDTO);
             tokenMap = prepareFederatedTokenObject(plainIDToken, jwtobj, tokenMap);
             if (DEBUG) {
                 for (Map.Entry<String, String> entry : tokenMap.entrySet()) {
@@ -868,16 +865,18 @@ public class MIFEOpenIDTokenBuilder implements
     }
 
     private Map<String, String> prepareGeneralFederatedTokenObject(OAuthTokenReqMessageContext request,
-            OAuth2AccessTokenRespDTO tokenRespDTO, Map<String, String> tokenMap) throws IdentityOAuth2Exception {
+            OAuth2AccessTokenRespDTO tokenRespDTO) throws IdentityOAuth2Exception {
+        Map<String, String> tokenMap = new HashMap<String, String>();
+        
         tokenMap.put("Timestamp", String.valueOf(new java.util.Date().getTime()));
         tokenMap.put("AuthenticatedUser", request.getAuthorizedUser().toString());
         tokenMap.put("AuthenticationCode", request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
         tokenMap.put("AccessToken", tokenRespDTO.getAccessToken());
         tokenMap.put("ClientId", request.getOauth2AccessTokenReqDTO().getClientId());
         tokenMap.put("RefreshToken", tokenRespDTO.getRefreshToken());
-        //tokenMap.put("sessionId", getValuesFromCache(request, "sessionId"));
-        //tokenMap.put("State", getValuesFromCache(request, "state"));
-        //tokenMap.put("TokenClaims", getClaimValues(request));
+        tokenMap.put("sessionId", getValuesFromCacheForFederatedIDP(request, "sessionId"));
+        tokenMap.put("State", getValuesFromCacheForFederatedIDP(request, "state"));
+        tokenMap.put("TokenClaims", getClaimValues(request));
         if (tokenRespDTO.getAccessToken() != null) {
             tokenMap.put("StatusCode", "200");
         } else {
@@ -886,13 +885,41 @@ public class MIFEOpenIDTokenBuilder implements
         return tokenMap;
     }
 
+    private String getValuesFromCacheForFederatedIDP(OAuthTokenReqMessageContext request, String key)
+            throws IdentityOAuth2Exception {
+
+        AuthorizationGrantCacheKey authorizationGrantCacheKey = new AuthorizationGrantCacheKey(request
+                .getOauth2AccessTokenReqDTO().getAuthorizationCode());
+        AuthorizationGrantCacheEntry authorizationGrantCacheEntry = AuthorizationGrantCache.getInstance()
+                .getValueFromCache(authorizationGrantCacheKey);
+        if (authorizationGrantCacheEntry == null)
+            return "";
+        Map<ClaimMapping, String> userAttributes = authorizationGrantCacheEntry.getUserAttributes();
+        ClaimMapping acrKey = null;
+        for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
+            ClaimMapping mapping = entry.getKey();
+            if (mapping.getLocalClaim() != null) {
+                if (mapping.getLocalClaim().getClaimUri().equals(key)) {
+                    acrKey = mapping;
+                }
+            }
+        }
+
+        if (acrKey != null) {
+            return authorizationGrantCacheEntry.getUserAttributes().get(acrKey);
+        } else {
+            throw new IdentityOAuth2Exception("Error occured while retrieving " + key + " from cache");
+        }
+
+    }
+
     private Map<String, String> prepareFederatedTokenObject(String plainIDToken,
             org.codehaus.jettison.json.JSONObject jwtobj, Map<String, String> tokenMap)
             throws org.codehaus.jettison.json.JSONException {
 
         tokenMap.put("Nonce", jwtobj.get(IDToken.NONCE).toString());
         tokenMap.put("Amr", jwtobj.getJSONArray("amr").toString());
-        tokenMap.put(TOKEN_CONTENT_TYPE, TOKEN_CONTENT_TYPE_VALUE);
+        tokenMap.put("Content-Type", "application/x-www-form-urlencoded");
         tokenMap.put("ReturnedResult", plainIDToken);
 
         return tokenMap;
