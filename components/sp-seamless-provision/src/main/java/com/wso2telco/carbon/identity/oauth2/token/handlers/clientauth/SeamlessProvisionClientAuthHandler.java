@@ -64,7 +64,7 @@ public class SeamlessProvisionClientAuthHandler extends AbstractClientAuthHandle
     public boolean authenticateClient(OAuthTokenReqMessageContext tokReqMsgCtx) throws IdentityOAuth2Exception {
         seamlessProvisioning(tokReqMsgCtx);
         boolean isAuthenticated = super.authenticateClient(tokReqMsgCtx);
-           
+
         if (!isAuthenticated) {
             OAuth2AccessTokenReqDTO oAuth2AccessTokenReqDTO = tokReqMsgCtx.getOauth2AccessTokenReqDTO();
             try {
@@ -219,22 +219,20 @@ public class SeamlessProvisionClientAuthHandler extends AbstractClientAuthHandle
         return mobileConnectConfigs;
     }
    
-	public void setPublishingDataForError(OAuthTokenReqMessageContext tokReqMsgCtx)
-					throws IdentityOAuth2Exception {
-		boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher()
-	                    .isEnabled();
-		if(dataPublisherEnabled){
-		String clientId = tokReqMsgCtx.getOauth2AccessTokenReqDTO().getClientId();
-		Map<String, String> tokenMap = new HashMap<String, String>();
+    public void setPublishingDataForError(OAuthTokenReqMessageContext tokReqMsgCtx) {
+        boolean dataPublisherEnabled = mobileConnectConfigs.getDataPublisher().isEnabled();
+        if (dataPublisherEnabled) {
+            String clientId = tokReqMsgCtx.getOauth2AccessTokenReqDTO().getClientId();
+            Map<String, String> tokenMap = new HashMap<>();
 
-		tokenMap.put("Timestamp", String.valueOf(new Date().getTime()));
-		tokenMap.put("ClientId", clientId);
-		tokenMap.put("AuthenticationCode", tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
-		tokenMap.put("ContentType", "application/x-www-form-urlencoded");
-		tokenMap.put("status", "CLIENT_AUTHENTICATION_FAIL");
-		tokenMap.put("StatusCode", "400");
-		
-		DataPublisherUtil.publishTokenEndpointData(tokenMap);
-		}
-	}      
+            tokenMap.put("Timestamp", String.valueOf(new Date().getTime()));
+            tokenMap.put("ClientId", clientId);
+            tokenMap.put("AuthenticationCode", tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
+            tokenMap.put("ContentType", "application/x-www-form-urlencoded");
+            tokenMap.put("status", "CLIENT_AUTHENTICATION_FAIL");
+            tokenMap.put("StatusCode", "400");
+
+            DataPublisherUtil.publishTokenEndpointData(tokenMap);
+        }
+    }
 }

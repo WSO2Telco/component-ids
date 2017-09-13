@@ -19,7 +19,7 @@ public class CustomAuthorizationCodeGrantHandler extends AuthorizationCodeGrantH
         boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled();
         if (dataPublisherEnabled) {
             String clientId = tokReqMsgCtx.getOauth2AccessTokenReqDTO().getClientId();
-            Map<String, String> tokenMap = new HashMap<String, String>();
+            Map<String, String> tokenMap = new HashMap<>();
             tokenMap.put("Timestamp", String.valueOf(new Date().getTime()));
             tokenMap.put("ClientId", clientId);
             tokenMap.put("ContentType", "application/x-www-form-urlencoded");
