@@ -667,37 +667,6 @@ public class MIFEOpenIDTokenBuilder implements
         return pcr.getID();
     }
 
-    public String getExistingPCR(String msisdn,String applicationClientId,String callbackUrl) throws PCRException{
-
-        // Set ACR (PCR) to sub
-        String subject = null;
-
-        DataHolder dataHolder = configurationService.getDataHolder();
-        MobileConnectConfig mobileConnectConfig = dataHolder.getMobileConnectConfig();
-
-        try {
-            if (mobileConnectConfig.isPcrServiceEnabled()) {
-                PCRFactory pcrFactory = new PCRFactory();
-                log.info("Retreiving UUID based PCR");
-                String sectorId = SectorUtil.getSectorIdFromUrl(callbackUrl);
-                RequestDTO requestDTO = new RequestDTO(msisdn, applicationClientId, sectorId);
-                PCRGeneratable pcrGeneratable = OpenIdTokenBuilderDataHolder.getInstance().getPcrGeneratable();
-
-                Returnable existingPCR = pcrGeneratable.getExistingPCR(requestDTO);
-                subject =  existingPCR.getID();
-
-
-            } else {
-                msisdn = "tel:+".concat(msisdn); //$NON-NLS-1$
-                //subject = createLocalACR(msisdn, applicationName);
-            }
-            log.info("PCR : " + subject);
-        }  catch (PCRException e) {
-            log.error("Error", e);
-        }
-
-        return subject;
-    }
     private String createLocalACR(String msisdn, String serviceProvider) throws InvalidKeyException,
             NoSuchAlgorithmException {
         String acr = null;
@@ -997,20 +966,14 @@ public class MIFEOpenIDTokenBuilder implements
  public String getMSISDNbyPcr(String callbackUrl, String pcr) throws PCRException{
         String msisdn = null;
 
-        DataHolder dataHolder = configurationService.getDataHolder();
-        MobileConnectConfig mobileConnectConfig = dataHolder.getMobileConnectConfig();
-
         try {
             if (mobileConnectConfig.isPcrServiceEnabled()) {
-
                 log.info("Retreiving MSISDN by using PCR");
                 String sectorId = SectorUtil.getSectorIdFromUrl(callbackUrl);
                 PCRGeneratable pcrGeneratable = OpenIdTokenBuilderDataHolder.getInstance().getPcrGeneratable();
 
                 Returnable msisdnByPcr = pcrGeneratable.getMsisdnByPcr(sectorId,pcr);
-               return  msisdnByPcr.getID();
-
-
+                msisdn = msisdnByPcr.getID();
             }
             log.info("MSISDN  : " + msisdn);
         }  catch (PCRException e) {
