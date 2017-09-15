@@ -9,6 +9,7 @@ import org.apache.commons.logging.LogFactory;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -18,10 +19,7 @@ public class LocalClaimsRetriever implements ClaimsRetriever {
      * The log.
      */
     private static Log log = LogFactory.getLog(LocalClaimsRetriever.class);
-
-    private final String hashPhoneScope = "mc_identity_phonenumber_hashed";
-
-    private final String phone_number_claim = "phone_number";
+    private static Map<String, ScopeDetailsConfig.Scope> scopeConfigsMap = new HashMap<String, ScopeDetailsConfig.Scope>();
 
     /**
      * Gets the requested claims.
@@ -36,33 +34,32 @@ public class LocalClaimsRetriever implements ClaimsRetriever {
     public Map<String, Object> getRequestedClaims(String[] scopes, List<ScopeDetailsConfig.Scope> scopeConfigs, Map<String, Object>
             totalClaims) throws NoSuchAlgorithmException {
         Map<String, Object> requestedClaims = new HashMap<String, Object>();
-        if (scopeConfigs != null) {
-            if (ArrayUtils.contains(scopes, hashPhoneScope)) {
-                if (totalClaims.get(phone_number_claim) == null) {
-                    requestedClaims.put(phone_number_claim, "");
-                } else {
-                    String hashed_msisdn = getHashedClaimValue((String) totalClaims.get(phone_number_claim));
-                    requestedClaims.put(phone_number_claim, hashed_msisdn);
-                }
-            } else {
-                for (ScopeDetailsConfig.Scope scope : scopeConfigs) {
-                    if (ArrayUtils.contains(scopes, scope.getName())) {
-                        for (String claims : scope.getClaimSet()) {
-                            if (totalClaims.get(claims) == null) {
-                                requestedClaims.put(claims, "");
-                            } else {
-                                requestedClaims.put(claims, totalClaims.get(claims));
-                            }
-                        }
-                    }
-                }
+        if (!scopeConfigsMap.isEmpty()) {
+            for (ScopeDetailsConfig.Scope scope : scopeConfigs) {
+                scopeConfigsMap.put(scope.getName(), scope);
             }
-
         } else {
             if (log.isDebugEnabled()) {
                 log.debug("Could not load user-info claims.");
             }
         }
+
+        for (String scope : scopes) {
+            if (scopeConfigsMap.containsKey(scope)) {
+                Iterator<String> i = scopeConfigsMap.get(scope).getClaimSet().iterator();
+                boolean isHashed = scopeConfigsMap.get(scope).isHashed();
+                while (i.hasNext()) {
+                    Object claimStr = totalClaims.get(i.next());
+                    if (claimStr != null) {
+                        String claimValue = (isHashed) ? getHashedClaimValue(totalClaims.get(i.next()).toString()) : totalClaims.get(i.next()).toString();
+                        requestedClaims.put(i.next(), totalClaims.get(claimValue));
+                    }
+
+                }
+
+            }
+        }
+
         return requestedClaims;
     }
 
