@@ -21,6 +21,19 @@ public class LocalClaimsRetriever implements ClaimsRetriever {
     private static Log log = LogFactory.getLog(LocalClaimsRetriever.class);
     private static Map<String, ScopeDetailsConfig.Scope> scopeConfigsMap = new HashMap<String, ScopeDetailsConfig.Scope>();
 
+
+    private void populateScopeConfigs(List<ScopeDetailsConfig.Scope> scopeConfigs){
+        if (!scopeConfigsMap.isEmpty()) {
+            for (ScopeDetailsConfig.Scope scope : scopeConfigs) {
+                scopeConfigsMap.put(scope.getName(), scope);
+            }
+        } else {
+            if (log.isDebugEnabled()) {
+                log.debug("Could not load user-info claims.");
+            }
+        }
+    }
+
     /**
      * Gets the requested claims.
      *
@@ -34,15 +47,8 @@ public class LocalClaimsRetriever implements ClaimsRetriever {
     public Map<String, Object> getRequestedClaims(String[] scopes, List<ScopeDetailsConfig.Scope> scopeConfigs, Map<String, Object>
             totalClaims) throws NoSuchAlgorithmException {
         Map<String, Object> requestedClaims = new HashMap<String, Object>();
-        if (!scopeConfigsMap.isEmpty()) {
-            for (ScopeDetailsConfig.Scope scope : scopeConfigs) {
-                scopeConfigsMap.put(scope.getName(), scope);
-            }
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Could not load user-info claims.");
-            }
-        }
+
+        populateScopeConfigs(scopeConfigs);
 
         for (String scope : scopes) {
             if (scopeConfigsMap.containsKey(scope)) {
@@ -71,7 +77,7 @@ public class LocalClaimsRetriever implements ClaimsRetriever {
         byte byteData[] = md.digest();
 
         //convert the byte to hex format
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < byteData.length; i++) {
             sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
         }
