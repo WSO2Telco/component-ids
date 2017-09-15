@@ -111,7 +111,7 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
 
         String contextPath = System.getProperty("request.context.path");
         String[] requestedScopes = tokenResponse.getScope();
-        scopes=scopeConfigs.getPremiumInfoScope();
+        scopes=scopeConfigs.getPremiumScopes();
         if (contextPath.equals("/oauth2")) {
             //oauth2/userinfo requests should serve scopes in openid connect onl
             requestedScopes = getValidScopes(requestedScopes);
