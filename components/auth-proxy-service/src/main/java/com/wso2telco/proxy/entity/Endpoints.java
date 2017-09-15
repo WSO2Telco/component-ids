@@ -22,6 +22,7 @@ import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.pcrservice.exception.PCRException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.openidtokenbuilder.MIFEOpenIDTokenBuilder;
@@ -434,7 +435,6 @@ public class Endpoints {
 
         String plainTextLoginHint = null;
         String pcrValue = null;
-        boolean isValidPcr = false;
         for (LoginHintFormatDetails loginHintFormatDetails : loginHintAllowedFormatDetailsList) {
 
             switch (loginHintFormatDetails.getFormatType()) {
@@ -483,25 +483,23 @@ public class Endpoints {
                     }
                     break;
                 case PCR:
-                    if (StringUtils.isNotEmpty(loginHint)) {
-                        if (loginHint.startsWith(LOGIN_HINT_PCR)) {
-                            pcrValue = loginHint.replace(LOGIN_HINT_PCR, "");
-                            isValidFormatType = true;
-                            try {
-                                String retreivedMsisdn= getMSISDNbyPcr(redirectURL,pcrValue);
-                                if(StringUtils.isNotEmpty(retreivedMsisdn)){
-                                    plainTextLoginHint=retreivedMsisdn;
-                                }
-                                if (log.isDebugEnabled()) {
-                                    log.debug("PCR by login hint: " + plainTextLoginHint);
-                                }
+                    if (StringUtils.isNotEmpty(loginHint) && loginHint.startsWith(LOGIN_HINT_PCR) ) {
 
-                            } catch (Exception e){
-                                throw new AuthenticationFailedException("pcr in the login hint cannot be accepted");
+                        pcrValue = loginHint.replace(LOGIN_HINT_PCR, "");
+                        isValidFormatType = true;
+                        try {
+                            String retreivedMsisdn = getMSISDNbyPcr(redirectURL, pcrValue);
+                            if (StringUtils.isNotEmpty(retreivedMsisdn)) {
+                                plainTextLoginHint = retreivedMsisdn;
+                            }
+                            if (log.isDebugEnabled()) {
+                                log.debug("PCR by login hint: " + plainTextLoginHint);
                             }
 
-
+                        } catch (Exception e) {
+                            throw new AuthenticationFailedException("pcr in the login hint cannot be accepted");
                         }
+
                     }
                     break;
                 default:
@@ -572,12 +570,9 @@ public class Endpoints {
                         isValidFormatType = true;
                         break;
                     }
-
-
                 case PCR:
                     if (StringUtils.isNotEmpty(loginHint)) {
                         if (loginHint.startsWith(LOGIN_HINT_PCR)) {
-
                             try {
                                 String retreivedMsisdn= getMSISDNbyPcr(callbackurl,loginHint.replace(LOGIN_HINT_PCR, ""));
                                 if(StringUtils.isNotEmpty(retreivedMsisdn)){
@@ -588,14 +583,11 @@ public class Endpoints {
                                 throw new AuthenticationFailedException("pcr in the login hint cannot be accepted");
                             }
                             isValidFormatType = true;
-                            break;
-
                         }
                     } else {
                         isValidFormatType = true;
-                        break;
                     }
-
+                    break;
                 default:
                     log.warn("Invalid Login Hint format - " + loginHintFormatDetails.getFormatType());
             }
@@ -624,14 +616,11 @@ public class Endpoints {
         return true;
     }
 
-    private String getMSISDNbyPcr(String callbackUrl, String pcr) throws Exception {
+    private String getMSISDNbyPcr(String callbackUrl, String pcr) throws PCRException {
         String retrievedMsisdn = "";
         if (StringUtils.isNotEmpty(pcr)) {
-            {
                 MIFEOpenIDTokenBuilder mifeOpenIDTokenBuilder = new MIFEOpenIDTokenBuilder();
                 retrievedMsisdn = mifeOpenIDTokenBuilder.getMSISDNbyPcr(callbackUrl, pcr);
-
-            }
         }
         return retrievedMsisdn;
     }
