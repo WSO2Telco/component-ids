@@ -441,6 +441,7 @@ public class Endpoints {
      * @throws ConfigurationException
      */
     private ScopeParam validateAndSetScopeParameters(String loginHint, String msisdnHeader, String scope,
+            RedirectUrlInfo redirectUrlInfo, UserStatus userStatus,String redirectURL)
             throws AuthenticationFailedException, ConfigurationException {
         //TODO: get all scope related params. This should be move to a initialization method or add to cache later
         ScopeParam scopeParam = getScopeParam(scope, userStatus);
@@ -554,7 +555,8 @@ public class Endpoints {
     private String retunFormatVerfiedPlainTextLoginHint(String loginHint,
                                                         List<LoginHintFormatDetails>
                                                                 loginHintAllowedFormatDetailsList, UserStatus
-            throws AuthenticationFailedException {
+                                                                userStatus,String redirectURL)
+                                                                throws AuthenticationFailedException {
         boolean isValidFormatType = false; //msisdn/loginhint should be a either of defined formats
 
         String plainTextLoginHint = null;

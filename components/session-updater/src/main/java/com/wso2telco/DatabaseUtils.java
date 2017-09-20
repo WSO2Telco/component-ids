@@ -667,7 +667,7 @@ public class DatabaseUtils {
 
         String sql = "select scope from `scope_log` where " + "access_token=?;";
         try {
-            connection = getUssdDBConnection();
+            connection = getConnectDBConnection();
             ps = connection.prepareStatement(sql);
             ps.setString(1, token);
             rs = ps.executeQuery();
