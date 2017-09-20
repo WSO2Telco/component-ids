@@ -1588,23 +1588,6 @@ public class Endpoints extends ResponseBuilder{
         return unRegisterUserResponseBuilder(registerUserResponseBuilderRequest);
     }
 
-
-    /**
-     * Build the Faulty Response with relevant code/message
-     *
-     * @param responseCode
-     * @param errCode
-     * @param message
-     * @return Response with specified parameters
-     * @throws JSONException
-     */
-    private Response buildErrorResponse(int responseCode, String errCode, String message) throws JSONException {
-        JSONObject jsonErrMsg = new JSONObject();
-        jsonErrMsg.put("errorCode", errCode);
-        jsonErrMsg.put("message", message);
-        return Response.status(responseCode).entity(jsonErrMsg.toString()).build();
-    }
-
     /**
      * Return the status, based on otp validation for user input
      *
