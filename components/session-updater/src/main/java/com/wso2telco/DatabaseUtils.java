@@ -657,32 +657,6 @@ public class DatabaseUtils {
 
         }
     }
-    
-    public static String getScopes(String token) throws SQLException {
-
-        Connection connection = null;
-        PreparedStatement ps = null;
-        String scopes = null;
-        ResultSet rs = null;
-
-        String sql = "select scope from `scope_log` where " + "access_token=?;";
-        try {
-            connection = getConnectDBConnection();
-            ps = connection.prepareStatement(sql);
-            ps.setString(1, token);
-            rs = ps.executeQuery();
-            while (rs.next()) {
-            	scopes = rs.getString("scope");
-            }
-        } catch (NamingException ex) {
-            // Logger.getLogger(DatabaseUtils.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException e) {
-            log.info("Error while reading scopes", e);
-        } finally {
-            connection.close();
-        }
-        return scopes;
-    }
 
 
     /**
