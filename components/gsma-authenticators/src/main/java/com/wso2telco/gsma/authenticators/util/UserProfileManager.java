@@ -50,6 +50,10 @@ public class UserProfileManager {
 
     private static final String STATUS_CLAIM_NAME = "http://wso2.org/claims/status";
 
+    private static final String REG_MODE_CLAIM_NAME="http://wso2.org/claims/regMode";
+
+    public static final String REG_MODE_ONLINE = "online";
+
     private static final String STATUS_ACTIVE = "ACTIVE";
 
     private static Log log = LogFactory.getLog(UserProfileManager.class);
@@ -189,6 +193,8 @@ public class UserProfileManager {
                             userFieldDTOs[count].setFieldValue(getHashValue(pin));
                         } else if (STATUS_CLAIM_NAME.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
                             userFieldDTOs[count].setFieldValue(STATUS_ACTIVE);
+                        } else if (REG_MODE_CLAIM_NAME.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
+                            userFieldDTOs[count].setFieldValue(REG_MODE_ONLINE);
                         } else {
                             userFieldDTOs[count].setFieldValue("");
                         }
@@ -505,6 +511,8 @@ public class UserProfileManager {
 		/* updating loa claim for status */
 
         remoteUserStoreServiceAdminClient.setUserClaim(userName, STATUS_CLAIM_NAME, STATUS_ACTIVE,
+                UserCoreConstants.DEFAULT_PROFILE);
+        remoteUserStoreServiceAdminClient.setUserClaim(userName, REG_MODE_CLAIM_NAME, REG_MODE_ONLINE,
                 UserCoreConstants.DEFAULT_PROFILE);
 
     }
