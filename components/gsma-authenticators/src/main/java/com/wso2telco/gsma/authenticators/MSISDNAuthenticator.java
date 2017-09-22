@@ -139,7 +139,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         String displayScopes = "";
         try {
 
-            loginPage = getAuthEndpointUrl(context,expliciteScope);
+            loginPage = getAuthEndpointUrl(context, expliciteScope);
 
             String queryParams = FrameworkUtils
                     .getQueryStringWithFrameworkContextId(context.getQueryParams(),
@@ -155,22 +155,25 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
             boolean isattribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
 
-            if(isattribute){
-                String operator = context.getProperty(Constants.OPERATOR).toString();;
+            if (isattribute) {
+                String operator = context.getProperty(Constants.OPERATOR).toString();
+                ;
                 String clientId = context.getProperty(Constants.CLIENT_ID).toString();
-                Map<String, List<String>> attributeset = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants.TRUSTED_STATUS).toString()).getAttributeMap(context);
-                if(!attributeset.get("explicitScopes").isEmpty()){
+                Map<String, List<String>> attributeset = AttributeShareFactory.getAttributeSharable(context
+                        .getProperty(Constants.TRUSTED_STATUS).toString()).getAttributeMap(context);
+                if (!attributeset.get("explicitScopes").isEmpty()) {
                     expliciteScope = true;
                     displayScopes = Arrays.toString(attributeset.get("explicitScopes").toArray());
                 }
 
             }
 
-            if(expliciteScope){
+            if (expliciteScope) {
                 response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
                         request.getParameter("redirect_uri") + "&authenticators="
                         + getName() + ":" + "LOCAL" + retryParam + OAuthConstants.SESSION_DATA_KEY + "="
-                        + context.getContextIdentifier() + "&skipConsent=true&scope=" + displayScopes + "&registering=" + (boolean) context.getProperty(Constants.IS_REGISTERING));
+                        + context.getContextIdentifier() + "&skipConsent=true&scope=" + displayScopes +
+                        "&registering=" + (boolean) context.getProperty(Constants.IS_REGISTERING));
             } else {
                 response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
                         request.getParameter("redirect_uri") + "&authenticators="
@@ -249,10 +252,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     retryAuthenticatorForConsent(context);
                 }
 
-                if ((requestedLoa == ACR3) && (isConvertToActive)) {
-                    new UserProfileManager().createUserProfileLoa3(msisdn, operator, null, null,
-                            null, isAttributeShare,spType,attrShareType);
-                }
             } else {
                 msisdn = context.getProperty(Constants.MSISDN).toString();
 
@@ -301,7 +300,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
                     if ((requestedLoa == Integer.getInteger(Constants.LOA3)) && (isConvertToActive)) {
                         new UserProfileManager().createUserProfileLoa3(msisdn, operator, null, null,
-                                null, isAttrShare,spType,attrShareType);
+                                null, isAttrShare, spType, attrShareType);
                     }
                 }
             }
@@ -465,7 +464,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             if (isShowTnC && isRegistering) {
 
                 if (explicitScope) {
-                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.ATTRIBUTE_CONSENT_JSP;
+                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+                            Constants.ATTRIBUTE_CONSENT_JSP;
                 } else {
                     loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
                             Constants.CONSENT_JSP;
