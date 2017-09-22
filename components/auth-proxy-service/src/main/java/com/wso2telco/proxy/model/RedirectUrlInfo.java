@@ -17,6 +17,9 @@ package com.wso2telco.proxy.model;
 
 import com.wso2telco.core.config.model.ScopeParam;
 
+import java.util.EnumSet;
+import java.util.List;
+
 /**
  * RedirectUrlInfo is using to construct redirect url.
  */
@@ -28,14 +31,14 @@ public class RedirectUrlInfo {
     private String loginhintMsisdn;
     private String ipAddress;
     private String telcoScope;
-    private String parentScope;
     private boolean isLoginhintMandatory;
     private boolean showTnc;
+    private boolean showConsent;
     private ScopeParam.msisdnMismatchResultTypes headerMismatchResult;
     private ScopeParam.heFailureResults heFailureResult;
     private String transactionId;
     private String prompt;
-    private String apiScopes;
+    private EnumSet<ScopeParam.scopeTypes> scopeTypesList;
 
     public void setPrompt(String prompt) { this.prompt = prompt; }
 
@@ -56,14 +59,6 @@ public class RedirectUrlInfo {
     public void setTelcoScope(String telcoScope) {
         this.telcoScope = telcoScope;
     }
-
-    public String getParentScope() {
-		return parentScope;
-	}
-
-	public void setParentScope(String parentScope) {
-		this.parentScope = parentScope;
-	}
 
 	public String getIpAddress() {
         return ipAddress;
@@ -145,11 +140,15 @@ public class RedirectUrlInfo {
         return transactionId;
     }
 
-	public String getApiScopes() {
-		return apiScopes;
-	}
+    public boolean isShowConsent() {
+        return showConsent;
+    }
 
-	public void setApiScopes(String apiScopes) {
-		this.apiScopes = apiScopes;
-	}
+    public void setShowConsent(boolean showConsent) {
+        this.showConsent = showConsent;
+    }
+
+    public EnumSet<ScopeParam.scopeTypes> getScopeTypesList() { return scopeTypesList;  }
+
+    public void setScopeTypesList(EnumSet<ScopeParam.scopeTypes> scopeTypesList) { this.scopeTypesList = scopeTypesList; }
 }

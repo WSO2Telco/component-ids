@@ -374,7 +374,7 @@
     
     <servlet-mapping>
         <servlet-name>user_consent.do</servlet-name>
-        <url-pattern>/consent.do</url-pattern>
+        <url-pattern>/user_consent.do</url-pattern>
     </servlet-mapping>
 
     <error-page>
