@@ -62,13 +62,13 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
         populateScopeConfigs(scopeConfigs);
         String operatorName = (String) totalClaims.get(operator);
         String phoneNumber = (String) totalClaims.get(phoneNumberClaim);
-        totalClaims = getTotalClaims(operatorName, phoneNumber);
+        Map<String, Object> totalClaimsValues = getTotalClaims(operatorName, phoneNumber);
 
         for (String scope : scopes) {
-            if (scopeConfigsMap.containsKey(scope) && totalClaims != null) {
+            if (scopeConfigsMap.containsKey(scope) && totalClaimsValues != null) {
                 Iterator<String> i = scopeConfigsMap.get(scope).getClaimSet().iterator();
                 boolean isHashed = scopeConfigsMap.get(scope).isHashed();
-                requestedClaims.put(i.next(), totalClaims.get(getclaimValue(i, isHashed, totalClaims)));
+                requestedClaims.put(i.next(), totalClaimsValues.get(getclaimValue(i, isHashed, totalClaimsValues)));
 
             }
         }
