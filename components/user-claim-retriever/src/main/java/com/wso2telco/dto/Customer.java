@@ -24,11 +24,8 @@ public class Customer {
     private String familyName;
     private String middleName;
     private String gender;
-    private String birthDate;
-    private String AgeVerificationStatus;
     private String streetAddress;
     private String postalCode;
-    private String country;
     private String locale;
     private String phoneNumberAlternate;
     private String email;
@@ -36,11 +33,10 @@ public class Customer {
     private String phoneNumber;
     private String phoneNumberCountryCode;
     private String zoneinfo;
-    private String BillingSegment;
     private String isLostStolen;
     private String idHash;
-    private String SubscriptionActivity;
-    private String LengthOfTenure;
+    private String subscriptionActivity;
+    private String lengthOfTenure;
     private String pairingChange;
     private String isRoaming;
     private String roamingCountry;
@@ -61,7 +57,7 @@ public class Customer {
         return updatedAt;
     }
 
-    public void setUpdated_at(String updatedAt) {
+    public void setUpdatedAt(String updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -186,19 +182,19 @@ public class Customer {
     }
 
     public String getSubscriptionActivity() {
-        return SubscriptionActivity;
+        return subscriptionActivity;
     }
 
     public void setSubscriptionActivity(String subscriptionActivity) {
-        SubscriptionActivity = subscriptionActivity;
+        this.subscriptionActivity = subscriptionActivity;
     }
 
     public String getLengthOfTenure() {
-        return LengthOfTenure;
+        return lengthOfTenure;
     }
 
     public void setLengthOfTenure(String lengthOfTenure) {
-        LengthOfTenure = lengthOfTenure;
+        this.lengthOfTenure = lengthOfTenure;
     }
 
     public String getPairingChange() {
