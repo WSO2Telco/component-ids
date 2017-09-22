@@ -13,6 +13,7 @@ import org.wso2.carbon.identity.oauth.user.UserInfoEndpointException;
 import org.wso2.carbon.identity.oauth.user.UserInfoRequestValidator;
 import org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.GET;
@@ -42,20 +43,17 @@ public class PremiumInfoEndpoint {
             UserInfoAccessTokenValidator tokenValidator = UserInfoEndpointConfig.getInstance().getUserInfoAccessTokenValidator();
             OAuth2TokenValidationResponseDTO tokenResponse = tokenValidator.validateToken(accessToken);
             // build the claims
-            //ToDO - Validate the grant type to be implicit or authorization_code before retrieving claims
+            //Validate the grant type to be implicit or authorization_code before retrieving claims
             UserInfoResponseBuilder userInfoResponseBuilder = UserInfoEndpointConfig.getInstance().getUserInfoResponseBuilder();
-            try {
-              //  tokenResponse.setScope();
-                response = userInfoResponseBuilder.getResponseString(tokenResponse);
-            } catch (org.apache.oltu.oauth2.common.exception.OAuthSystemException e) {
-                e.printStackTrace();
-            }
+            response = userInfoResponseBuilder.getResponseString(tokenResponse);
 
         } catch (UserInfoEndpointException e) {
             return handleError(e);
         } catch (OAuthSystemException e) {
             log.error("UserInfoEndpoint Failed", e);
             throw new OAuthSystemException("UserInfoEndpoint Failed");
+        } catch (org.apache.oltu.oauth2.common.exception.OAuthSystemException e) {
+            log.error("OAuth System Exception", e);
         }
 
         ResponseBuilder respBuilder =

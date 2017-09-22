@@ -2,7 +2,6 @@ package com.wso2telco.claims;
 
 
 import com.wso2telco.core.config.model.ScopeDetailsConfig;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -19,7 +18,7 @@ public class LocalClaimsRetriever implements ClaimsRetriever {
      * The log.
      */
     private static Log log = LogFactory.getLog(LocalClaimsRetriever.class);
-    private static Map<String, ScopeDetailsConfig.Scope> scopeConfigsMap = new HashMap<String, ScopeDetailsConfig.Scope>();
+    private static Map<String, ScopeDetailsConfig.Scope> scopeConfigsMap = new HashMap();
 
 
     private void populateScopeConfigs(List<ScopeDetailsConfig.Scope> scopeConfigs){
@@ -46,7 +45,7 @@ public class LocalClaimsRetriever implements ClaimsRetriever {
     @Override
     public Map<String, Object> getRequestedClaims(String[] scopes, List<ScopeDetailsConfig.Scope> scopeConfigs, Map<String, Object>
             totalClaims) throws NoSuchAlgorithmException {
-        Map<String, Object> requestedClaims = new HashMap<String, Object>();
+        Map<String, Object> requestedClaims = new HashMap();
 
         populateScopeConfigs(scopeConfigs);
 
@@ -74,7 +73,7 @@ public class LocalClaimsRetriever implements ClaimsRetriever {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         md.update(claimValue.getBytes());
 
-        byte byteData[] = md.digest();
+        byte[] byteData = md.digest();
 
         //convert the byte to hex format
         StringBuilder sb = new StringBuilder();
