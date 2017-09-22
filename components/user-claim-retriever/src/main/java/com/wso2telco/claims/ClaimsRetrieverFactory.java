@@ -9,10 +9,13 @@ public class ClaimsRetrieverFactory {
     }
 
     public static ClaimsRetriever getClaimsRetriever(String retrieverType) {
+        ClaimsRetriever claimsRetriever;
         if (retrieverType.equalsIgnoreCase(ClaimsRetrieverType.LOCAL.toString())) {
-            return new LocalClaimsRetriever();
+            claimsRetriever=new LocalClaimsRetriever();
         } else {
-            return new RemoteClaimsRetriever();
+            claimsRetriever=new RemoteClaimsRetriever();
         }
+
+        return claimsRetriever;
     }
 }
