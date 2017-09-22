@@ -2,8 +2,6 @@ package com.wso2telco.claims;
 
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.ScopeDetailsConfig;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -20,15 +18,16 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
     /**
      * The log.
      */
+
     private static Log log = LogFactory.getLog(RemoteClaimsRetriever.class);
 
-    private static Map<String, ScopeDetailsConfig.Scope> scopeConfigsMap = new HashMap<String, ScopeDetailsConfig.Scope>();
-
-    private final static String PHONE_NUMBER = "phone_number";
-
-    private final static String OPERATOR = "operator1";
+    private static Map<String, ScopeDetailsConfig.Scope> scopeConfigsMap = new HashMap();
 
     private static List<MobileConnectConfig.OperatorData> operators = com.wso2telco.core.config.ConfigLoader.getInstance().getMobileConnectConfig().getOperatorsList().getOperatorData();
+
+    private static String phoneNumberClaim = "phone_number";
+
+    private static String operator = "operator";
 
 
     private void populateScopeConfigs(List<ScopeDetailsConfig.Scope> scopeConfigs) {
@@ -57,11 +56,12 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
 
     @Override
     public Map<String, Object> getRequestedClaims(String[] scopes, List<ScopeDetailsConfig.Scope> scopeConfigs, Map<String, Object> totalClaims) throws NoSuchAlgorithmException {
-        Map<String, Object> requestedClaims = new HashMap<String, Object>();
+        Map<String, Object> requestedClaims = new HashMap();
 
         populateScopeConfigs(scopeConfigs);
-        String operatorName = (String) totalClaims.get(OPERATOR);
-        String phoneNumber = (String) totalClaims.get(PHONE_NUMBER);
+        populateScopeConfigs(scopeConfigs);
+        String operatorName = (String) totalClaims.get(operator);
+        String phoneNumber = (String) totalClaims.get(phoneNumberClaim);
         totalClaims = getTotalClaims(operatorName, phoneNumber);
 
         for (String scope : scopes) {
@@ -109,7 +109,7 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         md.update(claimValue.getBytes());
 
-        byte byteData[] = md.digest();
+        byte[] byteData = md.digest();
         //convert the byte to hex format
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < byteData.length; i++) {
