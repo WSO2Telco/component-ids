@@ -29,7 +29,6 @@ import com.wso2telco.dao.ScopeDetails;
 import com.wso2telco.util.ClaimUtil;
 import org.apache.amber.oauth2.common.utils.JSONUtils;
 import com.wso2telco.util.ClaimsRetrieverType;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -38,12 +37,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
-import org.codehaus.jettison.json.JSONException;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.oauth.cache.AuthorizationGrantCache;
-import org.wso2.carbon.identity.oauth.cache.AuthorizationGrantCacheEntry;
-import org.wso2.carbon.identity.oauth.cache.AuthorizationGrantCacheKey;
-import org.wso2.carbon.identity.oauth.user.UserInfoClaimRetriever;
 import org.wso2.carbon.identity.oauth.user.UserInfoEndpointException;
 import org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
@@ -58,8 +51,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-// TODO: Auto-generated Javadoc
-
 /**
  * The Class ClaimInfoMultipleScopeResponseBuilder.
  */
@@ -70,13 +61,7 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
      */
     private static Log log = LogFactory.getLog(ClaimInfoMultipleScopeResponseBuilder.class);
 
-    private final String hashPhoneScope = "mc_identity_phonenumber_hashed";
-
-    private final String phone_number_claim = "phone_number";
-
-    private final String operator = "operator1";
-
-    private List<ScopeDetailsConfig.Scope> scopes;
+    private static String operatorClaim = "operator";
 
     /**
      * The openid scopes.
@@ -102,6 +87,9 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
      */
     public String getResponseString(OAuth2TokenValidationResponseDTO tokenResponse) throws UserInfoEndpointException,
             OAuthSystemException {
+
+        List<ScopeDetailsConfig.Scope> scopes;
+
 
         if (log.isDebugEnabled()) {
             log.debug("Generating Claim Info for Access token : " + tokenResponse.getAuthorizationContextToken()
@@ -130,36 +118,15 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
             }
         }
 
-        Map<ClaimMapping, String> userAttributes = getUserAttributesFromCache(tokenResponse);
         Map<String, Object> claims = null;
         //read claimValues per scope from scope-config.xml
-        //   DataHolder.getInstance().setScopeConfigs(ConfigLoader.getInstance().getScopeConfigs());
-
         ScopeDetailsConfig scopeConfigs =com.wso2telco.core.config.ConfigLoader.getInstance().getScopeDetailsConfig();
 
-        if (userAttributes != null) {
-            UserInfoClaimRetriever retriever = UserInfoEndpointConfig.getInstance().getUserInfoClaimRetriever();
-            claims = retriever.getClaimsMap(userAttributes);
-
-            boolean hasAcr = claims.containsKey("acr");
-            boolean hasAmr = claims.containsKey("amr");
-            if (hasAcr && hasAmr && userAttributes.size() == 2) {
-                //userattributes only contains only acr and amr values
-                userAttributes = null;
-
-            }
-        }
-        // Commenting out this since a null entry resides inside cache
-//        if (userAttributes == null || userAttributes.isEmpty()) {
-//            if (log.isDebugEnabled()) {
-//                log.debug("User attributes not found in cache. Trying to retrieve from user store.");
-//            }
         try {
             claims = ClaimUtil.getClaimsFromUserStore(tokenResponse);
         } catch (Exception e) {
             throw new UserInfoEndpointException("Error while retrieving claims from user store.");
         }
-//        }
 
         String contextPath = System.getProperty("request.context.path");
         String[] requestedScopes = tokenResponse.getScope();
@@ -178,8 +145,8 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
                     .getAuthorizationContextToken().getTokenString());
 
             List<MobileConnectConfig.OperatorData> operators= com.wso2telco.core.config.ConfigLoader.getInstance().getMobileConnectConfig().getOperatorsList().getOperatorData();
-            String  operatorName =(String)claims.get(operator);
-            String claimsRetrieverType= ClaimsRetrieverType.Local.toString();
+            String  operatorName =(String)claims.get(operatorClaim);
+            String claimsRetrieverType= ClaimsRetrieverType.LOCAL.toString();
 
             for (MobileConnectConfig.OperatorData operator : operators) {
                 if(operator.getOperatorName().equalsIgnoreCase(operatorName)){
@@ -204,31 +171,13 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
     }
 
     /**
-     * Gets the user attributes from cache.
-     *
-     * @param tokenResponse the token response
-     * @return the user attributes from cache
-     */
-    private Map<ClaimMapping, String> getUserAttributesFromCache(OAuth2TokenValidationResponseDTO tokenResponse) {
-        AuthorizationGrantCacheKey cacheKey = new AuthorizationGrantCacheKey(tokenResponse
-                .getAuthorizationContextToken().getTokenString());
-        AuthorizationGrantCacheEntry cacheEntry = (AuthorizationGrantCacheEntry) AuthorizationGrantCache.getInstance
-                ().getValueFromCache(cacheKey);
-        if (cacheEntry == null) {
-            return new HashMap<ClaimMapping, String>();
-        }
-        return cacheEntry.getUserAttributes();
-    }
-
-
-    /**
      * Gets the valid scopes.
      *
      * @param requestedScopes the requested scopes
      * @return the valid scopes
      */
     private String[] getValidScopes(String[] requestedScopes) {
-        List<String> validScopes = new ArrayList<String>();
+        List<String> validScopes = new ArrayList();
         for (String scope : requestedScopes) {
             if (!openidScopes.contains(scope)) {
                 continue;

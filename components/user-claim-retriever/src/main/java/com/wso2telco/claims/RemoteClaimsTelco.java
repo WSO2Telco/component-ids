@@ -32,7 +32,7 @@ public class RemoteClaimsTelco implements RemoteClaims{
             HttpResponse response = client.execute(request);
             log.info("Response Code : " + response.getStatusLine().getStatusCode());
             BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-            StringBuffer jsonString = new StringBuffer();
+            StringBuilder jsonString = new StringBuilder();
             String line = "";
 
             while ((line = rd.readLine()) != null) {
