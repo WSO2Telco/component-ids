@@ -48,14 +48,7 @@ import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import java.util.*;
 
 // TODO: Auto-generated Javadoc
 
@@ -149,10 +142,12 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
         ScopeParam.MsisdnMismatchResultTypes headerMismatchResult = ScopeParam.MsisdnMismatchResultTypes.valueOf(
                 request.getParameter(Constants.HEADER_MISMATCH_RESULT));
+        String telcoscope = request.getParameter(Constants.TELCO_SCOPE);
 
         ScopeParam.HeFailureResults heFailureResult = ScopeParam.HeFailureResults.valueOf(
                 request.getParameter(Constants.HE_FAILURE_RESULT));
 
+        String scope_types = request.getParameter(Constants.SCOPE_TYPES);
         context.setProperty(Constants.IS_SHOW_TNC, isShowTnc);
         context.setProperty(Constants.HEADER_MISMATCH_RESULT, headerMismatchResult);
         context.setProperty(Constants.HE_FAILURE_RESULT, heFailureResult);
@@ -170,6 +165,12 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.TRUSTED_STATUS, trustedStatus);
         context.setProperty(Constants.ATTRSHARE_SCOPE_TYPE, attrShareScopeType);
 
+        context.setProperty(Constants.IS_SHOW_CONSENT, isSHowConsent);
+        context.setProperty(Constants.CLIENT_ID, serviceProvider);
+        context.setProperty(Constants.TELCO_SCOPE, telcoscope);
+        if(scope_types!=null && !scope_types.isEmpty()) {
+            context.setProperty(Constants.SCOPE_TYPES, scope_types);
+        }
         // set prompt variable default to false
         Boolean isFrorceOffnetDueToPromptParameter = false;
         PromptData promptData = null;
