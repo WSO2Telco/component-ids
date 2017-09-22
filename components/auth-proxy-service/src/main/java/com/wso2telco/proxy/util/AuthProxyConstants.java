@@ -54,10 +54,10 @@ public class AuthProxyConstants {
     public static final String SCOPE_MNV = "mnv";
     public static final String SCOPE_OPENID = "openid";
     public static final String TELCO_SCOPE = "telco_scope";
-    public static final String PARENT_SCOPE = "parent_scope";
-    public static final String API_SCOPES = "api_scope";
+    public static final String SCOPE_TYPES = "scope_types";
     public static final String UTF_ENCODER = "UTF-8";
     public static final String SHOW_TNC = "isShowTnc";
+    public static final String SHOW_CONSENT = "isShowConsent";
     public static final String LOGIN_HINT_MANDATORY = "isLoginhintMandatory";
     public static final String HEADER_MISMATCH_RESULT = "headerMismatchResult";
     public static final String HE_FAILURE_RESULT = "heFailureResult";

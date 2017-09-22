@@ -267,14 +267,6 @@ public class Endpoints {
                 ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo,
                         userStatus,redirectURL);
 
-                
-                String apiScopes = null;
-                if(scopeParam.isConsentPage()==true){
-                	String[] api_Scopes = scopeName.split("\\s+");
-                	api_Scopes=Arrays.copyOfRange(api_Scopes, 1, api_Scopes.length);
-                	apiScopes=Arrays.toString(api_Scopes);
-                }
-
                 String loginhint_msisdn = null;
                 try {
                     loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam,redirectURL);
@@ -332,9 +324,12 @@ public class Endpoints {
                     redirectUrlInfo.setQueryString(queryString);
                     redirectUrlInfo.setIpAddress(ipAddress);
                     redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
-                    redirectUrlInfo.setParentScope(scopeParam.getScope());
                     redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
-                    redirectUrlInfo.setApiScopes(apiScopes);
+                    if(scopeParam.isConsentPage()){
+                        redirectUrlInfo.setShowConsent(true);
+                    }
+                    redirectUrlInfo.setScopeTypesList(scopeParam.getScopeTypesList());
+
                     redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
 
                     DataPublisherUtil.updateAndPublishUserStatus(
@@ -812,29 +807,30 @@ public class Endpoints {
         String loginHintMsisdn = redirectUrlInfo.getLoginhintMsisdn();
         String operatorName = redirectUrlInfo.getOperatorName();
         String telcoScope = redirectUrlInfo.getTelcoScope();
-        String parentScope = redirectUrlInfo.getParentScope();
         String ipAddress = redirectUrlInfo.getIpAddress();
         String prompt = redirectUrlInfo.getPrompt();
         String validationRegex=configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getValidationRegex();
-        String apiScopes = redirectUrlInfo.getApiScopes();
         boolean isShowTnc = redirectUrlInfo.isShowTnc();
+        boolean isShowConsent = redirectUrlInfo.isShowConsent();
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
         ScopeParam.heFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
-
+        EnumSet<ScopeParam.scopeTypes> scopeTypesList = redirectUrlInfo.getScopeTypesList();
         String transactionId = redirectUrlInfo.getTransactionId();
         if (authorizeUrl != null) {
-            redirectURL = authorizeUrl + queryString + "&" + AuthProxyConstants.OPERATOR + "=" +
-                    operatorName + "&" + AuthProxyConstants.TELCO_SCOPE + "=" + telcoScope + "&" + AuthProxyConstants.PARENT_SCOPE + "=" + parentScope + "&" +
-                    AuthProxyConstants.SHOW_TNC + "=" + isShowTnc + "&" + AuthProxyConstants.HEADER_MISMATCH_RESULT +
-                    "=" + headerMismatchResult + "&" + AuthProxyConstants.HE_FAILURE_RESULT +
-                    "=" + heFailureResult;
+            redirectURL = authorizeUrl + queryString + "&" +
+                    AuthProxyConstants.OPERATOR + "=" + operatorName + "&" +
+                    AuthProxyConstants.TELCO_SCOPE + "=" + telcoScope + "&" +
+                    AuthProxyConstants.SHOW_TNC + "=" + isShowTnc + "&" +
+                    AuthProxyConstants.SHOW_CONSENT + "=" + isShowConsent + "&" +
+                    AuthProxyConstants.HEADER_MISMATCH_RESULT + "=" + headerMismatchResult + "&" +
+                    AuthProxyConstants.HE_FAILURE_RESULT + "=" + heFailureResult;
 
             if (msisdnHeader != null && StringUtils.isNotEmpty(msisdnHeader)) {
-                redirectURL = redirectURL + "&" + AuthProxyConstants.MSISDN_HEADER + "=" + msisdnHeader;
+                redirectURL += "&" + AuthProxyConstants.MSISDN_HEADER + "=" + msisdnHeader;
             }
 
             if (loginHintMsisdn != null && !StringUtils.isEmpty(loginHintMsisdn)) {
-                redirectURL = redirectURL + "&" + AuthProxyConstants.LOGIN_HINT_MSISDN +
+                redirectURL += "&" + AuthProxyConstants.LOGIN_HINT_MSISDN +
                         "=" + loginHintMsisdn;
             }
 
@@ -844,12 +840,12 @@ public class Endpoints {
             }
 
             if (StringUtils.isNotEmpty(transactionId)) {
-                redirectURL = redirectURL + "&" + AuthProxyConstants.TRANSACTION_ID +
+                redirectURL += "&" + AuthProxyConstants.TRANSACTION_ID +
                         "=" + transactionId;
             }
 
             if(StringUtils.isNotEmpty(prompt)){
-                redirectURL = redirectURL + "&" + AuthProxyConstants.TELCO_PROMPT +
+                redirectURL += "&" + AuthProxyConstants.TELCO_PROMPT +
                         "=" + prompt;
             }
 
@@ -857,10 +853,18 @@ public class Endpoints {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.MSISDN_VALIDATION_REGEX +
                         "=" + validationRegex;
             }
-            if(apiScopes != null && !StringUtils.isEmpty(apiScopes)){
-                redirectURL = redirectURL + "&" + AuthProxyConstants.API_SCOPES +
-                        "=" + apiScopes;
+            if(scopeTypesList!=null && !scopeTypesList.isEmpty()){
+                redirectURL += "&" + AuthProxyConstants.SCOPE_TYPES + "=";
+                boolean init=false;
+                for(ScopeParam.scopeTypes scopetype:scopeTypesList){
+                    if(init){
+                        redirectURL+="-";
+                    }
+                    redirectURL+=scopetype.name();
+                    init=true;
+                }
             }
+            
         } else {
             String errMsg = "AuthorizeURL could not be found in mobile-connect.xml";
             DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.CONFIGURATION_ERROR,

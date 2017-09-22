@@ -249,11 +249,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             if (rememberMe != null && "eon".equals(rememberMe)) {
                 context.setRememberMe(true);
             }
-
-            DataPublisherUtil
-                    .updateAndPublishUserStatus(
-                            (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-                            DataPublisherUtil.UserState.MSISDN_AUTH_SUCCESS, "MSISDN Authentication success");
         } catch (Exception ex) {
             DataPublisherUtil
                     .updateAndPublishUserStatus(
@@ -274,7 +269,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     	boolean isUserExists = false;
     	try{
             if (AdminServiceUtil.isUserExists(msisdn)) {
-                if (AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase("ACTIVE")) {
+                String status=AdminServiceUtil.getUserStatus(msisdn);
+                if (status!=null && status.equalsIgnoreCase("ACTIVE")) {
                     isUserExists = true;
                 }
             }

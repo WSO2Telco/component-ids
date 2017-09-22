@@ -197,28 +197,6 @@ public class Endpoints extends ResponseBuilder{
         log.info("Updated saa status " + saaResponse);
         return response;
     }
-    
-    @POST
-    @Path("/scope/token")
-    @Consumes("application/json")
-    @Produces("application/json")
-    public Response scopesForToken(String jsonBody) throws SQLException, JSONException, IOException {
-        log.info("Received scope request for token");
-        String scopes= "";
-        JSONObject jsonObjReq = new JSONObject(jsonBody);
-        log.info("JSON body Recieved "+jsonObjReq);
-        String token = jsonObjReq.getJSONObject("scopeValidationRequest").getString("token");
-        if(token != null && !token.equals("")){
-        	scopes=DatabaseUtils.getScopes(token);
-        }
-        OutboundMessage outboundMessage = new OutboundMessage();
-        ScopeValidationResponse scopeValidationResponse = new ScopeValidationResponse();
-        scopeValidationResponse.setScopes(scopes);
-        outboundMessage.setScopeValidationResponse(scopeValidationResponse);
-        Gson gson = new GsonBuilder().serializeNulls().create();
-        String responseString = gson.toJson((Object)outboundMessage);
-        return Response.status((int)200).entity((Object)responseString).build();
-    }
 
     /**
      * Ussd receive.

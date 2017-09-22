@@ -48,14 +48,7 @@ import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import java.util.*;
 
 // TODO: Auto-generated Javadoc
 
@@ -127,16 +120,16 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         Integer requestedLoa = Integer.parseInt(request.getParameter(Constants.PARAM_ACR));
         String ipAddress = request.getParameter(Constants.IP_ADDRESS);
         String transactionId = request.getParameter(Constants.TRANSACTION_ID);
-        String parentScope = request.getParameter(Constants.PARENT_SCOPE);
-        String apiScope = request.getParameter(Constants.API_SCOPES);
-
-        boolean isShowTnc = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
+        Boolean isSHowConsent = Boolean.valueOf(request.getParameter(Constants.IS_SHOW_CONSENT));
+        String telcoscope = request.getParameter(Constants.TELCO_SCOPE);
+        boolean isShowTnc =  Boolean.valueOf(request.getParameter(Constants.IS_SHOW_TNC));
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = ScopeParam.msisdnMismatchResultTypes.valueOf(
                 request.getParameter(Constants.HEADER_MISMATCH_RESULT));
 
         ScopeParam.heFailureResults heFailureResult = ScopeParam.heFailureResults.valueOf(
                 request.getParameter(Constants.HE_FAILURE_RESULT));
 
+        String scope_types = request.getParameter(Constants.SCOPE_TYPES);
         context.setProperty(Constants.IS_SHOW_TNC, isShowTnc);
         context.setProperty(Constants.HEADER_MISMATCH_RESULT, headerMismatchResult);
         context.setProperty(Constants.HE_FAILURE_RESULT, heFailureResult);
@@ -146,10 +139,12 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.LOGIN_HINT_MSISDN, loginHintMsisdn);
         context.setProperty(Constants.IP_ADDRESS, ipAddress);
         context.setProperty(Constants.TRANSACTION_ID, transactionId);
-        context.setProperty(Constants.PARENT_SCOPE, parentScope);
-        context.setProperty(Constants.API_SCOPES, apiScope);
+        context.setProperty(Constants.IS_SHOW_CONSENT, isSHowConsent);
         context.setProperty(Constants.CLIENT_ID, serviceProvider);
-
+        context.setProperty(Constants.TELCO_SCOPE, telcoscope);
+        if(scope_types!=null && !scope_types.isEmpty()) {
+            context.setProperty(Constants.SCOPE_TYPES, scope_types);
+        }
         // set prompt variable default to false
         Boolean isFrorceOffnetDueToPromptParameter = false;
         PromptData promptData = null;
