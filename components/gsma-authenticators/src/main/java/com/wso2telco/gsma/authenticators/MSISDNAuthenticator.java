@@ -246,10 +246,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     retryAuthenticatorForConsent(context);
                 }
 
-                if ((requestedLoa == ACR3 ) && (isConvertToActive)) {
-                    new UserProfileManager().createUserProfileLoa3(msisdn, operator, null, null,
-                            null, isAttributeShare,spType,attrShareType);
-                }
+
             } else {
                 msisdn = context.getProperty(Constants.MSISDN).toString();
                 String userAction = request.getParameter(Constants.ACTION);
