@@ -16,24 +16,9 @@
 
 package com.wso2telco.gsma.authenticators.attributeShare;
 
-import com.wso2telco.core.config.model.ScopeDetailsConfig;
-import com.wso2telco.core.config.service.ConfigurationService;
-import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.authenticators.dao.AttributeConfigDAO;
-import com.wso2telco.gsma.authenticators.dao.impl.AttributeConfigDAOimpl;
-import com.wso2telco.gsma.authenticators.attributeShare.internal.SPType;
+import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
-
-import javax.naming.NamingException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /*This factory class created because the user consent mechanism can be vary with the SP type.
 * TSP1 consent mechanisms not included yet.
@@ -47,30 +32,23 @@ public class AttributeShareFactory {
     static NormalSP normalSP;
     private static Log log = LogFactory.getLog(AttributeShareFactory.class);
 
-    public static AttributeSharable getAttributeSharable(String operator, String clientID) throws Exception {
+    public static AttributeSharable getAttributeSharable(String trustedStatus) {
 
         AttributeSharable attributeSharable = null;
 
-        String spType;
-        try {
-
-            AttributeConfigDAO attributeConfigDAO = new AttributeConfigDAOimpl();
-            spType = attributeConfigDAO.getSPConfigValue(operator, clientID, Constants.SP_TYPE);
-
-            if (spType != null && (spType.equalsIgnoreCase(SPType.TSP2.name()))) {
+            if (trustedStatus != null && (trustedStatus.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.TRUSTED.name()))) {
                 if (trustedSP2 == null) {
                     trustedSP2 = new TrustedSP2();
                 }
                 attributeSharable = trustedSP2;
-
             }
-            if (spType != null && (spType.equalsIgnoreCase(SPType.TSP1.name()))) {
+            if (trustedStatus != null && (trustedStatus.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.FULLY_TRUSTED.name()))) {
                 if (trustedSP == null) {
                     trustedSP = new TrustedSP();
                 }
                 attributeSharable = trustedSP;
             }
-            if (spType != null && (spType.equalsIgnoreCase(SPType.NORMAL.name()))) {
+            if (trustedStatus != null && (trustedStatus.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name()))) {
                 if (normalSP == null) {
                     normalSP = new NormalSP();
                 }
@@ -78,13 +56,6 @@ public class AttributeShareFactory {
 
             }
 
-        } catch (SQLException e) {
-            log.error("SQL Exception occurred while retrieving data from Database", e);
-            throw new AuthenticationFailedException(e.getMessage(), e);
-        } catch (NamingException e) {
-            log.error("Naming Exception occurred while retrieving data from Database", e);
-            throw new AuthenticationFailedException(e.getMessage(), e);
-        }
         return attributeSharable;
     }
 }

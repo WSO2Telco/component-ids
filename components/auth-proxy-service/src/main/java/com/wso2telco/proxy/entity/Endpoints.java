@@ -24,10 +24,13 @@ import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.pcrservice.exception.PCRException;
+import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.openidtokenbuilder.MIFEOpenIDTokenBuilder;
 import com.wso2telco.proxy.MSISDNDecryption;
+import com.wso2telco.proxy.attributeShare.AttributeShare;
+import com.wso2telco.proxy.dao.AttShareDAO;
 import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.model.MSISDNHeader;
 import com.wso2telco.proxy.model.RedirectUrlInfo;
@@ -77,6 +80,8 @@ public class Endpoints {
     private static Map<String, List<MSISDNHeader>> operatorsMSISDNHeadersMap;
     private static Map<String, MobileConnectConfig.OPERATOR> operatorPropertiesMap = null;
     private static Map<String, ScopeDetailsConfig.Scope> scopeMap = null;
+    private static AttShareDAO attShareDAO;
+    private static Map<String, String> scopeTypes;
 
     /**
      * The Configuration service
@@ -119,11 +124,12 @@ public class Endpoints {
 
             //Load scope related request optional parameters.
             scopeMap = new HashMap<String, ScopeDetailsConfig.Scope>();
-            List<ScopeDetailsConfig.Scope> scopes = scopeDetailsConfigs.getScope();
+            List<ScopeDetailsConfig.Scope> scopes = scopeDetailsConfigs.getPremiumScopes();
 
             for (ScopeDetailsConfig.Scope sc : scopes) {
                 scopeMap.put(sc.getName(), sc);
             }
+
 
         } catch (SQLException e) {
             log.error("Error occurred while retrieving operator MSISDN properties of operators.");
@@ -245,30 +251,9 @@ public class Endpoints {
                             }
                         }
                     }
+
                     ipAddress = getIpAddress(httpHeaders, httpServletRequest, operatorName);
 
-                    //Check IsAttribute Sharing scope available
-                    boolean attributeSharingScopes = DBUtils.getIsAttributeScopes(scopeName);
-
-                    //Check all mandatory scope parameters pass with the request
-                    if (attributeSharingScopes) {
-                        List<String> attributeSharingScopeList = DBUtils.getAttributeSharingScopes();
-                        List<String> mandatoryParams = new ArrayList<String>();
-                        mandatoryParams.clear();
-
-                        for (int i = 0; i < attributeSharingScopeList.size(); i++) {
-                            List<String> x = getMandatoryScopeWithRequest(attributeSharingScopeList.get(i));
-                            if (x != null && !x.isEmpty()) {
-                                for (int j = 0; j < x.size(); j++) {
-                                    if (!mandatoryParams.contains(x.get(j))) {
-                                        mandatoryParams.add(x.get(j));
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    //Validate with Scope wise parameters and throw exceptions
                     ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo,
                             userStatus, redirectURL);
 
@@ -327,7 +312,6 @@ public class Endpoints {
                             } else {
                                 msisdn = "";
                             }
-
                             // URL encode login hint msisdn
                             if (loginhint_msisdn != null) {
                                 loginhint_msisdn = URLEncoder.encode(loginhint_msisdn, AuthProxyConstants.UTF_ENCODER);
@@ -338,13 +322,18 @@ public class Endpoints {
                                 log.debug("redirectURL : " + redirectURL);
                             }
 
+                            Map<String, String> attShareDetails = validateAttributeShareScopes(scopeName,
+                                    operatorName, clientId, loginhint_msisdn, msisdn);
+
                             redirectUrlInfo.setMsisdnHeader(msisdn);
                             redirectUrlInfo.setLoginhintMsisdn(loginhint_msisdn);
                             redirectUrlInfo.setQueryString(queryString);
                             redirectUrlInfo.setIpAddress(ipAddress);
                             redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
                             redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
-                            redirectUrlInfo.setAttributeSharingScope(attributeSharingScopes);
+                            redirectUrlInfo.setAttributeSharingScope(Boolean.parseBoolean(attShareDetails.get
+                                    (AuthProxyConstants.ATTR_SHARE_SCOPE)));
+                            redirectUrlInfo.setTrustedStatus(attShareDetails.get(AuthProxyConstants.TRUSTED_STATUS));
                             redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
 
                             DataPublisherUtil.updateAndPublishUserStatus(
@@ -788,6 +777,7 @@ public class Endpoints {
         boolean isShowTnc = redirectUrlInfo.isShowTnc();
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
         ScopeParam.heFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
+        String spType = redirectUrlInfo.getTrustedStatus();
 
         String transactionId = redirectUrlInfo.getTransactionId();
         if (authorizeUrl != null) {
@@ -796,7 +786,7 @@ public class Endpoints {
                     AuthProxyConstants.SHOW_TNC + "=" + isShowTnc + "&" + AuthProxyConstants.HEADER_MISMATCH_RESULT +
                     "=" + headerMismatchResult + "&" + AuthProxyConstants.HE_FAILURE_RESULT +
                     "=" + heFailureResult + "&" + AuthProxyConstants.ATTR_SHARE_SCOPE +
-                    "=" + isAttrScope;
+                    "=" + isAttrScope + "&" + AuthProxyConstants.TRUSTED_STATUS + "=" + spType;
 
             if (msisdnHeader != null && StringUtils.isNotEmpty(msisdnHeader)) {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.MSISDN_HEADER + "=" + msisdnHeader;
@@ -897,13 +887,13 @@ public class Endpoints {
      */
     private List<String> getMandatoryScopeWithRequest(String scopeName) {
         ScopeDetailsConfig.Scope scopeValue = null;
-        List<String> requestValue;
-
+        List<String> requestValue = null;
+/*
         if (scopeMap != null && !scopeMap.isEmpty()) {
             scopeValue = scopeMap.get(scopeName);
         }
 
-        requestValue = scopeValue.getMandatoryValues();
+        requestValue = scopeValue.getMandatoryValues();*/
         return requestValue;
     }
 
@@ -922,6 +912,21 @@ public class Endpoints {
                 isAllParamsAvail = false;
         }
         return isAllParamsAvail;
+    }
+
+    private Map<String, String> validateAttributeShareScopes(String scopeName, String operatorName, String clientId,
+                                                             String loginhint_msis, String msisdn) throws
+            AuthenticationFailedException {
+        Map<String, String> attShareDetails;
+
+        try {
+            attShareDetails = AttributeShare.validateAttShareScopes(scopeName, operatorName, clientId,
+                    loginhint_msis, msisdn);
+        } catch (DBUtilException e) {
+            throw new AuthenticationFailedException(e.getMessage(), e);
+        }
+
+        return attShareDetails;
     }
 }
 

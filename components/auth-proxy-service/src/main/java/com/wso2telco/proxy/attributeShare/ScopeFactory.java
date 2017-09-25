@@ -1,15 +1,40 @@
 package com.wso2telco.proxy.attributeShare;
 
-/**
- * Created by aushani on 8/31/17.
- */
+import com.wso2telco.proxy.util.AuthProxyEnum;
+
 public class ScopeFactory {
 
-    public static AttrubteSharable getAttribAttrubteSharable() {
+    static ProvisionScope provisionScope;
+    static VerificationScope variVerificationScope;
+    private ScopeFactory(){}
 
-        AttrubteSharable attrubteSharable = null;
+    public static AttrubteSharable getAttribAttrubteSharable(String scopeType){
 
-        return attrubteSharable;
+        AbstractAttributeShare attributeShareScope = null;
+
+        AuthProxyEnum.SCOPETYPE scopetype = AuthProxyEnum.SCOPETYPE.valueOf(scopeType);
+
+        if (scopetype != null) {
+            switch (scopetype) {
+                case ATT_VERIFICATION:
+                    if (variVerificationScope == null) {
+                        variVerificationScope = new VerificationScope();
+                    }
+                    attributeShareScope = variVerificationScope;
+                    break;
+                case ATT_SHARE:
+                    if (provisionScope == null) {
+                        provisionScope = new ProvisionScope();
+                    }
+                    attributeShareScope = provisionScope;
+                    break;
+                default:
+                    break;
+            }
+
+        }
+
+        return attributeShareScope;
 
     }
 }
