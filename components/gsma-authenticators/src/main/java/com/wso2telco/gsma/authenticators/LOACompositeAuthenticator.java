@@ -133,6 +133,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         boolean isShowTnc = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
         boolean isAttrScope = Boolean.parseBoolean(request.getParameter(Constants.IS_ATTRIBUTE_SHARING_SCOPE));
         String telcoScope = request.getParameter(Constants.TELCO_SCOPE);
+        String trustedStatus = request.getParameter(Constants.TRUSTED_STATUS);
 
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = ScopeParam.msisdnMismatchResultTypes.valueOf(
                 request.getParameter(Constants.HEADER_MISMATCH_RESULT));
@@ -153,6 +154,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE, isAttrScope);
         context.setProperty(Constants.TELCO_SCOPE,telcoScope);
         context.setProperty(Constants.IS_CONSENT,Constants.NO);
+        context.setProperty(Constants.TRUSTED_STATUS,trustedStatus);
 
         // set prompt variable default to false
         Boolean isFrorceOffnetDueToPromptParameter = false;

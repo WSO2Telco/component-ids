@@ -161,7 +161,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             if(isattribute){
                 String operator = context.getProperty(Constants.OPERATOR).toString();;
                 String clientId = context.getProperty(Constants.CLIENT_ID).toString();
-                Map<String, List<String>> attributeset = AttributeShareFactory.getAttributeSharable(operator, clientId).getAttributeMap(context);
+                Map<String, List<String>> attributeset = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants.TRUSTED_STATUS).toString()).getAttributeMap(context);
                 if(!attributeset.get("explicitScopes").isEmpty()){
                     expliciteScope = true;
                     displayScopes = Arrays.toString(attributeset.get("explicitScopes").toArray());
