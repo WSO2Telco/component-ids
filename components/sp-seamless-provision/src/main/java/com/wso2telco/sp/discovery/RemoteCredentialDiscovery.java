@@ -56,7 +56,7 @@ public class RemoteCredentialDiscovery extends RemoteDiscovery {
     public Map<String, String> buildRequestProperties(String encodedBasicAuthCode) {
         log.info("CR-> Building request properties.");
         Map<String, String> requestProperties = new HashMap<String, String>();
-        /*requestProperties.put(ACCEPT, CONTENT_TYPE_HEADER_VAL_TYPE_CR);*/
+        requestProperties.put(ACCEPT, CONTENT_TYPE_HEADER_VAL_TYPE_CR);
         requestProperties.put(AUTHORIZATION_HEADER, BASIC + SPACE + encodedBasicAuthCode);
         return requestProperties;
     }
