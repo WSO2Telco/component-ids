@@ -195,33 +195,17 @@
                            </a>
                        </c:when> 
                        <c:otherwise>
-                           <a id="approve-btn" class="btn btn--full btn--white btn--fill btn--large btn--color" href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=ok">
+                           <a id="approve-btn" class="btn btn--full btn--white btn--fill btn--large btn--color" href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=RegConsent">
                               Approve
                            </a>
                        </c:otherwise>
                     </c:choose>
                 </div>
                 <div class="grid__item one-half">
-                    <a id="deny-btn" class="btn btn-danger btn--full btn--large" href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=deny">
+                    <a id="deny-btn" class="btn btn-danger btn--full btn--large" href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=RegRejected">
                         Deny
                     </a>
                  </div>
-                 <c:if test="${param.skipConsent=='false'}">
-                    <div class="grid__item one-whole">
-                       <c:choose>
-                       <c:when test="${param.registering=='true'}">
-                          <a onclick="TCBoxValidation('<%=request.getParameter("sessionDataKey")%>','all')" id="approveall-btn" class="btn btn-normal btn--full btn--large">
-                              Approve Always
-                           </a>
-                       </c:when> 
-                       <c:otherwise>
-                           <a id="approveall-btn" class="btn btn-normal btn--full btn--large" href="/commonauth/?sessionDataKey=<%=request.getParameter("sessionDataKey")%>&action=all">
-                              Approve Always
-                           </a>
-                       </c:otherwise>
-                    </c:choose>
-                   </div> 
-               </c:if>
             </div>
         </form>
     </main>
