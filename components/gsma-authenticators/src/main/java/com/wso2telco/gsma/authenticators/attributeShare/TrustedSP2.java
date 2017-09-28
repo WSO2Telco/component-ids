@@ -30,6 +30,8 @@ public class TrustedSP2 extends AbstractAttributeShare {
         String displayScopes = "";
         String isDisplayScope = "false";
         String isTNCForNewUser ="false";
+        String authenticationFlowStatus="false";
+
 
         Map<String, List<String>> attributeset = getAttributeMap(context);
         Map<String,String> attributeShareDetails = new HashMap();
@@ -40,8 +42,10 @@ public class TrustedSP2 extends AbstractAttributeShare {
             isTNCForNewUser = "false";
             displayScopes = Arrays.toString(attributeset.get(Constants.EXPLICIT_SCOPES).toArray());
         }
+
+        context.setProperty(Constants.IS_CONSENT,Constants.YES);
         attributeShareDetails.put(Constants.IS_DISPLAYSCOPE,isDisplayScope);
-        attributeShareDetails.put(Constants.IS_TNC_FORNEWUSE,isTNCForNewUser);
+        attributeShareDetails.put("authenticationFlowStatus",authenticationFlowStatus);
         attributeShareDetails.put(Constants.DISPLAY_SCOPES,displayScopes);
 
         return attributeShareDetails;

@@ -1,5 +1,6 @@
 package com.wso2telco.gsma.authenticators.attributeShare;
 
+import com.wso2telco.gsma.authenticators.Constants;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import java.util.*;
@@ -32,12 +33,15 @@ public class TrustedSP extends AbstractAttributeShare {
         String displayScopes = "";
         String isDisplayScope = "false";
         String isTNCForNewUser = "false";
+        String authenticationFlowStatus="true";
 
         Map<String, String> attributeShareDetails = new HashMap();
 
+        context.setProperty(Constants.IS_CONSENT,Constants.YES);
+
         attributeShareDetails.put("isDisplayScope", isDisplayScope);
-        attributeShareDetails.put("isTNCForNewUser", isTNCForNewUser);
         attributeShareDetails.put("displayScopes", displayScopes);
+        attributeShareDetails.put("authenticationFlowStatus",authenticationFlowStatus);
 
         return attributeShareDetails;
     }
