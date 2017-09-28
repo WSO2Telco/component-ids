@@ -21,23 +21,21 @@ public class NormalSP extends AbstractAttributeShare {
     public Map<String, String> getAttributeShareDetails(AuthenticationContext context) throws Exception {
         String displayScopes = "";
         String isDisplayScope = "false";
-        String isTNCForNewUser ="false";
+        String authenticationFlowStatus="false";
 
         Map<String, List<String>> attributeset = getAttributeMap(context);
         Map<String,String> attributeShareDetails = new HashMap();
 
 
         if(!attributeset.get("explicitScopes").isEmpty()){
-
-            if(context.getProperty(Constants.IS_REGISTERING) !=null && (boolean)context.getProperty(Constants.IS_REGISTERING)){
-                isTNCForNewUser = "true";
-            }
             isDisplayScope = "true";
             displayScopes = Arrays.toString(attributeset.get("explicitScopes").toArray());
         }
+
+        context.setProperty(Constants.IS_CONSENT,Constants.YES);
         attributeShareDetails.put("isDisplayScope",isDisplayScope);
-        attributeShareDetails.put("isTNCForNewUser",isTNCForNewUser);
         attributeShareDetails.put("displayScopes",displayScopes);
+        attributeShareDetails.put("authenticationFlowStatus",authenticationFlowStatus);
 
         return attributeShareDetails;
     }
