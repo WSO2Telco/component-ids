@@ -894,7 +894,7 @@ public class Endpoints {
 
       try {
           attShareDetails = AttributeShare.validateAttShareScopes(scopeName,operatorName,clientId,loginhint_msis,msisdn);
-      } catch (DBUtilException e){
+      } catch (AuthenticationFailedException e){
           throw new AuthenticationFailedException(e.getMessage(),e);
       }
 
