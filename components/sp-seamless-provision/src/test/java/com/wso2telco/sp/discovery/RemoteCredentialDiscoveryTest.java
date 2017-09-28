@@ -92,8 +92,12 @@ public class RemoteCredentialDiscoveryTest extends TestCase {
     public String buildEndPointUrl(DiscoveryServiceConfig discoveryServiceConfig,
             DiscoveryServiceDto discoveryServiceDto) {
         String endPointUrl = discoveryServiceConfig.getCrValidateDiscoveryConfig().getServiceUrl() + QES_OPERATOR
-                + CLIENT_ID + EQA_OPERATOR + discoveryServiceDto.getClientId() + AMP_OPERATOR + CLIENT_SECRET
-                + EQA_OPERATOR + discoveryServiceDto.getClientSecret();
+                + CLIENT_ID + EQA_OPERATOR + discoveryServiceDto.getClientId();
+        if (discoveryServiceDto != null && discoveryServiceDto.getClientSecret() != null
+                && !discoveryServiceDto.getClientSecret().isEmpty()) {
+            endPointUrl = endPointUrl + AMP_OPERATOR + CLIENT_SECRET + EQA_OPERATOR
+                    + discoveryServiceDto.getClientSecret();
+        }
         return endPointUrl;
     }
 
