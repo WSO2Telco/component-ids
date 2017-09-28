@@ -59,7 +59,7 @@ public abstract class AbstractAttributeShare implements AttrubteSharable {
 
     private void checkMSISDNAvailability(String loginhintMsisdn, String headerMsisdn, String trustedStatus) throws AuthenticationFailedException{
 
-       if(loginhintMsisdn ==null && headerMsisdn==null){
+       if(loginhintMsisdn.isEmpty() && headerMsisdn.isEmpty()){
            throw new AuthenticationFailedException("Msisdn not available for " + trustedStatus +"");
        }
 
