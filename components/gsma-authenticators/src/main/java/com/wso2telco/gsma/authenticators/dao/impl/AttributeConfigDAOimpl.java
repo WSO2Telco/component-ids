@@ -37,6 +37,9 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
      */
     private static volatile DataSource mConnectDatasource = null;
     private static final Log log = LogFactory.getLog(AttributeConfigDAOimpl.class);
+    private static final String SELECT = "SELECT";
+    private static final String FROM = "FROM";
+    private static final String ERR_MSG = "Error occurred while retrieving consent details for client_id : ";
 
     private static void initializeConnectDatasource() throws NamingException {
         if (mConnectDatasource != null) {
@@ -54,17 +57,6 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
         }
     }
 
-    /**
-     * Handle exception.
-     *
-     * @param msg the msg
-     * @param t   the t
-     * @throws AuthenticatorException the authenticator exception
-     */
-    private static void handleException(String msg, Throwable t) throws AuthenticatorException {
-        log.error(msg, t);
-        throw new AuthenticatorException(msg, t);
-    }
 
     /**
      * Gets the connect db connection.
@@ -97,9 +89,9 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
         }
 
         StringBuilder sqlBuilder = new StringBuilder();
-        sqlBuilder.append("SELECT ");
+        sqlBuilder.append(SELECT);
         sqlBuilder.append("con.scope_id,con.exp_period,con.operator_id ");
-        sqlBuilder.append("FROM ");
+        sqlBuilder.append(FROM);
         sqlBuilder.append("consent con");
         sqlBuilder.append(" where ");
         sqlBuilder.append(" con.operator_id=? ");
@@ -127,7 +119,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
                 spConsentList.add(spConsent);
             }
         } catch (SQLException e) {
-            throw new SQLException("Error occurred while retrieving consent details for client_id : ",
+            throw new SQLException(ERR_MSG,
                     e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
@@ -150,9 +142,9 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
         }
 
         StringBuilder sqlBuilder = new StringBuilder();
-        sqlBuilder.append("SELECT ");
+        sqlBuilder.append(SELECT);
         sqlBuilder.append("scp.scope,con.consent_type,vt.validity_type ");
-        sqlBuilder.append("FROM ");
+        sqlBuilder.append(FROM);
         sqlBuilder.append("scope_parameter scp ");
         sqlBuilder.append("INNER JOIN consent_type con ON scp.consent_type=con.consent_typeID ");
         sqlBuilder.append("INNER JOIN consent_validity_type vt ON scp.consent_validity_type=vt.validity_id ");
@@ -179,7 +171,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
 
 
         } catch (SQLException e) {
-            throw new SQLException("Error occurred while retrieving consent details for client_id : ",
+            throw new SQLException(ERR_MSG,
                     e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
@@ -198,9 +190,9 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
         UserConsentDetails userConsent=null;
 
         StringBuilder sqlBuilder = new StringBuilder();
-        sqlBuilder.append("SELECT ");
+        sqlBuilder.append(SELECT);
         sqlBuilder.append("usercon.consent_status as revokeStatus ,usercon.consent_expire_time as consent_expire_time ");
-        sqlBuilder.append("FROM ");
+        sqlBuilder.append(FROM);
         sqlBuilder.append(TableName.CONSENT_HISTORY + " usercon ");
         sqlBuilder.append("INNER JOIN scope_parameter scp ON scp.param_id=usercon.scope_id");
         sqlBuilder.append(" where");
@@ -229,7 +221,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
 
             }
         } catch (SQLException e) {
-            throw new SQLException("Error occurred while retrieving consent details for client_id : ",
+            throw new SQLException(ERR_MSG,
                     e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
@@ -272,7 +264,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
             preparedStatement.executeBatch();
 
         } catch (SQLException e) {
-            throw new SQLException("Error occurred while retrieving consent details for client_id : ",
+            throw new SQLException(ERR_MSG,
                     e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
@@ -287,9 +279,9 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
         ResultSet resultSet = null;
 
         StringBuilder sqlBuilder = new StringBuilder();
-        sqlBuilder.append("SELECT ");
+        sqlBuilder.append(SELECT);
         sqlBuilder.append("sp_config.config_value ");
-        sqlBuilder.append("FROM ");
+        sqlBuilder.append(FROM);
         sqlBuilder.append(TableName.SP_CONFIGURATION + " sp_config");
         sqlBuilder.append(" where");
         sqlBuilder.append(" sp_config.client_id=? ");
@@ -308,7 +300,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
                 return resultSet.getString("config_value");
             }
         } catch (SQLException e) {
-            throw new SQLException("Error occurred while retrieving consent details for client_id : ",
+            throw new SQLException(ERR_MSG,
                     e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);

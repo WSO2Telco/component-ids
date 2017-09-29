@@ -1,9 +1,11 @@
 package com.wso2telco.gsma.authenticators.attributeShare;
 
 
-import com.wso2telco.gsma.authenticators.model.SPConsent;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
+import javax.naming.NamingException;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
@@ -12,9 +14,22 @@ import java.util.Map;
  */
 public interface AttributeSharable {
 
-     Map<String,List<String>> getAttributeMap(AuthenticationContext context) throws Exception;
+    /**
+     *
+     * @param context
+     * @throws SQLException
+     * @throws NamingException
+     */
+     Map<String,List<String>> getAttributeMap(AuthenticationContext context) throws SQLException, NamingException;
 
-    public Map<String,String> getAttributeShareDetails(AuthenticationContext context) throws Exception;
+    /**
+     *
+     * @param context
+     * @throws SQLException
+     * @throws NamingException
+     * @throws AuthenticationFailedException
+     */
+    public Map<String,String> getAttributeShareDetails(AuthenticationContext context) throws SQLException, NamingException,AuthenticationFailedException;
 
 
 

@@ -439,7 +439,7 @@ public final class Constants {
 
     public static final String TELCO_SCOPE = "telco_scope";
 
-    public static final String IS_CONSENT = "isConsented";
+    public static final String IS_CONSENTED = "isConsented";
 
     public static final String IS_STATUS_TO_CHANGE = "status_claim_update";
 
@@ -457,9 +457,11 @@ public final class Constants {
 
 
     public static final String IS_DISPLAYSCOPE = "isDisplayScope";
-    public static final String IS_TNC_FORNEWUSE ="isTNCForNewUser";
     public static final String DISPLAY_SCOPES = "displayScopes";
     public static final String TRUSTED_STATUS = "trustedstatus";
+    public static final String IS_CONSENT = "isConsent";
+    public static final String VALIDITY_TYPE = "validityType";
+    public static final String IS_AUNTHENTICATION_CONTINUE = "authenticationFlowStatus";
 
 
 

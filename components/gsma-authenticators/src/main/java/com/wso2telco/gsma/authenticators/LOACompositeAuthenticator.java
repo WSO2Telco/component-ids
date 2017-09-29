@@ -165,7 +165,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.CLIENT_ID, serviceProvider);
         context.setProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE, isAttrScope);
         context.setProperty(Constants.TELCO_SCOPE,telcoScope);
-        context.setProperty(Constants.IS_CONSENT,Constants.NO);
+        context.setProperty(Constants.IS_CONSENTED,Constants.NO);
         context.setProperty(Constants.TRUSTED_STATUS,trustedStatus);
 
         // set prompt variable default to false
