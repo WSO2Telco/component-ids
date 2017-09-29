@@ -65,6 +65,7 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
                 MobileConnectConfig.SMSConfig smsConfig = connectConfig.getSmsConfig();
                 int otpLength = smsConfig.getOTPLength();
                 String otp = Utility.genarateOTP(otpLength);
+                //String otp =smsMessage.getMsisdn().substring(smsMessage.getMsisdn().length()-smsConfig.getOTPLength());
                 String hashedotp = Utility.generateSHA256Hash(otp);
                 String sessionDataKey = context.getContextIdentifier();
                 DBUtils.insertOTPForSMS(sessionDataKey, hashedotp, UserResponse.PENDING.name());
@@ -81,8 +82,7 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
                 BasicFutureCallback futureCallback = userStatus != null ? new SMSFutureCallback(
                         userStatus.cloneUserStatus(), "SMSOTP") : new SMSFutureCallback();
                 smsMessage.setFutureCallback(futureCallback);
-                String smsResponse = new SendSMS().sendSMS(smsMessage.getMsisdn(), smsMessage.getMessageText(),
-                        smsMessage.getOperator(), smsMessage.getFutureCallback());
+                String smsResponse = new SendSMS().sendSMS(smsMessage.getMsisdn(), smsMessage.getMessageText(),smsMessage.getOperator(), smsMessage.getFutureCallback());
                 response.sendRedirect(smsMessage.getRedirectURL());
             } catch (Exception e) {
                 DataPublisherUtil.updateAndPublishUserStatus(userStatus,
