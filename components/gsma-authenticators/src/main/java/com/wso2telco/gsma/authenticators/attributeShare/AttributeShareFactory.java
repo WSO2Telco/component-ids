@@ -32,6 +32,8 @@ public class AttributeShareFactory {
     static NormalSP normalSP;
     private static Log log = LogFactory.getLog(AttributeShareFactory.class);
 
+    private AttributeShareFactory(){}
+
     public static AttributeSharable getAttributeSharable(String trustedStatus) {
 
         AttributeSharable attributeSharable = null;
@@ -55,7 +57,7 @@ public class AttributeShareFactory {
                 attributeSharable = normalSP;
 
             }
-
+        log.debug("SP type" + attributeSharable);
         return attributeSharable;
     }
 }
