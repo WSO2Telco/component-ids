@@ -169,7 +169,7 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
                 + "&acr_values=" + acrValue;
 
         federatedMobileConnectCallUrl = paramMap.containsKey(LOGIN_HINT) ? federatedMobileConnectCallUrl
-                + "&login_hint=" + paramMap.containsKey(LOGIN_HINT) : federatedMobileConnectCallUrl;
+                + "&login_hint=" + paramMap.get(LOGIN_HINT) : federatedMobileConnectCallUrl;
 
         try {
             log.debug(" ~ federatedMobileConnectCallUrl : " + federatedMobileConnectCallUrl);
