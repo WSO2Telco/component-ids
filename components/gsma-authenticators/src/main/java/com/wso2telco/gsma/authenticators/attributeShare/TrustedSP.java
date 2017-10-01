@@ -50,9 +50,9 @@ public class TrustedSP extends AbstractAttributeShare {
 
         context.setProperty(Constants.IS_CONSENTED,Constants.YES);
 
-        attributeShareDetails.put("isDisplayScope", isDisplayScope);
-        attributeShareDetails.put("displayScopes", displayScopes);
-        attributeShareDetails.put("authenticationFlowStatus",authenticationFlowStatus);
+        attributeShareDetails.put(Constants.IS_DISPLAYSCOPE, isDisplayScope);
+        attributeShareDetails.put(Constants.DISPLAY_SCOPES, displayScopes);
+        attributeShareDetails.put(Constants.IS_AUNTHENTICATION_CONTINUE,authenticationFlowStatus);
 
         try {
             if(isRegistering){
