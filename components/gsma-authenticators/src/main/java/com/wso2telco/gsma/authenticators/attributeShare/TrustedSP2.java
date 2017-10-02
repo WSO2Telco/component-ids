@@ -41,6 +41,8 @@ public class TrustedSP2 extends AbstractAttributeShare {
         String msisdn = context.getProperty(Constants.MSISDN).toString();
         String operator = context.getProperty(Constants.OPERATOR).toString();
         boolean isAttributeScope = (Boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+        String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
+        String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
 
 
         if(!attributeset.get(Constants.EXPLICIT_SCOPES).isEmpty()){
@@ -53,7 +55,7 @@ public class TrustedSP2 extends AbstractAttributeShare {
             if(isRegistering){
                 int requestedLoa = Integer.parseInt(context.getProperty(Constants.ACR).toString());
                 if(requestedLoa == 2){
-                    new UserProfileManager().createUserProfileLoa2(msisdn, operator,isAttributeScope);
+                    new UserProfileManager().createUserProfileLoa2(msisdn, operator,isAttributeScope,spType,attrShareType);
                 }
                 AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN).toString());
                 context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
