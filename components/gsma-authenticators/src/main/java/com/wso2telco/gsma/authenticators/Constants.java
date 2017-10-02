@@ -453,6 +453,8 @@ public final class Constants {
     public static final String IS_CONSENT = "isConsent";
     public static final String VALIDITY_TYPE = "validityType";
     public static final String IS_AUNTHENTICATION_CONTINUE = "authenticationFlowStatus";
+    public static final String IS_TNC="isTNCForNewUser";
+    public static final String AUTHENTICATED_USER ="AuthenticatedUser";
 
 
 
