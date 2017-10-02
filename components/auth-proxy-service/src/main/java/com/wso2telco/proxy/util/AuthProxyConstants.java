@@ -66,5 +66,6 @@ public class AuthProxyConstants {
     public static final String RESPONSE_TYPE =  "response_type";
     public static final String ATTR_SHARE_SCOPE = "isAttrScope";
     public static final String TRUSTED_STATUS = "trustedstatus";
+    public static final String ATTR_SHARE_SCOPE_TYPE = "attrShareType";
 
 }

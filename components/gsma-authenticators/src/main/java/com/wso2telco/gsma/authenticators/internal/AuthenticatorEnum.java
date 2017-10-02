@@ -28,6 +28,22 @@ public class AuthenticatorEnum {
         }
     }
 
+    public enum AttributeShareScopeTypes {
+
+        VERIFICATION_SCOPE("ATT_VERIFICATION"),
+        PROVISIONING_SCOPE("ATT_SHARE");
+
+        private final String attributeShareScopeTypes;
+
+        AttributeShareScopeTypes(String attributeShareScopeTypes) {
+            this.attributeShareScopeTypes = attributeShareScopeTypes;
+        }
+
+        public String getAttributeShareScopeTypes() {
+            return this.attributeShareScopeTypes;
+        }
+    }
+
     public enum ConsentType {
         IMPLICIT("implicit"),
         EXPLICIT("explicit"),
