@@ -67,11 +67,12 @@ public class AttributeShare {
         List<String> scopeList = new ArrayList(Arrays.asList(scopeName.split(" ")));
         String trustedStatus = null;
         boolean isAttributeShare = false;
+        String attrSharetype = null;
         Map<String,String> attShareScoprDetails = new HashMap<>();
         try {
             if(!scopeTypes.isEmpty()){
                 for (String scope : scopeList) {
-                    String attrSharetype = scopeTypes.get(scope);
+                    attrSharetype = scopeTypes.get(scope);
                     if (attrSharetype != null) {
                         isAttributeShare = true;
                         trustedStatus = ScopeFactory.getAttribAttrubteSharable(attrSharetype).attShareDetails(operatorName, clientId,loginhintMsisdn, msisdn);
@@ -86,6 +87,7 @@ public class AttributeShare {
         }
        attShareScoprDetails.put(AuthProxyConstants.ATTR_SHARE_SCOPE, Boolean.toString(isAttributeShare));
        attShareScoprDetails.put(AuthProxyConstants.TRUSTED_STATUS,trustedStatus);
+       attShareScoprDetails.put(AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE,attrSharetype);
 
        return  attShareScoprDetails;
 

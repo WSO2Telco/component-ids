@@ -327,6 +327,8 @@ public class Endpoints {
                     redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
                     redirectUrlInfo.setAttributeSharingScope(Boolean.parseBoolean(attShareDetails.get(AuthProxyConstants.ATTR_SHARE_SCOPE)));
                     redirectUrlInfo.setTrustedStatus(attShareDetails.get(AuthProxyConstants.TRUSTED_STATUS));
+                    redirectUrlInfo.setAttributeSharingScopeType(attShareDetails.get(AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE));
+
                     redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
 
                     DataPublisherUtil.updateAndPublishUserStatus(
@@ -753,6 +755,7 @@ public class Endpoints {
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
         ScopeParam.heFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
         String spType = redirectUrlInfo.getTrustedStatus();
+        String attrShareScopeType = redirectUrlInfo.getAttributeSharingScopeType();
 
         String transactionId = redirectUrlInfo.getTransactionId();
         if (authorizeUrl != null) {
@@ -761,7 +764,7 @@ public class Endpoints {
                     AuthProxyConstants.SHOW_TNC + "=" + isShowTnc + "&" + AuthProxyConstants.HEADER_MISMATCH_RESULT +
                     "=" + headerMismatchResult + "&" + AuthProxyConstants.HE_FAILURE_RESULT +
                     "=" + heFailureResult + "&" + AuthProxyConstants.ATTR_SHARE_SCOPE +
-                    "=" + isAttrScope+ "&" + AuthProxyConstants.TRUSTED_STATUS + "=" + spType ;
+                    "=" + isAttrScope+ "&" + AuthProxyConstants.TRUSTED_STATUS + "=" + spType +"&" + AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE + "=" + attrShareScopeType ;
 
             if (msisdnHeader != null && StringUtils.isNotEmpty(msisdnHeader)) {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.MSISDN_HEADER + "=" + msisdnHeader;

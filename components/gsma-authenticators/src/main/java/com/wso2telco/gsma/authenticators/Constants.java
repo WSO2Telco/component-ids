@@ -455,8 +455,6 @@ public final class Constants {
     public static final String IS_AUNTHENTICATION_CONTINUE = "authenticationFlowStatus";
     public static final String IS_TNC="isTNCForNewUser";
     public static final String AUTHENTICATED_USER ="AuthenticatedUser";
-
-
-
+    public static final String ATTRSHARE_SCOPE_TYPE = "attrShareType";
 
 }

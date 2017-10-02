@@ -36,6 +36,7 @@ public class RedirectUrlInfo {
     private String prompt;
     private boolean attributeSharingScope;
     private String trustedStatus;
+    private String attributeSharingScopeType;
 
     public void setPrompt(String prompt) { this.prompt = prompt; }
 
@@ -151,5 +152,13 @@ public class RedirectUrlInfo {
 
     public void setTrustedStatus(String trustedStatus) {
         this.trustedStatus = trustedStatus;
+    }
+
+    public String getAttributeSharingScopeType() {
+        return attributeSharingScopeType;
+    }
+
+    public void setAttributeSharingScopeType(String attributeSharingScopeType) {
+        this.attributeSharingScopeType = attributeSharingScopeType;
     }
 }

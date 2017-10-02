@@ -238,6 +238,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 String operator = (String) context.getProperty(Constants.OPERATOR);
                 boolean isProfileUpgrade = Util.isProfileUpgrade(msisdn, requestedLoa, isUserExists);
                 context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade);
+                Boolean isAttributeShare = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+                String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
+                String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
 
                 if (!isUserExists && isShowTnC) {
                     retryAuthenticatorForConsent(context);
@@ -245,7 +248,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
                 if ((requestedLoa == ACR3 ) && (isConvertToActive)) {
                     new UserProfileManager().createUserProfileLoa3(msisdn, operator, null, null,
-                            null, (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE));
+                            null, isAttributeShare,spType,attrShareType);
                 }
             } else {
                 msisdn = context.getProperty(Constants.MSISDN).toString();
@@ -279,6 +282,10 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     boolean isConvertToActive = (boolean) context.getProperty(Constants.IS_STATUS_TO_CHANGE);
                     int requestedLoa = (int) context.getProperty(Constants.ACR);
                     String operator = (String) context.getProperty(Constants.OPERATOR);
+                    Boolean isAttrShare = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+                    String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
+                    String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
+
 
                     if (isRegistering && isShowTnC) {
                         retryAuthenticatorForConsent(context);
@@ -286,7 +293,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
                     if ((requestedLoa == Integer.getInteger(Constants.LOA3)) && (isConvertToActive)) {
                         new UserProfileManager().createUserProfileLoa3(msisdn, operator, null, null,
-                                null, (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE));
+                                null, isAttrShare,spType,attrShareType);
                     }
                 }
             }

@@ -46,6 +46,9 @@ public class TrustedSP extends AbstractAttributeShare {
         String operator = context.getProperty(Constants.OPERATOR).toString();
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
         boolean isAttributeScope = (Boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+        String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
+        String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
+
         Map<String, String> attributeShareDetails = new HashMap();
 
         context.setProperty(Constants.IS_CONSENTED,Constants.YES);
@@ -58,7 +61,7 @@ public class TrustedSP extends AbstractAttributeShare {
             if(isRegistering){
                 int requestedLoa = Integer.parseInt(context.getProperty(Constants.ACR).toString());
                 if(requestedLoa == 2){
-                    new UserProfileManager().createUserProfileLoa2(msisdn, operator,isAttributeScope);
+                    new UserProfileManager().createUserProfileLoa2(msisdn, operator,isAttributeScope,spType,attrShareType);
                 }
             }
         } catch (RemoteException | UserRegistrationAdminServiceIdentityException e) {
