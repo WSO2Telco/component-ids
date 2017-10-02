@@ -67,6 +67,7 @@ public class TrustedSP extends AbstractAttributeShare {
 
         AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN).toString());
         context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+        context.setProperty(Constants.AUTHENTICATED_USER,"true");
         return attributeShareDetails;
     }
 

@@ -32,6 +32,7 @@ public class TrustedSP2 extends AbstractAttributeShare {
 
         Map<String, List<String>> attributeset = getAttributeMap(context);
         Map<String,String> attributeShareDetails = new HashMap();
+        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
 
 
         if(!attributeset.get(Constants.EXPLICIT_SCOPES).isEmpty()){
