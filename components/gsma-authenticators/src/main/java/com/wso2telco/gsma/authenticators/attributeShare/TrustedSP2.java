@@ -1,11 +1,6 @@
 package com.wso2telco.gsma.authenticators.attributeShare;
 
 import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.authenticators.dao.AttributeConfigDAO;
-import com.wso2telco.gsma.authenticators.dao.impl.AttributeConfigDAOimpl;
-import com.wso2telco.gsma.authenticators.model.SPConsent;
-import com.wso2telco.gsma.authenticators.model.UserConsentHistory;
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.UserProfileManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -16,8 +11,6 @@ import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServ
 import javax.naming.NamingException;
 import java.rmi.RemoteException;
 import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 
@@ -57,16 +50,13 @@ public class TrustedSP2 extends AbstractAttributeShare {
                 if(requestedLoa == 2){
                     new UserProfileManager().createUserProfileLoa2(msisdn, operator,isAttributeScope,spType,attrShareType);
                 }
-                AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN).toString());
-                context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
-                context.setProperty(Constants.AUTHENTICATED_USER,"true");
+                attributeShareDetails.put(Constants.IS_AUNTHENTICATION_CONTINUE,authenticationFlowStatus);
             }
         } catch (RemoteException | UserRegistrationAdminServiceIdentityException e) {
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
         context.setProperty(Constants.IS_CONSENTED,Constants.YES);
         attributeShareDetails.put(Constants.IS_DISPLAYSCOPE,isDisplayScope);
-        attributeShareDetails.put(Constants.IS_AUNTHENTICATION_CONTINUE,authenticationFlowStatus);
         attributeShareDetails.put(Constants.DISPLAY_SCOPES,displayScopes);
         attributeShareDetails.put(Constants.IS_TNC,isTNCForNewUser);
 
