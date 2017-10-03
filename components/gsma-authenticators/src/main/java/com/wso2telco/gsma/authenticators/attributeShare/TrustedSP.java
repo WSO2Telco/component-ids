@@ -1,7 +1,6 @@
 package com.wso2telco.gsma.authenticators.attributeShare;
 
 import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.UserProfileManager;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
@@ -68,9 +67,6 @@ public class TrustedSP extends AbstractAttributeShare {
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
 
-        AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN).toString());
-        context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
-        context.setProperty(Constants.AUTHENTICATED_USER,"true");
         return attributeShareDetails;
     }
 
