@@ -155,48 +155,38 @@ public class MIFEOpenIDTokenBuilder implements
      * The acr app id.
      */
     private String acrAppID;
-
-    private static final String TOKEN_CONTENT_TYPE = "Content-Type";
-    private static final String TOKEN_CONTENT_TYPE_VALUE = "application/x-www-form-urlencoded";
+    
+    private static final String SESSIONID = "sessionId";
     
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.openidconnect.IDTokenBuilder#buildIDToken(org.wso2.carbon.identity.oauth2.token
      * .OAuthTokenReqMessageContext, org.wso2.carbon.identity.oauth2.dto.OAuth2AccessTokenRespDTO)
      */
-    public String buildIDToken(OAuthTokenReqMessageContext request,
-                               OAuth2AccessTokenRespDTO tokenRespDTO) throws IdentityOAuth2Exception {
+    public String buildIDToken(OAuthTokenReqMessageContext request, OAuth2AccessTokenRespDTO tokenRespDTO)
+            throws IdentityOAuth2Exception {
         if (log.isDebugEnabled()) {
             log.debug("MSISDN : " + request.getAuthorizedUser().getUserName());
             log.debug("Generated access token : [" + tokenRespDTO.getAccessToken() + "]  for Authorization Code :  "
                     + request.getProperty("AuthorizationCode"));
         }
-                
+
+        String responseIDToken;
+
         if (mobileConnectConfig.isFederatedDeployment() && tokenRespDTO.getIDToken() != null) {
-
             log.info("Federated Identity ID_Token Info Flow initiated for " + tokenRespDTO.getAccessToken());
+            responseIDToken = federatedIDTokenFlow(request, tokenRespDTO);
+        } else
+            responseIDToken = regularIDTokenFlow(request, tokenRespDTO);
+        return responseIDToken;
+    }
 
-            try {
-
-                return initiateFederatedIDTokenProcess(request, tokenRespDTO);
-
-            } catch (IDTokenException e) {
-                log.error("Error occurred while generating the Federeated IDToken" + e.getMessage());
-                throw new IdentityOAuth2Exception("Error occurred while generating the Federeated IDToken", e);
-            } catch (ParseException e) {
-                log.error("Error while parsing the generated Federated IDToken" + e.getMessage());
-                throw new IdentityOAuth2Exception("Error while parsing the generated Federeated IDToken", e);
-            } catch (Exception e) {
-                log.error("Error while processing the federated IDToken" + e.getMessage());
-                throw new IdentityOAuth2Exception("Error while processing the Federeated IDToken", e);
-            }
-
-        }
-        
-        OAuthServerConfiguration config = OAuthServerConfiguration.getInstance();
+    private String regularIDTokenFlow(OAuthTokenReqMessageContext request, OAuth2AccessTokenRespDTO tokenRespDTO)
+            throws IdentityOAuth2Exception {
+     OAuthServerConfiguration config = OAuthServerConfiguration.getInstance();
         String issuer = config.getOpenIDConnectIDTokenIssuerIdentifier();
         int lifetime = Integer.parseInt(config.getOpenIDConnectIDTokenExpiration()) * 1000;
         int curTime = (int) Calendar.getInstance().getTimeInMillis();
-
+        String responseIDToken;
         //String msisdn = request.getAuthorizedUser().replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
         String msisdn = AuthenticationHealper.getUser(request).replaceAll("@.*", ""); //$NON-NLS-1$ //$NON-NLS-2$
 
@@ -310,7 +300,7 @@ public class MIFEOpenIDTokenBuilder implements
                 tokenMap.put("AccessToken", accessToken);
                 tokenMap.put("ClientId", request.getOauth2AccessTokenReqDTO().getClientId());
                 tokenMap.put("RefreshToken", tokenRespDTO.getRefreshToken());
-                tokenMap.put("sessionId", getValuesFromCache(request, "sessionId"));
+                tokenMap.put(SESSIONID, getValuesFromCache(request, SESSIONID));
                 tokenMap.put("State", getValuesFromCache(request, "state"));
                 tokenMap.put("TokenClaims", getClaimValues(request));
                 tokenMap.put("ContentType", "application/x-www-form-urlencoded");
@@ -328,9 +318,8 @@ public class MIFEOpenIDTokenBuilder implements
                 }
                 DataPublisherUtil.publishTokenEndpointData(tokenMap);
             }
-
-            return new PlainJWT((com.nimbusds.jwt.JWTClaimsSet) PlainJWT.parse(plainIDToken).getJWTClaimsSet())
-                    .serialize();
+            responseIDToken = new PlainJWT((com.nimbusds.jwt.JWTClaimsSet) PlainJWT.parse(plainIDToken).getJWTClaimsSet())
+            .serialize();            
 
         } catch (IDTokenException e) {
             throw new IdentityOAuth2Exception("Error occurred while generating the IDToken", e);
@@ -340,7 +329,27 @@ public class MIFEOpenIDTokenBuilder implements
         } catch (Exception e) {
             log.error("Error while parsing the IDToken", e);
             throw new IdentityOAuth2Exception("Error while parsing the IDToken", e);
+        }    
+        return responseIDToken;
+    }
+
+
+    private String federatedIDTokenFlow(OAuthTokenReqMessageContext request, OAuth2AccessTokenRespDTO tokenRespDTO)
+            throws IdentityOAuth2Exception {
+        String responseIDToken;
+        try {
+            responseIDToken = initiateFederatedIDTokenProcess(request, tokenRespDTO);
+        } catch (IDTokenException e) {
+            log.error("Error occurred while generating the Federeated IDToken" + e.getMessage());
+            throw new IdentityOAuth2Exception("Error occurred while generating the Federeated IDToken", e);
+        } catch (ParseException e) {
+            log.error("Error while parsing the generated Federated IDToken" + e.getMessage());
+            throw new IdentityOAuth2Exception("Error while parsing the generated Federeated IDToken", e);
+        } catch (Exception e) {
+            log.error("Error while processing the federated IDToken" + e.getMessage());
+            throw new IdentityOAuth2Exception("Error while processing the Federeated IDToken", e);
         }
+        return responseIDToken;
     }
 
 
@@ -458,14 +467,11 @@ public class MIFEOpenIDTokenBuilder implements
         }
 
         OAuthAppDO oAuthAppDO = appInfoCache.getValueFromCache(tokenReqDTO.getClientId());
-        if (oAuthAppDO != null) {
-            return oAuthAppDO;
-        } else {
-            //TODO CODE COMMENTED#
-            //oAuthAppDO = new OAuthAppDAO().getAppInformation(tokenReqDTO.getClientId());
+        if (oAuthAppDO == null)
             appInfoCache.addToCache(tokenReqDTO.getClientId(), oAuthAppDO);
-            return oAuthAppDO;
-        }
+
+        return oAuthAppDO;
+        
     }
 
 
@@ -852,8 +858,7 @@ public class MIFEOpenIDTokenBuilder implements
         String plainIDToken = builder.buildIDToken();
         if (mobileConnectConfig.getDataPublisher().isEnabled()) {
 
-            Map<String, String> tokenMap = new HashMap<String, String>();
-            tokenMap = prepareGeneralFederatedTokenObject(request, tokenRespDTO, tokenMap);
+            Map<String, String> tokenMap = prepareGeneralFederatedTokenObject(request, tokenRespDTO);
             tokenMap = prepareFederatedTokenObject(plainIDToken, jwtobj, tokenMap);
             if (DEBUG) {
                 for (Map.Entry<String, String> entry : tokenMap.entrySet()) {
@@ -868,13 +873,17 @@ public class MIFEOpenIDTokenBuilder implements
     }
 
     private Map<String, String> prepareGeneralFederatedTokenObject(OAuthTokenReqMessageContext request,
-            OAuth2AccessTokenRespDTO tokenRespDTO, Map<String, String> tokenMap) {
+            OAuth2AccessTokenRespDTO tokenRespDTO) throws IdentityOAuth2Exception {
+        Map<String, String> tokenMap = new HashMap<>();
         tokenMap.put("Timestamp", String.valueOf(new java.util.Date().getTime()));
         tokenMap.put("AuthenticatedUser", request.getAuthorizedUser().toString());
         tokenMap.put("AuthenticationCode", request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
         tokenMap.put("AccessToken", tokenRespDTO.getAccessToken());
         tokenMap.put("ClientId", request.getOauth2AccessTokenReqDTO().getClientId());
         tokenMap.put("RefreshToken", tokenRespDTO.getRefreshToken());
+        tokenMap.put(SESSIONID, getValuesFromCacheForFederatedIDP(request, SESSIONID));
+        tokenMap.put("State", getValuesFromCacheForFederatedIDP(request, "state"));
+        tokenMap.put("TokenClaims", getClaimValues(request));
         if (tokenRespDTO.getAccessToken() != null) {
             tokenMap.put("StatusCode", "200");
         } else {
@@ -883,16 +892,41 @@ public class MIFEOpenIDTokenBuilder implements
         return tokenMap;
     }
 
+    private String getValuesFromCacheForFederatedIDP(OAuthTokenReqMessageContext request, String key)
+            throws IdentityOAuth2Exception {
+
+        AuthorizationGrantCacheKey authorizationGrantCacheKey = new AuthorizationGrantCacheKey(request
+                .getOauth2AccessTokenReqDTO().getAuthorizationCode());
+        AuthorizationGrantCacheEntry authorizationGrantCacheEntry = AuthorizationGrantCache.getInstance()
+                .getValueFromCache(authorizationGrantCacheKey);
+
+        ClaimMapping acrKey = getValueFromCacheClaims(authorizationGrantCacheEntry, key);
+
+        if (acrKey == null)
+            throw new IdentityOAuth2Exception("Error occured while retrieving " + key + " from cache");
+
+        return authorizationGrantCacheEntry.getUserAttributes().get(acrKey);
+
+    }
+
+    private ClaimMapping getValueFromCacheClaims(AuthorizationGrantCacheEntry authorizationGrantCacheEntry, String key) {
+        Map<ClaimMapping, String> userAttributes = authorizationGrantCacheEntry.getUserAttributes();
+        ClaimMapping acrKey = null;
+        for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
+            ClaimMapping mapping = entry.getKey();
+            if (mapping.getLocalClaim() != null && mapping.getLocalClaim().getClaimUri().equals(key))
+                acrKey = mapping;
+        }
+        return acrKey;
+    }
+
     private Map<String, String> prepareFederatedTokenObject(String plainIDToken,
             org.codehaus.jettison.json.JSONObject jwtobj, Map<String, String> tokenMap)
             throws org.codehaus.jettison.json.JSONException {
 
         tokenMap.put("Nonce", jwtobj.get(IDToken.NONCE).toString());
         tokenMap.put("Amr", jwtobj.getJSONArray("amr").toString());
-        // tokenMap.put("sessionId", getValuesFromCache(request, "sessionId"));
-        // tokenMap.put("State", getValuesFromCache(request, "state"));
-        // tokenMap.put("TokenClaims", getClaimValues(request));
-        tokenMap.put(TOKEN_CONTENT_TYPE, TOKEN_CONTENT_TYPE_VALUE);
+        tokenMap.put("Content-Type", "application/x-www-form-urlencoded");
         tokenMap.put("ReturnedResult", plainIDToken);
 
         return tokenMap;
@@ -927,6 +961,26 @@ public class MIFEOpenIDTokenBuilder implements
         builder.setAuthTime(accessTokenIssuedTime);
 
         return builder;
+    }
+
+ public String getMSISDNbyPcr(String callbackUrl, String pcr) throws PCRException{
+        String msisdn = null;
+
+        try {
+            if (mobileConnectConfig.isPcrServiceEnabled()) {
+                log.info("Retreiving MSISDN by using PCR");
+                String sectorId = SectorUtil.getSectorIdFromUrl(callbackUrl);
+                PCRGeneratable pcrGeneratable = OpenIdTokenBuilderDataHolder.getInstance().getPcrGeneratable();
+
+                Returnable msisdnByPcr = pcrGeneratable.getMsisdnByPcr(sectorId,pcr);
+                msisdn = msisdnByPcr.getID();
+            }
+            log.info("MSISDN  : " + msisdn);
+        }  catch (PCRException e) {
+            log.error("Error", e);
+        }
+
+       return msisdn;
     }
 
 }

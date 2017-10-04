@@ -1216,10 +1216,12 @@ public class Endpoints {
         }
         String status;
         String userStatus = DatabaseUtils.getUSerStatus(sessionID);
+        DataPublisherUtil.UserState userState = DataPublisherUtil.UserState.SMS_URL_AUTH_FAIL;
         if (userStatus.equalsIgnoreCase("PENDING")) {
             DatabaseUtils.updateStatus(sessionID, "APPROVED");
             status = "APPROVED";
             responseString = " You are successfully authenticated via mobile-connect";
+            userState=DataPublisherUtil.UserState.SMS_URL_AUTH_SUCCESS;
         } else if (userStatus.equalsIgnoreCase("EXPIRED")) {
             status = "EXPIRED";
             responseString = " Your token is expired";
@@ -1232,6 +1234,10 @@ public class Endpoints {
                 + "\"text\":\"" + responseString + "\"" + "}";
 
         log.info("Sending sms confirmation response" + responseString);
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+        DataPublisherUtil.updateAndPublishUserStatus(
+                (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                userState, "SMS URL "+status);
         return Response.status(200).entity(responseString).build();
     }
 
