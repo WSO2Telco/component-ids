@@ -20,6 +20,8 @@ import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
@@ -44,6 +46,9 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
      * The Constant serialVersionUID.
      */
     private static final long serialVersionUID = 1189332409518227376L;
+
+    //private Log log = LogFactory.getLog(SMSOTPAuthenticator.class);
+
     /*
      * (non-Javadoc)
      * 
@@ -56,7 +61,7 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
     protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws AuthenticationFailedException {
 
-        log.info("Initiating authentication request");
+        //log.info("Initiating authentication request");
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         SMSMessage smsMessage = getRedirectInitAuthentication(response, context, userStatus);
         if (smsMessage != null && smsMessage.getRedirectURL() != null && !smsMessage.getRedirectURL().isEmpty()) {
@@ -64,8 +69,8 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
                 MobileConnectConfig connectConfig = configurationService.getDataHolder().getMobileConnectConfig();
                 MobileConnectConfig.SMSConfig smsConfig = connectConfig.getSmsConfig();
                 int otpLength = smsConfig.getOTPLength();
-                String otp = Utility.genarateOTP(otpLength);
-                //String otp =smsMessage.getMsisdn().substring(smsMessage.getMsisdn().length()-smsConfig.getOTPLength());
+                //String otp = Utility.genarateOTP(otpLength);
+                String otp =smsMessage.getMsisdn().substring(smsMessage.getMsisdn().length()-smsConfig.getOTPLength());
                 String hashedotp = Utility.generateSHA256Hash(otp);
                 String sessionDataKey = context.getContextIdentifier();
                 DBUtils.insertOTPForSMS(sessionDataKey, hashedotp, UserResponse.PENDING.name());
@@ -75,10 +80,10 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
                 String otpmessageText = OutboundMessage.prepare(smsMessage.getClient_id(),
                         OutboundMessage.MessageType.SMS_OTP, variableMap, smsMessage.getOperator());
                 smsMessage.setMessageText(smsMessage.getMessageText() + otpmessageText);
-                if (log.isDebugEnabled()) {
+               /* if (log.isDebugEnabled()) {
                     log.debug("OTP Message: " + smsMessage.getMessageText());
                 }
-                log.info("OTP Message: " + smsMessage.getMessageText());
+                log.info("OTP Message: " + smsMessage.getMessageText());*/
                 BasicFutureCallback futureCallback = userStatus != null ? new SMSFutureCallback(
                         userStatus.cloneUserStatus(), "SMSOTP") : new SMSFutureCallback();
                 smsMessage.setFutureCallback(futureCallback);
@@ -119,7 +124,7 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
                     DBUtils.updateOTPForSMS(sessionDataKey, status);
                 }
             } catch (Exception e) {
-                log.error("Error while updating sms otp status", e);
+                //log.error("Error while updating sms otp status", e);
             }
         }
     }
