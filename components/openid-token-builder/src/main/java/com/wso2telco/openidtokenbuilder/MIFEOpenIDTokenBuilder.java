@@ -53,6 +53,7 @@ import org.wso2.carbon.identity.oauth.cache.*;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 import org.wso2.carbon.identity.oauth.common.exception.InvalidOAuthClientException;
 import org.wso2.carbon.identity.oauth.config.OAuthServerConfiguration;
+import org.wso2.carbon.identity.oauth.dao.OAuthAppDAO;
 import org.wso2.carbon.identity.oauth.dao.OAuthAppDO;
 import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
 import org.wso2.carbon.identity.oauth2.authz.OAuthAuthzReqMessageContext;
@@ -467,8 +468,11 @@ public class MIFEOpenIDTokenBuilder implements
         }
 
         OAuthAppDO oAuthAppDO = appInfoCache.getValueFromCache(tokenReqDTO.getClientId());
-        if (oAuthAppDO == null)
+        if (oAuthAppDO == null){
+            oAuthAppDO = new OAuthAppDAO().getAppInformation(tokenReqDTO.getClientId());
             appInfoCache.addToCache(tokenReqDTO.getClientId(), oAuthAppDO);
+        }
+            //appInfoCache.addToCache(tokenReqDTO.getClientId(), oAuthAppDO);
 
         return oAuthAppDO;
         
