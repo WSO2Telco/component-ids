@@ -248,29 +248,44 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         String sessionDataKey = request.getParameter("sessionDataKey");
         String msisdn = (String) context.getProperty("msisdn");
         String operator = (String) context.getProperty("operator");
+        String userAction = request.getParameter(Constants.ACTION);
 
         if (log.isDebugEnabled()) {
             log.debug("SessionDataKey : " + sessionDataKey);
         }
+        try {
+
+        if (userAction != null && !userAction.isEmpty()) {
+            // Change behaviour depending on user action
+            switch (userAction) {
+            case Constants.USER_ACTION_USER_CANCELED:
+                //User clicked cancel button from login
+                terminateAuthentication(context, sessionDataKey);
+                break;
+            case Constants.USER_ACTION_REG_REJECTED:
+                //User clicked cancel button from registration
+                terminateAuthentication(context, sessionDataKey);
+                break;
+            }
+        }
 
         // Check if the user has provided consent
-        try {
-            String responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
+        String responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
+        if (!responseStatus.equalsIgnoreCase(UserResponse.APPROVED.toString())) {
+            throw new AuthenticatorException("Authentication Failed");
+        } else {
+            boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+            if (isRegistering) {
+                UserProfileManager userProfileManager = new UserProfileManager();
+                userProfileManager.createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
 
-            if (!responseStatus.equalsIgnoreCase(UserResponse.APPROVED.toString())) {
-                throw new AuthenticatorException("Authentication Failed");
-            } else {
-                boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-                if (isRegistering) {
-                    UserProfileManager userProfileManager = new UserProfileManager();
-                    userProfileManager.createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
-
-                    MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
-                    if (!smsConfig.getWelcomeMessageDisabled()) {
-                        WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
-                    }
+                MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
+                if (!smsConfig.getWelcomeMessageDisabled()) {
+                    WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
                 }
             }
+        }
+
         } catch (AuthenticatorException | RemoteException | UserRegistrationAdminServiceIdentityException e) {
             log.error("SMS Authentication failed while trying to authenticate", e);
             DataPublisherUtil
@@ -292,6 +307,23 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         if (rememberMe != null && "on".equals(rememberMe)) {
             context.setRememberMe(true);
         }
+    }
+
+    /**
+     * Terminates the authenticator due to user implicit action
+     *
+     * @param context Authentication Context
+     * @throws AuthenticationFailedException
+     */
+    private void terminateAuthentication(AuthenticationContext context,String sessionID) throws AuthenticationFailedException {
+        log.info("User has terminated the authentication flow");
+        context.setProperty(Constants.IS_TERMINATED, true);
+        try {
+            DBUtils.updateUserResponse(sessionID, "Rejected");
+        } catch (AuthenticatorException e) {
+            log.error("Welcome SMS sending failed", e);
+        }
+        throw new AuthenticationFailedException("Authenticator is terminated");
     }
 
     protected String getHashForContextId(String contextIdentifier) {
