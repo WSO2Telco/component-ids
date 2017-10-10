@@ -24,19 +24,11 @@ public class TrustedSP2 extends AbstractAttributeShare {
 
         String displayScopes = "";
         String isDisplayScope = "false";
-        String authenticationFlowStatus="false";
         String isTNCForNewUser="false";
 
 
         Map<String, List<String>> attributeset = getAttributeMap(context);
         Map<String,String> attributeShareDetails = new HashMap();
-        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-        String msisdn = context.getProperty(Constants.MSISDN).toString();
-        String operator = context.getProperty(Constants.OPERATOR).toString();
-        boolean isAttributeScope = (Boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
-        String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
-        String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
-
 
         if(!attributeset.get(Constants.EXPLICIT_SCOPES).isEmpty()){
             isDisplayScope = "true";
@@ -44,17 +36,8 @@ public class TrustedSP2 extends AbstractAttributeShare {
             log.debug("Found the explicite scopes to gt the consent" + displayScopes );
         }
 
-        try {
-            if(isRegistering){
-                int requestedLoa = Integer.parseInt(context.getProperty(Constants.ACR).toString());
-                if(requestedLoa == 2){
-                    new UserProfileManager().createUserProfileLoa2(msisdn, operator,isAttributeScope,spType,attrShareType);
-                }
-                attributeShareDetails.put(Constants.IS_AUNTHENTICATION_CONTINUE,authenticationFlowStatus);
-            }
-        } catch (RemoteException | UserRegistrationAdminServiceIdentityException e) {
-            throw new AuthenticationFailedException(e.getMessage(), e);
-        }
+        createUserProfile(context);
+
         context.setProperty(Constants.IS_CONSENTED,Constants.YES);
         attributeShareDetails.put(Constants.IS_DISPLAYSCOPE,isDisplayScope);
         attributeShareDetails.put(Constants.DISPLAY_SCOPES,displayScopes);

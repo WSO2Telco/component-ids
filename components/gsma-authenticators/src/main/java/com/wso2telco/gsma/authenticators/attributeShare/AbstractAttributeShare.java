@@ -6,17 +6,23 @@ import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtil;
-import com.wso2telco.gsma.authenticators.attributeShare.internal.ConsentType;
 import com.wso2telco.gsma.authenticators.attributeShare.internal.UserConsentStatus;
 import com.wso2telco.gsma.authenticators.attributeShare.internal.ValidityType;
 import com.wso2telco.gsma.authenticators.dao.AttributeConfigDAO;
 import com.wso2telco.gsma.authenticators.dao.impl.AttributeConfigDAOimpl;
+import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;
+import com.wso2telco.gsma.authenticators.model.SPConsent;
 import com.wso2telco.gsma.authenticators.model.UserConsentDetails;
+import com.wso2telco.gsma.authenticators.model.UserConsentHistory;
+import com.wso2telco.gsma.authenticators.util.UserProfileManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 
 import javax.naming.NamingException;
+import java.rmi.RemoteException;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -38,15 +44,15 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
         scopeDetailsConfigs = configurationService.getDataHolder().getScopeDetailsConfig();
 
         //Load scope related request optional parameters.
-        scopeMap = new HashMap<String, ScopeDetailsConfig.Scope>();
-        List<ScopeDetailsConfig.Scope> scopes = scopeDetailsConfigs.getScope();
+        scopeMap = new HashMap<>();
+        List<ScopeDetailsConfig.Scope> scopes = scopeDetailsConfigs.getPremiumScopes();
 
         for (ScopeDetailsConfig.Scope sc : scopes) {
             scopeMap.put(sc.getName(), sc);
         }
     }
 
-    public Map<String, List<String>> getAttributeMap(AuthenticationContext context) throws Exception {
+    public Map<String, List<String>> getAttributeMap(AuthenticationContext context) throws SQLException, NamingException {
 
         List<String> explicitScopes = new ArrayList();
         List<String> implicitScopes = new ArrayList();
@@ -57,20 +63,21 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
 
         for (ScopeParam scopeParam : scopeParamList) {
             String consentType = scopeParam.getConsentType();
-            String validityType = scopeParam.getConsent_validity_type();
+            String validityType = scopeParam.getConsentValidityType();
             String scope = scopeParam.getScope();
             Map<String, String> validityMap = getValiditeProcess(context, validityType, scope);
 
-            if (consentType.equalsIgnoreCase(ConsentType.EXPLICIT.name()) && "true".equalsIgnoreCase(validityMap.get("isConsent"))) {
+            if (consentType.equalsIgnoreCase(AuthenticatorEnum.ConsentType.EXPLICIT.name()) && "true".equalsIgnoreCase(validityMap.get(Constants.IS_CONSENT))) {
                 explicitScopes = getScopestoDisplay(explicitScopes,scope);
-                if (validityMap.get("validityType").equalsIgnoreCase(ValidityType.LONG_LIVE.name())) {
+                if (validityMap.get(Constants.VALIDITY_TYPE).equalsIgnoreCase(ValidityType.LONG_LIVE.name())) {
                     longlivedScopes.add(scope);
                 }
 
-            } else if (consentType.equalsIgnoreCase(ConsentType.IMPLICIT.name()) && "true".equalsIgnoreCase(validityMap.get("isConsent"))){
+            } else if (consentType.equalsIgnoreCase(AuthenticatorEnum.ConsentType.IMPLICIT.name()) && "true".equalsIgnoreCase(validityMap.get("isConsent"))){
                 implicitScopes.add(scope);
             }
         }
+
         scopesList.put(Constants.EXPLICIT_SCOPES, explicitScopes);
         scopesList.put(Constants.IMPLICIT_SCOPES, implicitScopes);
         if (!longlivedScopes.isEmpty()) {
@@ -80,7 +87,7 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
     }
 
 
-    private UserConsentDetails getUserConsentDetails(AuthenticationContext context, String scope) throws Exception {
+    private UserConsentDetails getUserConsentDetails(AuthenticationContext context, String scope) throws SQLException, NamingException {
         AttributeConfigDAO attributeConfigDAO = new AttributeConfigDAOimpl();
         UserConsentDetails userConsentDetails = new UserConsentDetails();
         userConsentDetails.setConsumerKey(context.getProperty(Constants.CLIENT_ID).toString());
@@ -91,7 +98,7 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
 
     }
 
-    private Map<String, String> getValiditeProcess(AuthenticationContext context, String validityTyp, String scope) throws Exception {
+    private Map<String, String> getValiditeProcess(AuthenticationContext context, String validityTyp, String scope) throws SQLException, NamingException {
 
         ValidityType validityType = ValidityType.get(validityTyp);
         Map<String, String> valityMap = new HashMap();
@@ -104,23 +111,23 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
 
             case LONG_LIVE:
 
-                valityMap.put("validityType", ValidityType.LONG_LIVE.name());
+                valityMap.put(Constants.VALIDITY_TYPE, ValidityType.LONG_LIVE.name());
                 if (isLongLiveConsent(context, scope)) {
-                    valityMap.put("isConsent", "true");
+                    valityMap.put(Constants.IS_CONSENT, "true");
                 } else {
-                    valityMap.put("isConsent", "false");
+                    valityMap.put(Constants.IS_CONSENT, "false");
                 }
                 return valityMap;
 
             default:
-                valityMap.put("validityType", ValidityType.UNDEFINED.name());
-                valityMap.put("isConsent", "false");
+                valityMap.put(Constants.VALIDITY_TYPE, ValidityType.UNDEFINED.name());
+                valityMap.put(Constants.IS_CONSENT, "false");
                 return valityMap;
         }
 
     }
 
-    private boolean isLongLiveConsent(AuthenticationContext context, String scope) throws Exception {
+    private boolean isLongLiveConsent(AuthenticationContext context, String scope) throws SQLException, NamingException {
 
         boolean isConsent = false;
 
@@ -147,24 +154,20 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
             }
 
 
-        } catch (SQLException e) {
+        } catch (SQLException|NamingException e) {
             log.debug("error occurred while accessing the database table" + e);
-
-        } catch (NamingException ex) {
-
 
         } catch (ParseException e) {
             log.debug("error occurred while formatting the date");
-        } catch (Exception e) {
-
         }
         return isConsent;
     }
 
     public static List<String> getScopestoDisplay(List<String> attributeSet, String scope) {
 
+
         List<String> consentAttribute = attributeSet;
-        List<String> displayAttributeSet = new ArrayList<>();
+        List<String> displayAttributeSet ;
 
         displayAttributeSet = scopeMap.get(scope).getDisplayAttributes();
         for (int j = 0; j < displayAttributeSet.size(); j++) {
@@ -173,5 +176,60 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
             }
         }
         return consentAttribute;
+    }
+
+    public static void persistConsentedScopeDetails(AuthenticationContext context) throws SQLException,NamingException {
+
+        AttributeConfigDAO attributeConfigDAO = new AttributeConfigDAOimpl();
+
+        String msisdn = context.getProperty(Constants.MSISDN).toString();
+        String operator = context.getProperty(Constants.OPERATOR).toString();
+        String clientId = context.getProperty(Constants.CLIENT_ID).toString();
+
+        List<SPConsent> spConsentDetailsList = attributeConfigDAO.getScopeExprieTime(operator,clientId,context.getProperty(Constants.LONGLIVEDSCOPES).toString());
+        List<UserConsentHistory> userConsentHistoryList = new ArrayList();
+
+        for(SPConsent spConsent: spConsentDetailsList){
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date today = new Date();
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(today);
+            calendar.add(Calendar.DATE, spConsent.getExpPeriod());
+
+            UserConsentHistory userConsentHistory = new UserConsentHistory();
+            userConsentHistory.setClient_id(clientId);
+            userConsentHistory.setOperator_id(spConsent.getOperatorID());
+            userConsentHistory.setMsisdn(msisdn);
+            userConsentHistory.setConsent_date(dateFormat.format(today));
+            userConsentHistory.setScope_id(spConsent.getScope());
+            userConsentHistory.setConsent_expire_time(dateFormat.format(calendar.getTime()));
+            userConsentHistory.setConsent_status(UserConsentHistory.CONSENT_STATUS_TYPES.ACTIVE.name());
+
+            userConsentHistoryList.add(userConsentHistory);
+        }
+        attributeConfigDAO.saveUserConsentedAttributes(userConsentHistoryList);
+
+    }
+
+    public static void createUserProfile(AuthenticationContext context) throws AuthenticationFailedException{
+
+        String msisdn = context.getProperty(Constants.MSISDN).toString();
+        String operator = context.getProperty(Constants.OPERATOR).toString();
+        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+        boolean isAttributeScope = (Boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+        String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
+        String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
+
+        try {
+
+            if(isRegistering){
+
+                new UserProfileManager().createUserProfileLoa2(msisdn, operator,isAttributeScope,spType,attrShareType);
+
+            }
+        } catch (RemoteException | UserRegistrationAdminServiceIdentityException e) {
+            throw new AuthenticationFailedException(e.getMessage(), e);
+        }
     }
 }
