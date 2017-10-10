@@ -248,6 +248,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                         }
                     }
                 }
+
                 context.setProperty(Constants.IS_REGISTERING, !isUserExists);
                 context.setProperty(Constants.IS_STATUS_TO_CHANGE, isConvertToActive);
                 DataPublisherUtil.updateAndPublishUserStatus(
@@ -255,12 +256,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                         DataPublisherUtil.UserState.MSISDN_SET_TO_USER_INPUT,
                         "MSISDN set to user input in MSISDNAuthenticator", msisdn, isUserExists ? 0 : 1);
                 int requestedLoa = (int) context.getProperty(Constants.ACR);
-                String operator = (String) context.getProperty(Constants.OPERATOR);
                 boolean isProfileUpgrade = Util.isProfileUpgrade(msisdn, requestedLoa, isUserExists);
                 context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade);
-                Boolean isAttributeShare = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
-                String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
-                String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
+
 
                 if (log.isDebugEnabled()) {
                     log.debug("User entered MSISDN : " + msisdn);
@@ -307,21 +305,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     }
                 } else {
                     boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-                    boolean isConvertToActive = (boolean) context.getProperty(Constants.IS_STATUS_TO_CHANGE);
-                    int requestedLoa = (int) context.getProperty(Constants.ACR);
-                    String operator = (String) context.getProperty(Constants.OPERATOR);
-                    Boolean isAttrShare = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
-                    String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
-                    String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
-
 
                     if (isRegistering && isShowTnC) {
                         retryAuthenticatorForConsent(context);
-                    }
-
-                    if ((requestedLoa == Integer.getInteger(Constants.LOA3)) && (isConvertToActive)) {
-                        new UserProfileManager().createUserProfileLoa3(msisdn, operator, null, null,
-                                null, isAttrShare, spType, attrShareType);
                     }
                 }
             }
