@@ -49,10 +49,14 @@ public class NormalSP extends AbstractAttributeShare {
         String isDisplayScope = "false";
         String authenticationFlowStatus="false";
         String isTNCForNewUser;
+        boolean isRegistering = false;
 
         Map<String, List<String>> attributeset = getAttributeMap(context);
         Map<String,String> attributeShareDetails = new HashMap();
-        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+        if(context.getProperty(Constants.IS_REGISTERING)!=null){
+             isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+
+        }
 
 
         if(!attributeset.get(Constants.EXPLICIT_SCOPES).isEmpty()){

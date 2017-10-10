@@ -18,7 +18,9 @@ package com.wso2telco.gsma.authenticators;
 import com.wso2telco.Util;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.authenticators.attributeShare.AbstractAttributeShare;
 import com.wso2telco.gsma.authenticators.attributeShare.AttributeShareFactory;
+import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
@@ -38,9 +40,11 @@ import org.wso2.carbon.identity.application.authentication.framework.util.Framew
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 
+import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 
 // TODO: Auto-generated Javadoc
@@ -134,11 +138,11 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         log.info("Initiating authentication request");
 
         String loginPage;
-        boolean expliciteScope = false;
-        String displayScopes = "";
+        boolean isExplicitScope = false;
+
         try {
 
-            loginPage = getAuthEndpointUrl(context,expliciteScope);
+
 
             String queryParams = FrameworkUtils
                     .getQueryStringWithFrameworkContextId(context.getQueryParams(),
@@ -156,25 +160,44 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                             .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
 
 
+
+
+
+
+            Map<String, String> attributeset = new HashMap();
             boolean isattribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+            String msisdn="";
+
+
+            DataPublisherUtil
+                    .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
+                            .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
+                            .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
+
 
             if(isattribute){
-                String operator = context.getProperty(Constants.OPERATOR).toString();;
-                String clientId = context.getProperty(Constants.CLIENT_ID).toString();
-                Map<String, List<String>> attributeset = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants.TRUSTED_STATUS).toString()).getAttributeMap(context);
-                if(!attributeset.get("explicitScopes").isEmpty()){
-                    expliciteScope = true;
-                    displayScopes = Arrays.toString(attributeset.get("explicitScopes").toArray());
+
+                if(request.getParameter(Constants.ACTION) != null || context.getProperty(Constants.MSISDN) != null ){
+                    msisdn =  ((request.getParameter(Constants.ACTION) != null ) ? request.getParameter(Constants.ACTION) : context.getProperty(Constants.MSISDN).toString());
+                }
+
+                if(StringUtils.isNotEmpty(msisdn)){
+                    attributeset = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants.TRUSTED_STATUS).toString()).getAttributeShareDetails(context);
+                    isExplicitScope = Boolean.parseBoolean( attributeset.get(Constants.IS_DISPLAYSCOPE));
                 }
 
             }
 
-            if(expliciteScope){
-                response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
-                        request.getParameter("redirect_uri") + "&authenticators="
-                        + getName() + ":" + "LOCAL" + retryParam + OAuthConstants.SESSION_DATA_KEY + "="
-                        + context.getContextIdentifier() + "&skipConsent=true&scope=" + displayScopes + "&registering=" + (boolean) context.getProperty(Constants.IS_REGISTERING));
-            } else {
+           // String loginPage = getAuthEndpointUrl(Boolean.parseBoolean( attributeset.get(Constants.IS_DISPLAYSCOPE)));
+            loginPage = getAuthEndpointUrl(context,isExplicitScope);
+
+           if(Boolean.valueOf(attributeset.get(Constants.IS_AUNTHENTICATION_CONTINUE))){
+                handleAttriShareResponse(context);
+
+            }else  if(msisdn != null && StringUtils.isNotEmpty(msisdn) && Boolean.parseBoolean( attributeset.get(Constants.IS_DISPLAYSCOPE))){
+
+               getConsentFromUser(request,response,context,attributeset,retryParam);
+           } else {
                 response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
                         request.getParameter("redirect_uri") + "&authenticators="
                         + getName() + ":" + "LOCAL" + retryParam);
@@ -261,6 +284,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                                             .REG_CONSENT_AGREED, "Consent approved");
 
                             //User agreed to registration consent
+                            if ((Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE)) {
+                                handleAttriShareResponse(context);
+                            }
                             break;
                         case Constants.USER_ACTION_REG_REJECTED:
                             //User rejected to registration consent
@@ -348,6 +374,39 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         } else if ((canHandle(request) || canProcessResponse(context)) && (request.getAttribute("commonAuthHandled")
                 == null || !(Boolean) request.getAttribute("commonAuthHandled"))) {
             try {
+                boolean isattribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+                String msisdn ="";
+                Map<String, String> attributeset;
+                boolean isDisplayScopes;
+                String retryParam = "";
+
+                if (isattribute && Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString())) {
+
+                    if(request.getParameter(Constants.ACTION) != null || context.getProperty(Constants.MSISDN) != null ){
+                        msisdn =  ((request.getParameter(Constants.ACTION) != null ) ? request.getParameter(Constants.ACTION) : context.getProperty(Constants.MSISDN).toString());
+                    }
+                    if(StringUtils.isNotEmpty(msisdn)){
+                        context.setProperty("msisdn",msisdn);
+                        attributeset = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants.TRUSTED_STATUS).toString()).getAttributeShareDetails(context);
+                        boolean flowStatus = Boolean.valueOf(attributeset.get(Constants.IS_AUNTHENTICATION_CONTINUE));
+                        isDisplayScopes = Boolean.parseBoolean( attributeset.get(Constants.IS_DISPLAYSCOPE).toString());
+
+                        if(flowStatus){
+
+                            AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN).toString());
+                            context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+                            return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+
+                        } else if (!flowStatus && isDisplayScopes) {
+
+                            getConsentFromUser(request,response,context,attributeset,retryParam);
+                            context.setCurrentAuthenticator(getName());
+                            return AuthenticatorFlowStatus.INCOMPLETE;
+                        }
+                    }
+
+                }
+
                 processAuthenticationResponse(request, response, context);
                 if (this instanceof LocalApplicationAuthenticator && !context.getSequenceConfig()
                         .getApplicationConfig().isSaaSApp()) {
@@ -389,11 +448,28 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     initiateAuthenticationRequest(request, response, context);
                     return AuthenticatorFlowStatus.INCOMPLETE;
                 } else {
+                    if(Boolean.valueOf(context.getProperty(Constants.AUTHENTICATED_USER).toString())){
+                        return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+                    }
                     throw e;
                 }
+            } catch (SQLException|NamingException e ){
+                if(Boolean.valueOf(context.getProperty(Constants.AUTHENTICATED_USER).toString())){
+                    return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+                }
+
+                log.debug("error occurred while retreaving data from database" + e.getMessage());
+                throw  new AuthenticationFailedException("error occurred while retreaving data from database" +e.getMessage());
+
             }
         } else {
-            initiateAuthenticationRequest(request, response, context);
+            try {
+                initiateAuthenticationRequest(request, response, context);
+            } catch (Exception e) {
+                if (Boolean.valueOf(context.getProperty(Constants.AUTHENTICATED_USER).toString())) {
+                    return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+                }
+            }
             context.setCurrentAuthenticator(getName());
             return AuthenticatorFlowStatus.INCOMPLETE;
         }
@@ -514,5 +590,52 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     @Override
     public String getAmrValue(int acr) {
         return null;
+    }
+
+    private void handleAttriShareResponse(AuthenticationContext context) throws AuthenticationFailedException{
+
+
+        if(context.getProperty(Constants.LONGLIVEDSCOPES)!= null) {
+            try {
+                AbstractAttributeShare.persistConsentedScopeDetails(context);
+            } catch (Exception e){
+                throw new  AuthenticationFailedException("error occurred while persiste data");
+            }
+        }
+
+        if(!AuthenticatorEnum.TrustedStatus.UNTRUSTED.toString().equalsIgnoreCase(context.getProperty(Constants.TRUSTED_STATUS).toString())) {
+            AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN).toString());
+            context.setProperty(Constants.AUTHENTICATED_USER,"true");
+            context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+            throw new AuthenticationFailedException("Terminate authentication flow");
+        }
+    }
+
+    private void getConsentFromUser(HttpServletRequest request, HttpServletResponse response,
+                                    AuthenticationContext context,Map<String, String> attributeset,String retryParam) throws AuthenticationFailedException{
+
+
+        String loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.ATTRIBUTE_CONSENT_JSP;
+        String queryParams = FrameworkUtils
+                .getQueryStringWithFrameworkContextId(context.getQueryParams(),
+                        context.getCallerSessionKey(),
+                        context.getContextIdentifier());
+
+        try {
+/*
+
+           response.sendRedirect(response.encodeRedirectURL(loginPage)+ "?"+OAuthConstants.SESSION_DATA_KEY + "="
+                    + context.getContextIdentifier() + "&skipConsent=true&scope=" + attributeset.get(Constants.DISPLAY_SCOPES) + "&registering=" + attributeset.get(Constants.IS_TNC)
+                    + "&redirect_uri=" + request.getParameter("redirect_uri")
+                    + "&authenticators=" + getName() + ":" + "LOCAL" );*/
+
+            response.sendRedirect(response.encodeRedirectURL(loginPage) + "?" + OAuthConstants.SESSION_DATA_KEY + "="
+                    + context.getContextIdentifier() + "&skipConsent=true&scope=" + attributeset.get(Constants.DISPLAY_SCOPES) + "&registering=" + false + "&redirect_uri=" +
+                    request.getParameter("redirect_uri") + "&authenticators=" + getName() + ":" + "LOCAL"  );
+
+        } catch (IOException e){
+            throw new AuthenticationFailedException("I/O exception occurred");
+        }
+
     }
 }

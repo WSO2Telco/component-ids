@@ -307,6 +307,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         String msisdn = context.getProperty(Constants.MSISDN).toString();
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
         boolean showTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
+        boolean isExplicitScope = false;
 
         try {
             isValidOperator(request, context, msisdn, operator, userStatus);
@@ -345,9 +346,10 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
               if(isattribute && StringUtils.isNotEmpty(msisdn)){
                 attributeset = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants.TRUSTED_STATUS).toString()).getAttributeShareDetails(context);
+                  isExplicitScope = Boolean.parseBoolean( attributeset.get(Constants.IS_DISPLAYSCOPE));
              }
 
-            String loginPage = getAuthEndpointUrl(showTnC, isRegistering,Boolean.parseBoolean( attributeset.get(Constants.IS_DISPLAYSCOPE)));
+
 
             if(Boolean.valueOf(attributeset.get(Constants.IS_AUNTHENTICATION_CONTINUE))){
                 handleAttriShareResponse(context);
@@ -356,7 +358,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
                 getConsentFromUser(request,response,context,attributeset);
             } else {
-
+                String loginPage = getAuthEndpointUrl(showTnC, isRegistering,isExplicitScope);
                 response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams))
                         + "&redirect_uri=" + request.getParameter("redirect_uri")
                         + "&authenticators=" + getName() + ":" + "LOCAL");
