@@ -306,6 +306,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         PinConfig pinConfig = PinConfigUtil.getPinConfig(context);
 
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+        boolean isStatusUpdate =  (boolean)context.getProperty(Constants.IS_STATUS_TO_CHANGE);
         boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
         boolean isPinReset = isPinReset(pinConfig);
         boolean isPinResetConfirmation = isPinResetConfirmation(pinConfig);
@@ -338,7 +339,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         }
 
         try {
-            if (isRegistering) {
+            if (isRegistering || isStatusUpdate) {
                 handleUserRegistration(context, userStatus);
             } else {
                 if (isProfileUpgrade) {
