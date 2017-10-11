@@ -71,7 +71,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
      * The log.
      */
 
-    private Log log = LogFactory.getLog(SMSAuthenticator.class);
+    //private Log log = LogFactory.getLog(SMSAuthenticator.class);
 
     /**
      * The Configuration service
@@ -86,9 +86,9 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
      */
     @Override
     public boolean canHandle(HttpServletRequest request) {
-        if (log.isDebugEnabled()) {
+      /*  if (log.isDebugEnabled()) {
             log.debug(this.getClass().getName() + " canHandle invoked");
-        }
+        }*/
 
         return Boolean.valueOf(request.getParameter("canHandle"));
     }
@@ -124,7 +124,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
      */
     @Override protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws AuthenticationFailedException {
-        log.info("Initiating authentication request");
+        //log.info("Initiating authentication request");
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         SMSMessage smsMessage = getRedirectInitAuthentication(response, context, userStatus);
         if (smsMessage != null && smsMessage.getRedirectURL() != null && !smsMessage.getRedirectURL().isEmpty()) {
@@ -156,9 +156,9 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                         context.getCallerSessionKey(),
                         context.getContextIdentifier());
 
-        if (log.isDebugEnabled()) {
+       /* if (log.isDebugEnabled()) {
             log.debug("Query parameters : " + queryParams);
-        }
+        }*/
 
         try {
             String retryParam = "";
@@ -208,11 +208,11 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             String messageText = OutboundMessage
                     .prepare(client_id, OutboundMessage.MessageType.SMS_LOGIN, variableMap, operator);
 
-            if (log.isDebugEnabled()) {
+            /*if (log.isDebugEnabled()) {
                 log.debug("Message URL: " + messageURL);
                 log.debug("Message: " + messageText);
                 log.debug("Operator: " + operator);
-            }
+            }*/
 
             DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
 
@@ -244,16 +244,16 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
     protected void processAuthenticationResponse(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
-        log.info("Processing authentication response");
+        //log.info("Processing authentication response");
 
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         String sessionDataKey = request.getParameter("sessionDataKey");
         String msisdn = (String) context.getProperty("msisdn");
         String operator = (String) context.getProperty("operator");
 
-        if (log.isDebugEnabled()) {
+       /* if (log.isDebugEnabled()) {
             log.debug("SessionDataKey : " + sessionDataKey);
-        }
+        }*/
 
         // Check if the user has provided consent
         try {
@@ -274,17 +274,17 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                 }
             }
         } catch (AuthenticatorException | RemoteException | UserRegistrationAdminServiceIdentityException e) {
-            log.error("SMS Authentication failed while trying to authenticate", e);
+           // log.error("SMS Authentication failed while trying to authenticate", e);
             DataPublisherUtil
                     .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
                             e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (IOException | DataAccessException e) {
-            log.error("Welcome SMS sending failed", e);
+           // log.error("Welcome SMS sending failed", e);
         }
         AuthenticationContextHelper.setSubject(context, msisdn);
 
-        log.info("Authentication success");
+       // log.info("Authentication success");
 
         DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_SUCCESS,
                 "SMS Authentication success");
