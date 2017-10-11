@@ -267,8 +267,8 @@ public class DBUtils {
             ps.setString(1, sessionDataKey);
             ps.setString(2, responseStatus);
             ps.executeUpdate();
-            SessionExpire sessionExpire = new SessionExpire(sessionDataKey);
-            sessionExpire.start();
+            //SessionExpire sessionExpire = new SessionExpire(sessionDataKey);
+            //sessionExpire.start();
         } catch (SQLException e) {
             handleException("Error occured while inserting User Response for SessionDataKey: " + sessionDataKey + " " +
                     "to the database", e);

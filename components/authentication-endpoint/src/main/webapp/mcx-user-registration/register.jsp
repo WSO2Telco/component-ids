@@ -94,24 +94,25 @@
 <body class="theme--light">
 <div class="site__root">
     <header class="site-header">
-        <div class="site-header__inner site__wrap">
-            <h1 class="visuallyhidden">Mobile Connect</h1>
-            <%
-		    if (Config.get(getServletContext(), Config.FMT_LOCALE).toString().equals("en-US")) {
-            %>
-            <a href="#"><img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150"
-                             class="site-header__logo"></a>
-            <%
-            }else{
-            %>
-            <img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150"
-                             class="site-header__logo">
-              <%
-            } %>              
-            <p class="site-header__powered-by">powered by
-                <img src='<%=imgPath%>' alt="Operator" class="brandLogo">
-            </p>
-        </div>
+		 <div class="site-header__inner site__wrap">
+    <h1 class="visuallyhidden">Mobile Connect</h1>
+    <div align="center">
+    <table class="site-header-brand-table">
+    <tbody><tr>
+    <td width="30%">
+    <a class="brand">
+    <img src="mcresources/img/svg/mobile-connect.svg?20171001" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo">
+    </a>
+    </td>
+    <td width="70%">
+    <img src='<%=imgPath%>' alt="Operator" class="brandLogo">
+    </td>
+    </tr>
+    </tbody></table>
+    </div>
+    </div>
+		
+			
     </header>
 
 
@@ -125,9 +126,9 @@
                 account&nbsp;secure</h1>
             <p><fmt:message key='common-label-security-intro'/></p>
         </header>
-        <div class="slider slider--all slick v-grow" id="slider">
+        <div class="slider slider--all slick" id="slider">
             <section class="slider__slide">
-                <div class="slider__slide-inner v-distribute">
+                <div class="slider__slide-inner">
                     <header class="page__header">
                         <h1 class="page__heading"><fmt:message key='register-label-prompt-heading-1'/></h1>
                         <p><fmt:message key='register-label-prompt-intro-1'/></p>
@@ -135,14 +136,14 @@
                     </header>
                     <div class="page__illustration v-grow v-align-content">
                         <div>
-                            <img src="mcresources/img/svg/secure.svg" alt="Secure" width="106" height="126">
+                            <img src="mcresources/img/svg/secure.svg" alt="Secure" width="80" height="95">
                         </div>
                     </div>
                 </div>
             </section>
 
             <section class="slider__slide">
-                <div class="slider__slide-inner v-distribute">
+                <div class="slider__slide-inner">
                     <header class="page__header">
                         <h1 class="page__heading"><fmt:message key='register-label-prompt-heading-2'/></h1>
                         <p><fmt:message key='register-label-prompt-intro-2'/></p>
@@ -150,14 +151,14 @@
                     </header>
                     <div class="page__illustration v-grow v-align-content">
                         <div>
-                            <img src="mcresources/img/svg/private.svg" alt="Private" width="160" height="107">
+                            <img src="mcresources/img/svg/private.svg" alt="Private" width="120" height="80">
                         </div>
                     </div>
                 </div>
             </section>
 
             <section class="slider__slide">
-                <div class="slider__slide-inner v-distribute">
+                <div class="slider__slide-inner">
                     <header class="page__header">
                         <h1 class="page__heading"><fmt:message key='register-label-prompt-heading-3'/></h1>
                         <p><fmt:message key='register-label-prompt-intro-3'/></p>
@@ -165,7 +166,7 @@
                     </header>
                     <div class="page__illustration v-grow v-align-content">
                         <div>
-                            <img src="mcresources/img/svg/convenient.svg" alt="Convenient" width="106" height="127">
+                            <img src="mcresources/img/svg/convenient.svg" alt="Convenient" width="70" height="83">
                         </div>
                     </div>
                 </div>

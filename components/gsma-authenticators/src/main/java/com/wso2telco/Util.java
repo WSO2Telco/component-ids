@@ -6,13 +6,12 @@ import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
 import com.wso2telco.gsma.manager.client.ClaimManagementClient;
 import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
-import org.apache.http.impl.nio.client.HttpAsyncClients;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
@@ -41,7 +40,7 @@ public class Util {
         int socketTimeout = 60000;
         int connectTimeout = 60000;
         int connectionRequestTimeout = 30000;
-
+        CloseableHttpClient client=null;
         try {
             MobileConnectConfig.TimeoutConfig timeoutConfig = configurationService.getDataHolder()
                     .getMobileConnectConfig().getUssdConfig().getTimeoutConfig();
@@ -49,21 +48,30 @@ public class Util {
             connectTimeout = timeoutConfig.getConnectionTimeout() * 1000;
             connectionRequestTimeout = timeoutConfig.getConnectionRequestTimeout() * 1000;
 
+            client = HttpClients.createDefault();
+            CloseableHttpResponse response = client.execute(postRequest);
+
         } catch (Exception e) {
 
             log.debug("Error in reading TimeoutConfig:using default timeouts:"
                     + e);
+        }finally {
+            try{
+                client.close();
+            }catch (Exception e){
+
+            }
         }
 
-        RequestConfig requestConfig = RequestConfig.custom()
-                .setSocketTimeout(socketTimeout).setConnectTimeout(connectTimeout)
-                .setConnectionRequestTimeout(connectionRequestTimeout).build();
+//        RequestConfig requestConfig = RequestConfig.custom()
+//                .setSocketTimeout(socketTimeout).setConnectTimeout(connectTimeout)
+//                .setConnectionRequestTimeout(connectionRequestTimeout).build();
 
-        CloseableHttpAsyncClient client = HttpAsyncClients.custom()
-                .setDefaultRequestConfig(requestConfig).build();
-        futureCallback.setClient(client);
-        client.start();
-        client.execute(postRequest, futureCallback);
+//        CloseableHttpAsyncClient client = HttpAsyncClients.custom()
+//                .setDefaultRequestConfig(requestConfig).build();
+//        futureCallback.setClient(client);
+//        client.start();
+//        client.execute(postRequest, futureCallback);
     }
 
     /**
