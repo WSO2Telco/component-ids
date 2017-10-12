@@ -2203,6 +2203,13 @@ html.site--full-content .site__fix-bottom {
 .no-cssanimations .spinner__el {
     display: none
 }
+
+.page_footer_message{
+    color: #191970;
+    text-align: center;
+    margin-top: 2rem;
+}
+
 @-webkit-keyframes spinner-fade-anim {
     0% {
         opacity: 1
