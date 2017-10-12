@@ -31,7 +31,7 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
 
 
     private void populateScopeConfigs(List<ScopeDetailsConfig.Scope> scopeConfigs) {
-        if (!scopeConfigsMap.isEmpty()) {
+        if (scopeConfigsMap.size()==0) {
             for (ScopeDetailsConfig.Scope scope : scopeConfigs) {
                 scopeConfigsMap.put(scope.getName(), scope);
             }
@@ -47,7 +47,7 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
         while (i.hasNext()) {
             Object claimStr = totalClaims.get(i.next());
             if (claimStr != null) {
-                claimValue = (isHashed) ? getHashedClaimValue(totalClaims.get(i.next()).toString()) : totalClaims.get(i.next()).toString();
+                claimValue = (isHashed) ? getHashedClaimValue(claimStr.toString()) :claimStr.toString();
 
             }
         }
@@ -66,10 +66,12 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
 
         for (String scope : scopes) {
             if (scopeConfigsMap.containsKey(scope) && totalClaimsValues != null) {
-                Iterator<String> i = scopeConfigsMap.get(scope).getClaimSet().iterator();
+                List<String> claimSet = scopeConfigsMap.get(scope).getClaimSet();
                 boolean isHashed = scopeConfigsMap.get(scope).isHashed();
-                requestedClaims.put(i.next(), totalClaimsValues.get(getclaimValue(i, isHashed, totalClaimsValues)));
-
+               for(String claim:claimSet) {
+                   requestedClaims.put(claim,(isHashed?getHashedClaimValue(totalClaimsValues.get(claim).toString()):totalClaimsValues.get(claim)));
+                   // requestedClaims.put(i.next(), totalClaimsValues.get(getclaimValue(i, isHashed, totalClaimsValues)));
+               }
             }
         }
 
