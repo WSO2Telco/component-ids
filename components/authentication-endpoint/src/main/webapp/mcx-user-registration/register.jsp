@@ -81,7 +81,7 @@
         String imgPath = "";
         String termsConditionsPath = "";
         if (operator != "") {
-            imgPath = "../images/branding/" + operator + "_logo.svg";
+            imgPath = "../images/branding/" + operator + "_logo.png";
             termsConditionsPath = "html/terms-conditions/" + operator + "-terms-conditions.html";
     %>
     <link href="../css/branding/<%=operator%>-style.css" rel="stylesheet">
