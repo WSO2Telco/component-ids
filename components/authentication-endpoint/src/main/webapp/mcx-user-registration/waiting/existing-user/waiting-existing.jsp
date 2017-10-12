@@ -93,6 +93,9 @@
 		<a onclick="handleTermination(true);" class="btn btn--outline btn--full btn--large">
 			<fmt:message key='common-button-misc-cancel'/>
 		</a>
+		<div>
+            <p class="page_footer_message"><fmt:message key='waiting-label-continue-on-device-success-before-timeout-phase1'/><span id="waitVal"></span><fmt:message key='waiting-label-continue-on-device-success-before-timeout-phase2'/><br><fmt:message key='waiting-label-continue-on-device-success-before-timeout-phase3'/></p>
+        </div>
 	</main>
 </script>
 <script src="js/sha256.js"></script>
