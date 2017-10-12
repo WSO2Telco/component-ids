@@ -255,7 +255,7 @@
     </td>
     <td width="70%">
 	<% if (!operator.isEmpty()) {
-				String imgPath = "images/branding/" + operator + "_logo.svg";
+				String imgPath = "images/branding/" + operator + "_logo.png";
 			%>
     <img src='<%=imgPath%>' alt="Operator" class="brandLogo" style="float:right;">
 	<% } %>
