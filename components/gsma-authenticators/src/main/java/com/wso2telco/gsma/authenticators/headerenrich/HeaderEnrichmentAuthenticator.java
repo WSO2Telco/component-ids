@@ -893,6 +893,11 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         if (!AuthenticatorEnum.TrustedStatus.UNTRUSTED.toString().equalsIgnoreCase(context.getProperty(Constants
                 .TRUSTED_STATUS).toString())) {
+            boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+
+            if (isRegistering) {
+                AbstractAttributeShare.createUserProfile(context);
+            }
             AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN).toString());
             context.setProperty(Constants.AUTHENTICATED_USER, "true");
             context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");

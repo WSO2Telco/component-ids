@@ -155,7 +155,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
             log.info("Redirecting to MSISDN enter page");
 
-
             Map<String, String> attributeset = new HashMap();
             boolean isattribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
             String msisdn = "";
@@ -166,7 +165,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                             .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
                             .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
 
-            if (isattribute) {
+            if (isattribute && isattribute && Constants.NO.equalsIgnoreCase(context.getProperty(Constants
+                    .IS_CONSENTED).toString())) {
 
                 if (request.getParameter(Constants.ACTION) != null || context.getProperty(Constants.MSISDN) != null) {
                     msisdn = ((request.getParameter(Constants.ACTION) != null) ? request.getParameter(Constants
@@ -375,13 +375,14 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 boolean isDisplayScopes;
                 String retryParam = "";
 
+                processAuthenticationResponse(request, response, context);
                 if (isattribute && Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString
                         ())) {
 
-                    if (request.getParameter(Constants.ACTION) != null || context.getProperty(Constants.MSISDN) !=
+                    if (request.getParameter(Constants.MSISDN) != null || context.getProperty(Constants.MSISDN) !=
                             null) {
-                        msisdn = ((request.getParameter(Constants.ACTION) != null) ? request.getParameter(Constants
-                                .ACTION) : context.getProperty(Constants.MSISDN).toString());
+                        msisdn = ((request.getParameter(Constants.MSISDN) != null) ? request.getParameter(Constants
+                                .MSISDN) : context.getProperty(Constants.MSISDN).toString());
                     }
                     if (StringUtils.isNotEmpty(msisdn)) {
                         context.setProperty("msisdn", msisdn);
@@ -406,8 +407,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     }
 
                 }
-
-                processAuthenticationResponse(request, response, context);
                 if (this instanceof LocalApplicationAuthenticator && !context.getSequenceConfig()
                         .getApplicationConfig().isSaaSApp()) {
                     String e = context.getSubject().getTenantDomain();
@@ -442,15 +441,17 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 if (isTerminated) {
                     throw new AuthenticationFailedException("Authenticator is terminated");
                 }
+
+                if ((boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE) && Boolean.valueOf(context
+                        .getProperty(Constants.AUTHENTICATED_USER).toString())) {
+                    return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+                }
                 if (retryAuthenticationEnabled() && !stepHasMultiOption) {
                     context.setRetrying(true);
                     context.setCurrentAuthenticator(getName());
                     initiateAuthenticationRequest(request, response, context);
                     return AuthenticatorFlowStatus.INCOMPLETE;
                 } else {
-                    if (Boolean.valueOf(context.getProperty(Constants.AUTHENTICATED_USER).toString())) {
-                        return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
-                    }
                     throw e;
                 }
             } catch (SQLException | NamingException e) {
@@ -607,6 +608,11 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
         if (!AuthenticatorEnum.TrustedStatus.UNTRUSTED.toString().equalsIgnoreCase(context.getProperty(Constants
                 .TRUSTED_STATUS).toString())) {
+            boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+
+            if (isRegistering) {
+                AbstractAttributeShare.createUserProfile(context);
+            }
             AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN).toString());
             context.setProperty(Constants.AUTHENTICATED_USER, "true");
             context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
