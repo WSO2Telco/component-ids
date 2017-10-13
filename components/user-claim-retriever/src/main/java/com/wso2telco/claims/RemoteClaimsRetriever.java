@@ -59,7 +59,6 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
         Map<String, Object> requestedClaims = new HashMap();
 
         populateScopeConfigs(scopeConfigs);
-        populateScopeConfigs(scopeConfigs);
         String operatorName = (String) totalClaims.get(operator);
         String phoneNumber = (String) totalClaims.get(phoneNumberClaim);
         Map<String, Object> totalClaimsValues = getTotalClaims(operatorName, phoneNumber);
@@ -70,7 +69,6 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
                 boolean isHashed = scopeConfigsMap.get(scope).isHashed();
                for(String claim:claimSet) {
                    requestedClaims.put(claim,(isHashed?getHashedClaimValue(totalClaimsValues.get(claim).toString()):totalClaimsValues.get(claim)));
-                   // requestedClaims.put(i.next(), totalClaimsValues.get(getclaimValue(i, isHashed, totalClaimsValues)));
                }
             }
         }
