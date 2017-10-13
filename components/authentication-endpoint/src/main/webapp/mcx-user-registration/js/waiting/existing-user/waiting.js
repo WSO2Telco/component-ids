@@ -12,11 +12,6 @@ var pinResetUrl;
 var smsRequested = false;
 var xhr;
 
-window.onload = function (e) {
-getTimeoutValueinMinutes();
-}
-
-
 $(document).ready(function(){
 
 	// The template code
@@ -215,10 +210,3 @@ function otpError(show,msg) {
 	$("#otperror").text(msg);
 }
 
-
- /*
-  * Get current timeout value
-  */
- function getTimeoutValueinMinutes(){
- document.getElementById("waitVal").innerHTML = (timeout/60000).toFixed(0);
- }
