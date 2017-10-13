@@ -2204,10 +2204,11 @@ html.site--full-content .site__fix-bottom {
     display: none
 }
 
-.page_footer_message{
+.page-footer-message{
     color: #191970;
     text-align: center;
     margin-top: 2rem;
+    font-size: 0.9em;
 }
 
 @-webkit-keyframes spinner-fade-anim {
