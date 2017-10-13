@@ -203,8 +203,14 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             variableMap.put("application", application
                     .changeApplicationName(context.getSequenceConfig().getApplicationConfig().getApplicationName()));
             variableMap.put("link", messageURL);
+            boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+            OutboundMessage.MessageType messageType = OutboundMessage.MessageType.SMS_LOGIN;
+
+            if(isRegistering){
+                messageType = OutboundMessage.MessageType.SMS_REGISTRATION;
+            }
             String messageText = OutboundMessage
-                    .prepare(client_id, OutboundMessage.MessageType.SMS_LOGIN, variableMap, operator);
+                    .prepare(client_id, messageType, variableMap, operator);
 
             if (log.isDebugEnabled()) {
                 log.debug("Message URL: " + messageURL);

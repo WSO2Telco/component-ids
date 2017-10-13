@@ -12,7 +12,7 @@
 	<main class="site__main site__wrap section v-distribute">
 		<header class="page__header">
 			<h1 class="page__heading"><fmt:message key='waiting-label-continue-on-device-heading'/></h1>
-			<p>
+			<p style="font-size: 0.9em;">
 
 				<%
 					String authenticators = request.getParameter("authenticators");
@@ -94,7 +94,7 @@
 			<fmt:message key='common-button-misc-cancel'/>
 		</a>
 		<div>
-            <p class="page_footer_message"><fmt:message key='waiting-label-continue-on-device-success-before-timeout-phase1'/><span id="waitVal"></span><fmt:message key='waiting-label-continue-on-device-success-before-timeout-phase2'/><br><fmt:message key='waiting-label-continue-on-device-success-before-timeout-phase3'/></p>
+            <p class="page-footer-message"><fmt:message key='waiting-label-continue-on-device-success-before-timeout-phase1'/><br><fmt:message key='waiting-label-continue-on-device-success-before-timeout-phase2'/></p>
         </div>
 	</main>
 </script>
