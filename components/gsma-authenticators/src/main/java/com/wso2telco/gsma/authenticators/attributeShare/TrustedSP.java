@@ -40,18 +40,21 @@ public class TrustedSP extends AbstractAttributeShare {
         String displayScopes = "";
         String isDisplayScope = "false";
         String authenticationFlowStatus="true";
-
-
-
         Map<String, String> attributeShareDetails = new HashMap();
+        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+
+
 
         context.setProperty(Constants.IS_CONSENTED,Constants.YES);
-
         attributeShareDetails.put(Constants.IS_DISPLAYSCOPE, isDisplayScope);
         attributeShareDetails.put(Constants.DISPLAY_SCOPES, displayScopes);
         attributeShareDetails.put(Constants.IS_AUNTHENTICATION_CONTINUE,authenticationFlowStatus);
 
-        createUserProfile(context);
+
+        if(isRegistering){
+            createUserProfile(context);
+        }
+
         return attributeShareDetails;
     }
 

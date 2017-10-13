@@ -56,6 +56,7 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
 
         List<String> explicitScopes = new ArrayList();
         List<String> implicitScopes = new ArrayList();
+        List<String> noConsentScopes = new ArrayList();
         Map<String, List<String>> scopesList = new HashMap();
         List<String> longlivedScopes = new ArrayList();
         AttributeConfigDAO attributeConfigDAO = new AttributeConfigDAOimpl();
@@ -75,11 +76,14 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
 
             } else if (consentType.equalsIgnoreCase(AuthenticatorEnum.ConsentType.IMPLICIT.name()) && "true".equalsIgnoreCase(validityMap.get("isConsent"))){
                 implicitScopes.add(scope);
+            }else if (consentType.equalsIgnoreCase(AuthenticatorEnum.ConsentType.NOCONSENT.name())){
+                noConsentScopes.add(scope);
             }
         }
 
         scopesList.put(Constants.EXPLICIT_SCOPES, explicitScopes);
         scopesList.put(Constants.IMPLICIT_SCOPES, implicitScopes);
+        scopesList.put(Constants.NO_CONSENT_SCOPES,noConsentScopes);
         if (!longlivedScopes.isEmpty()) {
             context.setProperty(Constants.LONGLIVEDSCOPES, longlivedScopes.toString());
         }
@@ -216,18 +220,13 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
 
         String msisdn = context.getProperty(Constants.MSISDN).toString();
         String operator = context.getProperty(Constants.OPERATOR).toString();
-        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
         boolean isAttributeScope = (Boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
         String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
         String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
 
         try {
-
-            if(isRegistering){
-
                 new UserProfileManager().createUserProfileLoa2(msisdn, operator,isAttributeScope,spType,attrShareType);
 
-            }
         } catch (RemoteException | UserRegistrationAdminServiceIdentityException e) {
             throw new AuthenticationFailedException(e.getMessage(), e);
         }

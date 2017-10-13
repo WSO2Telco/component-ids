@@ -29,14 +29,20 @@ public class TrustedSP2 extends AbstractAttributeShare {
 
         Map<String, List<String>> attributeset = getAttributeMap(context);
         Map<String,String> attributeShareDetails = new HashMap();
+        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
 
         if(!attributeset.get(Constants.EXPLICIT_SCOPES).isEmpty()){
             isDisplayScope = "true";
             displayScopes = Arrays.toString(attributeset.get(Constants.EXPLICIT_SCOPES).toArray());
             log.debug("Found the explicite scopes to gt the consent" + displayScopes );
+
+        }  else {
+            if(isRegistering){
+                createUserProfile(context);
+            }
+            attributeShareDetails.put(Constants.IS_AUNTHENTICATION_CONTINUE,"true");
         }
 
-        createUserProfile(context);
 
         context.setProperty(Constants.IS_CONSENTED,Constants.YES);
         attributeShareDetails.put(Constants.IS_DISPLAYSCOPE,isDisplayScope);

@@ -442,6 +442,8 @@ public final class Constants {
 
     public static final String IMPLICIT_SCOPES = "implicitScopes";
 
+    public static final String NO_CONSENT_SCOPES = "no consent";
+
     public static final String LONGLIVEDSCOPES = " longlivedScopes";
 
     public static final String ATTRIBUTE_CONSENT_JSP ="/attributeconsent.do";
