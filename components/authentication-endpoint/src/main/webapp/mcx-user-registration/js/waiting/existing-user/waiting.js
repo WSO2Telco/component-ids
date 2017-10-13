@@ -23,7 +23,6 @@ $(document).ready(function(){
 	// The div/container that we are going to display the results in
 	var resultsPlaceholder = document.getElementById('content-placeholder');
 
-	//
 	var operator= qs('operator');
 	var token= qs('sessionDataKey');
 	var sp= qs('sp');
@@ -210,3 +209,4 @@ function otpError(show,msg) {
 	}
 	$("#otperror").text(msg);
 }
+
