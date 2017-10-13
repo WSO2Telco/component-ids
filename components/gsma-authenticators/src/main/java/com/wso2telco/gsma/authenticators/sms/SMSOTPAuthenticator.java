@@ -74,7 +74,7 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
                 variableMap.put("smsotp", otp);
                 String otpmessageText = OutboundMessage.prepare(smsMessage.getClient_id(),
                         OutboundMessage.MessageType.SMS_OTP, variableMap, smsMessage.getOperator());
-                smsMessage.setMessageText(smsMessage.getMessageText() + otpmessageText);
+                smsMessage.setMessageText(otpmessageText + smsMessage.getMessageText());
                 if (log.isDebugEnabled()) {
                     log.debug("OTP Message: " + smsMessage.getMessageText());
                 }
