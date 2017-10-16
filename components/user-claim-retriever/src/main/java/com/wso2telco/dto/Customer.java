@@ -7,7 +7,6 @@ public class Customer {
     private String title;
     private String firstName;
     private String lastName;
-    private String dob;
     private String identificationType;
     private String identificationNumber;
     private String onBehalfOf;
@@ -17,16 +16,17 @@ public class Customer {
     private String status;
     private String requestIdentifier;
     private String responseIdentifier;
-
     private String sub;
     private String updatedAt;
     private String givenName;
     private String familyName;
     private String middleName;
     private String gender;
+    private String birthDate;
     private String streetAddress;
     private String postalCode;
     private String locale;
+    private String country;
     private String phoneNumberAlternate;
     private String email;
     private String emailVerified;
@@ -43,6 +43,8 @@ public class Customer {
     private String isDivertSet;
     private String locationCountry;
     private String deviceChange;
+    private String biilingSegment;
+    private boolean ageVerificationStatus;
 
 
     public String getSub() {
@@ -286,11 +288,11 @@ public class Customer {
     }
 
     public String getDob() {
-        return dob;
+        return birthDate;
     }
 
     public void setDob(String dob) {
-        this.dob = dob;
+        this.birthDate = dob;
     }
 
     public String getIdentificationType() {
@@ -365,4 +367,27 @@ public class Customer {
         this.responseIdentifier = responseIdentifier;
     }
 
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public boolean isAgeVerificationStatus() {
+        return ageVerificationStatus;
+    }
+
+    public void setAgeVerificationStatus(boolean ageVerificationStatus) {
+        this.ageVerificationStatus = ageVerificationStatus;
+    }
+
+    public String getBiilingSegment() {
+        return biilingSegment;
+    }
+
+    public void setBiilingSegment(String biilingSegment) {
+        this.biilingSegment = biilingSegment;
+    }
 }
