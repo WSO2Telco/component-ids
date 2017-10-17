@@ -24,6 +24,7 @@ import com.wso2telco.gsma.authenticators.sms.SMSAuthenticator;
 import com.wso2telco.gsma.authenticators.sms.SMSOTPAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDPinAuthenticator;
+import com.wso2telco.gsma.authenticators.voice.VoiceCallAuthenticator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.felix.scr.annotations.*;
@@ -98,6 +99,8 @@ public class CustomAuthenticatorServiceComponent {
                 new SelfAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new FederatedAuthenticator(), null);
+        ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
+                new VoiceCallAuthenticator(), null);
 
         if (log.isDebugEnabled()) {
             log.debug("Custom Application Authenticator bundle is activated");

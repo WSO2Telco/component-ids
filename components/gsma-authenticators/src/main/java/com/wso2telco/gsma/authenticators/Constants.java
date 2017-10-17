@@ -219,6 +219,15 @@ public final class Constants {
 
     public static final String FEDERATED_AUTHENTICATOR_TRIGGERED = "FATriggered";
 
+    /**
+     * The Constant VOICECALL_AUTHENTICATOR_NAME.
+     */
+    public static final String VOICECALL_AUTHENTICATOR_NAME = "VoiceCallAuthenticator";
+    /**
+     * The Constant VOICECALL_AUTHENTICATOR_FRIENDLY_NAME.
+     */
+    public static final String VOICECALL_AUTHENTICATOR_FRIENDLY_NAME = "voice";
+
 
     public static final String USER_PROFILE_UPDATE_REQUIRED = "userProfileUpdateRequired";
 
