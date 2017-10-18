@@ -13,8 +13,8 @@ public class ValidSoftJsonHelper {
 
     private String isUserActiveRequestJson;
     private String userRegistrationAndAuthenticationJson;
-    private final String UNKNOWN_USER = "UNKNOWN_USER";
-    private final String ACTIVE = "ACTIVE";
+    private static final String UNKNOWN_USER = "UNKNOWN_USER";
+    private static final String ACTIVE = "ACTIVE";
 
     private static Log log = LogFactory.getLog(ValidSoftJsonHelper.class);
 
@@ -25,7 +25,7 @@ public class ValidSoftJsonHelper {
     public void setIsUserActiveRequestJson(String logId , String msisdn ) {
 
         // remove msisdn modifiation line this from when going to prod
-        //msisdn = "0094"+ msisdn.substring(3,12);
+        // Todo : msisdn = "0094"+ msisdn.substring(3,12);
         //
         String jsonTemplate = "{" +
                 "\"serviceData\": {" +
@@ -43,7 +43,7 @@ public class ValidSoftJsonHelper {
     public void setUserRegistrationAndAuthenticationJson(String logId , String msisdn){
 
         // remove msisdn modifiation line this from when going to prod
-       // msisdn = "94"+ msisdn.substring(3,12);
+       // Todo : msisdn = "94"+ msisdn.substring(3,12);
         //
 
         String jsonTemplate = "{"+
@@ -74,14 +74,14 @@ public class ValidSoftJsonHelper {
     public boolean validateisUserEnrolledJsonRespone(JSONObject responseJsonObject){
         try {
             String outCome = responseJsonObject.getString("outcome");
-            log.info("~~~ isUser ACTIVE  ::::: " + outCome);
+            log.info("isUser ACTIVE  in ValidSoft: " + outCome);
             if(outCome.equals(UNKNOWN_USER)){
                 return false;
             }if(outCome.equals(ACTIVE)){
                 return true;
             }
         } catch (JSONException e) {
-            e.printStackTrace();
+            log.error("JSONException occured ", e);
         }
         return false;
     }
