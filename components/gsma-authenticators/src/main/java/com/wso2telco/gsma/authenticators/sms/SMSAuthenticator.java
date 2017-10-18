@@ -272,6 +272,10 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                 //User clicked cancel button from registration
                 terminateAuthentication(context, sessionDataKey);
                 break;
+            case Constants.USER_ACTION_USER_TIMEOUT:
+                //User timeout at login
+                sessionTimeoutAuthenticationHandle(context, sessionDataKey);
+                break;
             }
         }
 
@@ -326,6 +330,25 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         context.setProperty(Constants.IS_TERMINATED, true);
         try {
             DBUtils.updateUserResponse(sessionID, "Rejected");
+        } catch (AuthenticatorException e) {
+            log.error("Welcome SMS sending failed", e);
+        }
+        throw new AuthenticationFailedException("Authenticator is terminated");
+    }
+
+    /**
+     * Terminates the authenticator due to a session timeout
+     *
+     * @param context Authentication Context
+     * @throws AuthenticationFailedException
+     */
+    private void sessionTimeoutAuthenticationHandle(AuthenticationContext context, String sessionID) throws
+            AuthenticationFailedException {
+        log.info("Session Timeout occured");
+        context.setProperty(Constants.USER_ACTION_USER_TIMEOUT, true);
+        try {
+            if (!DBUtils.getAuthFlowStatus(sessionID).equalsIgnoreCase("APPROVED"))
+                DBUtils.updateAuthFlowStatus(sessionID, "EXPIRED");
         } catch (AuthenticatorException e) {
             log.error("Welcome SMS sending failed", e);
         }
