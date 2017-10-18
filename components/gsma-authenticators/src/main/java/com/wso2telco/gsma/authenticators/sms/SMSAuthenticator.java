@@ -303,7 +303,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                             e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (IOException | DataAccessException e) {
-            log.error("Welcome SMS sending failed", e);
+            log.error("Welcome SMS sending failed in processAuthenticationResponse in SMSAuthenticator", e);
         }
         AuthenticationContextHelper.setSubject(context, msisdn);
 
@@ -331,7 +331,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         try {
             DBUtils.updateUserResponse(sessionID, "Rejected");
         } catch (AuthenticatorException e) {
-            log.error("Welcome SMS sending failed", e);
+            log.error("Authentication Exception occurred in terminateAuthentication method in SMSAuthenticator", e);
         }
         throw new AuthenticationFailedException("Authenticator is terminated");
     }
@@ -350,7 +350,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             if (!DBUtils.getAuthFlowStatus(sessionID).equalsIgnoreCase("APPROVED"))
                 DBUtils.updateAuthFlowStatus(sessionID, "EXPIRED");
         } catch (AuthenticatorException e) {
-            log.error("Welcome SMS sending failed", e);
+            log.error("Authentication Exception occurred in sessionTimeoutAuthenticationHandle method in SMSAuthenticator", e);
         }
         throw new AuthenticationFailedException("Authenticator is terminated");
     }
