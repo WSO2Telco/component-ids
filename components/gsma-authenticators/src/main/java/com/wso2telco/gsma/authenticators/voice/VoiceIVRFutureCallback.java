@@ -48,35 +48,28 @@ public class VoiceIVRFutureCallback extends BasicFutureCallback {
             try {
                 json = EntityUtils.toString(response.getEntity());
                 JSONObject jsonObj = new JSONObject(json);
-                log.info("~~~~~~~~~~~~~~~############!!!!!!!!~~~~~~~#########!!!!!!!!!");
                 log.info(json);
-                log.info("~~~~~~~~~~~~~~~############!!!!!!!!~~~~~~~#########!!!!!!!!!");
-                //"outcome":"ERROR"
-                // NOT_AUTHENTICATED
                 String outCome = jsonObj.getString("outcome");
-//                log.info("****************************************************8*****"+outCome);
-//                log.info("****************************************************8*****"+this.msisdn);
-//                log.info("****************************************************8*****"+this.authenticationContext.getContextIdentifier());
-                if(outCome.equals(AUTHENTICATED)){
+         if(outCome.equals(AUTHENTICATED)){
                     DBUtils.insertAuthFlowStatus(this.msisdn, "Approved", this.authenticationContext.getContextIdentifier());
 
                 }else if(outCome.equals(ACTIVE)){
                     DBUtils.insertAuthFlowStatus(this.msisdn, "Approved", this.authenticationContext.getContextIdentifier());
                 }else{
-                    log.info("~~~~~~~~~~No response from Valid soft~~~~~############!!!!!!!!~~~~~~~#########!!!!!!!!!");
+                    log.info("No response from Valid soft");
                 }
 
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("IOException occured ", e);
             } catch (JSONException e) {
-                e.printStackTrace();
+                log.error("JSONException occured ", e);
             } catch (AuthenticatorException e) {
-                e.printStackTrace();
+                log.error("AuthenticatorException occured ", e);
             } catch (SQLException e) {
-                e.printStackTrace();
+                log.error("SQLException occured ", e);
             }
         } else {
-            log.error("~~~~~~~ ~~~~`Failed Request - " + postRequest.getURI().getSchemeSpecificPart());
+            log.error("`Failed Request - " + postRequest.getURI().getSchemeSpecificPart());
         }
         closeClient();
     }

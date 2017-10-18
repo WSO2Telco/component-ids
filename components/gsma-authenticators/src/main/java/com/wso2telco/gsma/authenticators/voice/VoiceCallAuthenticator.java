@@ -5,7 +5,6 @@ import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
 import com.wso2telco.gsma.authenticators.util.UserProfileManager;
 import org.apache.commons.logging.Log;
@@ -16,6 +15,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -50,17 +50,17 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
     private static final String CLIENT_ID = "relyingParty";
     private static final String IS_FLOW_COMPLETED = "isFlowCompleted";
     private static Log log = LogFactory.getLog(VoiceCallAuthenticator.class);
+    private static final String APPLICATION_JSON = "application/json";
 
-    private final String isUserEnrolledUrl = "https://poc.vsservic.es/pwr/isUserActive";
-    private final String verifyUserUrl = "https://poc.vsservic.es/pwr/authenticateUser";
-    private final String onBoardUserUrl = "https://poc.vsservic.es/pwr/onboardUser";
+    private final static String isUserEnrolledUrl = "https://poc.vsservic.es/pwr/isUserActive";
+    private final static String verifyUserUrl = "https://poc.vsservic.es/pwr/authenticateUser";
+    private final static String onBoardUserUrl = "https://poc.vsservic.es/pwr/onboardUser";
 
 
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
 
-        log.info("Yepeeeeeeeeeeeeeeee");
-        //return super.process(request, response, context);
+        log.info("Initiating process from Voice Call Authentication");
 
         super.process(request, response, context);
         if (context.isLogoutRequest()) {
@@ -82,7 +82,7 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
     @Override
     protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context) throws AuthenticationFailedException {
         super.initiateAuthenticationRequest(request, response, context);
-        log.info("#### #### Initiating authentication request from Voice Call Authentication");
+        log.info("Initiating authentication request from Voice Call Authentication");
 
         String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
                 context.getCallerSessionKey(), context.getContextIdentifier());
@@ -108,7 +108,7 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
             verifyAndRegistartionPostData = new StringEntity(validSoftJsonHelper.getUserRegistrationAndAuthenticationJson());
             log.info("Json Object : " + postData);
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            log.error("Error occurred due to UnsupportedEncoding Exception", e);
         }
 
         String url = "/authenticationendpoint/mcx-user-registration/ivr_waiting" + "?" + queryParams + "&redirect_uri=" +
@@ -133,40 +133,33 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
         } catch (IOException e) {
             log.error("Error occurred while redirecting request", e);
         } catch(JSONException je){
-            je.printStackTrace();
+            log.error("Error occurred due to JSON Exception", je);
         } catch(SQLException sqle){
-
+            log.error("Error occurred due to SQL Exception", sqle);
         } catch(AuthenticatorException ae){
-
+            log.error("Error occurred due to AuthenticatorException Exception", ae);
         }
     }
 
     @Override
     protected void processAuthenticationResponse(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationContext authenticationContext) throws AuthenticationFailedException {
-        log.info("Tagaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-        String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(authenticationContext.getQueryParams(),
-                authenticationContext.getCallerSessionKey(), authenticationContext.getContextIdentifier());
-        ApplicationConfig applicationConfig = authenticationContext.getSequenceConfig().getApplicationConfig();
-        Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
+        log.info("Initiating AuthenticationResponse from Voice Call Authenticator");
         String msisdn = (String) authenticationContext.getProperty(MSISDN);
-        String clientId = paramMap.get(CLIENT_ID);
-        String applicationName = applicationConfig.getApplicationName();
-        String sessionKey = authenticationContext.getCallerSessionKey();
 
         boolean isUserExists =false;
         try {
             isUserExists= AdminServiceUtil.isUserExists(msisdn);
         } catch (UserStoreException e) {
-            e.printStackTrace();
+            log.error("Error occurred due to UserStoreException Exception", e);
         }
         if(!isUserExists){
             String operator = (String) authenticationContext.getProperty(Constants.OPERATOR);
             try {
                 new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
             } catch (UserRegistrationAdminServiceIdentityException e) {
-                e.printStackTrace();
+                log.error("Error occurred due to UserRegistrationAdminServiceIdentityException Exception", e);
             } catch (RemoteException e) {
-                e.printStackTrace();
+                log.error("Error occurred due to RemoteException", e);
             }
         }
 
@@ -176,7 +169,7 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
 
     @Override
     public boolean canHandle(HttpServletRequest httpServletRequest) {
-        log.info("Jabaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        log.info("Initiating canHandle from Voice Call Authenticator");
         return true;
     }
 
@@ -196,31 +189,12 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
     }
 
 
-    private boolean checkUserIsEnrolledValidSoftServer(String url, StringEntity postData) throws IOException {
-        HttpClient httpClient = new DefaultHttpClient();
-        HttpPost httpPost = new HttpPost(url);
-        postData.setContentType("application/json");
-        httpPost.setEntity(postData);
-        HttpResponse httpResponse = httpClient.execute(httpPost);
-        log.info("Http code retirned from IsuserEnrolled" + httpResponse.getStatusLine().getStatusCode());
-        if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            log.error("ValidSoft server replied with invalid HTTP status [ " + httpResponse.getStatusLine().getStatusCode()
-                    + "] ");
-            throw new IOException(
-                    "Error occurred while Calling ValidSoft server");
-
-        } else {
-            log.info("ValidSoft server replied with OK HTTP status [ " + httpResponse.getStatusLine().getStatusCode());
-            return true;
-        }
-
-    }
 
     private boolean verifyIsUserActiveFromValidSoftServer(String url, StringEntity postData) throws IOException, JSONException {
-        log.info("~~~~ Calling VlaidSoft to verify User ");
-        HttpClient httpClient = new DefaultHttpClient();
+        log.info("Calling VlaidSoft to verify User ");
+        HttpClient httpClient = HttpClientBuilder.create().build();
         HttpPost httpPost = new HttpPost(url);
-        postData.setContentType("application/json");
+        postData.setContentType(APPLICATION_JSON);
         httpPost.setEntity(postData);
         HttpResponse httpResponse = httpClient.execute(httpPost);
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
@@ -234,7 +208,7 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
             JSONObject jsonObj = new JSONObject(json);
             ValidSoftJsonHelper jsonHeler = new ValidSoftJsonHelper();
             boolean userStatus = jsonHeler.validateisUserEnrolledJsonRespone(jsonObj);
-            log.info("############### ValidSoft server replied with OK HTTP status with Json response " + json + " Status : " + userStatus);
+            log.info("ValidSoft server replied with OK HTTP status with Json response " + json + " Status : " + userStatus);
             return userStatus;
         }
 
@@ -251,9 +225,9 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
             log.error("Malformed URL - " + url, ex);
         }
 
-        postRequest.addHeader("accept", "application/json");
+        postRequest.addHeader("accept", APPLICATION_JSON);
         StringEntity input = requestStr;
-        input.setContentType("application/json");
+        input.setContentType(APPLICATION_JSON);
         postRequest.setEntity(input);
         log.info("Posting data  [ " + requestStr + " ] to url [ " + url + " ]");
         Util.sendAsyncRequest(postRequest, futureCallback);
