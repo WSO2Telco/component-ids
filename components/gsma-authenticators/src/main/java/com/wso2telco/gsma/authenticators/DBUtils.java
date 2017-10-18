@@ -520,12 +520,11 @@ public class DBUtils {
             log.info(ps.toString());
             ps.execute();
 
-            if (connection != null) {
-                connection.close();
-            }
         } catch (SQLException e) {
             handleException("Error occured while updating Timeout Response for SessionDataKey: " + sessionID
                     + " to the database", e);
+        }finally{
+            IdentityDatabaseUtil.closeAllConnections(connection, null, ps);
         }
     }
 
