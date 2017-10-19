@@ -7,7 +7,6 @@
         <relativePath>../../parent/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.wso2telco.premiuminfo</groupId>
     <artifactId>premiuminfo</artifactId>
     <packaging>war</packaging>
     <name>premium info-Webapps</name>

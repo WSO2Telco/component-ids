@@ -26,6 +26,7 @@
 		<module>com.wso2telco.ids.sign.ui.feature</module>
 		<module>com.wso2telco.ids.datapublisher.feature</module>
         <module>com.wso2telco.ids.saaserver.feature</module>
-    </modules>
+		<module>com.wso2telco.ids.premiuminfo.feature</module>
+	</modules>
 
 </project>

@@ -620,7 +620,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     + "&authenticators=" + getName() + ":" + "LOCAL" );*/
 
             response.sendRedirect(response.encodeRedirectURL(loginPage) + "?" + OAuthConstants.SESSION_DATA_KEY + "="
-                    + context.getContextIdentifier() + "&skipConsent=true&scope=" + attributeset.get(Constants.DISPLAY_SCOPES) + "&registering=" + false + "&redirect_uri=" +
+                    + context.getContextIdentifier() + "&skipConsent=true&scope=" + attributeset.get(Constants.DISPLAY_SCOPES) + "&registering=" + attributeset.get(Constants.IS_TNC) + "&redirect_uri=" +
                     request.getParameter("redirect_uri") + "&authenticators=" + getName() + ":" + "LOCAL"  );
 
         } catch (IOException e){
