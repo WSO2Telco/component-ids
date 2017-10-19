@@ -81,7 +81,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
 
-        String[] scopeValues =(scope.toString().substring(1,scope.toString().length()-1)).split(",") ;
+        String[] scopeValues =(scope.substring(1,scope.length()-1)).split(",") ;
 
         StringBuilder params = new StringBuilder("(select param_id from scope_parameter where scope= ?)");
         for (int i = 1; i < scopeValues.length; i++) {
@@ -119,8 +119,10 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
                 spConsentList.add(spConsent);
             }
         } catch (SQLException e) {
+            log.debug("exception occurred while retrieving data");
             throw new SQLException(ERR_MSG,
                     e);
+
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
