@@ -4,14 +4,13 @@ import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.gsma.authenticators.model.SPConsent;
 import com.wso2telco.gsma.authenticators.model.UserConsentDetails;
 import com.wso2telco.gsma.authenticators.model.UserConsentHistory;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import javax.naming.NamingException;
 import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Created by aushani on 7/26/17.
+ * Created on 7/26/17.
  */
 public interface AttributeConfigDAO {
 

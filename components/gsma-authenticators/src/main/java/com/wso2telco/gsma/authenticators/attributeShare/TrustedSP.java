@@ -1,13 +1,10 @@
 package com.wso2telco.gsma.authenticators.attributeShare;
 
 import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.authenticators.util.UserProfileManager;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 
 import javax.naming.NamingException;
-import java.rmi.RemoteException;
 import java.sql.SQLException;
 import java.util.*;
 

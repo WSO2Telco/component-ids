@@ -24,7 +24,6 @@ import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
-import com.wso2telco.gsma.authenticators.util.UserProfileManager;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.lang.StringUtils;
@@ -74,7 +73,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
     private static final String STATUS_PARTIALLY_ACTIVE = "PARTIALLY_ACTIVE";
 
-    private static final int ACR3 = 3;
 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
@@ -293,17 +291,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                             //User rejected to registration consent
                             terminateAuthentication(context);
                             break;
-//                        case Constants.USER_ACTION_UPGRADE_CONSENT:
-//                            //User agreed to registration consent
-//                            break;
-//                        case Constants.USER_ACTION_UPGRADE_REJECTED:
-//                            //User rejected to registration consent
-//                            terminateAuthentication(context);
-//                            break;
                     }
                 } else {
                     boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-
                     if (isRegistering && isShowTnC) {
                         retryAuthenticatorForConsent(context);
                     }
@@ -374,19 +364,22 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 String retryParam = "";
 
                 processAuthenticationResponse(request, response, context);
-                if (isattribute && Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString
-                        ())) {
+                if (isattribute && Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED)
+                        .toString
+                                ())) {
 
                     if (request.getParameter(Constants.MSISDN) != null || context.getProperty(Constants.MSISDN) !=
                             null) {
                         msisdn = ((request.getParameter(Constants.MSISDN) != null) ? request.getParameter(Constants
                                 .MSISDN) : context.getProperty(Constants.MSISDN).toString());
                     }
+
                     if (StringUtils.isNotEmpty(msisdn)) {
                         context.setProperty("msisdn", msisdn);
                         attributeset = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants
                                 .TRUSTED_STATUS).toString()).getAttributeShareDetails(context);
-                        boolean flowStatus = Boolean.valueOf(attributeset.get(Constants.IS_AUNTHENTICATION_CONTINUE));
+                        boolean flowStatus = Boolean.parseBoolean(attributeset.get(Constants
+                                .IS_AUNTHENTICATION_CONTINUE));
                         isDisplayScopes = Boolean.parseBoolean(attributeset.get(Constants.IS_DISPLAYSCOPE).toString());
 
                         if (flowStatus) {
@@ -622,20 +615,13 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                                     AuthenticationContext context, Map<String, String> attributeset, String
                                             retryParam) throws AuthenticationFailedException {
 
-
         String loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
                 Constants.ATTRIBUTE_CONSENT_JSP;
-        String queryParams = FrameworkUtils
-                .getQueryStringWithFrameworkContextId(context.getQueryParams(),
-                        context.getCallerSessionKey(),
-                        context.getContextIdentifier());
-
         try {
-
             response.sendRedirect(response.encodeRedirectURL(loginPage) + "?" + OAuthConstants.SESSION_DATA_KEY + "="
                     + context.getContextIdentifier() + "&skipConsent=true&scope=" + attributeset.get(Constants
                     .DISPLAY_SCOPES) + "&registering=" + attributeset.get(Constants.IS_TNC) + "&redirect_uri=" +
-                    request.getParameter("redirect_uri") + "&authenticators=" + getName() + ":" + "LOCAL");
+                    request.getParameter("redirect_uri") + "&authenticators=" + getName() + ":" + "LOCAL" + retryParam);
 
         } catch (IOException e) {
             throw new AuthenticationFailedException("I/O exception occurred");
