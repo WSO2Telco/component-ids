@@ -146,7 +146,7 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
     protected void processAuthenticationResponse(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationContext authenticationContext) throws AuthenticationFailedException {
         log.info("Initiating AuthenticationResponse from Voice Call Authenticator");
         String msisdn = (String) authenticationContext.getProperty(MSISDN);
-
+        String sessionDataKey = httpServletRequest.getParameter("sessionDataKey");
         boolean isUserExists =false;
         try {
             isUserExists= AdminServiceUtil.isUserExists(msisdn);
@@ -168,8 +168,25 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
                 authenticationContext.getProperty(Constants.MSISDN).toString());
         log.info("FederatedAuthenticator Authentication success");
 
+        String responseStatus = null;
+        try {
+            responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
+        } catch (AuthenticatorException e) {
+            throw new AuthenticationFailedException("USSD Authentication failed while trying to authenticate", e);
+        }
 
+        if (responseStatus != null && responseStatus.equalsIgnoreCase("APPROVED")){
+            authenticationContext.setProperty(IS_FLOW_COMPLETED , true);
+            AuthenticationContextHelper.setSubject(authenticationContext,
+                    authenticationContext.getProperty(Constants.MSISDN).toString());
+            log.info("FederatedAuthenticator Authentication success");
 
+        } else {
+            log.info("Authentication failed. Consent not provided.");
+            authenticationContext.setProperty("faileduser", (String) authenticationContext.getProperty("msisdn"));
+            throw new AuthenticationFailedException("Authentication Failed");
+        }
+        
     }
 
     @Override
