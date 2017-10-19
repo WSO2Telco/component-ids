@@ -277,7 +277,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
     private boolean triggerInitiateAuthRequest(AuthenticationContext context) {
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-        boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
         boolean showTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
 
         return ((context.getProperty(Constants.HE_INITIATE_TRIGGERED) == null || !(Boolean) context.getProperty
@@ -657,13 +656,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
     private void terminateAuthentication(AuthenticationContext context) throws AuthenticationFailedException {
         log.info("User has terminated the authentication flow");
 
-
-       /* if(AuthenticatorEnum.TrustedStatus.FULLY_TRUSTED.toString().equalsIgnoreCase(context.getProperty(Constants.TRUSTED_STATUS).toString())){
-            context.setProperty(Constants.IS_TERMINATED, true);
-        } else {*/
-       // context.setProperty(Constants.IS_TERMINATED, true);
        context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
-       //
         throw new AuthenticationFailedException("Authenticator is terminated");
     }
 

@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by aushani on 8/24/17.
+ *
  */
 public class NormalSP extends AbstractAttributeShare {
 
