@@ -5,6 +5,7 @@ import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
+import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
 import com.wso2telco.gsma.authenticators.util.UserProfileManager;
 import org.apache.commons.logging.Log;
@@ -162,6 +163,10 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
                 log.error("Error occurred due to RemoteException", e);
             }
         }
+        authenticationContext.setProperty(IS_FLOW_COMPLETED , true);
+        AuthenticationContextHelper.setSubject(authenticationContext,
+                authenticationContext.getProperty(Constants.MSISDN).toString());
+        log.info("FederatedAuthenticator Authentication success");
 
 
 
