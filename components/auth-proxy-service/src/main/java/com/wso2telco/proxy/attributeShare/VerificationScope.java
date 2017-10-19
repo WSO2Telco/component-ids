@@ -10,17 +10,17 @@ public class VerificationScope extends AbstractAttributeShare {
 
     @Override
     public void mandatoryFeildValidation() {
-
+         /*this method for do the mandatory field validation in attribute verification*/
     }
 
     @Override
     public void scopeNClaimMatching() {
-
+       /*this method for do the scope and claim value matching in attribute verification*/
     }
 
     @Override
     public void shaAlgortithemValidation() {
-
+        /*this method for do the scope and claim value matching in attribute verification*/
     }
 
     @Override

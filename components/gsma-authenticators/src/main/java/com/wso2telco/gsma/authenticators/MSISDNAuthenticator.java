@@ -181,8 +181,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
             }
 
-            // String loginPage = getAuthEndpointUrl(Boolean.parseBoolean( attributeset.get(Constants
-            // .IS_DISPLAYSCOPE)));
             loginPage = getAuthEndpointUrl(context, isExplicitScope);
 
             if (Boolean.valueOf(attributeset.get(Constants.IS_AUNTHENTICATION_CONTINUE))) {
@@ -633,22 +631,14 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                         context.getContextIdentifier());
 
         try {
-/*
-
-           response.sendRedirect(response.encodeRedirectURL(loginPage)+ "?"+OAuthConstants.SESSION_DATA_KEY + "="
-                    + context.getContextIdentifier() + "&skipConsent=true&scope=" + attributeset.get(Constants
-                    .DISPLAY_SCOPES) + "&registering=" + attributeset.get(Constants.IS_TNC)
-                    + "&redirect_uri=" + request.getParameter("redirect_uri")
-                    + "&authenticators=" + getName() + ":" + "LOCAL" );*/
 
             response.sendRedirect(response.encodeRedirectURL(loginPage) + "?" + OAuthConstants.SESSION_DATA_KEY + "="
                     + context.getContextIdentifier() + "&skipConsent=true&scope=" + attributeset.get(Constants
-                    .DISPLAY_SCOPES) + "&registering=" + false + "&redirect_uri=" +
+                    .DISPLAY_SCOPES) + "&registering=" + attributeset.get(Constants.IS_TNC) + "&redirect_uri=" +
                     request.getParameter("redirect_uri") + "&authenticators=" + getName() + ":" + "LOCAL");
 
         } catch (IOException e) {
             throw new AuthenticationFailedException("I/O exception occurred");
         }
-
     }
 }
