@@ -1,6 +1,9 @@
 package com.wso2telco.gsma.authenticators.voice;
 
 import com.wso2telco.Util;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
@@ -52,10 +55,7 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
     private static final String IS_FLOW_COMPLETED = "isFlowCompleted";
     private static Log log = LogFactory.getLog(VoiceCallAuthenticator.class);
     private static final String APPLICATION_JSON = "application/json";
-
-    private final static String isUserEnrolledUrl = "https://poc.vsservic.es/pwr/isUserActive";
-    private final static String verifyUserUrl = "https://poc.vsservic.es/pwr/authenticateUser";
-    private final static String onBoardUserUrl = "https://poc.vsservic.es/pwr/onboardUser";
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
 
     @Override
@@ -93,6 +93,10 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
         String clientId = paramMap.get(CLIENT_ID);
         String applicationName = applicationConfig.getApplicationName();
         String sessionKey = context.getCallerSessionKey();
+        MobileConnectConfig.VoiceConfig voiceConfig = configurationService.getDataHolder().getMobileConnectConfig().getVoiceConfig();
+        String isUserEnrolledUrl = voiceConfig.getUserStatusCheckEndpoint();
+        String verifyUserUrl = voiceConfig.getUserAuthenticationEndpoint();
+        String onBoardUserUrl = voiceConfig.getUserOnboardEndpoint();
 
         log.info("MSISDN : " + msisdn);
         log.info("Client ID : " + clientId);
