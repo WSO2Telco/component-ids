@@ -36,6 +36,7 @@ import org.wso2.carbon.user.api.UserStoreException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.MediaType;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -54,7 +55,6 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
     private static final String CLIENT_ID = "relyingParty";
     private static final String IS_FLOW_COMPLETED = "isFlowCompleted";
     private static Log log = LogFactory.getLog(VoiceCallAuthenticator.class);
-    private static final String APPLICATION_JSON = "application/json";
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
 
@@ -98,11 +98,6 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
         String verifyUserUrl = voiceConfig.getUserAuthenticationEndpoint();
         String onBoardUserUrl = voiceConfig.getUserOnboardEndpoint();
 
-        log.info("MSISDN : " + msisdn);
-        log.info("Client ID : " + clientId);
-        log.info("Application name : " + applicationName);
-        log.info("sessionKey  : " + sessionKey);
-
         ValidSoftJsonHelper validSoftJsonHelper = new ValidSoftJsonHelper();
         validSoftJsonHelper.setIsUserActiveRequestJson(sessionKey, msisdn);
         validSoftJsonHelper.setUserRegistrationAndAuthenticationJson(sessionKey, msisdn);
@@ -111,16 +106,13 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
         try {
             postData = new StringEntity(validSoftJsonHelper.getIsUserActiveRequestJson());
             verifyAndRegistartionPostData = new StringEntity(validSoftJsonHelper.getUserRegistrationAndAuthenticationJson());
-            log.info("Json Object : " + postData);
-        } catch (UnsupportedEncodingException e) {
-            log.error("Error occurred due to UnsupportedEncoding Exception", e);
-        }
 
-        String url = "/authenticationendpoint/mcx-user-registration/ivr_waiting" + "?" + queryParams + "&redirect_uri=" +
+
+            String url = "/authenticationendpoint/mcx-user-registration/ivr_waiting" + "?" + queryParams + "&redirect_uri=" +
                 (String) context.getProperty("redirectURI") + "&authenticators="
                 + getName() + ":" + "LOCAL" + ""+"&sessionDataKey=" + sessionKey;
 
-        try {
+
             boolean isUserEnrolledInValidSoft = verifyIsUserActiveFromValidSoftServer(isUserEnrolledUrl, postData);
             context.setProperty(IS_FLOW_COMPLETED, false);
             DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
@@ -135,14 +127,21 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
                         futureCallback);
                 response.sendRedirect(url);
             }
+        } catch (UnsupportedEncodingException e) {
+            log.error("Error occurred due to UnsupportedEncoding Exception", e);
+            throw new AuthenticationFailedException ("Error occurred due to UnsupportedEncoding Exception", e);
         } catch (IOException e) {
             log.error("Error occurred while redirecting request", e);
+            throw new AuthenticationFailedException("Error occurred while redirecting request", e);
         } catch(JSONException je){
             log.error("Error occurred due to JSON Exception", je);
+            throw new AuthenticationFailedException("Error occurred due to JSON Exception", je);
         } catch(SQLException sqle){
             log.error("Error occurred due to SQL Exception", sqle);
+            throw new AuthenticationFailedException("Error occurred due to SQL Exception", sqle);
         } catch(AuthenticatorException ae){
             log.error("Error occurred due to AuthenticatorException Exception", ae);
+            throw new AuthenticationFailedException("Error occurred due to AuthenticatorException Exception", ae);
         }
     }
 
@@ -152,29 +151,30 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
         String msisdn = (String) authenticationContext.getProperty(MSISDN);
         String sessionDataKey = httpServletRequest.getParameter("sessionDataKey");
         boolean isUserExists =false;
-        try {
-            isUserExists= AdminServiceUtil.isUserExists(msisdn);
-        } catch (UserStoreException e) {
-            log.error("Error occurred due to UserStoreException Exception", e);
-        }
-        if(!isUserExists){
-            String operator = (String) authenticationContext.getProperty(Constants.OPERATOR);
-            try {
-                new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
-            } catch (UserRegistrationAdminServiceIdentityException e) {
-                log.error("Error occurred due to UserRegistrationAdminServiceIdentityException Exception", e);
-            } catch (RemoteException e) {
-                log.error("Error occurred due to RemoteException", e);
-            }
-        }
-        authenticationContext.setProperty(IS_FLOW_COMPLETED , true);
-        AuthenticationContextHelper.setSubject(authenticationContext,
-                authenticationContext.getProperty(Constants.MSISDN).toString());
-        log.info("FederatedAuthenticator Authentication success");
-
         String responseStatus = null;
         try {
+            isUserExists= AdminServiceUtil.isUserExists(msisdn);
+
+            if(!isUserExists){
+                String operator = (String) authenticationContext.getProperty(Constants.OPERATOR);
+                new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
+            }
+            authenticationContext.setProperty(IS_FLOW_COMPLETED , true);
+            AuthenticationContextHelper.setSubject(authenticationContext,
+                    authenticationContext.getProperty(Constants.MSISDN).toString());
+            log.info("FederatedAuthenticator Authentication success");
             responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
+
+
+        } catch (UserStoreException e) {
+            log.error("Error occurred due to UserStoreException Exception", e);
+            throw new AuthenticationFailedException("Error occurred due to UserStoreException Exception", e);
+        } catch (UserRegistrationAdminServiceIdentityException e) {
+            log.error("Error occurred due to UserRegistrationAdminServiceIdentityException Exception", e);
+            throw new AuthenticationFailedException("Error occurred due to UserRegistrationAdminServiceIdentityException Exception", e);
+        } catch (RemoteException e) {
+            log.error("Error occurred due to RemoteException", e);
+            throw new AuthenticationFailedException("Error occurred due to RemoteException", e);
         } catch (AuthenticatorException e) {
             throw new AuthenticationFailedException("USSD Authentication failed while trying to authenticate", e);
         }
@@ -220,7 +220,7 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
         log.info("Calling VlaidSoft to verify User ");
         HttpClient httpClient = HttpClientBuilder.create().build();
         HttpPost httpPost = new HttpPost(url);
-        postData.setContentType(APPLICATION_JSON);
+        postData.setContentType(MediaType.APPLICATION_JSON);
         httpPost.setEntity(postData);
         HttpResponse httpResponse = httpClient.execute(httpPost);
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
@@ -251,9 +251,9 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
             log.error("Malformed URL - " + url, ex);
         }
 
-        postRequest.addHeader("accept", APPLICATION_JSON);
+        postRequest.addHeader("accept", MediaType.APPLICATION_JSON);
         StringEntity input = requestStr;
-        input.setContentType(APPLICATION_JSON);
+        input.setContentType(MediaType.APPLICATION_JSON);
         postRequest.setEntity(input);
         log.info("Posting data  [ " + requestStr + " ] to url [ " + url + " ]");
         Util.sendAsyncRequest(postRequest, futureCallback,true);
