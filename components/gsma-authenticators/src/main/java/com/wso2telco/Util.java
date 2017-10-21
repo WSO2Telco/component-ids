@@ -37,35 +37,61 @@ public class Util {
      * @param futureCallback Call back function
      * @throws java.io.IOException io exceptionDBUtils
      */
-    public static void sendAsyncRequest(final HttpPost postRequest, BasicFutureCallback futureCallback)
+    public static void sendAsyncRequest(final HttpPost postRequest, BasicFutureCallback futureCallback, boolean async)
             throws IOException {
 
         int socketTimeout = 60000;
         int connectTimeout = 60000;
         int connectionRequestTimeout = 30000;
 
-        try {
-            MobileConnectConfig.TimeoutConfig timeoutConfig = configurationService.getDataHolder()
-                    .getMobileConnectConfig().getUssdConfig().getTimeoutConfig();
-            socketTimeout = timeoutConfig.getSocketTimeout() * 1000;
-            connectTimeout = timeoutConfig.getConnectionTimeout() * 1000;
-            connectionRequestTimeout = timeoutConfig.getConnectionRequestTimeout() * 1000;
+        if(async) {
+            try {
+                MobileConnectConfig.TimeoutConfig timeoutConfig = configurationService.getDataHolder()
+                        .getMobileConnectConfig().getUssdConfig().getTimeoutConfig();
+                socketTimeout = timeoutConfig.getSocketTimeout() * 1000;
+                connectTimeout = timeoutConfig.getConnectionTimeout() * 1000;
+                connectionRequestTimeout = timeoutConfig.getConnectionRequestTimeout() * 1000;
 
-        } catch (Exception e) {
+            } catch (Exception e) {
 
-            log.debug("Error in reading TimeoutConfig:using default timeouts:"
-                    + e);
+                log.debug("Error in reading TimeoutConfig:using default timeouts:"
+                        + e);
+            }
+
+            RequestConfig requestConfig = RequestConfig.custom()
+                    .setSocketTimeout(socketTimeout).setConnectTimeout(connectTimeout)
+                    .setConnectionRequestTimeout(connectionRequestTimeout).build();
+
+            CloseableHttpAsyncClient client = HttpAsyncClients.custom().setDefaultRequestConfig(requestConfig).build();
+            futureCallback.setClient(client);
+            client.start();
+            client.execute(postRequest, futureCallback);
+
+        } else {
+            CloseableHttpClient client=null;
+            try {
+                MobileConnectConfig.TimeoutConfig timeoutConfig = configurationService.getDataHolder()
+                        .getMobileConnectConfig().getUssdConfig().getTimeoutConfig();
+                socketTimeout = timeoutConfig.getSocketTimeout() * 1000;
+                connectTimeout = timeoutConfig.getConnectionTimeout() * 1000;
+                connectionRequestTimeout = timeoutConfig.getConnectionRequestTimeout() * 1000;
+
+                client = HttpClients.createDefault();
+                CloseableHttpResponse response = client.execute(postRequest);
+
+            } catch (Exception e) {
+
+                log.debug("Error in reading TimeoutConfig:using default timeouts:"
+                        + e);
+            }finally {
+                try{
+                    client.close();
+                }catch (Exception e){
+
+                }
+            }
+
         }
-
-        RequestConfig requestConfig = RequestConfig.custom()
-                .setSocketTimeout(socketTimeout).setConnectTimeout(connectTimeout)
-                .setConnectionRequestTimeout(connectionRequestTimeout).build();
-
-        CloseableHttpAsyncClient client = HttpAsyncClients.custom()
-                .setDefaultRequestConfig(requestConfig).build();
-        futureCallback.setClient(client);
-        client.start();
-        client.execute(postRequest, futureCallback);
     }
 
     /**

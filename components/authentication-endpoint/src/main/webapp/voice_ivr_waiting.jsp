@@ -11,7 +11,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
 
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="stylesheet" href="mcresources/css/style.css">
+  <link rel="stylesheet" href="../css/style.css">
 
 
   <!-- load main script early asyncronously -->
@@ -73,29 +73,34 @@
 
       <body class="theme--light">
         <div class="site__root">
-          <header class="site-header">
-            <div class="site-header__inner site__wrap">
-              <h1 class="visuallyhidden">Mobile&nbsp;Connect</h1>
-              <a href="/"><img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo"></a>
-
-              <% if(operator != ""){
-              String imgPath = "img/branding/" + operator + "_logo.svg";
-              %>
-              <p class="site-header__powered-by">powered&nbsp;by
-              </p>
-              <a >
-                <img class="brandLogo" src='<%= imgPath %>' alt='<%= operator %>' >
-              </a>
-              <% } %>
-
-
-      </div>
-    </header>
+            <header class="site-header">
+                <div class="site-header__inner site__wrap">
+                    <h1 class="visuallyhidden">Mobile Connect</h1>
+                    <div align="center">
+                        <table class="site-header-brand-table" style="margin-bottom:0px;">
+                            <tbody><tr>
+                                <td width="30%">
+                                    <a class="brand">
+                                        <img src="../images/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo">
+                                    </a>
+                                </td>
+                                <td width="70%">
+                                    <% if (!operator.isEmpty()) {
+                                        String imgPath = "../images/branding/" + operator + "_logo.png";
+                                    %>
+                                    <img src='<%=imgPath%>' alt="Operator" class="brandLogo" style="float:right;">
+                                    <% } %>
+                                </td>
+                            </tr>
+                            </tbody></table>
+                    </div>
+                </div>
+            </header>
 
     <main class="site__main site__wrap section v-distribute">
       <header class="page__header">
         <h1 class="page__heading">
-            <fmt:message key='waiting-label-continue-on-device-heading'/>
+            <fmt:message key='waiting-label-continue-on-ivr-device-heading'/>
         </h1>
         <!--div id="instruction_USSDAuthenticator">
          <p><strong>Reply with 1 to continue with your Registration.</strong></p>
@@ -118,8 +123,11 @@
       </div>
     </div>
     <a onclick="cancelProcessToRegister(true)" class="btn btn--outline btn--full btn--large">
-      Cancel
+        <fmt:message key='common-button-misc-cancel'/>
     </a>
+    <div>
+        <p class="page-footer-message"><fmt:message key='waiting-label-continue-on-device-success-before-timeout-phase1'/><br><fmt:message key='waiting-label-continue-on-device-success-before-timeout-phase2'/></p>
+    </div>
   </main>
 </div>
 

@@ -100,7 +100,7 @@ public abstract class UssdCommand {
         if (log.isDebugEnabled()) {
             log.debug("Posting data  [ " + requestStr + " ] to url [ " + url + " ]");
         }
-        Util.sendAsyncRequest(postRequest, futureCallback);
+        Util.sendAsyncRequest(postRequest, futureCallback,true);
     }
 
     /**

@@ -1,4 +1,4 @@
-var timeout = 1200000;
+var timeout = 120000;
 var pollingInterval = 2000;
 var timeRemaining = timeout;
 var hasResponse = false;
