@@ -52,7 +52,7 @@ public class ValidSoftJsonHelper {
                 "\"loggingId\": \""+logId+"\"" +
                 "}," +
                 "\"userData\": {" +
-                "\"identifier\": \"wso2Telco\"," +
+                "\"identifier\": \""+msisdn+"\"," +
                 "\"contact\": [" +
                 "{" +
                 "\"type\": \"Mobile\"," +
