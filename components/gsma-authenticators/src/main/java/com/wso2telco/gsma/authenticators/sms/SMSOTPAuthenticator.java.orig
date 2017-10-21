@@ -15,16 +15,6 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.sms;
 
-import java.util.HashMap;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
-
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
@@ -34,6 +24,14 @@ import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
 import com.wso2telco.gsma.authenticators.util.OutboundMessage;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
 
 // TODO: Auto-generated Javadoc
 
@@ -47,7 +45,12 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
      */
     private static final long serialVersionUID = 1189332409518227376L;
 
+<<<<<<< 178ea5b3f1545410d5529db6a9151c1e955e748f
     private static Log log = LogFactory.getLog(SMSOTPAuthenticator.class);
+=======
+    private Log log = LogFactory.getLog(SMSOTPAuthenticator.class);
+
+>>>>>>> IVR testing fixes
     /*
      * (non-Javadoc)
      * 
@@ -70,7 +73,11 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
                 MobileConnectConfig.SMSConfig smsConfig = connectConfig.getSmsConfig();
                 int otpLength = smsConfig.getOTPLength();
                 String otp = Utility.genarateOTP(otpLength);
+<<<<<<< 178ea5b3f1545410d5529db6a9151c1e955e748f
                 // TODO: uncomment when load test String otp =smsMessage.getMsisdn().substring(smsMessage.getMsisdn().length()-smsConfig.getOTPLength());
+=======
+                //String otp =smsMessage.getMsisdn().substring(smsMessage.getMsisdn().length()-smsConfig.getOTPLength());
+>>>>>>> IVR testing fixes
                 String hashedotp = Utility.generateSHA256Hash(otp);
                 String sessionDataKey = context.getContextIdentifier();
                 DBUtils.insertOTPForSMS(sessionDataKey, hashedotp, UserResponse.PENDING.name());
@@ -80,7 +87,11 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
                 String otpmessageText = OutboundMessage.prepare(smsMessage.getClient_id(),
                         OutboundMessage.MessageType.SMS_OTP, variableMap, smsMessage.getOperator());
                 smsMessage.setMessageText(otpmessageText + smsMessage.getMessageText());
+<<<<<<< 178ea5b3f1545410d5529db6a9151c1e955e748f
                 if (log.isDebugEnabled()) {
+=======
+               if (log.isDebugEnabled()) {
+>>>>>>> IVR testing fixes
                     log.debug("OTP Message: " + smsMessage.getMessageText());
                 }
                 log.info("OTP Message: " + smsMessage.getMessageText());

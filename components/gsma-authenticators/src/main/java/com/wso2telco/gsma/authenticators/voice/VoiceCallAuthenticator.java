@@ -248,7 +248,7 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
         input.setContentType(APPLICATION_JSON);
         postRequest.setEntity(input);
         log.info("Posting data  [ " + requestStr + " ] to url [ " + url + " ]");
-        Util.sendAsyncRequest(postRequest, futureCallback);
+        Util.sendAsyncRequest(postRequest, futureCallback,true);
     }
 
 
