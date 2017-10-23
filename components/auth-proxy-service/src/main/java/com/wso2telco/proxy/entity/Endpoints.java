@@ -15,49 +15,8 @@
  ******************************************************************************/
 package com.wso2telco.proxy.entity;
 
-import java.io.FileNotFoundException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.rmi.RemoteException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.UUID;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.naming.ConfigurationException;
-import javax.naming.NamingException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriInfo;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminService;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceException;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceStub;
-import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceUserRegistrationException;
-import org.wso2.carbon.identity.user.registration.stub.dto.UserDTO;
-import org.wso2.carbon.identity.user.registration.stub.dto.UserFieldDTO;
-
 import com.google.gdata.util.common.util.Base64DecoderException;
+import com.google.gson.Gson;
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.wso2telco.core.config.model.LoginHintFormatDetails;
 import com.wso2telco.core.config.model.MobileConnectConfig;
@@ -66,10 +25,8 @@ import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.pcrservice.exception.PCRException;
 import com.wso2telco.core.spprovisionservice.sp.entity.AdminServiceConfig;
-import com.wso2telco.core.spprovisionservice.sp.entity.AdminServiceDto;
 import com.wso2telco.core.spprovisionservice.sp.entity.ProvisionType;
 import com.wso2telco.core.spprovisionservice.sp.entity.ServiceProviderDto;
-import com.wso2telco.core.spprovisionservice.sp.entity.SpProvisionConfig;
 import com.wso2telco.core.spprovisionservice.sp.entity.SpProvisionDto;
 import com.wso2telco.core.spprovisionservice.sp.exception.SpProvisionServiceException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
@@ -77,6 +34,7 @@ import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.openidtokenbuilder.MIFEOpenIDTokenBuilder;
 import com.wso2telco.proxy.MSISDNDecryption;
 import com.wso2telco.proxy.model.AuthenticatorException;
+import com.wso2telco.proxy.model.IntrospectResponse;
 import com.wso2telco.proxy.model.MSISDNHeader;
 import com.wso2telco.proxy.model.RedirectUrlInfo;
 import com.wso2telco.proxy.util.AuthProxyConstants;
@@ -88,9 +46,18 @@ import com.wso2telco.sp.discovery.service.impl.DiscoveryServiceImpl;
 import com.wso2telco.sp.provision.service.ProvisioningService;
 import com.wso2telco.sp.provision.service.impl.ProvisioningServiceImpl;
 import com.wso2telco.sp.util.TransformUtil;
+import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.user.registration.stub.*;
 import org.wso2.carbon.identity.user.registration.stub.dto.UserDTO;
@@ -103,15 +70,11 @@ import javax.naming.ConfigurationException;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
 import java.io.FileNotFoundException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.rmi.RemoteException;
 import java.security.InvalidKeyException;
@@ -926,6 +889,49 @@ public class Endpoints {
         userDTO.setUserFields(userFieldDTOs);
         userDTO.setUserName(username);
         userRegistrationAdminService.addUser(userDTO);
+    }
+
+    @POST
+    @Path("/introspect")
+    @Consumes("application/x-www-form-urlencoded")
+    @Produces("application/json")
+    public Response getIntrospection(@Context UriInfo uriInfo,@FormParam("token") String token,@FormParam("token_type_hint") String token_type_hint) throws  Exception {
+        log.info("Request processing started for introspection");
+        URI uri = uriInfo.getBaseUri();
+        CloseableHttpClient httpclient=null;
+        CloseableHttpResponse response=null;
+        try {
+            //// TODO: 10/8/17 check token not null
+            URIBuilder uriBuilder=new URIBuilder(uri) ;
+            uriBuilder.setPath("oauth2/introspect");
+            uri=uriBuilder.build();
+            log.info(uri.toString());
+            httpclient= HttpClients.createDefault();
+            HttpPost httpPost = new HttpPost(uri);
+            httpPost.addHeader("accept", "application/x-www-form-urlencoded");
+            String authorizationPassword=mobileConnectConfigs.getAdminUsername()+":"+mobileConnectConfigs.getAdminPassword();
+            String authStringEnc = new String(Base64.getEncoder().encode(authorizationPassword.getBytes()));
+            httpPost.addHeader("Authorization", "Basic " +authStringEnc);
+            List<BasicNameValuePair> arguments = new ArrayList<>(1);
+            arguments.add(new BasicNameValuePair("token", token));
+            httpPost.setEntity(new UrlEncodedFormEntity(arguments));
+            response = httpclient.execute(httpPost);
+            // CONVERT RESPONSE TO STRING
+            String result = EntityUtils.toString(response.getEntity());
+            Gson gson = new Gson();
+            IntrospectResponse wso2Response=gson.fromJson(result,IntrospectResponse.class);
+            if(wso2Response.isActive()){
+
+            }else{
+
+            }
+        } catch(Exception e){
+
+        }finally {
+            httpclient.close();
+            response.close();
+        }
+        return null;
     }
 }
 
