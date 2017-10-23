@@ -18,7 +18,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jettison.json.JSONException;
@@ -26,7 +25,6 @@ import org.codehaus.jettison.json.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
-import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
@@ -43,7 +41,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.rmi.RemoteException;
 import java.sql.SQLException;
-import java.util.Map;
 
 /**
  * Created by sheshan on 4/26/17.
@@ -52,7 +49,6 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator {
 
     private static final String MSISDN = "msisdn";
-    private static final String CLIENT_ID = "relyingParty";
     private static final String IS_FLOW_COMPLETED = "isFlowCompleted";
     private static Log log = LogFactory.getLog(VoiceCallAuthenticator.class);
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
@@ -87,11 +83,7 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
 
         String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
                 context.getCallerSessionKey(), context.getContextIdentifier());
-        ApplicationConfig applicationConfig = context.getSequenceConfig().getApplicationConfig();
-        Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
         String msisdn = (String) context.getProperty(MSISDN);
-        String clientId = paramMap.get(CLIENT_ID);
-        String applicationName = applicationConfig.getApplicationName();
         String sessionKey = context.getCallerSessionKey();
         MobileConnectConfig.VoiceConfig voiceConfig = configurationService.getDataHolder().getMobileConnectConfig().getVoiceConfig();
         String isUserEnrolledUrl = voiceConfig.getUserStatusCheckEndpoint();

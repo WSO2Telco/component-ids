@@ -27,16 +27,24 @@ public class ValidSoftJsonHelper {
         // remove msisdn modifiation line this from when going to prod
         // Todo : msisdn = "0094"+ msisdn.substring(3,12);
         //
-        String jsonTemplate = "{" +
-                "\"serviceData\": {" +
-                "\"serviceId\": \"PasswordResetBiometric\"," +
-                "\"loggingId\": \""+logId+"\"" +
-                "}," +
-                "\"userData\": {" +
-                "\"identifier\": \""+msisdn+"\"" +
-                "}" +
-                "}";
-        log.info("isUserActiveRequest Json ::::: " + jsonTemplate);
+        StringBuilder payloadBuilder = new StringBuilder();
+        payloadBuilder.append("{");
+        payloadBuilder.append("\"serviceData\": {");
+        payloadBuilder.append("\"serviceId\": \"PasswordResetBiometric\",");
+        payloadBuilder.append("\"loggingId\": \"");
+        payloadBuilder.append(logId);
+        payloadBuilder.append("\"");
+        payloadBuilder.append("},");
+        payloadBuilder.append("\"userData\": {");
+        payloadBuilder.append("\"identifier\": \"");
+        payloadBuilder.append(msisdn);
+        payloadBuilder.append("\"");
+        payloadBuilder.append("}");
+        payloadBuilder.append("}");
+
+        String jsonTemplate = payloadBuilder.toString();
+
+        log.debug("isUserActiveRequest Json ::::: " + jsonTemplate);
         this.isUserActiveRequestJson = jsonTemplate;
     }
 
@@ -62,7 +70,7 @@ public class ValidSoftJsonHelper {
                 "]" +
                 "}" +
                 "}";
-        log.info("UserRegistrationAndAuthenticationJson Json ::::: " + jsonTemplate);
+        log.debug("UserRegistrationAndAuthenticationJson Json ::::: " + jsonTemplate);
         this.userRegistrationAndAuthenticationJson = jsonTemplate;
     }
 
