@@ -54,22 +54,32 @@ public class ValidSoftJsonHelper {
        // Todo : msisdn = "94"+ msisdn.substring(3,12);
         //
 
-        String jsonTemplate = "{"+
-                "\"serviceData\": {" +
-                "\"serviceId\": \"PasswordResetBiometric\"," +
-                "\"loggingId\": \""+logId+"\"" +
-                "}," +
-                "\"userData\": {" +
-                "\"identifier\": \""+msisdn+"\"," +
-                "\"contact\": [" +
-                "{" +
-                "\"type\": \"Mobile\"," +
-                "\"label\": \"Work\"," +
-                "\"address\": \""+msisdn+"\"" +
-                "}" +
-                "]" +
-                "}" +
-                "}";
+        StringBuilder payloadBuilder = new StringBuilder();
+        payloadBuilder.append("{");
+        payloadBuilder.append("\"serviceData\": {");
+        payloadBuilder.append("\"serviceId\": \"PasswordResetBiometric\",");
+        payloadBuilder.append("\"loggingId\": \"");
+        payloadBuilder.append(logId);
+        payloadBuilder.append("\"");
+        payloadBuilder.append("},");
+        payloadBuilder.append("\"userData\": {");
+        payloadBuilder.append("\"identifier\": \"");
+        payloadBuilder.append(msisdn);
+        payloadBuilder.append("\",");
+        payloadBuilder.append("\"contact\": [");
+        payloadBuilder.append("{");
+        payloadBuilder.append("\"type\": \"Mobile\",");
+        payloadBuilder.append("\"label\": \"Work\",");
+        payloadBuilder.append("\"address\": \"");
+        payloadBuilder.append(msisdn);
+        payloadBuilder.append("\"");
+        payloadBuilder.append("}");
+        payloadBuilder.append("]");
+        payloadBuilder.append("}");
+        payloadBuilder.append("}");
+
+        String jsonTemplate = payloadBuilder.toString();
+
         log.debug("UserRegistrationAndAuthenticationJson Json ::::: " + jsonTemplate);
         this.userRegistrationAndAuthenticationJson = jsonTemplate;
     }
