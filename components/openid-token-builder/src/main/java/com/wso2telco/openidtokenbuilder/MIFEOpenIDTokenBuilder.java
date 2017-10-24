@@ -472,8 +472,6 @@ public class MIFEOpenIDTokenBuilder implements
             oAuthAppDO = new OAuthAppDAO().getAppInformation(tokenReqDTO.getClientId());
             appInfoCache.addToCache(tokenReqDTO.getClientId(), oAuthAppDO);
         }
-            //appInfoCache.addToCache(tokenReqDTO.getClientId(), oAuthAppDO);
-
         return oAuthAppDO;
         
     }
