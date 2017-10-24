@@ -32,6 +32,7 @@ import com.wso2telco.gsma.authenticators.util.*;
 import com.wso2telco.gsma.shorten.SelectShortUrl;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hashids.Hashids;
@@ -69,7 +70,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
     /**
      * The log.
      */
-    protected Log log = LogFactory.getLog(this.getClass());
+    private static Log log = LogFactory.getLog(SMSAuthenticator.class);
 
     /**
      * The Configuration service

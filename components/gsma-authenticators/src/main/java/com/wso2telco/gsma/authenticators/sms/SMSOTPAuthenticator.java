@@ -20,6 +20,8 @@ import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
@@ -44,6 +46,8 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
      * The Constant serialVersionUID.
      */
     private static final long serialVersionUID = 1189332409518227376L;
+
+    private static Log log = LogFactory.getLog(SMSOTPAuthenticator.class);
     /*
      * (non-Javadoc)
      * 
@@ -65,11 +69,11 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
                 MobileConnectConfig.SMSConfig smsConfig = connectConfig.getSmsConfig();
                 int otpLength = smsConfig.getOTPLength();
                 String otp = Utility.genarateOTP(otpLength);
-                //String otp =smsMessage.getMsisdn().substring(smsMessage.getMsisdn().length()-smsConfig.getOTPLength());
+                // TODO: uncomment when load test String otp =smsMessage.getMsisdn().substring(smsMessage.getMsisdn().length()-smsConfig.getOTPLength());
                 String hashedotp = Utility.generateSHA256Hash(otp);
                 String sessionDataKey = context.getContextIdentifier();
                 DBUtils.insertOTPForSMS(sessionDataKey, hashedotp, UserResponse.PENDING.name());
-                // prepare the USSD message from template
+
                 HashMap<String, String> variableMap = new HashMap<String, String>();
                 variableMap.put("smsotp", otp);
                 String otpmessageText = OutboundMessage.prepare(smsMessage.getClient_id(),
