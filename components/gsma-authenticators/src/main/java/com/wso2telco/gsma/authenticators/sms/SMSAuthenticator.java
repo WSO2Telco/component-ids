@@ -70,8 +70,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
     /**
      * The log.
      */
-
-    private Log log = LogFactory.getLog(SMSAuthenticator.class);
+    private static Log log = LogFactory.getLog(SMSAuthenticator.class);
 
     /**
      * The Configuration service
