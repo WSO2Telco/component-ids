@@ -272,6 +272,10 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                 //User clicked cancel button from registration
                 terminateAuthentication(context, sessionDataKey);
                 break;
+            case Constants.USER_ACTION_USER_TIMEOUT:
+                //User timeout at login
+                sessionTimeoutAuthenticationHandle(context, sessionDataKey);
+                break;
             }
         }
 
@@ -299,7 +303,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                             e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(), e);
         } catch (IOException | DataAccessException e) {
-            log.error("Welcome SMS sending failed", e);
+            log.error("Welcome SMS sending failed in processAuthenticationResponse in SMSAuthenticator", e);
         }
         AuthenticationContextHelper.setSubject(context, msisdn);
 
@@ -327,7 +331,26 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         try {
             DBUtils.updateUserResponse(sessionID, "Rejected");
         } catch (AuthenticatorException e) {
-            log.error("Welcome SMS sending failed", e);
+            log.error("Authentication Exception occurred in terminateAuthentication method in SMSAuthenticator", e);
+        }
+        throw new AuthenticationFailedException("Authenticator is terminated");
+    }
+
+    /**
+     * Terminates the authenticator due to a session timeout
+     *
+     * @param context Authentication Context
+     * @throws AuthenticationFailedException
+     */
+    private void sessionTimeoutAuthenticationHandle(AuthenticationContext context, String sessionID) throws
+            AuthenticationFailedException {
+        log.info("Session Timeout occured");
+        context.setProperty(Constants.USER_ACTION_USER_TIMEOUT, true);
+        try {
+            if (!DBUtils.getAuthFlowStatus(sessionID).equalsIgnoreCase("APPROVED"))
+                DBUtils.updateAuthFlowStatus(sessionID, "EXPIRED");
+        } catch (AuthenticatorException e) {
+            log.error("Authentication Exception occurred in sessionTimeoutAuthenticationHandle method in SMSAuthenticator", e);
         }
         throw new AuthenticationFailedException("Authenticator is terminated");
     }

@@ -412,7 +412,7 @@ public final class Constants {
 
     public static final String USER_ACTION_USER_CANCELED = "userCanceled";
 
-    public static final String USER_ACTION_USER_TIMEOUT = "userTimeout";
+    public static final String USER_ACTION_USER_TIMEOUT = "userRespondedOrTimeout";
 
     public static final String SCOPE = "scope";
 
