@@ -15,6 +15,7 @@ public class ValidSoftJsonHelper {
     private String userRegistrationAndAuthenticationJson;
     private static final String UNKNOWN_USER = "UNKNOWN_USER";
     private static final String ACTIVE = "ACTIVE";
+    private final String OUTCOME = "outcome";
 
     private static Log log = LogFactory.getLog(ValidSoftJsonHelper.class);
 
@@ -89,18 +90,18 @@ public class ValidSoftJsonHelper {
     }
 
 
-    public boolean validateisUserEnrolledJsonRespone(JSONObject responseJsonObject){
+    public boolean validateisUserEnrolledJsonRespone(JSONObject responseJsonObject) throws JSONException{
+        boolean isUserActive = false;
         try {
-            String outCome = responseJsonObject.getString("outcome");
-            log.info("isUser ACTIVE  in ValidSoft: " + outCome);
-            if(outCome.equals(UNKNOWN_USER)){
-                return false;
-            }if(outCome.equals(ACTIVE)){
-                return true;
+            String outCome = responseJsonObject.getString(OUTCOME);
+            log.debug("isUser ACTIVE  in ValidSoft: " + outCome);
+            if(outCome.equals(ACTIVE)){
+                isUserActive = true;
             }
         } catch (JSONException e) {
             log.error("JSONException occured ", e);
+            throw e;
         }
-        return false;
+        return isUserActive;
     }
 }
