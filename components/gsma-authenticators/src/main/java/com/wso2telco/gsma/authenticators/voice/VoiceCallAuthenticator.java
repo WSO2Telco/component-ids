@@ -25,6 +25,7 @@ import org.codehaus.jettison.json.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
@@ -96,13 +97,16 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
         StringEntity postData = null;
         StringEntity verifyAndRegistartionPostData = null;
         try {
+            String loginPage = getAuthEndpointUrl(context);
+
             postData = new StringEntity(validSoftJsonHelper.getIsUserActiveRequestJson());
             verifyAndRegistartionPostData = new StringEntity(validSoftJsonHelper.getUserRegistrationAndAuthenticationJson());
 
 
-            String url = "/authenticationendpoint/mcx-user-registration/ivr_waiting" + "?" + queryParams + "&redirect_uri=" +
-                (String) context.getProperty("redirectURI") + "&authenticators="
-                + getName() + ":" + "LOCAL" + ""+"&sessionDataKey=" + sessionKey;
+            String redirectUrl = response.encodeRedirectURL(loginPage + ("?" + queryParams))
+                    + "&redirect_uri=" + context.getProperty("redirectURI")
+                    + "&authenticators=" + getName() + ":" + "LOCAL" + "&sessionDataKey=" +
+                    context.getContextIdentifier();
 
 
             boolean isUserEnrolledInValidSoft = verifyIsUserActiveFromValidSoftServer(isUserEnrolledUrl, postData);
@@ -112,12 +116,12 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
                 VoiceIVRFutureCallback futureCallback = new VoiceIVRFutureCallback(context,msisdn);
                 postRequest(verifyUserUrl, verifyAndRegistartionPostData ,
                         futureCallback);
-                response.sendRedirect(url);
+                response.sendRedirect(redirectUrl);
             } else {
                 VoiceIVRFutureCallback futureCallback = new VoiceIVRFutureCallback(context,msisdn);
                 postRequest(onBoardUserUrl, verifyAndRegistartionPostData ,
                         futureCallback);
-                response.sendRedirect(url);
+                response.sendRedirect(redirectUrl);
             }
         } catch (UnsupportedEncodingException e) {
             log.error("Error occurred due to UnsupportedEncoding Exception", e);
@@ -251,7 +255,13 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
         Util.sendAsyncRequest(postRequest, futureCallback,true);
     }
 
+    private String getAuthEndpointUrl(AuthenticationContext context) {
+        String loginPage;
 
+        loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
+
+        return loginPage;
+    }
 
 
 }
