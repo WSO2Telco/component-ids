@@ -194,7 +194,7 @@
                 <fmt:message key="common-label-security-terms-policy" var="terms" />
                 <%
                 String terms=pageContext.getAttribute("terms").toString();
-                String linked_terms = String.format(terms, "<a href='/authenticationendpoint/terms_and_conditions' target='_blank'>","</a>");
+                String linked_terms = String.format(terms, "<a href='/authenticationendpoint/mcx-user-registration/tc_and_pp/"+ operator +"_tc_and_pp.html' target='_blank'>","</a>");
                 %>
                 <p style="font-size:13px; margin:0px; padding:0px;" align="center"><%=linked_terms%></p>
 
@@ -204,7 +204,7 @@
                 String privacy=pageContext.getAttribute("privacy").toString();
                 String mc_linked_privacy = String.format(privacy, "<a href='/authenticationendpoint/privacy_promise' target='_blank'>","</a>");             
                 String policy=pageContext.getAttribute("policy").toString();
-                String linked_statement=String.format(mc_linked_privacy.replace(policy,"%s"+policy+"%s"),"<a href='/authenticationendpoint/privacy_policy' target='_blank'>","</a>");
+                String linked_statement=String.format(mc_linked_privacy.replace(policy,"%s"+policy+"%s"),"<a href='/authenticationendpoint/mcx-user-registration/tc_and_pp/"+ operator +"_tc_and_pp.html' target='_blank'>","</a>");
                 %>
                 <p style="font-size:13px;margin-top:5px;" align="center"><%=linked_statement%></p>
             </div>
