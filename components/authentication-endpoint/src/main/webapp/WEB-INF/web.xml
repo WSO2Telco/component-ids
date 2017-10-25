@@ -289,7 +289,7 @@
 
     <servlet-mapping>
         <servlet-name>sms_auth</servlet-name>
-        <url-pattern>/sms</url-pattern>
+        <url-pattern>/sms/*</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
