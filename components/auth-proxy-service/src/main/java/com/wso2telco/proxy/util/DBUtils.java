@@ -374,7 +374,7 @@ public class DBUtils {
         }
 
         String queryToGetOperatorProperty =
-                "select count(*) from " +
+                "select count(*) as record_count from " +
                     "( select client_id,config_key,config_value " +
                         "FROM `sp_configuration` " +
                         "WHERE `client_id`=? AND `config_key`=? AND  `config_value` in (" + params + ") " +
