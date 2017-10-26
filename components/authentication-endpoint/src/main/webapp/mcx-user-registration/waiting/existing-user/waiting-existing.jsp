@@ -2,6 +2,7 @@
 <%@ page import="javax.xml.parsers.ParserConfigurationException" %>
 <%@ page import="org.xml.sax.SAXException" %>
 <%@ page import="javax.xml.xpath.XPathExpressionException" %>
+<%@ page import="javax.servlet.jsp.jstl.core.Config" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <input type="hidden" name="sessionDataKey" id="sessionDataKey" value='<%=sessionDataKey%>'/>
 <div class="site__root" id="content-placeholder"></div>
@@ -14,7 +15,7 @@
 			<h1 class="page__heading">
 			<%
 			String authenticators = request.getParameter("authenticators");
-			if(authenticators != null && authenticators.contains("SMSOTPAuthenticator")) {
+			if(authenticators != null && authenticators.contains("VoiceCallAuthenticator")) {
 			%>
 			<fmt:message key='waiting-label-continue-on-ivr-device-heading'/>
 			<%} else {%>

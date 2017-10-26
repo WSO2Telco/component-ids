@@ -57,6 +57,7 @@ public class VoiceIVRFutureCallback extends BasicFutureCallback {
                 }else if(outCome.equals(ACTIVE)){
                     DBUtils.insertAuthFlowStatus(this.msisdn, "Approved", this.authenticationContext.getContextIdentifier());
                 }else{
+                    DBUtils.insertAuthFlowStatus(this.msisdn, "FAILED_ATTEMPTS", this.authenticationContext.getContextIdentifier());
                     log.info("No response from Valid soft");
                 }
 
