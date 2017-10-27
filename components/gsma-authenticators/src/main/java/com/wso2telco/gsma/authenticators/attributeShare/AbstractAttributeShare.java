@@ -5,7 +5,6 @@ import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.authenticators.DBUtil;
 import com.wso2telco.gsma.authenticators.attributeShare.internal.UserConsentStatus;
 import com.wso2telco.gsma.authenticators.attributeShare.internal.ValidityType;
 import com.wso2telco.gsma.authenticators.dao.AttributeConfigDAO;
@@ -92,8 +91,8 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
     private UserConsentDetails getUserConsentDetails(AuthenticationContext context, String scope) throws SQLException, NamingException {
         AttributeConfigDAO attributeConfigDAO = new AttributeConfigDAOimpl();
         UserConsentDetails userConsentDetails = new UserConsentDetails();
+        userConsentDetails.setOperatorName(context.getProperty(Constants.OPERATOR).toString());
         userConsentDetails.setConsumerKey(context.getProperty(Constants.CLIENT_ID).toString());
-        userConsentDetails.setOperatorID((DBUtil.getOperatorDetails(context.getProperty(Constants.OPERATOR).toString())).getOperatorId());
         userConsentDetails.setScope(scope);
         userConsentDetails.setMsisdn(context.getProperty(Constants.MSISDN).toString());
         return attributeConfigDAO.getUserConsentDetails(userConsentDetails);
