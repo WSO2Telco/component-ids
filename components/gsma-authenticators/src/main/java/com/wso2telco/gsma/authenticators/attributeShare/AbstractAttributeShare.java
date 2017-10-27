@@ -74,13 +74,12 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
                     longlivedScopes.add(scope);
                 }
 
-            } else if (consentType.equalsIgnoreCase(AuthenticatorEnum.ConsentType.IMPLICIT.name()) && "true".equalsIgnoreCase(validityMap.get("isConsent"))){
+            } else if (consentType.equalsIgnoreCase(AuthenticatorEnum.ConsentType.IMPLICIT.name()) && "true".equalsIgnoreCase(validityMap.get(Constants.IS_CONSENT))){
                 implicitScopes.add(scope);
             }else if (consentType.equalsIgnoreCase(AuthenticatorEnum.ConsentType.NOCONSENT.name())){
                 noConsentScopes.add(scope);
             }
         }
-
         scopesList.put(Constants.EXPLICIT_SCOPES, explicitScopes);
         scopesList.put(Constants.IMPLICIT_SCOPES, implicitScopes);
         scopesList.put(Constants.NO_CONSENT_SCOPES,noConsentScopes);
@@ -89,7 +88,6 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
         }
         return scopesList;
     }
-
 
     private UserConsentDetails getUserConsentDetails(AuthenticationContext context, String scope) throws SQLException, NamingException {
         AttributeConfigDAO attributeConfigDAO = new AttributeConfigDAOimpl();
@@ -109,8 +107,8 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
         switch (validityType) {
 
             case TRANSACTIONAL:
-                valityMap.put("validityType", ValidityType.TRANSACTIONAL.name());
-                valityMap.put("isConsent", "true");
+                valityMap.put(Constants.VALIDITY_TYPE, ValidityType.TRANSACTIONAL.name());
+                valityMap.put(Constants.IS_CONSENT, "true");
                 return valityMap;
 
             case LONG_LIVE:
@@ -168,7 +166,6 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
     }
 
     public static List<String> getScopestoDisplay(List<String> attributeSet, String scope) {
-
 
         List<String> consentAttribute = attributeSet;
         List<String> displayAttributeSet ;
