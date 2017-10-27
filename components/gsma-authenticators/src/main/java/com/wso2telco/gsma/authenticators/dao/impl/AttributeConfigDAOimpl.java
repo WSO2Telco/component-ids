@@ -196,18 +196,19 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
         sqlBuilder.append(" usercon.consent_status as revokeStatus ,usercon.consent_expire_time as consent_expire_time ");
         sqlBuilder.append(FROM);
         sqlBuilder.append(TableName.CONSENT_HISTORY + " usercon ");
-        sqlBuilder.append("INNER JOIN scope_parameter scp ON scp.param_id=usercon.scope_id");
-        sqlBuilder.append(" where");
-        sqlBuilder.append(" scp.scope=? ");
-        sqlBuilder.append(" AND usercon.operator_id=? ");
-        sqlBuilder.append(" AND usercon.client_id=? ");
+        sqlBuilder.append("INNER JOIN scope_parameter scp ON scp.param_id=usercon.scope_id ");
+        sqlBuilder.append("INNER JOIN operators op ON op.ID=usercon.operator_id ");
+        sqlBuilder.append("where ");
+        sqlBuilder.append("op.operatorname=? ");
+        sqlBuilder.append("AND scp.scope=? ");
+        sqlBuilder.append("AND usercon.client_id=? ");
         sqlBuilder.append("AND usercon.msisdn=?");
 
         try {
             connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(sqlBuilder.toString());
-            preparedStatement.setString(1, userConsentDetails.getScope());
-            preparedStatement.setInt(2, userConsentDetails.getOperatorID());
+            preparedStatement.setString(1, userConsentDetails.getOperatorName());
+            preparedStatement.setString(2, userConsentDetails.getScope());
             preparedStatement.setString(3, userConsentDetails.getConsumerKey());
             preparedStatement.setString(4, userConsentDetails.getMsisdn());
 
@@ -216,7 +217,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
                 userConsent = new UserConsentDetails();
                 userConsent.setConsumerKey(userConsentDetails.getConsumerKey());
                 userConsent.setScope(userConsentDetails.getScope());
-                userConsent.setOperatorID(userConsentDetails.getOperatorID());
+                userConsent.setOperatorName(userConsentDetails.getOperatorName());
                 userConsent.setMsisdn(userConsentDetails.getMsisdn());
                 userConsent.setRevokeStatus(resultSet.getString("revokeStatus"));
                 userConsent.setConsentExpireDatetime(resultSet.getString("consent_expire_time"));
@@ -230,7 +231,6 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
         }
 
         return userConsent;
-
 
     }
 
@@ -310,30 +310,5 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
 
         return null;
     }
-
-   /* public static Operator getOperatorDetails(String operator) throws SQLException, NamingException {
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        Operator parameters = new Operator();
-        String queryToGetOperatorDetails = "SELECT ID FROM operators WHERE operatorname=?";
-        try {
-            connection = getConnectDBConnection();
-            preparedStatement = connection.prepareStatement(queryToGetOperatorDetails);
-            preparedStatement.setString(1, operator);
-            resultSet = preparedStatement.executeQuery();
-
-            while (resultSet.next()) {
-                parameters.setOperatorId(resultSet.getInt("ID"));
-            }
-        } catch (SQLException e) {
-            throw new SQLException("Error occurred while retrieving operator details for operator : " + operator, e);
-        } catch (NamingException e) {
-            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
-        } finally {
-            closeAllConnections(preparedStatement, connection, resultSet);
-        }
-        return parameters;
-    }*/
 
 }

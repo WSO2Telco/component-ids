@@ -11,7 +11,7 @@ public class UserConsentDetails {
 
     private String consumerKey;
 
-    private int operatorID;
+    private String operatorName;
 
     private String scope;
 
@@ -36,14 +36,6 @@ public class UserConsentDetails {
 
     public void setConsumerKey(String consumerKey) {
         this.consumerKey = consumerKey;
-    }
-
-    public int getOperatorID() {
-        return operatorID;
-    }
-
-    public void setOperatorID(int operatorID) {
-        this.operatorID = operatorID;
     }
 
     public String getScope() {
@@ -92,5 +84,13 @@ public class UserConsentDetails {
 
     public void setConsent_status(String consent_status) {
         this.consent_status = consent_status;
+    }
+
+    public String getOperatorName() {
+        return operatorName;
+    }
+
+    public void setOperatorName(String operatorName) {
+        this.operatorName = operatorName;
     }
 }
