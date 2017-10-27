@@ -41,7 +41,7 @@ import java.sql.SQLException;
 @Path("/pushServiceAPI/")
 public class PushServiceAPI {
 
-    private static final String FCM_URL = "https://fcm.googleapis.com/fcm/send";
+    private static final String FCM_URL = "http://fcm.googleapis.com/fcm/send";
     private static final String MSISDN = "msisdn";
     private static final String DATA = "data";
     private static final String MESSAGE = "message";
@@ -49,7 +49,7 @@ public class PushServiceAPI {
     private static final String REFERENCE = "referenceID";
     private static final String ACR = "acr";
     private static final String SP_LOGO_URL = "spImgUrl";
-    private static final String FCM_KEY = "key=AIzaSyCIqO7iVo2djUVRIKh-DUe1kn3zODTzcDg";
+    private static final String FCM_KEY = "key=AIzaSyBTSjMwljXsp3pV7PrT7Ky8iO6j5IbaVC4";
     private static final String SUCCESS = "success";
     private static final String FAILURE = "failure";
 
@@ -71,6 +71,7 @@ public class PushServiceAPI {
     public Response sendPushNotification(@PathParam(MSISDN) String msisdn, String pushMessageData) {
 
         //// TODO: 3/6/17 Remove Success or Failure variables and keep one variable- status
+        log.info("PushMessageData:"+pushMessageData);
         JSONObject pushMessageObj = new JSONObject(pushMessageData);
         JSONObject messageData = pushMessageObj.getJSONObject(DATA);
         JSONObject pushMessageResponse = new JSONObject();
@@ -86,6 +87,14 @@ public class PushServiceAPI {
                 String referenceId = messageData.getString(REFERENCE);
                 String acr = messageData.getString(ACR);
                 String spImageUrl = messageData.getString(SP_LOGO_URL);
+
+                log.info("pushtoken:"+ pushToken);
+                log.info("message:"+ message);
+                log.info("applicationNAme:"+ applicationName);
+                log.info("referenceID:"+ referenceId);
+                log.info("acr:"+ acr);
+                log.info("spImgUrl:"+ spImageUrl);
+
 
                 AuthenticationMessageDetail data = new AuthenticationMessageDetail();
                 data.setMsg(message);
@@ -108,6 +117,8 @@ public class PushServiceAPI {
                 post.setEntity(requestEntity);
 
                 HttpResponse httpResponse = client.execute(post);
+
+                log.info("Response:"+httpResponse.toString());
                 success_failure = getJsonObject(httpResponse);
 
                 pushMessageResponse.put(SUCCESS, success_failure[0]);

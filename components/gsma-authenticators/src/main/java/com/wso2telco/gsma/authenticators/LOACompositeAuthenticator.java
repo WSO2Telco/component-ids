@@ -138,7 +138,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.IS_SHOW_TNC, isShowTnc);
         context.setProperty(Constants.HEADER_MISMATCH_RESULT, headerMismatchResult);
         context.setProperty(Constants.HE_FAILURE_RESULT, heFailureResult);
-        context.setProperty(Constants.IS_SHOW_TNC, isShowTnc);
+       // context.setProperty(Constants.IS_SHOW_TNC, isShowTnc);
         context.setProperty(Constants.ACR, requestedLoa);
         context.setProperty(Constants.OPERATOR, mobileNetworkOperator);
         context.setProperty(Constants.LOGIN_HINT_MSISDN, loginHintMsisdn);

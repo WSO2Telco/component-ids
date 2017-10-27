@@ -151,8 +151,11 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
     private void handleRedirect(HttpServletResponse response, AuthenticationContext context, boolean isFlowCompleted)
             throws AuthenticationFailedException {
 
-        String loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+       String loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
                 Constants.SAA_WAITING_JSP;
+
+        log.info("Login URL############:"+loginPage);
+
         context.setProperty(IS_FLOW_COMPLETED, isFlowCompleted);
 
         if (!isFlowCompleted) {
@@ -179,14 +182,18 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
         String url = configurationService.getDataHolder().getMobileConnectConfig().getSaaConfig()
                 .getRegistrationEndpoint().replace("{msisdn}", msisdn);
 
+        log.info("ISRegistered check:"+url);
+
         HttpGet httpGet = new HttpGet(url);
 
         HttpResponse httpResponse = httpClient.execute(httpGet);
 
+        log.info("Registration response:"+httpResponse.toString());
+
         IsRegisteredResponse isRegisteredResponse = new Gson()
                 .fromJson(EntityUtils.toString(httpResponse.getEntity()), IsRegisteredResponse.class);
 
-        if (!isRegisteredResponse.isRegistered()) {
+        if (isRegisteredResponse.isRegistered()) {
             throw new SaaException("msisdn [ " + msisdn + " ] is not registered in SAA server");
         }
     }

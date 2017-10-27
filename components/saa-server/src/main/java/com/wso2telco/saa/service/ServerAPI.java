@@ -111,6 +111,8 @@ public class ServerAPI {
         response.put(FAILURE, failure);
         response.put(RESULT, messageFromAPI);
 
+        log.info("registration message:"+response.toString());
+
         return Response.ok(response.toString(), MediaType.APPLICATION_JSON).build();
 
     }
