@@ -151,7 +151,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             try {
 
                 boolean isattribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
-                String operator = context.getProperty(Constants.OPERATOR).toString();
                 boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
                 String msisdn = context.getProperty(Constants.MSISDN).toString();
                 Map<String, String> attributeset;
@@ -335,7 +334,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         try {
 
             boolean isattribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
-
 
             DataPublisherUtil
                     .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants

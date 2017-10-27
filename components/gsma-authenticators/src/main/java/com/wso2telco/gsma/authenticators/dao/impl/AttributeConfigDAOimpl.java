@@ -311,4 +311,29 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
         return null;
     }
 
+   /* public static Operator getOperatorDetails(String operator) throws SQLException, NamingException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        Operator parameters = new Operator();
+        String queryToGetOperatorDetails = "SELECT ID FROM operators WHERE operatorname=?";
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(queryToGetOperatorDetails);
+            preparedStatement.setString(1, operator);
+            resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                parameters.setOperatorId(resultSet.getInt("ID"));
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Error occurred while retrieving operator details for operator : " + operator, e);
+        } catch (NamingException e) {
+            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+        } finally {
+            closeAllConnections(preparedStatement, connection, resultSet);
+        }
+        return parameters;
+    }*/
+
 }
