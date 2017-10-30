@@ -15,6 +15,7 @@ public class ValidSoftJsonHelper {
     private String userRegistrationAndAuthenticationJson;
     private static final String UNKNOWN_USER = "UNKNOWN_USER";
     private static final String ACTIVE = "ACTIVE";
+    private final String OUTCOME = "outcome";
 
     private static Log log = LogFactory.getLog(ValidSoftJsonHelper.class);
 
@@ -27,16 +28,24 @@ public class ValidSoftJsonHelper {
         // remove msisdn modifiation line this from when going to prod
         // Todo : msisdn = "0094"+ msisdn.substring(3,12);
         //
-        String jsonTemplate = "{" +
-                "\"serviceData\": {" +
-                "\"serviceId\": \"PasswordResetBiometric\"," +
-                "\"loggingId\": \""+logId+"\"" +
-                "}," +
-                "\"userData\": {" +
-                "\"identifier\": \""+msisdn+"\"" +
-                "}" +
-                "}";
-        log.info("isUserActiveRequest Json ::::: " + jsonTemplate);
+        StringBuilder payloadBuilder = new StringBuilder();
+        payloadBuilder.append("{");
+        payloadBuilder.append("\"serviceData\": {");
+        payloadBuilder.append("\"serviceId\": \"PasswordResetBiometric\",");
+        payloadBuilder.append("\"loggingId\": \"");
+        payloadBuilder.append(logId);
+        payloadBuilder.append("\"");
+        payloadBuilder.append("},");
+        payloadBuilder.append("\"userData\": {");
+        payloadBuilder.append("\"identifier\": \"");
+        payloadBuilder.append(msisdn);
+        payloadBuilder.append("\"");
+        payloadBuilder.append("}");
+        payloadBuilder.append("}");
+
+        String jsonTemplate = payloadBuilder.toString();
+
+        log.debug("isUserActiveRequest Json ::::: " + jsonTemplate);
         this.isUserActiveRequestJson = jsonTemplate;
     }
 
@@ -46,23 +55,33 @@ public class ValidSoftJsonHelper {
        // Todo : msisdn = "94"+ msisdn.substring(3,12);
         //
 
-        String jsonTemplate = "{"+
-                "\"serviceData\": {" +
-                "\"serviceId\": \"PasswordResetBiometric\"," +
-                "\"loggingId\": \""+logId+"\"" +
-                "}," +
-                "\"userData\": {" +
-                "\"identifier\": \""+msisdn+"\"," +
-                "\"contact\": [" +
-                "{" +
-                "\"type\": \"Mobile\"," +
-                "\"label\": \"Work\"," +
-                "\"address\": \""+msisdn+"\"" +
-                "}" +
-                "]" +
-                "}" +
-                "}";
-        log.info("UserRegistrationAndAuthenticationJson Json ::::: " + jsonTemplate);
+        StringBuilder payloadBuilder = new StringBuilder();
+        payloadBuilder.append("{");
+        payloadBuilder.append("\"serviceData\": {");
+        payloadBuilder.append("\"serviceId\": \"PasswordResetBiometric\",");
+        payloadBuilder.append("\"loggingId\": \"");
+        payloadBuilder.append(logId);
+        payloadBuilder.append("\"");
+        payloadBuilder.append("},");
+        payloadBuilder.append("\"userData\": {");
+        payloadBuilder.append("\"identifier\": \"");
+        payloadBuilder.append(msisdn);
+        payloadBuilder.append("\",");
+        payloadBuilder.append("\"contact\": [");
+        payloadBuilder.append("{");
+        payloadBuilder.append("\"type\": \"Mobile\",");
+        payloadBuilder.append("\"label\": \"Work\",");
+        payloadBuilder.append("\"address\": \"");
+        payloadBuilder.append(msisdn);
+        payloadBuilder.append("\"");
+        payloadBuilder.append("}");
+        payloadBuilder.append("]");
+        payloadBuilder.append("}");
+        payloadBuilder.append("}");
+
+        String jsonTemplate = payloadBuilder.toString();
+
+        log.debug("UserRegistrationAndAuthenticationJson Json ::::: " + jsonTemplate);
         this.userRegistrationAndAuthenticationJson = jsonTemplate;
     }
 
@@ -71,18 +90,18 @@ public class ValidSoftJsonHelper {
     }
 
 
-    public boolean validateisUserEnrolledJsonRespone(JSONObject responseJsonObject){
+    public boolean validateisUserEnrolledJsonRespone(JSONObject responseJsonObject) throws JSONException{
+        boolean isUserActive = false;
         try {
-            String outCome = responseJsonObject.getString("outcome");
-            log.info("isUser ACTIVE  in ValidSoft: " + outCome);
-            if(outCome.equals(UNKNOWN_USER)){
-                return false;
-            }if(outCome.equals(ACTIVE)){
-                return true;
+            String outCome = responseJsonObject.getString(OUTCOME);
+            log.debug("isUser ACTIVE  in ValidSoft: " + outCome);
+            if(outCome.equals(ACTIVE)){
+                isUserActive = true;
             }
         } catch (JSONException e) {
             log.error("JSONException occured ", e);
+            throw e;
         }
-        return false;
+        return isUserActive;
     }
 }

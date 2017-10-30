@@ -50,12 +50,14 @@ public class VoiceIVRFutureCallback extends BasicFutureCallback {
                 JSONObject jsonObj = new JSONObject(json);
                 log.info(json);
                 String outCome = jsonObj.getString("outcome");
-         if(outCome.equals(AUTHENTICATED)){
+
+                if(outCome.equals(AUTHENTICATED)){
                     DBUtils.insertAuthFlowStatus(this.msisdn, "Approved", this.authenticationContext.getContextIdentifier());
 
                 }else if(outCome.equals(ACTIVE)){
                     DBUtils.insertAuthFlowStatus(this.msisdn, "Approved", this.authenticationContext.getContextIdentifier());
                 }else{
+                    DBUtils.insertAuthFlowStatus(this.msisdn, "FAILED_ATTEMPTS", this.authenticationContext.getContextIdentifier());
                     log.info("No response from Valid soft");
                 }
 

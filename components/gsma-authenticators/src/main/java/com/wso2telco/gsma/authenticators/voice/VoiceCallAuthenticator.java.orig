@@ -155,10 +155,17 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
                 String operator = (String) authenticationContext.getProperty(Constants.OPERATOR);
                 new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
             }
+<<<<<<< 4f1ec59e2a8c9bcee900ebeb56103b1d9e432474
+        }
+
+        String responseStatus = null;
+        try {
+=======
             authenticationContext.setProperty(IS_FLOW_COMPLETED , true);
             AuthenticationContextHelper.setSubject(authenticationContext,
                     authenticationContext.getProperty(Constants.MSISDN).toString());
             log.info("FederatedAuthenticator Authentication success");
+>>>>>>> MCSDDEV-104 code refactoring (#292)
             responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
 
 

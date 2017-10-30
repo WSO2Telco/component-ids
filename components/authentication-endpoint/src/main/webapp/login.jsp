@@ -421,6 +421,18 @@
 
 					</div>
 				</div>
+				<%
+				} else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains("VoiceCallAuthenticator")) {
+					hasLocalLoginOptions = true;
+				%>
+
+				<div class="row">
+					<div class="span12">
+
+						<%@ include file="mcx-user-registration/waiting/existing-user/waiting-existing.jsp" %>
+
+					</div>
+				</div>
 
 				<%
 				} else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains("MePinAuthenticatorPIN")) {
