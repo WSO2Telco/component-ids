@@ -140,7 +140,7 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
 
             } else {
 
-                if (userConsentDetails.getRevokeStatus().equalsIgnoreCase(UserConsentStatus.ACTIVE.name())) {
+                if (userConsentDetails.getRevokeStatus().equalsIgnoreCase(Constants.TRUE)) {
                     Date today = new Date();
                     DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -148,7 +148,7 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
                         isConsent = true;
                     }
 
-                } else if (userConsentDetails.getRevokeStatus().equalsIgnoreCase(UserConsentStatus.REVOKED.name())) {
+                } else if (userConsentDetails.getRevokeStatus().equalsIgnoreCase(Constants.FALSE)) {
                     isConsent = true;
                 }
 
@@ -198,13 +198,10 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
             calendar.add(Calendar.DATE, spConsent.getExpPeriod());
 
             UserConsentHistory userConsentHistory = new UserConsentHistory();
-            userConsentHistory.setClient_id(clientId);
-            userConsentHistory.setOperator_id(spConsent.getOperatorID());
             userConsentHistory.setMsisdn(msisdn);
-            userConsentHistory.setConsent_date(dateFormat.format(today));
-            userConsentHistory.setScope_id(spConsent.getScope());
+            userConsentHistory.setConsentId(spConsent.getConsentId());
             userConsentHistory.setConsent_expire_time(dateFormat.format(calendar.getTime()));
-            userConsentHistory.setConsent_status(UserConsentHistory.CONSENT_STATUS_TYPES.ACTIVE.name());
+            userConsentHistory.setConsent_status(Constants.TRUE);
 
             userConsentHistoryList.add(userConsentHistory);
         }

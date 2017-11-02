@@ -13,6 +13,7 @@ public class UserConsentHistory {
     private String consent_expire_time;
     private String consent_revoked_time;
     private String consent_status;
+    private int consentId;
 
     public enum CONSENT_STATUS_TYPES{
         ACTIVE,
@@ -81,5 +82,13 @@ public class UserConsentHistory {
 
     public void setConsent_status(String consent_status) {
         this.consent_status = consent_status;
+    }
+
+    public int getConsentId() {
+        return consentId;
+    }
+
+    public void setConsentId(int consentId) {
+        this.consentId = consentId;
     }
 }
