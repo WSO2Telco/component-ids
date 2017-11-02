@@ -17,6 +17,8 @@ public class SPConsent {
 
     private String validityType;
 
+    private int consentId;
+
 
     public String getConsumerKey() {
         return consumerKey;
@@ -64,5 +66,13 @@ public class SPConsent {
 
     public void setValidityType(String validityType) {
         this.validityType = validityType;
+    }
+
+    public int getConsentId() {
+        return consentId;
+    }
+
+    public void setConsentId(int consentId) {
+        this.consentId = consentId;
     }
 }

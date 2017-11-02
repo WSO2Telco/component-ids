@@ -90,12 +90,16 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
 
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append(SELECT);
-        sqlBuilder.append(" con.scope_id,con.exp_period,con.operator_id ");
+        sqlBuilder.append(" con.scope_id,con.exp_period,con.operator_id ,con.consent_id");
         sqlBuilder.append(FROM);
         sqlBuilder.append(" consent con");
-        sqlBuilder.append(" where ");
-        sqlBuilder.append(" con.operator_id=? ");
-        sqlBuilder.append(" AND con.client_id=? AND ");
+        sqlBuilder.append(" INNER JOIN operators op ON op.ID=con.operator_id ");
+        sqlBuilder.append(" INNER JOIN scope_parameter scp ON scp.param_id=con.scope_id " );
+        sqlBuilder.append("where ");
+        sqlBuilder.append(" op.operatorname=? ");
+        sqlBuilder.append(" AND ");
+        sqlBuilder.append(" con.client_id=? ");
+        sqlBuilder.append(" AND ");
         sqlBuilder.append(" con.scope_id in (" + params + ")");
 
         List<SPConsent> spConsentList = new ArrayList();
@@ -103,7 +107,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
         try {
             connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(sqlBuilder.toString());
-            preparedStatement.setInt(1, 1);
+            preparedStatement.setString(1, operator);
             preparedStatement.setString(2, consumerKey);
             for (int i = 0; i < scopeValues.length; i++) {
                 preparedStatement.setString(i + 3, scopeValues[i].trim());
@@ -116,6 +120,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
                 spConsent.setScope(resultSet.getInt("scope_id"));
                 spConsent.setExpPeriod(resultSet.getInt(Constants.EXP_PERIOD));
                 spConsent.setOperatorID(resultSet.getInt("operator_id"));
+                spConsent.setConsentId(resultSet.getInt("consent_id"));
                 spConsentList.add(spConsent);
             }
         } catch (SQLException e) {
@@ -192,16 +197,18 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
         UserConsentDetails userConsent=null;
 
         StringBuilder sqlBuilder = new StringBuilder();
+
         sqlBuilder.append(SELECT);
-        sqlBuilder.append(" usercon.consent_status as revokeStatus ,usercon.consent_expire_time as consent_expire_time ");
+        sqlBuilder.append(" usercon.consent_status as activestatus ,usercon.expire_time as consent_expire_time  ");
         sqlBuilder.append(FROM);
-        sqlBuilder.append(TableName.CONSENT_HISTORY + " usercon ");
-        sqlBuilder.append("INNER JOIN scope_parameter scp ON scp.param_id=usercon.scope_id ");
-        sqlBuilder.append("INNER JOIN operators op ON op.ID=usercon.operator_id ");
+        sqlBuilder.append(TableName.USER_CONSENT + " usercon ");
+        sqlBuilder.append("INNER JOIN consent con ON con.consent_id = usercon.consent_id ");
+        sqlBuilder.append("INNER JOIN operators op ON op.ID=con.operator_id ");
+        sqlBuilder.append("INNER JOIN scope_parameter scp ON scp.param_id=con.scope_id ");
         sqlBuilder.append("where ");
         sqlBuilder.append("op.operatorname=? ");
         sqlBuilder.append("AND scp.scope=? ");
-        sqlBuilder.append("AND usercon.client_id=? ");
+        sqlBuilder.append("AND con.client_id=? ");
         sqlBuilder.append("AND usercon.msisdn=?");
 
         try {
@@ -219,7 +226,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
                 userConsent.setScope(userConsentDetails.getScope());
                 userConsent.setOperatorName(userConsentDetails.getOperatorName());
                 userConsent.setMsisdn(userConsentDetails.getMsisdn());
-                userConsent.setRevokeStatus(resultSet.getString("revokeStatus"));
+                userConsent.setRevokeStatus( String.valueOf( resultSet.getBoolean("consent_status")));
                 userConsent.setConsentExpireDatetime(resultSet.getString("consent_expire_time"));
 
             }
@@ -240,26 +247,24 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
 
+
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("INSERT INTO ");
-        sqlBuilder.append(TableName.CONSENT_HISTORY + " (");
-        sqlBuilder.append("msisdn,client_id,scope_id,operator_id,consent_date,consent_expire_time,consent_status )");
+        sqlBuilder.append(TableName.USER_CONSENT + " (");
+        sqlBuilder.append("consent_id,msisdn,expire_time,consent_status ) ");
         sqlBuilder.append("VALUES ");
-        sqlBuilder.append("( ?,?,?,?,?,?,? )");
-
+        sqlBuilder.append("(");
+        sqlBuilder.append("?,?,?,? )");
 
         try {
             connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(sqlBuilder.toString());
             for (UserConsentHistory userConsentHistory1 : userConsentHistory) {
 
-                preparedStatement.setString(1, userConsentHistory1.getMsisdn());
-                preparedStatement.setString(2, userConsentHistory1.getClient_id());
-                preparedStatement.setInt(3, userConsentHistory1.getScope_id());
-                preparedStatement.setInt(4, userConsentHistory1.getOperator_id());
-                preparedStatement.setString(5, userConsentHistory1.getConsent_date());
-                preparedStatement.setString(6, userConsentHistory1.getConsent_expire_time());
-                preparedStatement.setString(7, userConsentHistory1.getConsent_status());
+                preparedStatement.setInt(1, userConsentHistory1.getConsentId());
+                preparedStatement.setString(2, userConsentHistory1.getMsisdn());
+                preparedStatement.setString(3, userConsentHistory1.getConsent_expire_time());
+                preparedStatement.setBoolean(4, Boolean.parseBoolean(userConsentHistory1.getConsent_status()) );
                 preparedStatement.addBatch();
             }
 

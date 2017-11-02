@@ -33,7 +33,7 @@ public enum TableName {
     SCOPE_PARAMETER("scope_parameter"),
 
     SMS_OTP("sms_otp"),
-    CONSENT_HISTORY("consent_history"),
+    USER_CONSENT("user_consent"),
 
     SP_CONFIGURATION("sp_configuration");
 

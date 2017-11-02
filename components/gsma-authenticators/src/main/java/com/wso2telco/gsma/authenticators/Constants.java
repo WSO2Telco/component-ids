@@ -468,4 +468,7 @@ public final class Constants {
     public static final String AUTHENTICATED_USER ="AuthenticatedUser";
     public static final String ATTRSHARE_SCOPE_TYPE = "attrShareType";
 
+    public static final String TRUE = "true";
+
+    public static final String FALSE = "false" ;
 }

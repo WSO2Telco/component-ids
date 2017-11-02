@@ -1,3 +1,80 @@
+[data-toggle="collapse"] {
+  cursor: pointer;
+}
+[data-toggle="collapse"][aria-expanded="true"] .fa-chevron-right:before {
+  content: "\f078";
+}
+
+.btn-danger {
+    color: #fff !important;
+    background-color: #d9534f;
+    border-color: #d43f3a;
+}
+
+.btn-normal {
+    color: #fff !important;
+    background-color:#463F61 !important;
+    border-color: #463F61 !important;
+    margin-top: 6px !important;
+}
+
+
+    .fa.pull-right {
+    margin-top: 0.5em;
+    margin-left: .3em;
+}
+
+.list-group {
+    width: 100%;
+}
+
+.list-group .list-group-heading{
+    width: 100%;
+}
+
+
+
+.list-group {
+    padding-left: 0;
+    margin-bottom: 20px;
+}
+
+
+.list-group-item {
+    position: relative;
+    display: block;
+    padding: 10px 15px;
+    margin-bottom: -1px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-left: 0px;
+    border-right: 0px;
+}
+
+.list-group {
+	margin-bottom: 0;
+}
+
+.list-group .list-group-item {
+	border-radius: 0;
+	border-left: none;
+	border-right: none;
+}
+
+.btn--white{ font-size: 1.1rem; color: #ffffff !important;}
+
+
+#tc_checkbox {
+/* Double-sized Checkboxes */
+ -ms-transform: scale(1.5); /* IE */
+ -moz-transform: scale(1.5); /* FF */
+ -webkit-transform: scale(1.5); /* Safari and Chrome */
+ -o-transform: scale(1.5); /* Opera */
+ padding: 5px;
+}
+
+/***************** end style *************/
+
 html {
     font-family: sans-serif;
     -ms-text-size-adjust: 100%;
