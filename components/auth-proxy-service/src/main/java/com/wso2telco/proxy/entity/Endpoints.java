@@ -209,12 +209,9 @@ public class Endpoints {
                 ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo,
                         userStatus,redirectURL);
 
-                String loginhint_msisdn = null;
-                try {
-                    loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam,redirectURL);
-                } catch (Exception e) {
-                    log.debug("Error retrieving loginhint msisdn : " + e);
-                }
+
+                String loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam,redirectURL);
+
 
                 Boolean isScopeExists = queryParams.containsKey(AuthProxyConstants.SCOPE);
                 String operatorScopeWithClaims;
@@ -577,6 +574,8 @@ public class Endpoints {
                                 String retreivedMsisdn= getMSISDNbyPcr(callbackurl,loginHint.replace(LOGIN_HINT_PCR, ""));
                                 if(StringUtils.isNotEmpty(retreivedMsisdn)){
                                     msisdn=retreivedMsisdn;
+                                } else {
+                                    throw new AuthenticationFailedException("pcr in the login hint cannot be accepted");
                                 }
 
                             } catch (Exception e){
