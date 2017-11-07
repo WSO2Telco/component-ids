@@ -575,7 +575,8 @@ public class Endpoints {
                                 if(StringUtils.isNotEmpty(retreivedMsisdn)){
                                     msisdn=retreivedMsisdn;
                                 } else {
-                                    throw new AuthenticationFailedException("pcr in the login hint cannot be accepted");
+                                    log.error("No MSISDN for the given PCR");
+                                    throw new AuthenticationFailedException("Cannot find MSISDN from pcr in the login hint");
                                 }
 
                             } catch (Exception e){
