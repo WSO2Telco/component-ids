@@ -267,6 +267,9 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             switch (userAction) {
             case Constants.USER_ACTION_USER_CANCELED:
                 //User clicked cancel button from login
+                DataPublisherUtil
+                        .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
+                                "User Terminated Authentication Flow");
                 terminateAuthentication(context, sessionDataKey);
                 break;
             case Constants.USER_ACTION_REG_REJECTED:
