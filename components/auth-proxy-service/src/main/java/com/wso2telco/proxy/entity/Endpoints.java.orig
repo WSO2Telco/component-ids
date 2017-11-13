@@ -126,13 +126,10 @@ public class Endpoints {
         //Read query params from the header.
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         String clientId = queryParams.getFirst("client_id");
-	String state = queryParams.getFirst("state");        
-	String redirectURL =null;
+<<<<<<< HEAD
+        String redirectURL =null;
         String scopeName =null;
         String responseType =null;
-
-	org.apache.log4j.MDC.put("REF_ID", state);
-        log.info("Request processing started from proxy");
 
         boolean invalid=false;
         if(queryParams.get(AuthProxyConstants.REDIRECT_URI)!=null) {
@@ -147,6 +144,15 @@ public class Endpoints {
         }else if(!invalid){
             invalid=true;
         }
+=======
+        String state = queryParams.getFirst("state");
+        String redirectURL = queryParams.get(AuthProxyConstants.REDIRECT_URI).get(0);
+        String scopeName = queryParams.get(AuthProxyConstants.SCOPE).get(0);
+
+        org.apache.log4j.MDC.put("REF_ID", state);
+        log.info("Request processing started from proxy");
+
+>>>>>>> 50d5486... [IDSDEV-770] Added authentication state as common logging id
 
         if(queryParams.get(AuthProxyConstants.RESPONSE_TYPE)!=null) {
             responseType = queryParams.get(AuthProxyConstants.RESPONSE_TYPE).get(0);
@@ -587,26 +593,24 @@ public class Endpoints {
                                         decryptAlgorithm);
                                 msisdn = decrypted.substring(0, decrypted.indexOf(LOGIN_HINT_SEPARATOR));
                                 isValidFormatType = true;
-                                break;
                             } catch (Exception e) {
                                 log.error("Error while decrypting login hint : " + loginHint, e);
                             }
                         }
                     } else {
                         isValidFormatType = true;
-                        break;
                     }
+                    break;
                 case MSISDN:
                     if (StringUtils.isNotEmpty(loginHint)) {
                         if (loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX)) {
                             msisdn = loginHint.replace(LOGIN_HINT_NOENCRYPTED_PREFIX, "");
                             isValidFormatType = true;
-                            break;
                         }
                     } else {
                         isValidFormatType = true;
-                        break;
                     }
+                    break;
                 case PCR:
                     if (StringUtils.isNotEmpty(loginHint)) {
                         if (loginHint.startsWith(LOGIN_HINT_PCR)) {
@@ -614,9 +618,6 @@ public class Endpoints {
                                 String retreivedMsisdn= getMSISDNbyPcr(callbackurl,loginHint.replace(LOGIN_HINT_PCR, ""));
                                 if(StringUtils.isNotEmpty(retreivedMsisdn)){
                                     msisdn=retreivedMsisdn;
-                                } else {
-                                    log.error("No MSISDN for the given PCR");
-                                    throw new AuthenticationFailedException("Cannot find MSISDN from pcr in the login hint");
                                 }
 
                             } catch (Exception e){
