@@ -22,8 +22,10 @@ import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.pcrservice.exception.PCRException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import com.wso2telco.openidtokenbuilder.MIFEOpenIDTokenBuilder;
 import com.wso2telco.proxy.MSISDNDecryption;
 import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.model.MSISDNHeader;
@@ -86,6 +88,8 @@ public class Endpoints {
      * The Constant LOGIN_HINT_NOENCRYPTED_PREFIX.
      */
     private static final String LOGIN_HINT_NOENCRYPTED_PREFIX = "MSISDN:";
+
+    private static final String LOGIN_HINT_PCR = "PCR:";
 
     /**
      * The Constant LOGIN_HINT_SEPARATOR.
@@ -199,18 +203,15 @@ public class Endpoints {
                         }
                     }
                 }
-                ipAddress = getIpAddress(httpHeaders, operatorName);
+                ipAddress = getIpAddress(httpHeaders,httpServletRequest, operatorName);
 
                 //Validate with Scope wise parameters and throw exceptions
                 ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo,
-                        userStatus);
+                        userStatus,redirectURL);
 
-                String loginhint_msisdn = null;
-                try {
-                    loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam);
-                } catch (Exception e) {
-                    log.debug("Error retrieving loginhint msisdn : " + e);
-                }
+
+                String loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam,redirectURL);
+
 
                 Boolean isScopeExists = queryParams.containsKey(AuthProxyConstants.SCOPE);
                 String operatorScopeWithClaims;
@@ -311,7 +312,7 @@ public class Endpoints {
      * @throws ConfigurationException
      */
     private ScopeParam validateAndSetScopeParameters(String loginHint, String msisdnHeader, String scope,
-                                               RedirectUrlInfo redirectUrlInfo, UserStatus userStatus)
+                                                     RedirectUrlInfo redirectUrlInfo, UserStatus userStatus,String redirectURL)
             throws AuthenticationFailedException, ConfigurationException {
         //TODO: get all scope related params. This should be move to a initialization method or add to cache later
         ScopeParam scopeParam = getScopeParam(scope, userStatus);
@@ -352,7 +353,7 @@ public class Endpoints {
 
         if (StringUtils.isNotEmpty(loginHint)) {
             verifiedLoginHint = retunFormatVerfiedPlainTextLoginHint(loginHint, scopeParam.getLoginHintFormat(),
-                    userStatus);
+                    userStatus, redirectURL);
         }
 
         if (StringUtils.isNotEmpty(msisdnHeader)) {
@@ -425,11 +426,12 @@ public class Endpoints {
     private String retunFormatVerfiedPlainTextLoginHint(String loginHint,
                                                         List<LoginHintFormatDetails>
                                                                 loginHintAllowedFormatDetailsList, UserStatus
-                                                                userStatus)
+                                                                userStatus, String redirectURL)
             throws AuthenticationFailedException {
         boolean isValidFormatType = false; //msisdn/loginhint should be a either of defined formats
 
         String plainTextLoginHint = null;
+        String pcrValue = null;
         for (LoginHintFormatDetails loginHintFormatDetails : loginHintAllowedFormatDetailsList) {
 
             switch (loginHintFormatDetails.getFormatType()) {
@@ -438,7 +440,7 @@ public class Endpoints {
                         log.debug("Plain text login hint : " + plainTextLoginHint);
                     }
                     if (StringUtils.isNotEmpty(loginHint) && (!loginHint.startsWith(LOGIN_HINT_ENCRYPTED_PREFIX) &&
-                            !loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX))) {
+                            !loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX) && !loginHint.startsWith(LOGIN_HINT_PCR))) {
                         plainTextLoginHint = loginHint;
                         isValidFormatType = true;
                     }
@@ -477,6 +479,26 @@ public class Endpoints {
                         }
                     }
                     break;
+                case PCR:
+                    if (StringUtils.isNotEmpty(loginHint) && loginHint.startsWith(LOGIN_HINT_PCR) ) {
+
+                        pcrValue = loginHint.replace(LOGIN_HINT_PCR, "");
+                        isValidFormatType = true;
+                        try {
+                            String retreivedMsisdn = getMSISDNbyPcr(redirectURL, pcrValue);
+                            if (StringUtils.isNotEmpty(retreivedMsisdn)) {
+                                plainTextLoginHint = retreivedMsisdn;
+                            }
+                            if (log.isDebugEnabled()) {
+                                log.debug("PCR by login hint: " + plainTextLoginHint);
+                            }
+
+                        } catch (Exception e) {
+                            throw new AuthenticationFailedException("pcr in the login hint cannot be accepted");
+                        }
+
+                    }
+                    break;
                 default:
                     log.warn("Invalid Login Hint format - " + loginHintFormatDetails.getFormatType());
                     break;
@@ -501,7 +523,7 @@ public class Endpoints {
     }
 
 
-    private String retreiveLoginHintMsisdn(String loginHint, ScopeParam scopeParam)
+    private String retreiveLoginHintMsisdn(String loginHint, ScopeParam scopeParam,String callbackurl)
             throws AuthenticationFailedException, ConfigurationException {
         boolean isValidFormatType = false; //msisdn/loginhint should be a either of defined formats
         String msisdn = null;
@@ -545,6 +567,27 @@ public class Endpoints {
                         isValidFormatType = true;
                         break;
                     }
+                case PCR:
+                    if (StringUtils.isNotEmpty(loginHint)) {
+                        if (loginHint.startsWith(LOGIN_HINT_PCR)) {
+                            try {
+                                String retreivedMsisdn= getMSISDNbyPcr(callbackurl,loginHint.replace(LOGIN_HINT_PCR, ""));
+                                if(StringUtils.isNotEmpty(retreivedMsisdn)){
+                                    msisdn=retreivedMsisdn;
+                                } else {
+                                    log.error("No MSISDN for the given PCR");
+                                    throw new AuthenticationFailedException("Cannot find MSISDN from pcr in the login hint");
+                                }
+
+                            } catch (Exception e){
+                                throw new AuthenticationFailedException("pcr in the login hint cannot be accepted");
+                            }
+                            isValidFormatType = true;
+                        }
+                    } else {
+                        isValidFormatType = true;
+                    }
+                    break;
                 default:
                     log.warn("Invalid Login Hint format - " + loginHintFormatDetails.getFormatType());
             }
@@ -573,6 +616,14 @@ public class Endpoints {
         return true;
     }
 
+    private String getMSISDNbyPcr(String callbackUrl, String pcr) throws PCRException {
+        String retrievedMsisdn = "";
+        if (StringUtils.isNotEmpty(pcr)) {
+                MIFEOpenIDTokenBuilder mifeOpenIDTokenBuilder = new MIFEOpenIDTokenBuilder();
+                retrievedMsisdn = mifeOpenIDTokenBuilder.getMSISDNbyPcr(callbackUrl, pcr);
+        }
+        return retrievedMsisdn;
+    }
 
     private String decryptMSISDN(HttpHeaders httpHeaders, String operatorName)
             throws ClassNotFoundException, NoSuchPaddingException, BadPaddingException, UnsupportedEncodingException,
@@ -603,8 +654,9 @@ public class Endpoints {
         return msisdn;
     }
 
-    private String getIpAddress(HttpHeaders httpHeaders, String operatorName) {
+    private String getIpAddress(HttpHeaders httpHeaders,HttpServletRequest httpServletRequest, String operatorName) {
         String ipAddress = null;
+        boolean isOverrideIpHeader = mobileConnectConfigs.getHEADERENRICH().isOverrideIpheader();
         MobileConnectConfig.OPERATOR operatorProperties = operatorPropertiesMap.get(operatorName);
         String ipHeaderName = mobileConnectConfigs.getHEADERENRICH().getIPHeaderName();
         if (StringUtils.isNotEmpty(ipHeaderName) && operatorProperties != null) {
@@ -613,9 +665,16 @@ public class Endpoints {
                 if (httpHeaders.getRequestHeader(ipHeaderName) != null) {
                     ipAddress = httpHeaders.getRequestHeader(ipHeaderName).get(0);
                 }
+                ipAddress = ( ((ipAddress == null) || isOverrideIpHeader )  ? captureIpFallbackRemoteHost(httpServletRequest) : ipAddress);
             }
         }
         return ipAddress;
+    }
+
+    private String captureIpFallbackRemoteHost(HttpServletRequest httpServletRequest){
+    	String remoteIpAddress = null;
+    	remoteIpAddress = httpServletRequest.getRemoteAddr();
+    	return remoteIpAddress;
     }
 
     private String constructRedirectUrl(RedirectUrlInfo redirectUrlInfo, UserStatus userStatus) throws
@@ -629,6 +688,7 @@ public class Endpoints {
         String telcoScope = redirectUrlInfo.getTelcoScope();
         String ipAddress = redirectUrlInfo.getIpAddress();
         String prompt = redirectUrlInfo.getPrompt();
+        String validationRegex=configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getValidationRegex();
         boolean isShowTnc = redirectUrlInfo.isShowTnc();
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
         ScopeParam.heFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
@@ -663,6 +723,11 @@ public class Endpoints {
             if(StringUtils.isNotEmpty(prompt)){
                 redirectURL = redirectURL + "&" + AuthProxyConstants.TELCO_PROMPT +
                         "=" + prompt;
+            }
+
+            if(StringUtils.isNotEmpty(validationRegex)){
+                redirectURL = redirectURL + "&" + AuthProxyConstants.MSISDN_VALIDATION_REGEX +
+                        "=" + validationRegex;
             }
         } else {
             String errMsg = "AuthorizeURL could not be found in mobile-connect.xml";

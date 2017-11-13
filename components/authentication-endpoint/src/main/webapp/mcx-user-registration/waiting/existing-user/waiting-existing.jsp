@@ -2,28 +2,28 @@
 <%@ page import="javax.xml.parsers.ParserConfigurationException" %>
 <%@ page import="org.xml.sax.SAXException" %>
 <%@ page import="javax.xml.xpath.XPathExpressionException" %>
-
-<input type="hidden" name="sessionDataKey" id="sessionDataKey" value='<%=request.getParameter("sessionDataKey")%>'/>
-<div class="site__root" id="content-placeholder">
-
-
-</div>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<input type="hidden" name="sessionDataKey" id="sessionDataKey" value='<%=sessionDataKey%>'/>
+<div class="site__root" id="content-placeholder"></div>
+<fmt:message key="waiting-label-continue-on-device-otp-prompt" var="prompt" />
 
 <!-- The handlebar template -->
 <script id="results-template" type="text/x-handlebars-template">
 	<main class="site__main site__wrap section v-distribute">
 		<header class="page__header">
-			<h1 class="page__heading">
-				{{continue-on-device-heading}}
-			</h1>
-			<p>
+			<h1 class="page__heading"><fmt:message key='waiting-label-continue-on-device-heading'/></h1>
+			<p style="font-size: 0.9em;">
 
 				<%
 					String authenticators = request.getParameter("authenticators");
 					Boolean showSMSLink = false;
-					if(authenticators != null && authenticators.contains("SMSAuthenticator")) {
+					Boolean smsotp =false;
+					if(authenticators != null && authenticators.contains("SMSOTPAuthenticator")) {
+						smsotp=true;
 				%>
-				{{continue-on-device-intro-sms}}
+				<fmt:message key='waiting-label-continue-on-device-intro-otp-sms'/>
+				<%} else if(authenticators != null && authenticators.contains("SMSAuthenticator")) { %>
+				<fmt:message key='waiting-label-continue-on-device-intro-sms'/>
 				<%} else if (authenticators != null && authenticators.contains("USSDAuthenticator")) {
 					showSMSLink = true; %>
 				{{continue-on-device-intro-ussd}}
@@ -66,16 +66,44 @@
 		%>
 		<p class="page__copy flush">{{ussd-sent-resend-sms-prompt}}
 			<br>
-			<a onclick="sendSMS('<%=request.getParameter("sessionDataKey")%>');" style="cursor:pointer"><u>
+			<a onclick="sendSMS('<%=sessionDataKey%>');" style="cursor:pointer"><u>
 				{{ussd-sent-resend-sms-button}}
 			</u></a>
 		</p>
 		<br>
 		<br>
-		<%} %>
+		<%  }
+			if (smsotp) { %>
+				<div id="otperror" class="parsley-errors-list filled" style="text-align: center;display: none">
+				</div>
+				<div>
+					<ul class="form-fields">
+						<li>
+							<input  id="smsotp" type="text" onkeyup="this.value=this.value.replace(/[^\d]/,'')"  onselectstart="return false" onpaste="return false;" onCopy="return false" onCut="return false" onDrag="return false" onDrop="return false" autocomplete=off placeholder='<%=pageContext.getAttribute("prompt") %>'
+									  onkeypress="return event.keyCode != 13;"/>
+						</li>
+						<li>
+							<button id="smsotpsubmit" type="button" onclick="sendSMSOTP('<%=sessionDataKey%>');"  class="btn btn--outline btn--large btn--full" >
+								<fmt:message key='common-button-misc-submit'/>
+							</button>
+						</li>
+					</ul>
+				</div>
+		<%	} %>
 		<a onclick="handleTermination(true);" class="btn btn--outline btn--full btn--large">
-			{{misc-cancel-button}}
+			<fmt:message key='common-button-misc-cancel'/>
 		</a>
+		<div>
+            <p class="page-footer-message"><fmt:message key='waiting-label-continue-on-device-success-before-timeout-phase1'/><br><fmt:message key='waiting-label-continue-on-device-success-before-timeout-phase2'/></p>
+        </div>
 	</main>
+</script>
+<script src="js/sha256.js"></script>
+<script type="text/javascript">
+	var error_messages = {
+	  invalid: '<fmt:message key="waiting-label-continue-on-device-otp-invalid"/>',
+	  mismatch: '<fmt:message key="waiting-label-continue-on-device-otp-mismatch"/>',
+	  error_process: '<fmt:message key="waiting-label-continue-on-device-otp-error-process"/>'
+	 };
 </script>
 <script src="mcx-user-registration/js/waiting/existing-user/waiting.js"></script>

@@ -25,6 +25,11 @@
 			<action dev="Yasith Lokuge" type="add" issue="PRODEV-8">
                OSGI Feature released for gsma authenticator artifact.
             </action>
+		</release>	
+		<release version="2.3.0-rc1" date="2016-08-30" description="Bug Fix">
+			<action dev="Uditha" type="add" issue="IDSDEV-700">
+               FederatedAuthenticator Triggered for other operators.
+            </action>
 		</release>		
 	</body>	
 </document>

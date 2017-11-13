@@ -1,16 +1,10 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: isuru
-  Date: 2/2/17
-  Time: 12:15 PM
-  To change this template use File | Settings | File Templates.
---%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <html>
 <head>
-    <title>Privacy Policy</title>
+    <title><fmt:message key='common-label-security-privacy-policy'/></title>
 </head>
 <body>
-    <h1>Privacy Policy</h1>
+    <h1><fmt:message key='common-label-security-privacy-policy'/></h1>
 </body>
 </html>

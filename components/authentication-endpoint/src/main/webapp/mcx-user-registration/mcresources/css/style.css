@@ -871,7 +871,7 @@ a:focus {
     justify-content: center
 }
 .section {
-    padding: 30px
+    padding: 15px
 }
 .section--top {
     padding-top: 30px
@@ -2069,7 +2069,7 @@ textarea.parsley-error:focus,
     padding: 0;
     list-style: none;
     text-align: center;
-    margin: 2rem 0;
+    margin: 1.2rem 0;
     line-height: 1.4rem
 }
 .slick-dots li {
@@ -2219,8 +2219,11 @@ html.site--full-content .site__root:after {
     background: transparent
 }
 .site-header__inner {
-    padding: 1.5rem 3rem 2rem
+    padding: 1rem 3rem 2rem
 }
+.site-header-brand-table{ margin-bottom: 0rem !important;}
+
+.site-header-brand-table .brandLogo{ float: right;}
 .site-header__logo {
     width: 8.5rem;
     height: 3.8rem
@@ -2415,7 +2418,7 @@ html.site--full-content .site__root:after {
     }
 }
 .slider__slide {
-    height: 28rem
+    height: 23rem
 }
 .slider__slide-inner {
     height: 100%

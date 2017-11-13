@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!doctype html>
 <html class="site no-js lang--en" lang="en">
 
@@ -10,7 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
 
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
 
     <noscript>
         <!-- Fallback synchronous download, halt page rendering if load is slow  -->
@@ -24,9 +25,8 @@
             crossorigin="anonymous"></script>
     <script type="application/javascript">
         $(document).ready(function() {
-            var sessionID = getUrlParameter("id");
 
-            //saveRequestDetails();
+            var sessionID = getIdParameter();
             getUserChallanges();
             var finalResult;
 
@@ -66,6 +66,16 @@
                     }
                 }
             }
+
+            function getIdParameter() {
+                var sPageURL = window.location.href,
+                    sURLVariables = sPageURL.split('/'),
+                    lengthOfSlash = sURLVariables.length;
+
+                    if(lengthOfSlash != 0){
+                        return sURLVariables[sURLVariables.length -1];
+                    }
+            }
         });
     </script>
     <!-- Adds IE root class without breaking doctype -->
@@ -79,7 +89,7 @@
     <header class="site-header">
         <div class="site-header__inner site__wrap">
             <h1 class="visuallyhidden">Mobile&nbsp;Connect</h1>
-            <a href="/"><img src="images/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150"
+            <a href="#"><img src="../images/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150"
                              class="site-header__logo"></a>
 
 
@@ -89,29 +99,28 @@
     <main class="site__main site__wrap section v-distribute">
         <header class="page__header">
             <h1 class="page__heading">
-                SMS Authenticator
+               <fmt:message key='sms-label-authenticator'/>
             </h1>
             <p id="failedText" style="display:none;">
-                Your session expired.
+               <fmt:message key='sms-label-authenticator-fail'/>
             </p>
             <p id="successText" style="display: none">
-                You are successfully authenticated via mobile connect.
+               <fmt:message key='sms-label-authenticator-success'/>
             </p>
         </header>
 
         <div class="page__illustration v-grow v-align-content">
             <div id="successImage" style="display: none">
-                <img src="images/svg/successful-action.svg" alt="Reset successful" width="126" height="126">
+                <img src="../images/svg/successful-action.svg" alt="Reset successful" width="126" height="126">
             </div>
             <div id="failedImage" style="display: none">
-                <img src="images/svg/failed.svg" alt="Reset successful" width="126" height="126">
+                <img src="../images/svg/failed.svg" alt="Reset successful" width="126" height="126">
             </div>
         </div>
     </main>
 </div>
 </body>
 </html>
-
 
 
 

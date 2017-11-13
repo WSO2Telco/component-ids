@@ -17,16 +17,21 @@
  -->
 <%@ page import="com.wso2telco.identity.application.authentication.endpoint.util.CharacterEncoder"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ page import="java.util.Locale" %>
+<%@ page import="java.util.ResourceBundle" %>
+<%@ page import="javax.servlet.jsp.jstl.core.Config" %>
 
 <%
-
-    String stat = CharacterEncoder.getSafeText(request.getParameter("status"));
-    String statusMessage = CharacterEncoder.getSafeText(request.getParameter("statusMsg"));
-    if(stat == null || statusMessage == null){
-        stat = "Authentication Error !";
-        statusMessage = "Something went wrong during the authentication process. Please try signing in again.";
-    }
-    session.invalidate();
+	String stat = CharacterEncoder.getSafeText(request.getParameter("status"));
+            String statusMessage = CharacterEncoder.getSafeText(request.getParameter("statusMsg"));
+            if (stat == null || statusMessage == null) {
+                ResourceBundle properties = ResourceBundle.getBundle(
+                        getServletContext().getInitParameter("javax.servlet.jsp.jstl.fmt.localizationContext"),
+                        Locale.forLanguageTag(Config.get(getServletContext(), Config.FMT_LOCALE).toString()));
+                stat = properties.getString("common-error-message");
+                statusMessage = properties.getString("common-error-description");
+            }
+            session.invalidate();
 %>
 <style>
 .info-box{

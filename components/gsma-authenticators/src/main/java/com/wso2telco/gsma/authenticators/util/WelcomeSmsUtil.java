@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com)
+ *
+ * All Rights Reserved. WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
 package com.wso2telco.gsma.authenticators.util;
 
 import com.wso2telco.core.config.model.MobileConnectConfig;
@@ -12,14 +27,12 @@ import com.wso2telco.ids.datapublisher.model.UserStatus;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by isuru on 3/9/17.
- */
 public class WelcomeSmsUtil {
 
     private static SpConfigService spConfigService = new SpConfigServiceImpl();
@@ -28,9 +41,10 @@ public class WelcomeSmsUtil {
 
     public static void handleWelcomeSms(AuthenticationContext context, UserStatus userStatus, String msisdn, String
             operator,
-                                  MobileConnectConfig.SMSConfig smsConfig) throws DataAccessException, IOException {
+                                  MobileConnectConfig.SMSConfig smsConfig)
+            throws DataAccessException, IOException, AuthenticationFailedException {
 
-        BasicFutureCallback futureCallback = userStatus != null ? new SMSFutureCallback(userStatus.cloneUserStatus()) : new SMSFutureCallback();
+        BasicFutureCallback futureCallback = userStatus != null ? new SMSFutureCallback(userStatus.cloneUserStatus(),"SMS") : new SMSFutureCallback();
 
         List<OperatorSmsConfig> operatorSmsConfigs = smsConfig.getOperatorSmsConfigs();
 
@@ -74,7 +88,7 @@ public class WelcomeSmsUtil {
 
     private static void sendWelcomeSms(String msisdn, String operator, BasicFutureCallback futureCallback, SendSMS sendSMS,
                                 OperatorSmsConfig operatorSmsConfig, Map<String, String> welcomeSMSConfig, String
-                                        clientId) throws IOException {
+                                        clientId) throws IOException, AuthenticationFailedException {
 
         String welcomeSmsDisabledForCurrentSp = welcomeSMSConfig.get(operator.trim());
         

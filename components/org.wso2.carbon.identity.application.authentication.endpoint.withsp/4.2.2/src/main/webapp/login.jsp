@@ -450,7 +450,7 @@
 
 
 						<%
-					}  else if(localAuthenticatorNames.size()>0 && localAuthenticatorNames.contains("SMSAuthenticator")) {
+					}  else if(localAuthenticatorNames.size()>0 && localAuthenticatorNames.contains("SMSAuthenticator") || localAuthenticatorNames.contains("SMSOTPAuthenticator")) {
 							hasLocalLoginOptions = true;
 						%>
 

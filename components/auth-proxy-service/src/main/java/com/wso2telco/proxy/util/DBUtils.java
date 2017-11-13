@@ -374,8 +374,12 @@ public class DBUtils {
         }
 
         String queryToGetOperatorProperty =
-                "SELECT COUNT(*) AS record_count FROM `sp_configuration` WHERE `client_id`=? AND `config_key`=? AND " +
-                        "`config_value` in (" + params + ")";
+                "select count(*) as record_count from " +
+                    "( select client_id,config_key,config_value " +
+                        "FROM `sp_configuration` " +
+                        "WHERE `client_id`=? AND `config_key`=? AND  `config_value` in (" + params + ") " +
+                        "group by client_id,config_key,config_value" +
+                    ") as spscopes";
         boolean isSPAllowedScope = false;
 
         try {

@@ -29,6 +29,7 @@
 <%@page import="org.apache.log4j.Logger" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ page import="javax.servlet.jsp.jstl.core.Config" %>
 <%@ page import="org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants" %>
 <%@ page import="org.apache.log4j.Logger" %>
 <%@ page import="org.wso2.carbon.identity.oauth2.model.OAuth2Parameters" %>
@@ -44,8 +45,6 @@
 <%@ page import="org.wso2.carbon.identity.application.authentication.framework.context.*" %>
 
 <%! static Logger logger = Logger.getLogger(login_jsp.class); %>
-
-<fmt:bundle basename="org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources">
 
 	<html class="site no-js lang--en" lang="en">
 	<input type="hidden" id="baseURL"
@@ -103,7 +102,7 @@
 			String operator = request.getParameter("operator") != null ? request.getParameter("operator") : "";
 			if (!operator.isEmpty()) {
 		%>
-		<link href="/authenticationendpoint/css/branding/<%=operator%>-style.css" rel="stylesheet">
+		<link href="css/branding/<%=operator%>-style.css" rel="stylesheet">
 		<%}%>
 
 	</head>
@@ -244,32 +243,27 @@
 	%>
 	<input type="hidden" id="msisdn" value='<%=msisdn%>'>
 	<header class="site-header">
-		<div class="site-header__inner site__wrap">
-			<h1 class="visuallyhidden">Mobile&nbsp;Connect</h1>
-			<a href="mcx-user-registration/selfcare/index.html"><img src="images/svg/mobile-connect.svg"
-																	 alt="Mobile Connect&nbsp;Logo" width="150"
-																	 class="site-header__logo"></a>
-			<% if (!operator.isEmpty()) {
-				String imgPath = "images/branding/" + operator + "_logo.svg";
+		   <div class="site-header__inner site__wrap">
+    <h1 class="visuallyhidden">Mobile Connect</h1>
+    <div align="center">
+    <table class="site-header-brand-table" style="margin-bottom:0px;">
+    <tbody><tr>
+    <td width="30%">
+    <a class="brand">
+    <img src="images/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo">
+    </a>
+    </td>
+    <td width="70%">
+	<% if (!operator.isEmpty()) {
+				String imgPath = "images/branding/" + operator + "_logo.png";
 			%>
-			<p class="site-header__powered-by">powered&nbsp;by
-
-			</p>
-			<a class="brand">
-				<img class="brandLogo" src='<%= imgPath %>' alt='<%= operator %>'>
-			</a>
-			<% } %>
-			<!--form action="/lang" class="site-header__lang-menu field--select field--select-plain" novalidate>
-              <label for="field-select-lang" class="visuallyhidden">Language:</label>
-              <select id="field-select-lang" name="lang" class="field__select-native js-transparent">
-                <option value="en" selected>English&nbsp;(UK)</option>
-                <option value="de">Deutsche</option>
-                <option value="th">urdu</option>
-              </select>
-              <input type="hidden" name="return-url" value="/registration/">
-              <input type="submit" value="Go" class="btn btn--natural btn--light js-visuallyhidden">
-            </form>-->
-		</div>
+    <img src='<%=imgPath%>' alt="Operator" class="brandLogo" style="float:right;">
+	<% } %>
+    </td>
+    </tr>
+    </tbody></table>
+    </div>
+    </div>
 	</header>
 	<form action="../../commonauth" method="post" id="loginForm" class="form-horizontal" data-parsley-validate
 		  novalidate>
@@ -457,7 +451,7 @@
 
 
 				<%
-				} else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains("SMSAuthenticator")) {
+				} else if (localAuthenticatorNames.size() > 0 && (localAuthenticatorNames.contains("SMSAuthenticator") || localAuthenticatorNames.contains("SMSOTPAuthenticator"))) {
 					hasLocalLoginOptions = true;
 				%>
 				<div class="row">
@@ -594,5 +588,3 @@
 
 	</body>
 	</html>
-
-</fmt:bundle>

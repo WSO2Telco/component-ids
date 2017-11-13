@@ -23,7 +23,6 @@ $(document).ready(function(){
 	// The div/container that we are going to display the results in
 	var resultsPlaceholder = document.getElementById('content-placeholder');
 
-	//
 	var operator= qs('operator');
 	var token= qs('sessionDataKey');
 	var sp= qs('sp');
@@ -161,3 +160,53 @@ function getUrlVars()
 	}
 	return vars;
 }
+
+/*
+ * Invoke the endpoint to send OTP SMS.
+ */
+function sendSMSOTP(session_id) {
+
+	var input=document.getElementById('smsotp').value;
+	if(input && input.length>3) {
+		otpError(false,"");
+		var data = {};
+		data.session_id = session_id;
+		data.otp = SHA256(input);
+		var json = JSON.stringify(data);
+		$.ajax({
+			type: "post",
+			url: "../sessionupdater/tnspoints/endpoint/smsotp/send",
+			async: true,
+			cache: false,
+			data: json,
+			contentType: "application/json",
+			success: function (result) {
+			}, statusCode: {
+				200: function (response) {
+					otpError(false,"");
+				},
+				403: function (response) {
+					otpError(true,error_messages.mismatch);
+				},
+				400: function (response) {
+					otpError(true,error_messages.error_process);
+				}
+			}
+		});
+		document.getElementById("smsotpsubmit").disabled = true;
+	}else{
+		otpError(true,error_messages.invalid);
+	}
+
+}
+
+function otpError(show,msg) {
+	var erromsg = document.getElementById('otperror');
+	if(show){
+		erromsg.style.display = 'block';
+	}else{
+		erromsg.style.display = 'none';
+	}
+	$("#otperror").text(msg);
+}
+

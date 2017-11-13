@@ -301,7 +301,7 @@ dd {
     margin-bottom: 2rem
 }
 .form-fields>li:last-child {
-    margin-bottom: 0
+    margin-bottom: 2rem
 }
 .field--select-block .field__select-native,
 .field--select-block .field__select-custom,
@@ -2203,6 +2203,14 @@ html.site--full-content .site__fix-bottom {
 .no-cssanimations .spinner__el {
     display: none
 }
+
+.page-footer-message{
+    color: #191970;
+    text-align: center;
+    margin-top: 2rem;
+    font-size: 0.9em;
+}
+
 @-webkit-keyframes spinner-fade-anim {
     0% {
         opacity: 1

@@ -160,6 +160,11 @@ public final class Constants {
     public static final String SMS_AUTHENTICATOR_NAME = "SMSAuthenticator";
 
     /**
+     * The Constant SMSOTP_AUTHENTICATOR_NAME.
+     */
+    public static final String SMSOTP_AUTHENTICATOR_NAME = "SMSOTPAuthenticator";
+
+    /**
      * The Constant SMS_AUTHENTICATOR_FRIENDLY_NAME.
      */
     public static final String SMS_AUTHENTICATOR_FRIENDLY_NAME = "sms";

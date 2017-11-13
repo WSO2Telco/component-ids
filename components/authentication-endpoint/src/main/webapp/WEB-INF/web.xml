@@ -48,10 +48,20 @@
     <!-- *************** End of Global configurations ********************** -->
 
     <!--Display scopes in the consent page.-->
+    <listener>       
+      <listener-class>com.wso2telco.identity.application.authentication.endpoint.InitVariables</listener-class>
+   	</listener>  
+   
     <context-param>
         <param-name>displayScopes</param-name>
         <param-value>true</param-value>
     </context-param>
+
+    <!-- Set default Locale Resource Path here -->
+    <context-param> 
+    	<param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
+    	<param-value>org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources</param-value> 
+    </context-param> 
 
     <filter>
         <filter-name>HttpHeaderSecurityFilter</filter-name>
@@ -279,7 +289,7 @@
 
     <servlet-mapping>
         <servlet-name>sms_auth</servlet-name>
-        <url-pattern>/sms</url-pattern>
+        <url-pattern>/sms/*</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

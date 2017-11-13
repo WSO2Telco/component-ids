@@ -139,9 +139,19 @@ public final class Constants {
     public static final String SMS_AUTHENTICATOR_NAME = "SMSAuthenticator";
 
     /**
+     * The Constant SMSOTP_AUTHENTICATOR_NAME.
+     */
+    public static final String SMSOTP_AUTHENTICATOR_NAME = "SMSOTPAuthenticator";
+
+    /**
      * The Constant SMS_AUTHENTICATOR_FRIENDLY_NAME.
      */
     public static final String SMS_AUTHENTICATOR_FRIENDLY_NAME = "sms";
+
+    /**
+     * The Constant SMSOTP_AUTHENTICATOR_FRIENDLY_NAME.
+     */
+    public static final String SMSOTP_AUTHENTICATOR_FRIENDLY_NAME = "smsotp";
 
     /**
      * The Constant SMS_AUTHENTICATOR_STATUS.
@@ -198,6 +208,18 @@ public final class Constants {
      * The Constant SELF_AUTHENTICATOR_FRIENDLY_NAME.
      */
     public static final String SELF_AUTHENTICATOR_FRIENDLY_NAME = "self";
+    /**
+     * The Constant FEDERATED_AUTHENTICATOR_NAME.
+     */
+    public static final String FEDERATED_AUTHENTICATOR_NAME = "FederatedAuthenticator";
+    /**
+     * The Constant FEDERATED_AUTHENTICATOR_FRIENDLY_NAME.
+     */
+    public static final String FEDERATED_AUTHENTICATOR_FRIENDLY_NAME = "federatedIdp";
+
+    public static final String FEDERATED_AUTHENTICATOR_TRIGGERED = "FATriggered";
+
+
     public static final String USER_PROFILE_UPDATE_REQUIRED = "userProfileUpdateRequired";
 
     /**
@@ -358,7 +380,7 @@ public final class Constants {
 
     public static final String IP_ADDRESS = "ipAddress";
 
-    public static final String AUTH_URL_ID_PREFIX = "?id=";
+    public static final String AUTH_URL_ID_PREFIX = "/";
 
     public static final String HE_FAILURE_RESULT = "heFailureResult";
 
@@ -390,7 +412,7 @@ public final class Constants {
 
     public static final String USER_ACTION_USER_CANCELED = "userCanceled";
 
-    public static final String USER_ACTION_USER_TIMEOUT = "userTimeout";
+    public static final String USER_ACTION_USER_TIMEOUT = "userRespondedOrTimeout";
 
     public static final String SCOPE = "scope";
 

@@ -1,4 +1,6 @@
 <!doctype html>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ page import="javax.servlet.jsp.jstl.core.Config" %>
 <html class="site no-js lang--en" lang="en">
 
 <head>
@@ -58,7 +60,7 @@
 
         if(operator != ""){
         %>
-        <link href="css/branding/<%=operator%>-style.css" rel="stylesheet">
+        <link href="../css/branding/<%=operator%>-style.css" rel="stylesheet">
         <%}%>
         <script type="text/javascript">
         var values = {};
@@ -79,10 +81,19 @@
           <header class="site-header">
             <div class="site-header__inner site__wrap">
               <h1 class="visuallyhidden">Mobile&nbsp;Connect</h1>
-              <a href="/"><img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo"></a>
-              
+            <%
+		    if (Config.get(getServletContext(), Config.FMT_LOCALE).toString().equals("en-US")) {
+            %>
+            <a href="#"><img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo"></a>
+              <%
+            }else{
+            %> 
+            <img src="mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo">
+             <%
+            }
+            %>
               <% if(operator != ""){ 
-              String imgPath = "img/branding/" + operator + "_logo.svg";
+              String imgPath = "../images/branding/" + operator + "_logo.svg";
               %>
               <p class="site-header__powered-by">powered&nbsp;by      
               </p>
@@ -113,9 +124,7 @@
 
     <main class="site__main site__wrap section v-distribute">
       <header class="page__header">
-        <h1 class="page__heading">
-          We've sent a message to your&nbsp;mobile
-        </h1>
+        <h1 class="page__heading"><fmt:message key='waiting-label-continue-on-device-heading'/></h1>
         <div id="instruction_USSDAuthenticator">
          <p><strong>Reply with 1 to continue with your Registration.</strong></p>
 
@@ -150,9 +159,7 @@
     <div align="center" id ="sms_fallback" style="display:block">
       <p>No message arrived? <br><u><a onclick="sendSms()" style="cursor: pointer;">Click to get a text message instead.</a><u></p>
     </div>
-    <a onclick="cancelProcessToRegister(true)" class="btn btn--outline btn--full btn--large">
-      Cancel
-    </a>
+    <a onclick="cancelProcessToRegister(true)" class="btn btn--outline btn--full btn--large"><fmt:message key='common-button-misc-cancel'/></a>
   </main>
 </div>
 
@@ -209,5 +216,4 @@ var getUrlParameter = function getUrlParameter(sParam) {
 
 </script>
 </body>
-
 </html>

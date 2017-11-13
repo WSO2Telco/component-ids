@@ -267,8 +267,8 @@ public class DBUtils {
             ps.setString(1, sessionDataKey);
             ps.setString(2, responseStatus);
             ps.executeUpdate();
-            SessionExpire sessionExpire = new SessionExpire(sessionDataKey);
-            sessionExpire.start();
+            //SessionExpire sessionExpire = new SessionExpire(sessionDataKey);
+            //sessionExpire.start();
         } catch (SQLException e) {
             handleException("Error occured while inserting User Response for SessionDataKey: " + sessionDataKey + " " +
                     "to the database", e);
@@ -494,6 +494,40 @@ public class DBUtils {
         }
         return uuid;
     }
+
+    /**
+     * Update reg status.
+     *
+     * @param sessionID the session id
+     * @param status    the status
+     * @throws AuthenticatorException the Authentication exception
+     */
+    public static void updateAuthFlowStatus(String sessionID, String status) throws AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+
+        StringBuilder sql = new StringBuilder();
+        sql.append("UPDATE  ");
+        sql.append(TableName.REG_STATUS);
+        sql.append(" SET status=? WHERE uuid=?");
+
+        try {
+            connection = getConnectDBConnection();
+            ps = connection.prepareStatement(sql.toString());
+            ps.setString(1, status);
+            ps.setString(2, sessionID);
+            log.info(ps.toString());
+            ps.execute();
+
+        } catch (SQLException e) {
+            handleException("Error occured while updating Timeout Response for SessionDataKey: " + sessionID
+                    + " to the database", e);
+        }finally{
+            IdentityDatabaseUtil.closeAllConnections(connection, null, ps);
+        }
+    }
+
 
     public static void updateIdsRegStatus(String username, String status) throws SQLException, AuthenticatorException {
         Connection connection;
@@ -826,9 +860,9 @@ public class DBUtils {
     /**
      * Get prompt data
      *
-     * @param scope
-     * @param prompt
-     * @param isLoginHintExists
+     * @param scope scope
+     * @param prompt prompt
+     * @param isLoginHintExists login hint availability
      * @return PromptData
      */
     public static PromptData getPromptData(String scope, String prompt, Boolean isLoginHintExists) {
@@ -858,6 +892,71 @@ public class DBUtils {
             IdentityDatabaseUtil.closeAllConnections(connection, rs, ps);
             return promptData;
         }
+    }
+
+    /**
+     * Insert otp for sms authentication.
+     *
+     * @param sessionDataKey the session data key
+     * @param otp the smsotp
+     * @param status the status
+     * @return the string
+     * @throws AuthenticatorException the authenticator exception
+     */
+    public static String insertOTPForSMS(String sessionDataKey, String otp,String status) throws AuthenticatorException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        StringBuilder sql = new StringBuilder();
+        sql.append("INSERT INTO ");
+        sql.append(TableName.SMS_OTP);
+        sql.append(" (session_id, otp,status) VALUES (?,?,?)");
+        String userResponse = null;
+        try {
+            conn = getConnectDBConnection();
+            ps = conn.prepareStatement(sql.toString());
+            ps.setString(1, sessionDataKey);
+            ps.setString(2, otp);
+            ps.setString(3,status);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            handleException("Error occured while inserting SMS OTP for SessionDataKey: " + sessionDataKey + " " +
+                    "to the database", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(conn, null, ps);
+        }
+        return userResponse;
+    }
+
+
+    /**
+     * Update otp for sms authentication.
+     *
+     * @param sessionDataKey the session data key
+     * @param status the status
+     * @return the string
+     * @throws AuthenticatorException the authenticator exception
+     */
+    public static String updateOTPForSMS(String sessionDataKey, String status) throws AuthenticatorException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        StringBuilder sql = new StringBuilder();
+        sql.append("UPDATE ");
+        sql.append(TableName.SMS_OTP);
+        sql.append(" SET status=? WHERE session_id=?");
+        String userResponse = null;
+        try {
+            conn = getConnectDBConnection();
+            ps = conn.prepareStatement(sql.toString());
+            ps.setString(1, status);
+            ps.setString(2, sessionDataKey);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            handleException("Error occured while updating SMS OTP for SessionDataKey: " + sessionDataKey + " " +
+                    "to the database", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(conn, null, ps);
+        }
+        return userResponse;
     }
 
 }
