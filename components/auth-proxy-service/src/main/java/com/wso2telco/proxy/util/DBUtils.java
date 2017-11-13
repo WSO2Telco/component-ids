@@ -53,6 +53,11 @@ public class DBUtils {
     private static volatile DataSource mConnectDatasource = null;
 
     /**
+     * The WSO2 APIM datasource
+     */
+    private static volatile DataSource wso2APIMDatasource = null;
+
+    /**
      * The Configuration service
      */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
@@ -95,12 +100,20 @@ public class DBUtils {
         }
     }
 
-    private static Connection getConnection() throws SQLException, NamingException {
-        initializeDatasource();
-        if (dataSource != null) {
-            return dataSource.getConnection();
+    private static void initializeWSO2APIMDatasource() throws NamingException {
+        if (wso2APIMDatasource != null) {
+            return;
         }
-        throw new SQLException("Sessions Datasource not initialized properly");
+
+        String dataSourceName = null;
+        try {
+            Context ctx = new InitialContext();
+            ConfigurationService configurationService = new ConfigurationServiceImpl();
+            dataSourceName = configurationService.getDataHolder().getMobileConnectConfig().getWso2APIMDataSourceName();
+            wso2APIMDatasource = (DataSource) ctx.lookup(dataSourceName);
+        } catch (NamingException e) {
+            throw new NamingException("Error while looking up the data source : " + dataSourceName);
+        }
     }
 
 
@@ -116,6 +129,22 @@ public class DBUtils {
 
         if (mConnectDatasource != null) {
             return mConnectDatasource.getConnection();
+        }
+        throw new SQLException("Connect Datasource not initialized properly");
+    }
+
+    /**
+     * Gets the WSO2 API Manager db connection.
+     *
+     * @return the WSO2 API Manager db connection
+     * @throws SQLException           the SQL exception
+     * @throws AuthenticatorException the authenticator exception
+     */
+    private static Connection getWSO2APIMDBConnection() throws SQLException, NamingException {
+        initializeWSO2APIMDatasource();;
+
+        if (wso2APIMDatasource != null) {
+            return wso2APIMDatasource.getConnection();
         }
         throw new SQLException("Connect Datasource not initialized properly");
     }
@@ -406,6 +435,34 @@ public class DBUtils {
             closeAllConnections(preparedStatement, connection, resultSet);
         }
         return isSPAllowedScope;
+    }
+
+
+    public static boolean isValidCallback(String redirectURL, String clientId)
+            throws ConfigurationException, AuthenticatorException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        String queryToGetOperatorProperty ="SELECT callback_url FROM idn_oauth_consumer_apps WHERE consumer_key=?";
+        boolean isValidCallback = false;
+
+        try {
+            connection = getWSO2APIMDBConnection();
+            preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
+            preparedStatement.setString(1, clientId);;
+            resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                isValidCallback = resultSet.getString("callback_url").equalsIgnoreCase(redirectURL);
+            }
+        } catch (SQLException e) {
+            handleException(
+                    "Error occurred while getting call back infomation for ClientId - " + clientId,e);
+        } catch (NamingException e) {
+            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+        } finally {
+            closeAllConnections(preparedStatement, connection, resultSet);
+        }
+        return isValidCallback;
     }
 
 
