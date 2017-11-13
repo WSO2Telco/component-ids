@@ -100,9 +100,13 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
     public String getResponseString(OAuth2TokenValidationResponseDTO tokenResponse) throws UserInfoEndpointException,
             OAuthSystemException {
 
+        String tokenValue = tokenResponse.getAuthorizationContextToken()
+                .getTokenString();
+
+        org.apache.log4j.MDC.put("REF_ID", tokenValue);
+
         if (log.isDebugEnabled()) {
-            log.debug("Generating Claim Info for Access token : " + tokenResponse.getAuthorizationContextToken()
-                    .getTokenString());
+            log.debug("Generating Claim Info for Access token : " + tokenValue);
         }
         if (mobileConnectConfig.isFederatedDeployment()) {
             FederatedIdpMappingDTO fidpInstance = new FederatedIdpMappingDTO();
