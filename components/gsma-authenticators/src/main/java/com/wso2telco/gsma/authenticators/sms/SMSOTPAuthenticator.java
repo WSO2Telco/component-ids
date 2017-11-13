@@ -124,7 +124,7 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
                     DBUtils.updateOTPForSMS(sessionDataKey, status);
                 }
             } catch (Exception e) {
-                //log.error("Error while updating sms otp status", e);
+                log.error("Error while updating sms otp status", e);
             }
         }
     }
