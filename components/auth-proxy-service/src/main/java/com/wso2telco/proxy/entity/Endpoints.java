@@ -122,14 +122,16 @@ public class Endpoints {
                                             @PathParam("operatorName") String operatorName, String jsonBody) throws
             Exception {
 
-        log.info("Request processing started from proxy");
-
         operatorName = operatorName.toLowerCase();
         //Read query params from the header.
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         String clientId = queryParams.getFirst("client_id");
+        String state = queryParams.getFirst("state");
         String redirectURL = queryParams.get(AuthProxyConstants.REDIRECT_URI).get(0);
         String scopeName = queryParams.get(AuthProxyConstants.SCOPE).get(0);
+
+        org.apache.log4j.MDC.put("REF_ID", state);
+        log.info("Request processing started from proxy");
 
 
         //maintain userstatus related to request for data publishing purpose
