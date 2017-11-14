@@ -71,6 +71,7 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
 
     @Override
     public boolean validateGrant(OAuthTokenReqMessageContext tokReqMsgCtx) throws IdentityOAuth2Exception {
+        org.apache.log4j.MDC.put("REF_ID", "["+ tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode() +"]");
         log.info("AuthCode Validatation process triggered for authorize code : "
                 + tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
         boolean isValidAuthCode;
