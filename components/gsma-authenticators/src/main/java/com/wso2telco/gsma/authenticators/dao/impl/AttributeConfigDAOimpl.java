@@ -90,7 +90,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
 
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append(SELECT);
-        sqlBuilder.append(" con.scope_id,con.exp_period,con.operator_id ,con.consent_id");
+        sqlBuilder.append(" con.scope_id,con.exp_period,con.operator_id ,con.consent_id ");
         sqlBuilder.append(FROM);
         sqlBuilder.append(" consent con");
         sqlBuilder.append(" INNER JOIN operators op ON op.ID=con.operator_id ");
