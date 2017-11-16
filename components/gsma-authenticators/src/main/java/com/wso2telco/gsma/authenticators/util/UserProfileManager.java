@@ -384,13 +384,17 @@ public class UserProfileManager {
      * @throws NoSuchAlgorithmException                                 no such algorithm exception
      */
     public void updateUserProfileForLOA3(String challengeQuestionAnswer1,
-                                         String challengeQuestionAnswer2, String pin, String userName)
+                                         String challengeQuestionAnswer2, String pin, String userName, boolean isStatusUpdate,boolean isAttributeScope,String spType,String attrbShareType)
             throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException,
             UnsupportedEncodingException, NoSuchAlgorithmException {
 
 		/* updating loa cliam of the user profile */
         if (log.isDebugEnabled()) {
             log.debug("user profile update for loa " + Constants.LOA3);
+        }
+
+        if(isStatusUpdate){
+            updateUserStatus(userName,isAttributeScope,spType,attrbShareType);
         }
         remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.LOA, Constants.LOA3,
                 UserCoreConstants.DEFAULT_PROFILE);
