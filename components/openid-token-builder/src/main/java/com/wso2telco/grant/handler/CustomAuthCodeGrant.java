@@ -80,7 +80,7 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
             isValidAuthCode = super.validateGrant(tokReqMsgCtx);
         } catch (Exception ex) {
             publishForFailureData(tokReqMsgCtx, isPublishingEnabled);
-            log.error(ex);
+            log.error("Error occurred while validate the authcode" + ex);
             throw new IdentityOAuth2Exception(ex.getMessage(), ex);
         }
 
@@ -99,14 +99,17 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
         OAuth2AccessTokenRespDTO tokenRespDTO;
 
         try {
-            if (!mobileConnectConfig.isFederatedDeployment())
+            if (!mobileConnectConfig.isFederatedDeployment()) {
                 tokenRespDTO = issueTokenFromIS(tokReqMsgCtx);
-            else
+                log.info("Issued token from IS" + tokenRespDTO.getAccessToken());
+            } else{
                 tokenRespDTO = issueTokenForFederatedIds(tokReqMsgCtx);
+                log.info("Issued token from FederatedIds" + tokenRespDTO.getAccessToken());
+            }
 
         } catch (Exception ex) {
             publishForFailureData(tokReqMsgCtx, isPublishingEnabled);
-            log.error(ex);
+            log.error("error occurred whle issuing token" + ex);
             throw new IdentityOAuth2Exception(ex.getMessage(), ex);
         }
 
@@ -350,7 +353,6 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
 
     private OAuth2AccessTokenRespDTO issueTokenFromIS(OAuthTokenReqMessageContext tokReqMsgCtx)
             throws IdentityOAuth2Exception {
-
         return super.issue(tokReqMsgCtx);
 
     }
