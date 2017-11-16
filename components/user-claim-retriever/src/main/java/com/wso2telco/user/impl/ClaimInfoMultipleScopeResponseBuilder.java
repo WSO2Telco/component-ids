@@ -191,7 +191,6 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         String userInfoJson = gson.toJson(requestedClaims);
         log.info("User Info retrieval Success");
         log.info("User data : "+userInfoJson);
-        log.debug("User data JSON " + userInfoJson);
         return userInfoJson;
     }
 
