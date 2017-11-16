@@ -439,7 +439,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
     private boolean isValidOperator(HttpServletRequest request, AuthenticationContext context, String msisdn, String
             operator, UserStatus userStatus) throws AuthenticationFailedException {
         boolean ipValidation = false;
-        boolean validOperator = true;
+        boolean validOperator = false;
 
         if (operatorIpValidation.containsKey(operator)) {
             ipValidation = operatorIpValidation.get(operator);
