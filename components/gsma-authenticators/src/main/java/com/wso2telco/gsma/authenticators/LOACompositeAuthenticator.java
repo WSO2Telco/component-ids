@@ -105,6 +105,8 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
     public AuthenticatorFlowStatus process(HttpServletRequest request,
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
+        log.info("Processing started");
+
         boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled();
 
         // set context current LOA
@@ -127,6 +129,16 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         Integer requestedLoa = Integer.parseInt(request.getParameter(Constants.PARAM_ACR));
         String ipAddress = request.getParameter(Constants.IP_ADDRESS);
         String transactionId = request.getParameter(Constants.TRANSACTION_ID);
+
+        if(log.isDebugEnabled()){
+            log.debug("mobileNetworkOperator : " + mobileNetworkOperator);
+            log.debug("serviceProvider : " + serviceProvider);
+            log.debug("msisdnHeader : " + msisdnHeader);
+            log.debug("loginHintMsisdn : " + loginHintMsisdn);
+            log.debug("requestedLoa : " + requestedLoa);
+            log.debug("ipAddress : " + ipAddress);
+            log.debug("transactionId : " + transactionId);
+        }
 
         boolean isShowTnc = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
         ScopeParam.msisdnMismatchResultTypes headerMismatchResult = ScopeParam.msisdnMismatchResultTypes.valueOf(
@@ -159,6 +171,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
             if (promptData.getBehaviour() != null && (promptData.getBehaviour() == PromptData.behaviorTypes.OFFNET
                     || promptData.getBehaviour() == PromptData.behaviorTypes.OFFNET_TRUST_LOGIN_HINT)) {
                 isFrorceOffnetDueToPromptParameter = true;
+                log.info("Forced to offnet due to prompt parameter");
             }
         }
 
@@ -221,6 +234,8 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
                 boolean isProfileUpgrade = Util.isProfileUpgrade(decryptedMsisdn, requestedLoa, isUserExists);
                 context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade);
+
+                log.info("MSISDN value decrypted");
             } catch (Exception e) {
                 log.error(e);
                 throw new AuthenticationFailedException("Decryption error", e);
@@ -332,6 +347,8 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
             context.setProperty(Constants.AUTH_ENDPOINT_DATA_PUBLISHING_PARAM,
                     DataPublisherUtil.getAuthMapWithInitialData(request, context));
         }
+
+        log.info("LOA Composite authentication success");
         return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
     }
 

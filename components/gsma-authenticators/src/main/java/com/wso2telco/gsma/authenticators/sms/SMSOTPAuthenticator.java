@@ -59,7 +59,8 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
     protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws AuthenticationFailedException {
 
-        //log.info("Initiating authentication request");
+        log.info("Initiating authentication request");
+
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         SMSMessage smsMessage = getRedirectInitAuthentication(response, context, userStatus);
         if (smsMessage != null && smsMessage.getRedirectURL() != null && !smsMessage.getRedirectURL().isEmpty()) {
@@ -68,17 +69,17 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
                 MobileConnectConfig.SMSConfig smsConfig = connectConfig.getSmsConfig();
                 int otpLength = smsConfig.getOTPLength();
                 String otp = Utility.genarateOTP(otpLength);
-                //String otp =smsMessage.getMsisdn().substring(smsMessage.getMsisdn().length()-smsConfig.getOTPLength());
+                // TODO: uncomment when load test String otp =smsMessage.getMsisdn().substring(smsMessage.getMsisdn().length()-smsConfig.getOTPLength());
                 String hashedotp = Utility.generateSHA256Hash(otp);
                 String sessionDataKey = context.getContextIdentifier();
                 DBUtils.insertOTPForSMS(sessionDataKey, hashedotp, UserResponse.PENDING.name());
-                // prepare the USSD message from template
+
                 HashMap<String, String> variableMap = new HashMap<String, String>();
                 variableMap.put("smsotp", otp);
                 String otpmessageText = OutboundMessage.prepare(smsMessage.getClient_id(),
                         OutboundMessage.MessageType.SMS_OTP, variableMap, smsMessage.getOperator());
                 smsMessage.setMessageText(otpmessageText + smsMessage.getMessageText());
-               if (log.isDebugEnabled()) {
+                if (log.isDebugEnabled()) {
                     log.debug("OTP Message: " + smsMessage.getMessageText());
                 }
                 log.info("OTP Message: " + smsMessage.getMessageText());
@@ -93,6 +94,7 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
                 throw new AuthenticationFailedException(e.getMessage(), e);
             }
         } else {
+            log.error("SMS Authentication failed while trying to authenticate");
             throw new AuthenticationFailedException("SMS Authentication failed while trying to authenticate");
         }
     }
@@ -108,18 +110,24 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
     @Override
     protected void processAuthenticationResponse(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws AuthenticationFailedException {
+
+        log.info("Processing authentication response");
+
         String sessionDataKey = request.getParameter("sessionDataKey");
         String status = null;
         try {
             super.processAuthenticationResponse(request, response, context);
-            status = UserResponse.APPROVED.name();            
+            status = UserResponse.APPROVED.name();
+            log.info("OTP authentication approved");
         } catch (AuthenticationFailedException e) {
             status = UserResponse.REJECTED.name();
+            log.info("OTP authentication rejected");
             throw e;
         } finally {
             try {
                 if (sessionDataKey != null && !sessionDataKey.isEmpty() && status != null && !status.isEmpty()) {
                     DBUtils.updateOTPForSMS(sessionDataKey, status);
+                    log.info("OTP response status : " + status + " for session : " + sessionDataKey);
                 }
             } catch (Exception e) {
                 log.error("Error while updating sms otp status", e);

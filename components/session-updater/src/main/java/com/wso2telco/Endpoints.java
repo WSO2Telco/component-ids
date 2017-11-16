@@ -185,16 +185,20 @@ public class Endpoints {
     @Consumes("application/json")
     @Produces("application/json")
     public Response loginUssd(String jsonBody) throws SQLException, JSONException, IOException {
-        log.info("Received login request");
-
-        if (log.isDebugEnabled()) {
-            log.debug("Json Body : " + jsonBody);
-        }
         Gson gson = new GsonBuilder().serializeNulls().create();
         org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
         String message = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("inboundUSSDMessage");
         String sessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("clientCorrelator");
         String msisdn = extractMsisdn(jsonObj);
+
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+        setStateFromAuthenticationContext(authenticationContext);
+
+        log.info("Received login request");
+
+        if (log.isDebugEnabled()) {
+            log.debug("Json Body : " + jsonBody);
+        }
 
         int responseCode = 400;
         String responseString = null;
@@ -211,14 +215,13 @@ public class Endpoints {
         }
         ussdSessionID = ((ussdSessionID != null) ? ussdSessionID : "");
         if (log.isDebugEnabled()) {
-            log.info("UssdSessionID 02 : " + ussdSessionID);
+            log.debug("UssdSessionID 02 : " + ussdSessionID);
         }
         //Accept or Reject response depending on configured values
         String acceptInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig()
                 .getAcceptUserInputs();
         String rejectInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig()
                 .getRejectUserInputs();
-        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
 
         if (validateUserInputs(acceptInputs, message)) {
             status = "Approved";
@@ -265,17 +268,20 @@ public class Endpoints {
     @Consumes("application/json")
     @Produces("application/json")
     public Response registrationUssd(String jsonBody) throws SQLException, JSONException, IOException {
-        log.info("Received registration request");
-
-        if (log.isDebugEnabled()) {
-            log.debug("Json Body : " + jsonBody);
-        }
-
         Gson gson = new GsonBuilder().serializeNulls().create();
         org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
         String message = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("inboundUSSDMessage");
         String sessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("clientCorrelator");
         String msisdn = extractMsisdn(jsonObj);
+
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+        setStateFromAuthenticationContext(authenticationContext);
+
+        log.info("Received registration request");
+
+        if (log.isDebugEnabled()) {
+            log.debug("Json Body : " + jsonBody);
+        }
 
         int responseCode = 400;
         String responseString = null;
@@ -287,7 +293,6 @@ public class Endpoints {
                 .getAcceptUserInputs();
         String rejectInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig()
                 .getRejectUserInputs();
-        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
 
         if (validateUserInputs(acceptInputs, message)) {
             if (log.isDebugEnabled()) {
@@ -330,16 +335,16 @@ public class Endpoints {
     @Consumes("application/json")
     @Produces("application/json")
     public Response pinLoginUssd(String jsonBody) {
-        log.info("Received pin login request");
-
         String response;
-
         Gson gson = new GsonBuilder().serializeNulls().create();
         org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
         String receivedPin = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("inboundUSSDMessage");
         String sessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("clientCorrelator");
 
         AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+        setStateFromAuthenticationContext(authenticationContext);
+
+        log.info("Received pin login request");
 
         PinConfig pinConfig = PinConfigUtil.getPinConfig(authenticationContext);
         pinConfig.setConfirmedPin(getHashedPin(receivedPin));
@@ -381,8 +386,6 @@ public class Endpoints {
     @Consumes("application/json")
     @Produces("application/json")
     public Response pinRegistrationUssd(String jsonBody) {
-
-        log.info("Received pin registration request");
         String response;
 
         Gson gson = new GsonBuilder().serializeNulls().create();
@@ -391,6 +394,9 @@ public class Endpoints {
         String sessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("clientCorrelator");
 
         AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+        setStateFromAuthenticationContext(authenticationContext);
+
+        log.info("Received pin registration request");
 
         PinConfig pinConfig = PinConfigUtil.getPinConfig(authenticationContext);
 
@@ -460,10 +466,11 @@ public class Endpoints {
     public Response validateSecurityQuestions(@PathParam("answer1") String answer1, @PathParam("answer2") String
             answer2,
                                               @PathParam("sessionId") String sessionId) {
-        log.info("Received Q&A validation request");
-
         ValidationResponse validationResponse;
         AuthenticationContext authenticationContext = getAuthenticationContext(sessionId);
+        setStateFromAuthenticationContext(authenticationContext);
+
+        log.info("Received Q&A validation request");
 
         PinConfig pinConfig = PinConfigUtil.getPinConfig(authenticationContext);
 
@@ -500,11 +507,12 @@ public class Endpoints {
     @Consumes("application/json")
     @Produces("application/json")
     public Response saveUserChallenges(String request) {
-        log.info("Saving user challenges");
-
         AuthenticationDetails authenticationDetails = new Gson().fromJson(request, AuthenticationDetails.class);
         String sessionId = authenticationDetails.getSessionId();
         AuthenticationContext authenticationContext = getAuthenticationContext(sessionId);
+        setStateFromAuthenticationContext(authenticationContext);
+
+        log.info("Saving user challenges");
 
         if (StringUtils.isEmpty(authenticationDetails.getChallengeQuestion1()) ||
                 StringUtils.isEmpty(authenticationDetails.getChallengeQuestion2()) ||
@@ -540,6 +548,15 @@ public class Endpoints {
         }
 
         return url;
+    }
+
+    private void setStateFromAuthenticationContext(AuthenticationContext authenticationContext) {
+        if(null != authenticationContext) {
+            Object state = authenticationContext.getProperty("state");
+            if(null != state) {
+                org.apache.log4j.MDC.put("REF_ID", (String)state);
+            }
+        }
     }
 
     private void postRequest(String url, String requestStr, String operator) throws IOException {
@@ -776,6 +793,9 @@ public class Endpoints {
 
         String userStatus;
         String responseString;
+
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionId);
+        setStateFromAuthenticationContext(authenticationContext);
 
         userStatus = DatabaseUtils.getUSerStatus(sessionId);
 
@@ -1082,6 +1102,9 @@ public class Endpoints {
         String userStatus;
         String responseString;
 
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+        setStateFromAuthenticationContext(authenticationContext);
+
         userStatus = DatabaseUtils.getUSerStatus(sessionID);
 
         responseString = "{" + "\"sessionID\":\"" + sessionID + "\","
@@ -1199,6 +1222,10 @@ public class Endpoints {
     public Response smsConfirm(@QueryParam("id") String sessionID)
             throws SQLException {
         String responseString;
+
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+        setStateFromAuthenticationContext(authenticationContext);
+
         log.info("Processing sms confirmation");
         if (configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig().getIsShortUrl()) {
             // If a URL shortening service is enabled, that means, the id query parameter is the encrypted context
@@ -1250,7 +1277,6 @@ public class Endpoints {
                 + "\"text\":\"" + responseString + "\"" + "}";
 
         log.info("Sending sms confirmation response" + responseString);
-        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
         if(authenticationContext!=null) {
             DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                     userState, "SMS URL " + status);
