@@ -15,16 +15,6 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.sms;
 
-import java.util.HashMap;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
-
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
@@ -34,6 +24,14 @@ import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
 import com.wso2telco.gsma.authenticators.util.OutboundMessage;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
 
 // TODO: Auto-generated Javadoc
 
@@ -61,6 +59,7 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
             AuthenticationContext context) throws AuthenticationFailedException {
 
         log.info("Initiating authentication request");
+
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         SMSMessage smsMessage = getRedirectInitAuthentication(response, context, userStatus);
         if (smsMessage != null && smsMessage.getRedirectURL() != null && !smsMessage.getRedirectURL().isEmpty()) {
@@ -94,6 +93,7 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
                 throw new AuthenticationFailedException(e.getMessage(), e);
             }
         } else {
+            log.error("SMS Authentication failed while trying to authenticate");
             throw new AuthenticationFailedException("SMS Authentication failed while trying to authenticate");
         }
     }
@@ -109,18 +109,24 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
     @Override
     protected void processAuthenticationResponse(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws AuthenticationFailedException {
+
+        log.info("Processing authentication response");
+
         String sessionDataKey = request.getParameter("sessionDataKey");
         String status = null;
         try {
             super.processAuthenticationResponse(request, response, context);
-            status = UserResponse.APPROVED.name();            
+            status = UserResponse.APPROVED.name();
+            log.info("OTP authentication approved");
         } catch (AuthenticationFailedException e) {
             status = UserResponse.REJECTED.name();
+            log.info("OTP authentication rejected");
             throw e;
         } finally {
             try {
                 if (sessionDataKey != null && !sessionDataKey.isEmpty() && status != null && !status.isEmpty()) {
                     DBUtils.updateOTPForSMS(sessionDataKey, status);
+                    log.info("OTP response status : " + status + " for session : " + sessionDataKey);
                 }
             } catch (Exception e) {
                 log.error("Error while updating sms otp status", e);

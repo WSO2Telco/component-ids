@@ -285,6 +285,8 @@ public class Endpoints {
             }
         }
 
+        log.info(String.format("Redirecting to : %s", redirectURL));
+
         httpServletResponse.sendRedirect(redirectURL);
     }
 

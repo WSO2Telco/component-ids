@@ -100,6 +100,9 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request, HttpServletResponse response,
         AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
+
+        log.info("Processing started");
+
         DataPublisherUtil.updateAndPublishUserStatus(
                 (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                 DataPublisherUtil.UserState.SMS_AUTH_PROCESSING, this.getClass().getName()+" processing started");
@@ -123,7 +126,9 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
      */
     @Override protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws AuthenticationFailedException {
+
         log.info("Initiating authentication request");
+
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         SMSMessage smsMessage = getRedirectInitAuthentication(response, context, userStatus);
         if (smsMessage != null && smsMessage.getRedirectURL() != null && !smsMessage.getRedirectURL().isEmpty()) {
@@ -139,9 +144,11 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                 DataPublisherUtil
                         .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
                                 e.getMessage());
+                log.error("Authentication failed", e);
                 throw new AuthenticationFailedException(e.getMessage(), e);
             }
         } else {
+            log.error("SMS Authentication failed while trying to authenticate");
             throw new AuthenticationFailedException("SMS Authentication failed while trying to authenticate");
         }
     }
@@ -186,6 +193,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             if (smsConfig.isShortUrl()) {
                 // If a URL shortening service is enabled, then we need to encrypt the context identifier, create the
                 // message URL and shorten it.
+                log.info("URL shortening service is enabled");
                 SelectShortUrl selectShortUrl = new SelectShortUrl();
                 messageURL = selectShortUrl.getShortUrl(smsConfig.getShortUrlClass(),
                         messageURL + response.encodeURL(encryptedContextIdentifier), smsConfig.getAccessToken(),
@@ -194,6 +202,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                 // If a URL shortening service is not enabled, we need to created a hash key for the encrypted
                 // context identifier and insert a database entry mapping ths hash key to the context identifier.
                 // This is done to shorten the message URL as much as possible.
+                log.info("Generating hash key for the SMS");
                 String hashForContextId = getHashForContextId(encryptedContextIdentifier);
                 messageURL += hashForContextId;
                 DBUtils.insertHashKeyContextIdentifierMapping(hashForContextId, context.getContextIdentifier());
@@ -234,6 +243,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             DataPublisherUtil
                     .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
                             e.getMessage());
+            log.error("Authentication failed", e);
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
         return smsMessage;
@@ -263,6 +273,9 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         try {
 
         if (userAction != null && !userAction.isEmpty()) {
+
+            log.info("User action from UI : " + userAction);
+
             // Change behaviour depending on user action
             switch (userAction) {
             case Constants.USER_ACTION_USER_CANCELED:
@@ -283,6 +296,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         // Check if the user has provided consent
         String responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
         if (!responseStatus.equalsIgnoreCase(UserResponse.APPROVED.toString())) {
+            log.error("Authentication failed");
             throw new AuthenticatorException("Authentication Failed");
         } else {
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
@@ -293,6 +307,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                 MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
                 if (!smsConfig.getWelcomeMessageDisabled()) {
                     WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
+                    log.info("Welcome SMS sent");
                 }
             }
         }
