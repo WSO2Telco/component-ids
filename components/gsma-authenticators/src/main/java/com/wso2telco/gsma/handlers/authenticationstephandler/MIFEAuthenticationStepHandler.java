@@ -86,11 +86,13 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
             String state = request.getParameter(Params.STATE.toString());
             if(null != state) {
                 org.apache.log4j.MDC.put("REF_ID", state);
+                context.setProperty("state", state);
             }
         }else{
             String[] states = paramMap.get(Params.STATE.toString());
             if(states.length > 0) {
                 org.apache.log4j.MDC.put("REF_ID", states[0]);
+                context.setProperty("state", states[0]);
             }
         }
 
