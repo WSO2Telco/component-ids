@@ -79,6 +79,10 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 
     protected SpConfigService spConfigService = new SpConfigServiceImpl();
 
+    private static final String AUTH_FAILED = "Authentication failed";
+
+    private static final String AUTH_FAILED_DETAILED = "SMS Authentication failed while trying to authenticate";
+
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
      * .servlet.http.HttpServletRequest)
@@ -144,12 +148,12 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                 DataPublisherUtil
                         .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
                                 e.getMessage());
-                log.error("Authentication failed", e);
+                log.error(AUTH_FAILED, e);
                 throw new AuthenticationFailedException(e.getMessage(), e);
             }
         } else {
-            log.error("SMS Authentication failed while trying to authenticate");
-            throw new AuthenticationFailedException("SMS Authentication failed while trying to authenticate");
+            log.error(AUTH_FAILED_DETAILED);
+            throw new AuthenticationFailedException(AUTH_FAILED_DETAILED);
         }
     }
 
@@ -243,7 +247,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             DataPublisherUtil
                     .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
                             e.getMessage());
-            log.error("Authentication failed", e);
+            log.error(AUTH_FAILED, e);
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
         return smsMessage;
@@ -299,8 +303,8 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         // Check if the user has provided consent
         String responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
         if (!responseStatus.equalsIgnoreCase(UserResponse.APPROVED.toString())) {
-            log.error("Authentication failed");
-            throw new AuthenticatorException("Authentication Failed");
+            log.error(AUTH_FAILED);
+            throw new AuthenticatorException(AUTH_FAILED);
         } else {
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
             if (isRegistering) {
@@ -316,7 +320,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         }
 
         } catch (AuthenticatorException | RemoteException | UserRegistrationAdminServiceIdentityException e) {
-            log.error("SMS Authentication failed while trying to authenticate", e);
+            log.error(AUTH_FAILED_DETAILED, e);
             DataPublisherUtil
                     .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
                             e.getMessage());
