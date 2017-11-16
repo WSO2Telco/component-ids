@@ -176,9 +176,10 @@ public class MIFEOpenIDTokenBuilder implements
         if (mobileConnectConfig.isFederatedDeployment() && tokenRespDTO.getIDToken() != null) {
             log.info("Federated Identity ID_Token Info Flow initiated for " + tokenRespDTO.getAccessToken());
             responseIDToken = federatedIDTokenFlow(request, tokenRespDTO);
-        } else
+        } else{
             log.info(" Identity ID_Token Info Flow initiated for " + tokenRespDTO.getAccessToken());
             responseIDToken = regularIDTokenFlow(request, tokenRespDTO);
+        }
         return responseIDToken;
     }
 
