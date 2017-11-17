@@ -46,15 +46,6 @@ import java.util.Map;
 public class DBUtils {
     private static final Log log = LogFactory.getLog(DBUtils.class);
     private static DataSource dataSource = null;
-    private static List<String> attributeSharingScopes;
-
-    public static List<String> getAttributeSharingScopes() {
-        return attributeSharingScopes;
-    }
-
-    public static void setAttributeSharingScopes(List<String> attributeSharingScopes) {
-        DBUtils.attributeSharingScopes = attributeSharingScopes;
-    }
 
     /**
      * The m connect datasource.
@@ -330,57 +321,6 @@ public class DBUtils {
             closeAllConnections(ps, conn, results);
         }
         return scopeParamsMap;
-    }
-
-    /**
-     * Get the is attribute sharing scope values related to scope
-     *
-     * @return map of scope vs isAttributeShared scope
-     * @throws AuthenticatorException on errors
-     */
-    public static Boolean getIsAttributeScopes(String scope) throws AuthenticatorException {
-        Connection conn = null;
-        PreparedStatement ps = null;
-        ResultSet results = null;
-        Boolean isAttributeShareScope = false;
-        attributeSharingScopes = new ArrayList<>();
-        String[] scopeValues = scope.split("\\s+|\\+");
-        StringBuilder params = new StringBuilder("?");
-        for (int i = 1; i < scopeValues.length; i++) {
-            params.append(",?");
-        }
-        String sql = "SELECT scope,is_attribute_share_scope FROM `scope_parameter` WHERE scope in (" + params + ")";
-
-        if (log.isDebugEnabled()) {
-            log.debug("Executing the query " + sql);
-        }
-
-        try {
-            conn = getConnectDBConnection();
-            ps = conn.prepareStatement(sql);
-            for (int i = 0; i < scopeValues.length; i++) {
-                ps.setString(i + 1, scopeValues[i]);
-            }
-            results = ps.executeQuery();
-
-            while (results.next()) {
-                boolean isAttrShareScope = results.getBoolean("is_attribute_share_scope");
-
-                if (isAttrShareScope) {
-                    isAttributeShareScope = true;
-                    attributeSharingScopes.add(results.getString("scope"));
-                }
-            }
-        } catch (SQLException e) {
-            handleException("Error occurred while getting scope parameters from the database", e);
-        } catch (ConfigurationException e) {
-            handleException(e.getMessage(), e);
-        } catch (NamingException e) {
-            log.error("Naming exception ", e);
-        } finally {
-            closeAllConnections(ps, conn, results);
-        }
-        return isAttributeShareScope;
     }
 
     private static List<LoginHintFormatDetails> getLoginHintFormatTypeDetails(int paramId, Connection conn)
