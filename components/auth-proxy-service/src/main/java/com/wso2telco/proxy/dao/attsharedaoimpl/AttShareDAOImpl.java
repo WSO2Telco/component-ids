@@ -1,4 +1,4 @@
-package com.wso2telco.proxy.dao.attShareDAOImpl;
+package com.wso2telco.proxy.dao.attsharedaoimpl;
 
 
 import com.wso2telco.core.dbutils.DBUtilException;
@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by aushani on 9/20/17.
+ * Created on 9/20/17.
  */
 public class AttShareDAOImpl implements AttShareDAO {
 

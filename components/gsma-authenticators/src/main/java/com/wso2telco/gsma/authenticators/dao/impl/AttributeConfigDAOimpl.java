@@ -284,6 +284,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
+        String result = null;
 
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append(SELECT);
@@ -304,7 +305,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
 
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                return resultSet.getString("config_value");
+                result = resultSet.getString("config_value");
             }
         } catch (SQLException e) {
             throw new SQLException(ERR_MSG,
@@ -313,7 +314,7 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
 
-        return null;
+        return result;
     }
 
 }
