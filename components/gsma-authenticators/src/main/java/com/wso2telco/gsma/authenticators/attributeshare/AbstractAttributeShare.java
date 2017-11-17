@@ -107,8 +107,7 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
             case TRANSACTIONAL:
                 valityMap.put(Constants.VALIDITY_TYPE, ValidityType.TRANSACTIONAL.name());
                 valityMap.put(Constants.IS_CONSENT, "true");
-                return valityMap;
-
+                break;
             case LONG_LIVE:
 
                 valityMap.put(Constants.VALIDITY_TYPE, ValidityType.LONG_LIVE.name());
@@ -117,14 +116,12 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
                 } else {
                     valityMap.put(Constants.IS_CONSENT, "false");
                 }
-                return valityMap;
-
+                break;
             default:
                 valityMap.put(Constants.VALIDITY_TYPE, ValidityType.UNDEFINED.name());
                 valityMap.put(Constants.IS_CONSENT, "false");
-                return valityMap;
         }
-
+        return valityMap;
     }
 
     private boolean isLongLiveConsent(AuthenticationContext context, String scope) throws SQLException, NamingException {
@@ -199,8 +196,8 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
             UserConsentHistory userConsentHistory = new UserConsentHistory();
             userConsentHistory.setMsisdn(msisdn);
             userConsentHistory.setConsentId(spConsent.getConsentId());
-            userConsentHistory.setConsent_expire_time(dateFormat.format(calendar.getTime()));
-            userConsentHistory.setConsent_status(Constants.TRUE);
+            userConsentHistory.setConsentExpireTime(dateFormat.format(calendar.getTime()));
+            userConsentHistory.setConsentStatus(Constants.TRUE);
 
             userConsentHistoryList.add(userConsentHistory);
         }

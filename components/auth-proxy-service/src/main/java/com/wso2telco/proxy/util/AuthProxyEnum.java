@@ -16,14 +16,14 @@ public class AuthProxyEnum {
         UNTRUSTED("normal"),
         UNDEFINED("undefined");
 
-        private String trustedStatus;
+        private String trustedStatu;
 
         private TRUSTEDSTATUS(String status) {
-            this.trustedStatus = status;
+            this.trustedStatu = status;
         }
 
         public String gettrustedStatus() {
-            return trustedStatus;
+            return trustedStatu;
 
         }
 
@@ -38,11 +38,7 @@ public class AuthProxyEnum {
         }
 
         public static TRUSTEDSTATUS getStatus(final String code) {
-            TRUSTEDSTATUS status = statusMap.get(code);
-            if (status == null) {
-                status = status.UNDEFINED;
-            }
-            return status;
+            return statusMap.get(code);
 
         }
     }
