@@ -20,7 +20,7 @@ package com.wso2telco.proxy.attributeshare;
 
 import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.proxy.dao.AttShareDAO;
-import com.wso2telco.proxy.dao.attShareDAOImpl.AttShareDAOImpl;
+import com.wso2telco.proxy.dao.attsharedaoimpl.AttShareDAOImpl;
 import com.wso2telco.proxy.util.AuthProxyConstants;
 import edu.emory.mathcs.backport.java.util.Arrays;
 import org.apache.commons.logging.Log;

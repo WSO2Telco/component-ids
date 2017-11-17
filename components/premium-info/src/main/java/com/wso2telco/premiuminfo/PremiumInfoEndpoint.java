@@ -48,7 +48,7 @@ public class PremiumInfoEndpoint {
             response = userInfoResponseBuilder.getResponseString(tokenResponse);
 
         } catch (UserInfoEndpointException e) {
-            return handleError(e);
+            response= handleError(e);
         } catch (OAuthSystemException e) {
             log.error("UserInfoEndpoint Failed", e);
             throw new OAuthSystemException("UserInfoEndpoint Failed");
@@ -82,11 +82,10 @@ public class PremiumInfoEndpoint {
                             .setError(e.getErrorCode()).setErrorDescription(e.getErrorMessage())
                             .buildJSONMessage();
         } catch (OAuthSystemException e1) {
-            OAuthResponse response =
+            res =
                     OAuthASResponse.errorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
                             .setError(OAuth2ErrorCodes.SERVER_ERROR)
                             .setErrorDescription(e1.getMessage()).buildJSONMessage();
-            return Response.status(response.getResponseStatus()).entity(response.getBody()).build();
         }
         return Response.status(res.getResponseStatus()).entity(res.getBody()).build();
     }

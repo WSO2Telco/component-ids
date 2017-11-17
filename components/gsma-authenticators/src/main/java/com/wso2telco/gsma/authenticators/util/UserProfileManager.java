@@ -51,15 +51,7 @@ public class UserProfileManager {
 
     private static final String LOA_CLAIM_NAME = "http://wso2.org/claims/loa";
 
-    private static final String SCOPE_MNV = "mnv";
-
-    private static final String LOA_CPI_VALUE = "1";
-
-    private static final String LOA_MNV_VALUE = "2";
-
     private static final String SCOPE_OPENID = "openid";
-
-    private static final String SCOPE_CPI = "cpi";
 
     private static final String MOBILE_CLAIM_NAME = "http://wso2.org/claims/mobile";
 
