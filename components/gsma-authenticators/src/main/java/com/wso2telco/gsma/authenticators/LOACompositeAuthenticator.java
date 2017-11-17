@@ -243,10 +243,9 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
                 boolean isUserExists = AdminServiceUtil.isUserExists(decryptedMsisdn);
                 boolean isConvertToActive = false;
 
-                if (isUserExists) {
-                        if((AdminServiceUtil.getUserStatus(decryptedMsisdn).equalsIgnoreCase(STATUS_PARTIALLY_ACTIVE))&&(!(Boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE))){
-                            isConvertToActive = true;
-                        }
+                if (isUserExists && ((AdminServiceUtil.getUserStatus(decryptedMsisdn).equalsIgnoreCase(STATUS_PARTIALLY_ACTIVE))&&(!(Boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE))) ) {
+                             isConvertToActive = true;
+
                 }
 
                 context.setProperty(Constants.IS_STATUS_TO_CHANGE, isConvertToActive);

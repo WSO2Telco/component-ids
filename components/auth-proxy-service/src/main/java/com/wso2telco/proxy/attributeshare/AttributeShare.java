@@ -16,7 +16,7 @@
  *  *****************************************************************************
  */
 
-package com.wso2telco.proxy.attributeShare;
+package com.wso2telco.proxy.attributeshare;
 
 import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.proxy.dao.AttShareDAO;

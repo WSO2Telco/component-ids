@@ -1,4 +1,4 @@
-package com.wso2telco.proxy.attributeShare;
+package com.wso2telco.proxy.attributeshare;
 
 import com.wso2telco.proxy.util.AuthProxyEnum;
 

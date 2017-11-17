@@ -24,13 +24,11 @@ import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.pcrservice.exception.PCRException;
-import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.openidtokenbuilder.MIFEOpenIDTokenBuilder;
 import com.wso2telco.proxy.MSISDNDecryption;
-import com.wso2telco.proxy.attributeShare.AttributeShare;
-import com.wso2telco.proxy.dao.AttShareDAO;
+import com.wso2telco.proxy.attributeshare.AttributeShare;
 import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.model.MSISDNHeader;
 import com.wso2telco.proxy.model.RedirectUrlInfo;
@@ -80,8 +78,6 @@ public class Endpoints {
     private static Map<String, List<MSISDNHeader>> operatorsMSISDNHeadersMap;
     private static Map<String, MobileConnectConfig.OPERATOR> operatorPropertiesMap = null;
     private static Map<String, ScopeDetailsConfig.Scope> scopeMap = null;
-    private static AttShareDAO attShareDAO;
-    private static Map<String, String> scopeTypes;
 
     /**
      * The Configuration service
@@ -123,7 +119,7 @@ public class Endpoints {
             }
 
             //Load scope related request optional parameters.
-            scopeMap = new HashMap<String, ScopeDetailsConfig.Scope>();
+            scopeMap = new HashMap<>();
             List<ScopeDetailsConfig.Scope> scopes = scopeDetailsConfigs.getPremiumScopes();
 
             for (ScopeDetailsConfig.Scope sc : scopes) {
@@ -213,7 +209,6 @@ public class Endpoints {
                 String queryString = "";
 
                 try {
-
                     msisdn = decryptMSISDN(httpHeaders, operatorName);
 
                     List<String> loginHintParameter = queryParams.get(AuthProxyConstants.LOGIN_HINT);
@@ -233,7 +228,6 @@ public class Endpoints {
                         String errMsg = "mobile-connect.xml could not be found";
                         DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState
                                 .CONFIGURATION_ERROR, errMsg);
-
                         throw new FileNotFoundException(errMsg);
                     }
 
@@ -917,16 +911,17 @@ public class Endpoints {
     }
 
     private Map<String, String> validateAttributeShareScopes(String scopeName, String operatorName, String clientId,
-                                                             String loginhint_msis, String msisdn) throws
+                                                             String loginhintMsis, String msisdn) throws
             AuthenticationFailedException {
         Map<String, String> attShareDetails;
 
         try {
-            attShareDetails = AttributeShare.validateAttShareScopes(scopeName, operatorName, clientId,
-                    loginhint_msis, msisdn);
+            attShareDetails = AttributeShare.validateAttShareScopes(scopeName, operatorName, clientId, loginhintMsis,
+                    msisdn);
         } catch (AuthenticationFailedException e) {
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
+
         return attShareDetails;
     }
 }

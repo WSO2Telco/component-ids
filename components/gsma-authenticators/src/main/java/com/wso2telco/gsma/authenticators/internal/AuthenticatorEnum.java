@@ -17,14 +17,14 @@ public class AuthenticatorEnum {
         UNTRUSTED("normal"),
         UNDEFINED("undefined");
 
-        private final String trustedStatus;
+        private final String trustedStatu;
 
         TrustedStatus(String trustedStatus) {
-            this.trustedStatus = trustedStatus;
+            this.trustedStatu = trustedStatus;
         }
 
-        public String getTrustedStatus() {
-            return this.trustedStatus;
+        public String getTrustedStatu() {
+            return this.trustedStatu;
         }
     }
 
@@ -33,14 +33,14 @@ public class AuthenticatorEnum {
         VERIFICATION_SCOPE("ATT_VERIFICATION"),
         PROVISIONING_SCOPE("ATT_SHARE");
 
-        private final String attributeShareScopeTypes;
+        private final String attributeShareScopeType;
 
         AttributeShareScopeTypes(String attributeShareScopeTypes) {
-            this.attributeShareScopeTypes = attributeShareScopeTypes;
+            this.attributeShareScopeType = attributeShareScopeTypes;
         }
 
-        public String getAttributeShareScopeTypes() {
-            return this.attributeShareScopeTypes;
+        public String getAttributeShareScopeType() {
+            return this.attributeShareScopeType;
         }
     }
 

@@ -1,4 +1,4 @@
-package com.wso2telco.gsma.authenticators.attributeShare;
+package com.wso2telco.gsma.authenticators.attributeshare;
 
 
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;

@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.wso2telco.gsma.authenticators.attributeShare;
+package com.wso2telco.gsma.authenticators.attributeshare;
 
 import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;
 import org.apache.commons.logging.Log;

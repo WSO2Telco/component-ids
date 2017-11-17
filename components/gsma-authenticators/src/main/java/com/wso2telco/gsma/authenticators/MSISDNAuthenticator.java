@@ -18,8 +18,8 @@ package com.wso2telco.gsma.authenticators;
 import com.wso2telco.Util;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.gsma.authenticators.attributeShare.AbstractAttributeShare;
-import com.wso2telco.gsma.authenticators.attributeShare.AttributeShareFactory;
+import com.wso2telco.gsma.authenticators.attributeshare.AbstractAttributeShare;
+import com.wso2telco.gsma.authenticators.attributeshare.AttributeShareFactory;
 import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
@@ -93,7 +93,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
         return false;
     }
-
 
     private boolean canProcessResponse(AuthenticationContext context) {
         return ((context.getProperty(Constants.MSISDN) != null && !context.getProperty(Constants.MSISDN).toString()
@@ -234,14 +233,13 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 boolean isUserExists = false;
                 boolean isConvertToActive = false;
 
-                if (AdminServiceUtil.isUserExists(msisdn)) {
-                    if (AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(STATUS_ACTIVE) || AdminServiceUtil
-                            .getUserStatus(msisdn).equalsIgnoreCase(STATUS_PARTIALLY_ACTIVE)) {
-                        isUserExists = true;
-                        if ((AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(STATUS_PARTIALLY_ACTIVE)) && (!
-                                (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE))) {
-                            isConvertToActive = true;
-                        }
+                if (AdminServiceUtil.isUserExists(msisdn) && (AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase
+                        (STATUS_ACTIVE) || AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase
+                        (STATUS_PARTIALLY_ACTIVE))) {
+                    isUserExists = true;
+                    if ((AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(STATUS_PARTIALLY_ACTIVE)) && (!
+                            (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE))) {
+                        isConvertToActive = true;
                     }
                 }
 

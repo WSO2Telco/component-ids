@@ -15,7 +15,6 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.util;
 
-import com.wso2telco.gsma.authenticators.model.SPConsent;
 
 public enum TableName {
 
