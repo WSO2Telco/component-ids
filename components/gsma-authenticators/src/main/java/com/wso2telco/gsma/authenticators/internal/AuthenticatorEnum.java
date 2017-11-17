@@ -71,11 +71,7 @@ public class AuthenticatorEnum {
         }
 
         public static ConsentType get(final String code){
-            ConsentType consentType =valueMap.get(code);
-            if(consentType==null){
-                consentType =consentType.UNDEFINED;
-            }
-            return consentType;
+            return valueMap.get(code);
         }
     }
 }

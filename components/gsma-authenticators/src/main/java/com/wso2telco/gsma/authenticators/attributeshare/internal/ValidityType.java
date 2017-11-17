@@ -37,11 +37,7 @@ public enum ValidityType {
     }
 
     public static ValidityType get(final String code) {
-        ValidityType validityType = valueMap.get(code);
-        if (validityType == null) {
-            validityType = validityType.UNDEFINED;
-        }
-        return validityType;
+        return valueMap.get(code);
 
     }
 

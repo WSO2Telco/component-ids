@@ -263,8 +263,8 @@ public class AttributeConfigDAOimpl implements AttributeConfigDAO {
 
                 preparedStatement.setInt(1, userConsentHistory1.getConsentId());
                 preparedStatement.setString(2, userConsentHistory1.getMsisdn());
-                preparedStatement.setString(3, userConsentHistory1.getConsent_expire_time());
-                preparedStatement.setBoolean(4, Boolean.parseBoolean(userConsentHistory1.getConsent_status()) );
+                preparedStatement.setString(3, userConsentHistory1.getConsentExpireTime());
+                preparedStatement.setBoolean(4, Boolean.parseBoolean(userConsentHistory1.getConsentStatus()) );
                 preparedStatement.addBatch();
             }
 
