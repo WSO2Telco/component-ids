@@ -1,4 +1,4 @@
-package com.wso2telco.proxy.attributeShare;
+package com.wso2telco.proxy.attributeshare;
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 

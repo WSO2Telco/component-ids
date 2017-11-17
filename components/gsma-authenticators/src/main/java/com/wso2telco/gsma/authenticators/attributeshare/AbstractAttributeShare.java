@@ -1,12 +1,11 @@
-package com.wso2telco.gsma.authenticators.attributeShare;
+package com.wso2telco.gsma.authenticators.attributeshare;
 
 import com.wso2telco.core.config.model.ScopeDetailsConfig;
 import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.authenticators.attributeShare.internal.UserConsentStatus;
-import com.wso2telco.gsma.authenticators.attributeShare.internal.ValidityType;
+import com.wso2telco.gsma.authenticators.attributeshare.internal.ValidityType;
 import com.wso2telco.gsma.authenticators.dao.AttributeConfigDAO;
 import com.wso2telco.gsma.authenticators.dao.impl.AttributeConfigDAOimpl;
 import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;

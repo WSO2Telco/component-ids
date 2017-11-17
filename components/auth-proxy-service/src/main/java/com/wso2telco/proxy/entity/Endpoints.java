@@ -24,13 +24,11 @@ import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.pcrservice.exception.PCRException;
-import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.openidtokenbuilder.MIFEOpenIDTokenBuilder;
 import com.wso2telco.proxy.MSISDNDecryption;
-import com.wso2telco.proxy.attributeShare.AttributeShare;
-import com.wso2telco.proxy.dao.AttShareDAO;
+import com.wso2telco.proxy.attributeshare.AttributeShare;
 import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.model.MSISDNHeader;
 import com.wso2telco.proxy.model.RedirectUrlInfo;
@@ -80,8 +78,6 @@ public class Endpoints {
     private static Map<String, List<MSISDNHeader>> operatorsMSISDNHeadersMap;
     private static Map<String, MobileConnectConfig.OPERATOR> operatorPropertiesMap = null;
     private static Map<String, ScopeDetailsConfig.Scope> scopeMap = null;
-    private static AttShareDAO attShareDAO;
-    private static Map<String, String> scopeTypes;
 
     /**
      * The Configuration service
@@ -123,7 +119,7 @@ public class Endpoints {
             }
 
             //Load scope related request optional parameters.
-            scopeMap = new HashMap<String, ScopeDetailsConfig.Scope>();
+            scopeMap = new HashMap<>();
             List<ScopeDetailsConfig.Scope> scopes = scopeDetailsConfigs.getPremiumScopes();
 
             for (ScopeDetailsConfig.Scope sc : scopes) {
@@ -231,39 +227,6 @@ public class Endpoints {
                 //Validate with Scope wise parameters and throw exceptions
                 ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo,
                         userStatus,redirectURL);
-
-               /* //Check IsAttribute Sharing scope available
-                boolean attributeSharingScopes  = DBUtils.getIsAttributeScopes(scopeName);
-                String spType = null;
-                String loginhint_msis = null;
-
-                if(attributeSharingScopes){
-                     AttributeShare attributeShare = new AttributeShare();
-                    spType = attributeShare.validateAttShareScopes(scopeName,operatorName,clientId,loginhint_msis,msisdn);
-                    List<String> attributeSharingScopeList = DBUtils.getAttributeSharingScopes();
-                    List<String> mandatoryParams = new ArrayList<String>();
-                    mandatoryParams.clear();
-
-                    for (int i = 0; i < attributeSharingScopeList.size(); i++) {
-                        List<String> x = getMandatoryScopeWithRequest(attributeSharingScopeList.get(i));
-                        if (x != null && !x.isEmpty()) {
-                            for (int j = 0; j < x.size(); j++) {
-                                if (!mandatoryParams.contains(x.get(j))) {
-                                    mandatoryParams.add(x.get(j));
-                                }
-                            }
-                        }
-                    }
-
-                    if (queryParams != null && mandatoryParams != null) {
-                        if (!checkMandatoryParams(queryParams, mandatoryParams)) {
-                            String errMsg = "Please Pass all the Mandatory parameters when using Attribute Sharing";
-                            DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.CONFIGURATION_ERROR,
-                                    errMsg);
-                            throw new ConfigurationException(errMsg);
-                        }
-                    }
-                }*/
 
                 String loginhint_msisdn = null;
                 try {
@@ -857,46 +820,12 @@ public class Endpoints {
         userRegistrationAdminService.addUser(userDTO);
     }
 
-    /**
-     * Get the expected mandatory scope parameters pass with the request
-     *
-     * @param scopeName
-     * @return
-     */
-    private List<String> getMandatoryScopeWithRequest(String scopeName) {
-        ScopeDetailsConfig.Scope scopeValue = null;
-        List<String> requestValue =null;
-/*
-        if (scopeMap != null && !scopeMap.isEmpty()) {
-            scopeValue = scopeMap.get(scopeName);
-        }
 
-        requestValue = scopeValue.getMandatoryValues();*/
-        return requestValue;
-    }
-
-    /**
-     * Validate whether all requested Mandatory parameters passed with the query params
-     *
-     * @param queryParams
-     * @param mandatoryParameters
-     * @return
-     */
-    private boolean checkMandatoryParams(MultivaluedMap<String, String> queryParams, List<String> mandatoryParameters) {
-        boolean isAllParamsAvail = true;
-
-        for (int scope = 0; scope < mandatoryParameters.size(); scope++) {
-            if (!queryParams.containsKey(mandatoryParameters.get(scope)))
-                isAllParamsAvail = false;
-        }
-        return isAllParamsAvail;
-    }
-
-    private Map<String,String> validateAttributeShareScopes(String scopeName,String operatorName,String clientId,String loginhint_msis,String msisdn) throws AuthenticationFailedException{
+    private Map<String,String> validateAttributeShareScopes(String scopeName,String operatorName,String clientId,String loginhintMsis,String msisdn) throws AuthenticationFailedException{
         Map<String,String> attShareDetails;
 
       try {
-          attShareDetails = AttributeShare.validateAttShareScopes(scopeName,operatorName,clientId,loginhint_msis,msisdn);
+          attShareDetails = AttributeShare.validateAttShareScopes(scopeName,operatorName,clientId,loginhintMsis,msisdn);
       } catch (AuthenticationFailedException e){
           throw new AuthenticationFailedException(e.getMessage(),e);
       }

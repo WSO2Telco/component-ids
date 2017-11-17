@@ -343,7 +343,7 @@ public class DBUtils {
         PreparedStatement ps = null;
         ResultSet results = null;
         Boolean isAttributeShareScope = false;
-        attributeSharingScopes = new ArrayList<String>();
+        attributeSharingScopes = new ArrayList<>();
         String[] scopeValues = scope.split("\\s+|\\+");
         StringBuilder params = new StringBuilder("?");
         for (int i = 1; i < scopeValues.length; i++) {

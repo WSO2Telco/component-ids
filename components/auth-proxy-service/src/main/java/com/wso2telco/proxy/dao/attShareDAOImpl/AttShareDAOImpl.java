@@ -50,6 +50,7 @@ public class AttShareDAOImpl implements AttShareDAO {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
+        String status = null;
 
         StringBuilder sqlBuilder = new StringBuilder();
         sqlBuilder.append("SELECT ");
@@ -73,13 +74,13 @@ public class AttShareDAOImpl implements AttShareDAO {
 
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                return resultSet.getString("status");
+                status =  resultSet.getString("status");
             }
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
 
-        return null;
+        return status;
     }
 
 

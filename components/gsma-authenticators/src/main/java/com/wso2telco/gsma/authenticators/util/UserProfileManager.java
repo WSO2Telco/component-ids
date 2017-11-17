@@ -126,7 +126,7 @@ public class UserProfileManager {
                     } else if (MOBILE_CLAIM_NAME.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
                         userFieldDTOs[count].setFieldValue(username);
                     } else if (STATUS_CLAIM_NAME.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
-                        if (isAttributeScope && spType.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name())&& attrbShareType.equalsIgnoreCase(AuthenticatorEnum.AttributeShareScopeTypes.PROVISIONING_SCOPE.getAttributeShareScopeTypes())) {
+                        if (isAttributeScope && spType.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name())&& attrbShareType.equalsIgnoreCase(AuthenticatorEnum.AttributeShareScopeTypes.PROVISIONING_SCOPE.getAttributeShareScopeType())) {
                             userFieldDTOs[count].setFieldValue(STATUS_ACTIVE);
                         } else if (isAttributeScope) {
                             userFieldDTOs[count].setFieldValue(STATUS_PARTIALLY_ACTIVE);
@@ -211,7 +211,7 @@ public class UserProfileManager {
                         } else if (UserProfileClaimsConstant.PIN.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
                             userFieldDTOs[count].setFieldValue(getHashValue(pin));
                         } else if (STATUS_CLAIM_NAME.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
-                            if (isAttributeScope && spType.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name())&& attrbShareType.equalsIgnoreCase(AuthenticatorEnum.AttributeShareScopeTypes.PROVISIONING_SCOPE.getAttributeShareScopeTypes())){
+                            if (isAttributeScope && spType.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name())&& attrbShareType.equalsIgnoreCase(AuthenticatorEnum.AttributeShareScopeTypes.PROVISIONING_SCOPE.getAttributeShareScopeType())){
                                 userFieldDTOs[count].setFieldValue(STATUS_ACTIVE);
                             } else if(isAttributeScope){
                                 userFieldDTOs[count].setFieldValue(STATUS_PARTIALLY_ACTIVE);
@@ -512,7 +512,7 @@ public class UserProfileManager {
         String userStatus;
             try {
                 userStatus = AdminServiceUtil.getUserStatus(userName);
-                if (isAttributeScope && spType.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name())&& attrbShareType.equalsIgnoreCase(AuthenticatorEnum.AttributeShareScopeTypes.PROVISIONING_SCOPE.getAttributeShareScopeTypes())){
+                if (isAttributeScope && spType.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name())&& attrbShareType.equalsIgnoreCase(AuthenticatorEnum.AttributeShareScopeTypes.PROVISIONING_SCOPE.getAttributeShareScopeType())){
                     updateUserStatus(userStatus,userName,STATUS_ACTIVE);
                 } else if(isAttributeScope){
                     updateUserStatus(userStatus,userName,STATUS_PARTIALLY_ACTIVE);

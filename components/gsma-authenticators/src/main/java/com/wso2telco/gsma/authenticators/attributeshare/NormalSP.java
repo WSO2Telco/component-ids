@@ -16,7 +16,7 @@
  *  *****************************************************************************
  */
 
-package com.wso2telco.gsma.authenticators.attributeShare;
+package com.wso2telco.gsma.authenticators.attributeshare;
 
 import com.wso2telco.gsma.authenticators.Constants;
 import org.apache.commons.logging.Log;

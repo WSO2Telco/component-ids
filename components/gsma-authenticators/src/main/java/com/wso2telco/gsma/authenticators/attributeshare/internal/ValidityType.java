@@ -1,4 +1,4 @@
-package com.wso2telco.gsma.authenticators.attributeShare.internal;
+package com.wso2telco.gsma.authenticators.attributeshare.internal;
 
 import java.util.EnumSet;
 import java.util.HashMap;
