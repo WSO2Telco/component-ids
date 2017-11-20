@@ -1,8 +1,9 @@
 package com.wso2telco.ids.datapublisher.model;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 
-public class UserStatus {
+public class UserStatus implements Serializable{
 
 
     private int id;
