@@ -1,7 +1,7 @@
-[data-toggle="collapse"] {
+[data-toggle='collapse'] {
   cursor: pointer;
 }
-[data-toggle="collapse"][aria-expanded="true"] .fa-chevron-right:before {
+[data-toggle='collapse'][aria-expanded='true'] .fa-chevron-right:before {
   content: "\f078";
 }
 
@@ -20,7 +20,7 @@
 
 
     .fa.pull-right {
-    margin-top: 0.5em;
+    margin-top: .5em;
     margin-left: .3em;
 }
 
@@ -47,8 +47,8 @@
     margin-bottom: -1px;
     background-color: #fff;
     border: 1px solid #ddd;
-    border-left: 0px;
-    border-right: 0px;
+    border-left: 0;
+    border-right: 0;
 }
 
 .list-group {
@@ -61,8 +61,10 @@
 	border-right: none;
 }
 
-.btn--white{ font-size: 1.1rem; color: #ffffff !important;}
-
+.btn--white{ 
+	font-size: 1.1rem; 
+	color: #ffffff !important;
+}
 
 #tc_checkbox {
 /* Double-sized Checkboxes */
@@ -70,6 +72,7 @@
  -moz-transform: scale(1.5); /* FF */
  -webkit-transform: scale(1.5); /* Safari and Chrome */
  -o-transform: scale(1.5); /* Opera */
+ transform: scale(1.5);
  padding: 5px;
 }
 
