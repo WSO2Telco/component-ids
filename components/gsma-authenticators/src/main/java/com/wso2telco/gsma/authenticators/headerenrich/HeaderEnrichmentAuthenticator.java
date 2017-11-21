@@ -129,6 +129,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
 
+        log.info("Processing started");
+
         DataPublisherUtil
                 .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
                                 .USER_STATUS_DATA_PUBLISHING_PARAM),
@@ -262,6 +264,10 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         String msisdn = context.getProperty(Constants.MSISDN).toString();
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
         boolean showTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
+
+        if(log.isDebugEnabled()){
+            log.debug("Detected MSISDN : " + msisdn);
+        }
 
         try {
             isValidOperator(request, context, msisdn, operator, userStatus);
@@ -433,7 +439,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
     private boolean isValidOperator(HttpServletRequest request, AuthenticationContext context, String msisdn, String
             operator, UserStatus userStatus) throws AuthenticationFailedException {
         boolean ipValidation = false;
-        boolean validOperator = true;
+        boolean validOperator = false;
 
         if (operatorIpValidation.containsKey(operator)) {
             ipValidation = operatorIpValidation.get(operator);

@@ -2,6 +2,7 @@
 <%@ page import="javax.xml.parsers.ParserConfigurationException" %>
 <%@ page import="org.xml.sax.SAXException" %>
 <%@ page import="javax.xml.xpath.XPathExpressionException" %>
+<%@ page import="javax.servlet.jsp.jstl.core.Config" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <input type="hidden" name="sessionDataKey" id="sessionDataKey" value='<%=sessionDataKey%>'/>
 <div class="site__root" id="content-placeholder"></div>
@@ -11,11 +12,20 @@
 <script id="results-template" type="text/x-handlebars-template">
 	<main class="site__main site__wrap section v-distribute">
 		<header class="page__header">
-			<h1 class="page__heading"><fmt:message key='waiting-label-continue-on-device-heading'/></h1>
+			<h1 class="page__heading">
+			<%
+			String authenticators = request.getParameter("authenticators");
+			if(authenticators != null && authenticators.contains("VoiceCallAuthenticator")) {
+			%>
+			<fmt:message key='waiting-label-continue-on-ivr-device-heading'/>
+			<%} else {%>
+            <fmt:message key='waiting-label-continue-on-device-heading'/>
+            <%}%>
+			</h1>
 			<p style="font-size: 0.9em;">
 
 				<%
-					String authenticators = request.getParameter("authenticators");
+
 					Boolean showSMSLink = false;
 					Boolean smsotp =false;
 					if(authenticators != null && authenticators.contains("SMSOTPAuthenticator")) {

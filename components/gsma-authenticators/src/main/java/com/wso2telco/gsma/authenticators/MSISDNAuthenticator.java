@@ -78,7 +78,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
         if ((request.getParameter(Constants.ACTION) != null && !request.getParameter(Constants.ACTION).isEmpty()) ||
                 (request.getParameter(Constants.MSISDN) != null && !request.getParameter(Constants.MSISDN).isEmpty())) {
-            log.info("msisdn forwarding ");
+            log.info("MSISDN forwarding");
             return true;
         }
 
@@ -101,6 +101,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     public AuthenticatorFlowStatus process(HttpServletRequest request,
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
+
+        log.info("Processing started");
 
         DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
                         .USER_STATUS_DATA_PUBLISHING_PARAM),
@@ -146,6 +148,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                             .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
                             .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
 
+            log.info("Redirecting to MSISDN enter page");
 
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
                     request.getParameter("redirect_uri") + "&authenticators="
@@ -191,6 +194,10 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 boolean isProfileUpgrade = Util.isProfileUpgrade(msisdn, requestedLoa, isUserExists);
                 context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade);
 
+                if(log.isDebugEnabled()){
+                    log.debug("User entered MSISDN : " + msisdn);
+                }
+
                 if (!isUserExists && isShowTnC) {
                     retryAuthenticatorForConsent(context);
                 }
@@ -198,6 +205,11 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
             } else {
                 msisdn = context.getProperty(Constants.MSISDN).toString();
+
+                if(log.isDebugEnabled()){
+                    log.debug("Detected MSISDN : " + msisdn);
+                }
+
                 //We already have the MSISDN
                 String userAction = request.getParameter(Constants.ACTION);
                 if (userAction != null && !userAction.isEmpty()) {
@@ -261,6 +273,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
     private void retryAuthenticatorForConsent(AuthenticationContext context) throws AuthenticationFailedException {
         context.setProperty(Constants.REDIRECT_CONSENT, Boolean.TRUE);
+        log.info("Redirecting to consent or profile upgrade page");
         throw new AuthenticationFailedException("Moving to get consent or profile upgrade");
     }
 

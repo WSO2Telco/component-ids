@@ -176,8 +176,10 @@ public class MIFEOpenIDTokenBuilder implements
         if (mobileConnectConfig.isFederatedDeployment() && tokenRespDTO.getIDToken() != null) {
             log.info("Federated Identity ID_Token Info Flow initiated for " + tokenRespDTO.getAccessToken());
             responseIDToken = federatedIDTokenFlow(request, tokenRespDTO);
-        } else
+        } else{
+            log.info(" Identity ID_Token Info Flow initiated for " + tokenRespDTO.getAccessToken());
             responseIDToken = regularIDTokenFlow(request, tokenRespDTO);
+        }
         return responseIDToken;
     }
 
@@ -196,6 +198,8 @@ public class MIFEOpenIDTokenBuilder implements
         try {
             oAuthAppDO = getAppInformation(request.getOauth2AccessTokenReqDTO());
         } catch (InvalidOAuthClientException e) {
+
+            log.error("Error occured while retrieving application information");
             throw new IdentityOAuth2Exception(
                     "Error occured while retrieving application information", e); //$NON-NLS-1$
         }
@@ -330,7 +334,8 @@ public class MIFEOpenIDTokenBuilder implements
         } catch (Exception e) {
             log.error("Error while parsing the IDToken", e);
             throw new IdentityOAuth2Exception("Error while parsing the IDToken", e);
-        }    
+        }
+        log.info("Genarate IDToken");
         return responseIDToken;
     }
 
