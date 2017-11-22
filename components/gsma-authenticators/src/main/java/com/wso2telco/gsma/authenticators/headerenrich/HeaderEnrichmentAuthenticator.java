@@ -270,7 +270,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         }
 
         try {
-            isValidOperator(request, context, msisdn, operator, userStatus);
+            validateOperator(request, context, msisdn, operator, userStatus);
         } catch (AuthenticationFailedException e) {
             // take action based on scope properties
             DataPublisherUtil
@@ -367,7 +367,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             String operator = context.getProperty(Constants.OPERATOR).toString();
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
 
-            isValidOperator(request, context, msisdn, operator, userStatus);
+            validateOperator(request, context, msisdn, operator, userStatus);
 
             if (requestedLoa == 3) {
                 // if acr is 3, pass the user to next authenticator
@@ -431,10 +431,9 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
      * @param msisdn     msisdn
      * @param operator   operator
      * @param userStatus user status for data publishing
-     * @return true if valid operator
      * @throws AuthenticationFailedException
      */
-    private boolean isValidOperator(HttpServletRequest request, AuthenticationContext context, String msisdn, String
+    private void validateOperator(HttpServletRequest request, AuthenticationContext context, String msisdn, String
             operator, UserStatus userStatus) throws AuthenticationFailedException {
         boolean ipValidation = false;
         boolean validOperator = false;
@@ -483,7 +482,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                             DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL, "IP validation failed");
             throw new AuthenticationFailedException("Authentication Failed");
         }
-        return validOperator;
     }
 
     private void populateAuthEndpointData(HttpServletRequest request, AuthenticationContext context) {
