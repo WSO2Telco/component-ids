@@ -1,0 +1,7 @@
+instructions.configure = \
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/com.wso2telco.ids.tokenintrospection_${feature.version}/generated/introspect.war,target:${installFolder}/../../deployment/server/webapps/introspect.war,overwrite:true);
+
+
+
+
+/
