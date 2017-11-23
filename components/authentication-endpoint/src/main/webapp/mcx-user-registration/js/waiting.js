@@ -2,7 +2,7 @@ var msisdn=values["msisdn"];
 var tokenVal=values["sessionDataKey"];
 console.log(msisdn+" : "+tokenVal);
 
-var timeout = 60000;
+var timeout = 120000;
 var pollingInterval = 2000;
 var timeRemaining = timeout;
 var hasResponse = false;

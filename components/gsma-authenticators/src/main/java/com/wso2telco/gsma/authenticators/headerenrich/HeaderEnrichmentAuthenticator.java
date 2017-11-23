@@ -129,6 +129,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
 
+        log.info("Processing started");
+
         DataPublisherUtil
                 .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
                                 .USER_STATUS_DATA_PUBLISHING_PARAM),
@@ -263,8 +265,12 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
         boolean showTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
 
+        if(log.isDebugEnabled()){
+            log.debug("Detected MSISDN : " + msisdn);
+        }
+
         try {
-            isValidOperator(request, context, msisdn, operator, userStatus);
+            validateOperator(request, context, msisdn, operator, userStatus);
         } catch (AuthenticationFailedException e) {
             // take action based on scope properties
             DataPublisherUtil
@@ -361,43 +367,41 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             String operator = context.getProperty(Constants.OPERATOR).toString();
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
 
-            boolean validOperator = isValidOperator(request, context, msisdn, operator, userStatus);
+            validateOperator(request, context, msisdn, operator, userStatus);
 
-            if (validOperator) {
-                if (requestedLoa == 3) {
-                    // if acr is 3, pass the user to next authenticator
+            if (requestedLoa == 3) {
+                // if acr is 3, pass the user to next authenticator
 
-                }
-
-                if (requestedLoa == 2) {
-                    if (isRegistering) {
-                        // if acr is 2, do the registration. register user if a new msisdn and remove other
-                        // authenticators from step map
-                        try {
-                            new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
-
-                            MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
-                            if (!smsConfig.getWelcomeMessageDisabled()) {
-                                WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
-                            }
-
-                        } catch (RemoteException | UserRegistrationAdminServiceIdentityException e) {
-                            DataPublisherUtil.updateAndPublishUserStatus(userStatus,
-                                    DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL, e.getMessage());
-                            throw new AuthenticationFailedException(e.getMessage(), e);
-                        } catch (DataAccessException | IOException e) {
-                            log.error("Welcome SMS sending failed", e);
-                        }
-                    } else {
-                        // login flow
-                    }
-                    context.setProperty(Constants.IS_PIN_RESET, false);
-                    // explicitly remove all other authenticators and mark as a success
-                    context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
-                }
-
-                AuthenticationContextHelper.setSubject(context, msisdn);
             }
+
+            if (requestedLoa == 2) {
+                if (isRegistering) {
+                    // if acr is 2, do the registration. register user if a new msisdn and remove other
+                    // authenticators from step map
+                    try {
+                        new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
+
+                        MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
+                        if (!smsConfig.getWelcomeMessageDisabled()) {
+                            WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
+                        }
+
+                    } catch (RemoteException | UserRegistrationAdminServiceIdentityException e) {
+                        DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                                DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL, e.getMessage());
+                        throw new AuthenticationFailedException(e.getMessage(), e);
+                    } catch (DataAccessException | IOException e) {
+                        log.error("Welcome SMS sending failed", e);
+                    }
+                } else {
+                    // login flow
+                }
+                context.setProperty(Constants.IS_PIN_RESET, false);
+                // explicitly remove all other authenticators and mark as a success
+                context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+            }
+
+            AuthenticationContextHelper.setSubject(context, msisdn);
 
             String rememberMe = request.getParameter("chkRemember");
 
@@ -427,13 +431,12 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
      * @param msisdn     msisdn
      * @param operator   operator
      * @param userStatus user status for data publishing
-     * @return true if valid operator
      * @throws AuthenticationFailedException
      */
-    private boolean isValidOperator(HttpServletRequest request, AuthenticationContext context, String msisdn, String
+    private void validateOperator(HttpServletRequest request, AuthenticationContext context, String msisdn, String
             operator, UserStatus userStatus) throws AuthenticationFailedException {
         boolean ipValidation = false;
-        boolean validOperator = true;
+        boolean validOperator = false;
 
         if (operatorIpValidation.containsKey(operator)) {
             ipValidation = operatorIpValidation.get(operator);
@@ -479,7 +482,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                             DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL, "IP validation failed");
             throw new AuthenticationFailedException("Authentication Failed");
         }
-        return validOperator;
     }
 
     private void populateAuthEndpointData(HttpServletRequest request, AuthenticationContext context) {

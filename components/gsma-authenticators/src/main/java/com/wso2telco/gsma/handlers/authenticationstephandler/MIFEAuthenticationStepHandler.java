@@ -71,7 +71,6 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
                        AuthenticationContext context) throws FrameworkException {
-        log.info("Initiated handle");
 
         StepConfig stepConfig = context.getSequenceConfig().getStepMap()
                 .get(context.getCurrentStep());
@@ -79,6 +78,25 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
         String authenticatorNames = FrameworkUtils.getAuthenticatorIdPMappingString(authConfigList);
         String redirectURL = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         String fidp = request.getParameter(FrameworkConstants.RequestParams.FEDERATED_IDP);
+
+        AuthenticationRequest authRequest = context.getAuthenticationRequest();
+        Map<String, String[]> paramMap = authRequest.getRequestQueryParams();
+
+        if (!paramMap.containsKey(Params.STATE.toString())) {
+            String state = request.getParameter(Params.STATE.toString());
+            if(null != state) {
+                org.apache.log4j.MDC.put("REF_ID", state);
+                context.setProperty("state", state);
+            }
+        }else{
+            String[] states = paramMap.get(Params.STATE.toString());
+            if(states.length > 0) {
+                org.apache.log4j.MDC.put("REF_ID", states[0]);
+                context.setProperty("state", states[0]);
+            }
+        }
+
+        log.info("Initiated handle");
 
         if (log.isDebugEnabled()) {
             log.debug("Federated IDP : " + fidp);
@@ -91,9 +109,6 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
 
 
         //acr_values validation
-
-        AuthenticationRequest authRequest = context.getAuthenticationRequest();
-        Map<String, String[]> paramMap = authRequest.getRequestQueryParams();
 
         if (!paramMap.containsKey(Params.ACR_VALUES.toString())) {
 
@@ -277,7 +292,7 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
                                     AuthenticationContext context, AuthenticatorConfig authenticatorConfig)
             throws FrameworkException {
 
-        log.info("Do authentication...");
+        log.info("Do authentication");
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         int currentStep = context.getCurrentStep();

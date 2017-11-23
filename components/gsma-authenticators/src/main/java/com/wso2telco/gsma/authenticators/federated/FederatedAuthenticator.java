@@ -1,15 +1,14 @@
 package com.wso2telco.gsma.authenticators.federated;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.wso2telco.Util;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.dbutils.DbService;
+import com.wso2telco.gsma.authenticators.Constants;
+import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
+import com.wso2telco.ids.datapublisher.model.UserStatus;
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -23,15 +22,14 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
-import com.wso2telco.Util;
-import com.wso2telco.core.config.model.MobileConnectConfig;
-import com.wso2telco.core.config.service.ConfigurationService;
-import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.core.dbutils.DbService;
-import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import com.wso2telco.ids.datapublisher.model.UserStatus;
-import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FederatedAuthenticator extends AbstractApplicationAuthenticator implements LocalApplicationAuthenticator {
 
@@ -65,7 +63,7 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
     public AuthenticatorFlowStatus process(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
 
-        log.info("FederatedAuthenticator process Triggered");
+        log.info("Processing started");
 
         DataPublisherUtil.updateAndPublishUserStatus(
                 (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
@@ -106,6 +104,7 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
                 }
 
                 if (isTerminated) {
+                    log.error("Authenticator is terminated");
                     throw new AuthenticationFailedException("Authenticator is terminated");
                 }
                 if (retryAuthenticationEnabled() && !stepHasMultiOption) {
@@ -136,6 +135,9 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
     @Override
     protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws AuthenticationFailedException {
+
+        log.info("Initiating authentication request");
+
         super.initiateAuthenticationRequest(request, response, context);
         String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
                 context.getCallerSessionKey(), context.getContextIdentifier());
@@ -191,7 +193,9 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
     protected void processAuthenticationResponse(HttpServletRequest httpServletRequest,
             HttpServletResponse httpServletResponse, AuthenticationContext authenticationContext)
             throws AuthenticationFailedException {
-        log.info("FederatedAuthenticator process Authentication Response Triggered");
+
+        log.info("Processing authentication response");
+
         authenticationContext.setProperty(Constants.IS_REGISTERING, false);
         String federatedOuthCode = httpServletRequest.getParameter(IDP_AOUTH_CODE);
         if(federatedOuthCode!=null && !federatedOuthCode.isEmpty() && !federatedOuthCode.equalsIgnoreCase("null")) {
@@ -215,11 +219,11 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
                     DataPublisherUtil.UserState.FED_IDP_AUTH_SUCCESS, "Federated Authentication success");
             AuthenticationContextHelper.setSubject(authenticationContext,
                     authenticationContext.getProperty(Constants.MSISDN).toString());
-            log.info("FederatedAuthenticator Authentication success");
+            log.info("Authentication success");
         } else {
             String error = httpServletRequest.getParameter(IDP_ERROR_DESC);
             String errorCode = httpServletRequest.getParameter(IDP_ERROR);
-            log.info("FederatedAuthenticator Authentication Failed");
+            log.info("Authentication failed");
             DataPublisherUtil.updateAndPublishUserStatus(
                     (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                     DataPublisherUtil.UserState.FED_IDP_AUTH_RESPONSE_FAIL, error + " " + errorCode);
@@ -231,7 +235,7 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
 
     @Override
     public boolean canHandle(HttpServletRequest httpServletRequest) {
-        log.info("FederatedAuthenticator Authenticator canHandle invoked");
+        log.info("Authenticator canHandle invoked");
 
         return true;
     }

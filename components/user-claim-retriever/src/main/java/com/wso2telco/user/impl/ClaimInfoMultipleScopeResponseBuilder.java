@@ -100,9 +100,15 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
     public String getResponseString(OAuth2TokenValidationResponseDTO tokenResponse) throws UserInfoEndpointException,
             OAuthSystemException {
 
+        String tokenValue = tokenResponse.getAuthorizationContextToken()
+                .getTokenString();
+
+        org.apache.log4j.MDC.put("REF_ID", tokenValue);
+
+        log.info("Start Generating User Claim Info for Access token : " + tokenValue);
+
         if (log.isDebugEnabled()) {
-            log.debug("Generating Claim Info for Access token : " + tokenResponse.getAuthorizationContextToken()
-                    .getTokenString());
+            log.debug("Generating Claim Info for Access token : " + tokenValue);
         }
         if (mobileConnectConfig.isFederatedDeployment()) {
             FederatedIdpMappingDTO fidpInstance = new FederatedIdpMappingDTO();
@@ -153,6 +159,7 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         try {
             claims = ClaimUtil.getClaimsFromUserStore(tokenResponse);
         } catch (Exception e) {
+            log.error("Error while retrieving claims from user store : "+e.getMessage());
             throw new UserInfoEndpointException("Error while retrieving claims from user store.");
         }
 //        }
@@ -173,14 +180,17 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
             requestedClaims = getRequestedClaims(requestedScopes, scopeConfigs, claims);
             requestedClaims.put("sub", scopeDetails.getPcr());
         } catch (NoSuchAlgorithmException e) {
+            log.error("User Info retrieval failed because of error while generating hashed claim values : "+e.getMessage());
             throw new UserInfoEndpointException("Error while generating hashed claim values.");
         } catch (Exception e) {
+            log.error("User Info retrieval failed because of error while generating sub value : "+e.getMessage());
             throw new UserInfoEndpointException("Error while generating sub value");
         }
 
         Gson gson = new Gson();
         String userInfoJson = gson.toJson(requestedClaims);
-        log.debug("User data JSON " + userInfoJson);
+        log.info("User Info retrieval Success");
+        log.info("User data : "+userInfoJson);
         return userInfoJson;
     }
 

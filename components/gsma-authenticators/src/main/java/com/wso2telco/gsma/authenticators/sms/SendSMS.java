@@ -161,6 +161,6 @@ public class SendSMS {
 
         postRequest.setEntity(input);
 
-        Util.sendAsyncRequest(postRequest, futureCallback);
+        Util.sendAsyncRequest(postRequest, futureCallback,false);
     }
 }
