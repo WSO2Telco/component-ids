@@ -19,7 +19,6 @@
 package com.wso2telco.token.introspection;
 
 import org.apache.oltu.oauth2.common.utils.JSONUtils;
-import org.codehaus.jettison.json.JSONException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,16 +30,15 @@ import java.util.Map;
  */
 public class IntrospectionResponseBuilder {
 
-    private Map<String, Object> parameters = new HashMap<String, Object>();
+    private Map<String, Object> parameters = new HashMap();
     private boolean isActive = false;
 
     /**
      * build the introspection response.
      * 
      * @return
-     * @throws JSONException
      */
-    public String build() throws JSONException {
+    public String build() {
 	return JSONUtils.buildJSON(parameters);
     }
 
@@ -205,7 +203,7 @@ public class IntrospectionResponseBuilder {
      * @return
      */
     public IntrospectionResponseBuilder setErrorCode(String errorCode) {
-	parameters.put(IntrospectionResponse.Error.ERROR, errorCode);
+	parameters.put(IntrospectionResponse.Error.ERROR_CODE, errorCode);
 	return this;
     }
 

@@ -20,7 +20,6 @@ package com.wso2telco.token.introspection;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.jettison.json.JSONException;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.oauth2.OAuth2TokenValidationService;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2IntrospectionResponseDTO;
@@ -108,13 +107,7 @@ public class IntrospectResource {
 	    respBuilder.setAudience(response.getAud()).setJwtId(response.getJti()).setSubject(response.getSub())
 		    .setIssuer(response.getIss());
 	}
-
-	try {
 	    return Response.ok(respBuilder.build(), MediaType.APPLICATION_JSON).status(Response.Status.OK).build();
-	} catch (JSONException e) {
-	    log.error("Error occured while building the json response.", e);
-	    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-		    .entity("{'error': 'Error occured while building the json response.'}").build();
-	}
+
     }
 }

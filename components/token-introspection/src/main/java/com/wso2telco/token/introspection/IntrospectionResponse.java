@@ -93,6 +93,8 @@ public final class IntrospectionResponse {
 
     class Error {
 
+        private Error(){ }
+
 	/*
 	 * The request is missing a required parameter, includes an unsupported parameter value (other than grant type),
 	 * repeats a parameter, includes multiple credentials, utilizes more than one mechanism for authenticating the
@@ -103,7 +105,7 @@ public final class IntrospectionResponse {
 	/*
 	 * A single ASCII [USASCII] error code
 	 */
-	public static final String ERROR = "error";
+	public static final String ERROR_CODE = "error";
 
 	/*
 	 * Human-readable ASCII [USASCII] text providing additional information, used to assist the client developer in
