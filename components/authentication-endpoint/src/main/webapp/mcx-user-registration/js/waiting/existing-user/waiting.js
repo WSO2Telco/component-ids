@@ -66,13 +66,15 @@ function pollForStatus() {
 function handleTermination(cancelButton) {
 	window.clearInterval(pollingVar);
 
-
-
 	var sessionDataKey = qs('sessionDataKey');
 	var commonAuthURL;
 	var action = "userRespondedOrTimeout";
 	if(cancelButton){
 		action = "userCanceled";
+	}
+
+	if(status.toUpperCase() == STATUS_APPROVED){
+	    action = "";
 	}
 
 	commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
