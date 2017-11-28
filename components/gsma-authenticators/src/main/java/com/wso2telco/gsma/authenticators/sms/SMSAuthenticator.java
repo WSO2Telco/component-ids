@@ -83,6 +83,44 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 
     private static final String AUTH_FAILED_DETAILED = "SMS Authentication failed while trying to authenticate";
 
+    /**
+     * The Enum UserResponse.
+     */
+     protected enum UserResponse {
+
+        /**
+         * The pending.
+         */
+        PENDING,
+
+        /**
+         * The approved.
+         */
+        APPROVED,
+
+        /**
+         * The rejected.
+         */
+        REJECTED
+    }
+
+    /**
+     * The Enum UserResponse.
+     */
+    protected enum AuthResponse {
+
+        /**
+         * The approved.
+         */
+        APPROVED,
+
+        /**
+         * The rejected.
+         */
+        EXPIRED
+    }
+
+
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
      * .servlet.http.HttpServletRequest)
@@ -285,15 +323,21 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                 DataPublisherUtil
                         .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
                                 "User Terminated Authentication Flow");
-                terminateAuthentication(context, sessionDataKey);
+                terminateAuthentication(context, sessionDataKey,String.valueOf(UserResponse.REJECTED),String.valueOf(AuthResponse.EXPIRED));
                 break;
             case Constants.USER_ACTION_REG_REJECTED:
+                DataPublisherUtil
+                        .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
+                                "User Registration Rejected");
                 //User clicked cancel button from registration
-                terminateAuthentication(context, sessionDataKey);
+                terminateAuthentication(context, sessionDataKey,String.valueOf(UserResponse.REJECTED),String.valueOf(AuthResponse.EXPIRED));
                 break;
             case Constants.USER_ACTION_USER_TIMEOUT:
+                DataPublisherUtil
+                        .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
+                                "User Timeout occurred");
                 //User timeout at login
-                sessionTimeoutAuthenticationHandle(context, sessionDataKey);
+                terminateAuthentication(context, sessionDataKey,String.valueOf(UserResponse.REJECTED),String.valueOf(AuthResponse.EXPIRED));
                 break;
             }
         }
@@ -344,34 +388,20 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
      * Terminates the authenticator due to user implicit action
      *
      * @param context Authentication Context
+     * @param authFlowStatus Authflow status
+     * @param sessionID sessionID
+     * @param userResponse user response status
      * @throws AuthenticationFailedException
      */
-    private void terminateAuthentication(AuthenticationContext context,String sessionID) throws AuthenticationFailedException {
+    private void terminateAuthentication(AuthenticationContext context,String sessionID,String userResponse,String authFlowStatus) throws AuthenticationFailedException {
         log.info("User has terminated the authentication flow");
         context.setProperty(Constants.IS_TERMINATED, true);
         try {
-            DBUtils.updateUserResponse(sessionID, "Rejected");
+            DBUtils.updateUserResponse(sessionID, userResponse);
+            if (!DBUtils.getAuthFlowStatus(sessionID).equalsIgnoreCase("APPROVED"))
+                DBUtils.updateAuthFlowStatus(sessionID, authFlowStatus);
         } catch (AuthenticatorException e) {
             log.error("Authentication Exception occurred in terminateAuthentication method in SMSAuthenticator", e);
-        }
-        throw new AuthenticationFailedException("Authenticator is terminated");
-    }
-
-    /**
-     * Terminates the authenticator due to a session timeout
-     *
-     * @param context Authentication Context
-     * @throws AuthenticationFailedException
-     */
-    private void sessionTimeoutAuthenticationHandle(AuthenticationContext context, String sessionID) throws
-            AuthenticationFailedException {
-        log.info("Session Timeout occured");
-        context.setProperty(Constants.USER_ACTION_USER_TIMEOUT, true);
-        try {
-            if (!DBUtils.getAuthFlowStatus(sessionID).equalsIgnoreCase("APPROVED"))
-                DBUtils.updateAuthFlowStatus(sessionID, "EXPIRED");
-        } catch (AuthenticatorException e) {
-            log.error("Authentication Exception occurred in sessionTimeoutAuthenticationHandle method in SMSAuthenticator", e);
         }
         throw new AuthenticationFailedException("Authenticator is terminated");
     }
@@ -421,27 +451,6 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
     @Override
     public String getAmrValue(int acr) {
         return "SMS_URL_OK";
-    }
-
-    /**
-     * The Enum UserResponse.
-     */
-    protected enum UserResponse {
-
-        /**
-         * The pending.
-         */
-        PENDING,
-
-        /**
-         * The approved.
-         */
-        APPROVED,
-
-        /**
-         * The rejected.
-         */
-        REJECTED
     }
 
 }
