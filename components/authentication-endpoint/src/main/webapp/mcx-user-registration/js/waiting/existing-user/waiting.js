@@ -68,14 +68,14 @@ function handleTermination(cancelButton) {
 
 	var sessionDataKey = qs('sessionDataKey');
 	var commonAuthURL;
-	var action = "userRespondedOrTimeout";
+	var action;
 	if(cancelButton){
 		action = "userCanceled";
-	}
-
-	if(status.toUpperCase() == STATUS_APPROVED){
-	    action = "";
-	}
+	} else if(status.toUpperCase() == STATUS_APPROVED){
+        action = "";
+    } else{
+        action = "userRespondedOrTimeout";
+    }
 
 	commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
 		+ "&msisdn=" + msisdn
