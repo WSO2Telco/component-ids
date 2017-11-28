@@ -101,25 +101,14 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         /**
          * The rejected.
          */
-        REJECTED
-    }
-
-    /**
-     * The Enum UserResponse.
-     */
-    protected enum AuthResponse {
+        REJECTED,
 
         /**
-         * The approved.
-         */
-        APPROVED,
-
-        /**
-         * The rejected.
+         * The Expired.
          */
         EXPIRED
-    }
 
+    }
 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
@@ -213,7 +202,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             } else {
                 // Insert entry to DB only if this is not a retry
-                DBUtils.insertUserResponse(context.getContextIdentifier(), String.valueOf(UserResponse.PENDING));
+                DBUtils.insertUserResponse(context.getContextIdentifier(), UserResponse.PENDING.name());
             }
 
             //MSISDN will be saved in the context in the MSISDNAuthenticator
@@ -323,28 +312,28 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                 DataPublisherUtil
                         .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
                                 "User Terminated Authentication Flow");
-                terminateAuthentication(context, sessionDataKey,String.valueOf(UserResponse.REJECTED),String.valueOf(AuthResponse.EXPIRED));
+                terminateAuthentication(context, sessionDataKey,UserResponse.REJECTED.name(),UserResponse.EXPIRED.name());
                 break;
             case Constants.USER_ACTION_REG_REJECTED:
                 DataPublisherUtil
                         .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
                                 "User Registration Rejected");
                 //User clicked cancel button from registration
-                terminateAuthentication(context, sessionDataKey,String.valueOf(UserResponse.REJECTED),String.valueOf(AuthResponse.EXPIRED));
+                terminateAuthentication(context, sessionDataKey,UserResponse.REJECTED.name(),UserResponse.EXPIRED.name());
                 break;
             case Constants.USER_ACTION_USER_TIMEOUT:
                 DataPublisherUtil
                         .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
                                 "User Timeout occurred");
                 //User timeout at login
-                terminateAuthentication(context, sessionDataKey,String.valueOf(UserResponse.REJECTED),String.valueOf(AuthResponse.EXPIRED));
+                terminateAuthentication(context, sessionDataKey,UserResponse.REJECTED.name(),UserResponse.EXPIRED.name());
                 break;
             }
         }
 
         // Check if the user has provided consent
         String responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
-        if (!responseStatus.equalsIgnoreCase(UserResponse.APPROVED.toString())) {
+        if (!responseStatus.equalsIgnoreCase(UserResponse.APPROVED.name())) {
             log.error(AUTH_FAILED);
             throw new AuthenticatorException(AUTH_FAILED);
         } else {
@@ -398,7 +387,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         context.setProperty(Constants.IS_TERMINATED, true);
         try {
             DBUtils.updateUserResponse(sessionID, userResponse);
-            if (!DBUtils.getAuthFlowStatus(sessionID).equalsIgnoreCase("APPROVED"))
+            if (!DBUtils.getAuthFlowStatus(sessionID).equalsIgnoreCase(UserResponse.APPROVED.name()))
                 DBUtils.updateAuthFlowStatus(sessionID, authFlowStatus);
         } catch (AuthenticatorException e) {
             log.error("Authentication Exception occurred in terminateAuthentication method in SMSAuthenticator", e);
