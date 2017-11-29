@@ -15,16 +15,6 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.sms;
 
-import java.util.HashMap;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
-
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
@@ -34,6 +24,14 @@ import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
 import com.wso2telco.gsma.authenticators.util.OutboundMessage;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
 
 // TODO: Auto-generated Javadoc
 
@@ -47,7 +45,7 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
      */
     private static final long serialVersionUID = 1189332409518227376L;
 
-    private Log log = LogFactory.getLog(SMSOTPAuthenticator.class);
+    private static Log log = LogFactory.getLog(SMSOTPAuthenticator.class);
 
     /*
      * (non-Javadoc)
