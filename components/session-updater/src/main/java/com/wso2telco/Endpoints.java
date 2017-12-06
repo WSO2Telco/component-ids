@@ -553,8 +553,14 @@ public class Endpoints {
     private void setStateFromAuthenticationContext(AuthenticationContext authenticationContext) {
         if(null != authenticationContext) {
             Object state = authenticationContext.getProperty("state");
+            Object msisdn = authenticationContext.getProperty(Constants.MSISDN);
+
             if(null != state) {
-                org.apache.log4j.MDC.put("REF_ID", (String)state);
+                org.apache.log4j.MDC.put("REF_ID", state.toString());
+            }
+
+            if(null != msisdn) {
+                org.apache.log4j.MDC.put("MSISDN", msisdn.toString());
             }
         }
     }

@@ -131,7 +131,7 @@ public class Endpoints {
         String scopeName =null;
         String responseType =null;
 
-	org.apache.log4j.MDC.put("REF_ID", state);
+	    org.apache.log4j.MDC.put("REF_ID", state);
         log.info("Request processing started from proxy");
 
         boolean invalid=false;

@@ -225,6 +225,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
                 //This should always be the MSISDN header
                 String decryptedMsisdn = DecryptionAES.decrypt(msisdnToBeDecrypted);
                 context.setProperty(Constants.MSISDN, decryptedMsisdn);
+                org.apache.log4j.MDC.put("MSISDN", decryptedMsisdn);
                 boolean isUserExists = AdminServiceUtil.isUserExists(decryptedMsisdn);
                 context.setProperty(Constants.IS_REGISTERING, !isUserExists);
                 DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getProperty(
@@ -241,7 +242,6 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
                 throw new AuthenticationFailedException("Decryption error", e);
             }
         }
-
 
         Map<String, MIFEAuthentication> authenticationMap = configurationService.getDataHolder()
                 .getAuthenticationLevelMap();

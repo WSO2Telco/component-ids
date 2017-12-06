@@ -96,6 +96,11 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
             }
         }
 
+        Object msisdn = context.getProperty(Constants.MSISDN);
+        if(null != msisdn) {
+            org.apache.log4j.MDC.put("MSISDN", msisdn.toString());
+        }
+
         log.info("Initiated handle");
 
         if (log.isDebugEnabled()) {
