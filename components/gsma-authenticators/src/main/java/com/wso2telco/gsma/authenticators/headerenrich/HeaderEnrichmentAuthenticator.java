@@ -253,6 +253,10 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
+        String operator = context.getProperty(Constants.OPERATOR).toString();
+        String msisdn = context.getProperty(Constants.MSISDN).toString();
+
+        org.apache.log4j.MDC.put("MSISDN", msisdn);
         log.info("Initiating authentication request");
 
         AuthenticationContextCache.getInstance().addToCache(new AuthenticationContextCacheKey(context
@@ -260,8 +264,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
 
-        String operator = context.getProperty(Constants.OPERATOR).toString();
-        String msisdn = context.getProperty(Constants.MSISDN).toString();
+
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
         boolean showTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
 
@@ -325,9 +328,14 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
+        String msisdn = context.getProperty(Constants.MSISDN).toString();
+        String operator = context.getProperty(Constants.OPERATOR).toString();
+
+        org.apache.log4j.MDC.put("MSISDN", msisdn);
 
         log.info("Processing authentication response");
+
+        UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
 
         AuthenticationContextCache.getInstance().addToCache(new AuthenticationContextCacheKey(context
                 .getContextIdentifier()), new AuthenticationContextCacheEntry(context));
@@ -363,8 +371,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
             populateAuthEndpointData(request, context);
 
-            String msisdn = context.getProperty(Constants.MSISDN).toString();
-            String operator = context.getProperty(Constants.OPERATOR).toString();
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
 
             validateOperator(request, context, msisdn, operator, userStatus);

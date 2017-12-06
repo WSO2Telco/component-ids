@@ -245,6 +245,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 }
 
             }
+
+            org.apache.log4j.MDC.put("MSISDN", msisdn);
+
             AuthenticationContextHelper.setSubject(context, msisdn);
             log.info("Authentication success");
             DataPublisherUtil.updateAndPublishUserStatus(
