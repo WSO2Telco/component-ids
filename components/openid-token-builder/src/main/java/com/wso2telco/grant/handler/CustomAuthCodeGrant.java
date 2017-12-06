@@ -1,17 +1,12 @@
 package com.wso2telco.grant.handler;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.dbutils.DbService;
+import com.wso2telco.core.dbutils.model.FederatedIdpMappingDTO;
+import com.wso2telco.dao.FederatedTransactionDAO;
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.axiom.util.base64.Base64Utils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,13 +33,9 @@ import org.wso2.carbon.identity.oauth2.token.OAuthTokenReqMessageContext;
 import org.wso2.carbon.identity.oauth2.token.handlers.grant.AuthorizationCodeGrantHandler;
 import org.wso2.carbon.identity.oauth2.util.OAuth2Util;
 
-import com.wso2telco.core.config.model.MobileConnectConfig;
-import com.wso2telco.core.config.service.ConfigurationService;
-import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.core.dbutils.DbService;
-import com.wso2telco.core.dbutils.model.FederatedIdpMappingDTO;
-import com.wso2telco.dao.FederatedTransactionDAO;
-import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
 
@@ -71,7 +62,7 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
 
     @Override
     public boolean validateGrant(OAuthTokenReqMessageContext tokReqMsgCtx) throws IdentityOAuth2Exception {
-        org.apache.log4j.MDC.put("REF_ID", "["+ tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode() +"]");
+        org.apache.log4j.MDC.put("REF_ID", tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
         log.info("AuthCode Validatation process triggered for authorize code : "
                 + tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
         boolean isValidAuthCode;
