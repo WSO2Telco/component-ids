@@ -32,7 +32,6 @@ import com.wso2telco.dao.TransactionDAO;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.internal.OpenIdTokenBuilderDataHolder;
 import com.wso2telco.util.AuthenticationHealper;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
@@ -46,7 +45,6 @@ import org.apache.oltu.openidconnect.as.messages.IDTokenException;
 import org.codehaus.jettison.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.wso2.carbon.identity.application.common.cache.BaseCache;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.oauth.cache.*;
@@ -66,9 +64,10 @@ import org.wso2.carbon.identity.oauth2.token.OAuthTokenReqMessageContext;
 import org.wso2.carbon.identity.oauth2.util.OAuth2Util;
 import org.wso2.carbon.identity.openidconnect.CustomClaimsCallbackHandler;
 
+import javax.cache.Cache;
+import javax.cache.Caching;
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
@@ -459,23 +458,24 @@ public class MIFEOpenIDTokenBuilder implements
     public OAuthAppDO getAppInformation(OAuth2AccessTokenReqDTO tokenReqDTO)
             throws IdentityOAuth2Exception, InvalidOAuthClientException {
         OAuthAppDO oAuthAppDO=null;
-        BaseCache<String, OAuthAppDO> appInfoCache = new BaseCache<String, OAuthAppDO>(
-                "AppInfoCache"); //$NON-NLS-1$
-        if (appInfoCache != null) {
+
+        Cache<String, OAuthAppDO> appInfoCache = Caching.getCacheManager("IdentityApplicationManagementCacheManager")
+                .getCache("AppInfoCache");
+
+        if (null != appInfoCache) {
             if (log.isDebugEnabled()) {
                 log.debug("Successfully created AppInfoCache under " //$NON-NLS-1$
                         + OAuthConstants.OAUTH_CACHE_MANAGER);
             }
-            try {
-                oAuthAppDO = appInfoCache.getValueFromCache(tokenReqDTO.getClientId());
-            }catch (Exception e){
-                log.error("Error occurred while fetching application information from cache");
-            }
-            if (oAuthAppDO == null){
+
+            if(appInfoCache.containsKey(tokenReqDTO.getClientId())){
+                oAuthAppDO = appInfoCache.get(tokenReqDTO.getClientId());
+            }else{
                 oAuthAppDO = new OAuthAppDAO().getAppInformation(tokenReqDTO.getClientId());
-                appInfoCache.addToCache(tokenReqDTO.getClientId(), oAuthAppDO);
+                appInfoCache.put(tokenReqDTO.getClientId(), oAuthAppDO);
             }
         }
+
         return oAuthAppDO;
     }
 
