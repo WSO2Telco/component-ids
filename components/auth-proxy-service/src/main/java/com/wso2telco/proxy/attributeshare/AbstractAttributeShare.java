@@ -1,21 +1,18 @@
-/*
- * ******************************************************************************
- *  * Copyright  (c) 2015-2017, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
- *  *
- *  * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  *   http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
- *  *****************************************************************************
- */
-
+/*******************************************************************************
+ * Copyright  (c) 2015-2017, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
+ *
+ * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
 package com.wso2telco.proxy.attributeshare;
 
 import com.wso2telco.core.dbutils.DBUtilException;
@@ -32,9 +29,7 @@ import java.sql.SQLException;
 
 public abstract class AbstractAttributeShare implements AttrubteSharable {
 
-    Log log = LogFactory.getLog(AbstractAttributeShare.class);
-
-    public abstract void mandatoryFeildValidation();
+    private static Log log = LogFactory.getLog(AbstractAttributeShare.class);
 
     /**
      *
@@ -73,8 +68,10 @@ public abstract class AbstractAttributeShare implements AttrubteSharable {
                     trustedStatus = AuthProxyEnum.TRUSTEDSTATUS.UNDEFINED.name();
             }
 
+            log.debug("Trusted Status of "+clientId+ ":" + trustedStatus);
+
         } catch (DBUtilException|SQLException e){
-            log.debug("Error occurred retreiving data from database");
+            log.error("Error occurred in retrieving data from database :"+ e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(),e);
         }
 
@@ -91,11 +88,13 @@ public abstract class AbstractAttributeShare implements AttrubteSharable {
     private void checkMSISDNAvailability(String loginhintMsisdn, String headerMsisdn, String trustedStatus) throws AuthenticationFailedException{
 
        if(loginhintMsisdn.isEmpty() && headerMsisdn.isEmpty()){
+           log.error("MSISDN is not available for "+ trustedStatus +"");
            throw new AuthenticationFailedException("Msisdn not available for " + trustedStatus +"");
        }
 
     }
 
+    public abstract void mandatoryFeildValidation();
 
     public abstract void scopeNClaimMatching();
 

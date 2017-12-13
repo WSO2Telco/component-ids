@@ -232,7 +232,7 @@ public class Endpoints {
                 try {
                     loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam,redirectURL);
                 } catch (Exception e) {
-                    log.debug("Error retrieving loginhint msisdn : " + e);
+                    log.error("Error retrieving loginhint msisdn : " + e);
                 }
 
                 Boolean isScopeExists = queryParams.containsKey(AuthProxyConstants.SCOPE);
@@ -280,7 +280,7 @@ public class Endpoints {
                         loginhint_msisdn = "";
                     }
 
-                    Map<String,String> attShareDetails = validateAttributeShareScopes(scopeName,operatorName,clientId,loginhint_msisdn,msisdn);
+                    Map<String,String> attShareDetails = AttributeShare.validateAttShareScopes(scopeName,operatorName,clientId,loginhint_msisdn,msisdn);
 
                     redirectUrlInfo.setMsisdnHeader(msisdn);
                     redirectUrlInfo.setLoginhintMsisdn(loginhint_msisdn);
@@ -521,6 +521,7 @@ public class Endpoints {
                             }
 
                         } catch (Exception e) {
+                            log.error("pcr in the login hint cannot be accepted" );
                             throw new AuthenticationFailedException("pcr in the login hint cannot be accepted");
                         }
 
@@ -604,6 +605,7 @@ public class Endpoints {
                                 }
 
                             } catch (Exception e){
+                                log.error("pcr in the login hint cannot be accepted");
                                 throw new AuthenticationFailedException("pcr in the login hint cannot be accepted");
                             }
                             isValidFormatType = true;
@@ -820,17 +822,5 @@ public class Endpoints {
         userRegistrationAdminService.addUser(userDTO);
     }
 
-
-    private Map<String,String> validateAttributeShareScopes(String scopeName,String operatorName,String clientId,String loginhintMsis,String msisdn) throws AuthenticationFailedException{
-        Map<String,String> attShareDetails;
-
-      try {
-          attShareDetails = AttributeShare.validateAttShareScopes(scopeName,operatorName,clientId,loginhintMsis,msisdn);
-      } catch (AuthenticationFailedException e){
-          throw new AuthenticationFailedException(e.getMessage(),e);
-      }
-
-        return attShareDetails;
-    }
 }
 
