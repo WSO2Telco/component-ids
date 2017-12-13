@@ -251,91 +251,82 @@ public class Endpoints {
                     ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo,
                             userStatus, redirectURL);
 
-                    //Check IsAttribute Sharing scope available
-                    Map<String, String> attributeSharingScopesDetails = DBUtils.getIsAttributeScopes(scopeName);
-                    boolean attributeSharingScopes = false;
-
-                    for (Map.Entry<String, String> entry : attributeSharingScopesDetails.entrySet()) {
-                        if (entry.getValue().equals("true")) {
-                            attributeSharingScopes = true;
-                            break;
-                        }
-
-                        String loginhint_msisdn = null;
-                        try {
-                            loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam, redirectURL);
-                        } catch (Exception e) {
-                            log.debug("Error retrieving loginhint msisdn : " + e);
-                        }
-
-                        Boolean isScopeExists = queryParams.containsKey(AuthProxyConstants.SCOPE);
-                        String operatorScopeWithClaims;
-
-                        if (isScopeExists) {
-                            operatorScopeWithClaims = queryParams.get(AuthProxyConstants.SCOPE).get(0);
-
-                            // Check if scope list contains openid scope, and append if it does not contain
-                            if (queryParams.containsKey(AuthProxyConstants.SCOPE) && queryParams.get(AuthProxyConstants
-                                    .SCOPE).get(0) != null) {
-                                List<String> scopes = new ArrayList<>(Arrays.asList(queryParams.get(AuthProxyConstants
-                                        .SCOPE)
-                                        .get(0).split(" ")));
-                                if (!scopes.contains(AuthProxyConstants.SCOPE_OPENID)) {
-                                    queryParams.get(AuthProxyConstants.SCOPE)
-                                            .set(0, scopeName + " " + AuthProxyConstants.SCOPE_OPENID);
-                                }
-                            }
-
-                            List<String> promptValues = queryParams.get(AuthProxyConstants.PROMPT);
-                            if (promptValues != null && !promptValues.isEmpty()) {
-                                redirectUrlInfo.setPrompt(promptValues.get(0));
-                                queryParams.remove(AuthProxyConstants.PROMPT);
-                            }
-
-                            queryString = processQueryString(queryParams, queryString);
-
-                            // Encrypt MSISDN
-                            msisdn = EncryptAES.encrypt(msisdn);
-
-                            // Encrypt login-hint msisdn
-                            loginhint_msisdn = EncryptAES.encrypt(loginhint_msisdn);
-
-                            // URL encode
-                            if (msisdn != null) {
-                                msisdn = URLEncoder.encode(msisdn, AuthProxyConstants.UTF_ENCODER);
-                            } else {
-                                msisdn = "";
-                            }
-                            // URL encode login hint msisdn
-                            if (loginhint_msisdn != null) {
-                                loginhint_msisdn = URLEncoder.encode(loginhint_msisdn, AuthProxyConstants.UTF_ENCODER);
-                            } else {
-                                loginhint_msisdn = "";
-                            }
-                            if (log.isDebugEnabled()) {
-                                log.debug("redirectURL : " + redirectURL);
-                            }
-
-                            Map<String, String> attShareDetails = validateAttributeShareScopes(scopeName,
-                                    operatorName, clientId, loginhint_msisdn, msisdn);
-
-                            redirectUrlInfo.setMsisdnHeader(msisdn);
-                            redirectUrlInfo.setLoginhintMsisdn(loginhint_msisdn);
-                            redirectUrlInfo.setQueryString(queryString);
-                            redirectUrlInfo.setIpAddress(ipAddress);
-                            redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
-                            redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
-                            redirectUrlInfo.setAttributeSharingScope(Boolean.parseBoolean(attShareDetails.get
-                                    (AuthProxyConstants.ATTR_SHARE_SCOPE)));
-                            redirectUrlInfo.setTrustedStatus(attShareDetails.get(AuthProxyConstants.TRUSTED_STATUS));
-                            redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
-
-                            DataPublisherUtil.updateAndPublishUserStatus(
-                                    userStatus, DataPublisherUtil.UserState.PROXY_REQUEST_FORWARDED_TO_IS, "Redirect " +
-                                            "URL : "
-                                            + redirectURL);
-                        }
+                    String loginhint_msisdn = null;
+                    try {
+                        loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam, redirectURL);
+                    } catch (Exception e) {
+                        log.debug("Error retrieving loginhint msisdn : " + e);
                     }
+
+                    Boolean isScopeExists = queryParams.containsKey(AuthProxyConstants.SCOPE);
+                    String operatorScopeWithClaims;
+
+                    if (isScopeExists) {
+                        operatorScopeWithClaims = queryParams.get(AuthProxyConstants.SCOPE).get(0);
+
+                        // Check if scope list contains openid scope, and append if it does not contain
+                        if (queryParams.containsKey(AuthProxyConstants.SCOPE) && queryParams.get(AuthProxyConstants
+                                .SCOPE).get(0) != null) {
+                            List<String> scopes = new ArrayList<>(Arrays.asList(queryParams.get(AuthProxyConstants
+                                    .SCOPE)
+                                    .get(0).split(" ")));
+                            if (!scopes.contains(AuthProxyConstants.SCOPE_OPENID)) {
+                                queryParams.get(AuthProxyConstants.SCOPE)
+                                        .set(0, scopeName + " " + AuthProxyConstants.SCOPE_OPENID);
+                            }
+                        }
+
+                        List<String> promptValues = queryParams.get(AuthProxyConstants.PROMPT);
+                        if (promptValues != null && !promptValues.isEmpty()) {
+                            redirectUrlInfo.setPrompt(promptValues.get(0));
+                            queryParams.remove(AuthProxyConstants.PROMPT);
+                        }
+
+                        queryString = processQueryString(queryParams, queryString);
+
+                        // Encrypt MSISDN
+                        msisdn = EncryptAES.encrypt(msisdn);
+
+
+                        // Encrypt login-hint msisdn
+                        loginhint_msisdn = EncryptAES.encrypt(loginhint_msisdn);
+
+                        // URL encode
+                        if (msisdn != null) {
+                            msisdn = URLEncoder.encode(msisdn, AuthProxyConstants.UTF_ENCODER);
+                        } else {
+                            msisdn = "";
+                        }
+                        // URL encode login hint msisdn
+                        if (loginhint_msisdn != null) {
+                            loginhint_msisdn = URLEncoder.encode(loginhint_msisdn, AuthProxyConstants.UTF_ENCODER);
+                        } else {
+                            loginhint_msisdn = "";
+                        }
+                        if (log.isDebugEnabled()) {
+                            log.debug("redirectURL : " + redirectURL);
+                        }
+
+                        Map<String, String> attShareDetails = validateAttributeShareScopes(scopeName,
+                                operatorName, clientId, loginhint_msisdn, msisdn);
+
+                        redirectUrlInfo.setMsisdnHeader(msisdn);
+                        redirectUrlInfo.setLoginhintMsisdn(loginhint_msisdn);
+                        redirectUrlInfo.setQueryString(queryString);
+                        redirectUrlInfo.setIpAddress(ipAddress);
+                        redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
+                        redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
+                        redirectUrlInfo.setAttributeSharingScope(Boolean.parseBoolean(attShareDetails.get
+                                (AuthProxyConstants.ATTR_SHARE_SCOPE)));
+                        redirectUrlInfo.setTrustedStatus(attShareDetails.get(AuthProxyConstants.TRUSTED_STATUS));
+                        redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
+
+                        DataPublisherUtil.updateAndPublishUserStatus(
+                                userStatus, DataPublisherUtil.UserState.PROXY_REQUEST_FORWARDED_TO_IS, "Redirect " +
+                                        "URL : "
+                                        + redirectURL);
+                    }
+
                 } catch (Exception e) {
                     log.error("Exception : " + e.getMessage());
                     //todo: dynamically set error description depending on scope parameters
@@ -347,12 +338,16 @@ public class Endpoints {
             }
         }
 
-        if (invalid) {
+        if (invalid)
+
+        {
             if (redirectURL == null) {
                 throw new Exception("Invalid Request- Redirect URL not found");
             }
             httpServletResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid Request");
-        } else {
+        } else
+
+        {
             log.info(String.format("Redirecting to : %s", redirectURL));
             httpServletResponse.sendRedirect(redirectURL);
         }
@@ -569,6 +564,7 @@ public class Endpoints {
                             }
 
                         } catch (Exception e) {
+                            log.error("pcr in the login hint cannot be accepted");
                             throw new AuthenticationFailedException("pcr in the login hint cannot be accepted");
                         }
 
@@ -655,6 +651,7 @@ public class Endpoints {
                                 }
 
                             } catch (Exception e) {
+                                log.error("pcr in the login hint cannot be accepted");
                                 throw new AuthenticationFailedException("pcr in the login hint cannot be accepted");
                             }
                             isValidFormatType = true;
@@ -873,56 +870,6 @@ public class Endpoints {
         userDTO.setUserFields(userFieldDTOs);
         userDTO.setUserName(username);
         userRegistrationAdminService.addUser(userDTO);
-    }
-
-    /**
-     * Get the expected mandatory scope parameters pass with the request
-     *
-     * @param scopeName
-     * @return
-     */
-    private List<String> getMandatoryScopeWithRequest(String scopeName) {
-        ScopeDetailsConfig.Scope scopeValue = null;
-        List<String> requestValue = null;
-/*
-        if (scopeMap != null && !scopeMap.isEmpty()) {
-            scopeValue = scopeMap.get(scopeName);
-        }
-
-        requestValue = scopeValue.getMandatoryValues();*/
-        return requestValue;
-    }
-
-    /**
-     * Validate whether all requested Mandatory parameters passed with the query params
-     *
-     * @param queryParams
-     * @param mandatoryParameters
-     * @return
-     */
-    private boolean checkMandatoryParams(MultivaluedMap<String, String> queryParams, List<String> mandatoryParameters) {
-        boolean isAllParamsAvail = true;
-
-        for (int scope = 0; scope < mandatoryParameters.size(); scope++) {
-            if (!queryParams.containsKey(mandatoryParameters.get(scope)))
-                isAllParamsAvail = false;
-        }
-        return isAllParamsAvail;
-    }
-
-    private Map<String, String> validateAttributeShareScopes(String scopeName, String operatorName, String clientId,
-                                                             String loginhintMsis, String msisdn) throws
-            AuthenticationFailedException {
-        Map<String, String> attShareDetails;
-
-        try {
-            attShareDetails = AttributeShare.validateAttShareScopes(scopeName, operatorName, clientId, loginhintMsis,
-                    msisdn);
-        } catch (AuthenticationFailedException e) {
-            throw new AuthenticationFailedException(e.getMessage(), e);
-        }
-
-        return attShareDetails;
     }
 }
 

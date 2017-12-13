@@ -1,5 +1,19 @@
+/*******************************************************************************
+ * Copyright  (c) 2015-2017, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
+ *
+ * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
 package com.wso2telco.proxy.dao.attsharedaoimpl;
-
 
 import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.core.dbutils.DbUtils;
@@ -16,33 +30,9 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created on 9/20/17.
- */
 public class AttShareDAOImpl implements AttShareDAO {
 
     private static Log log = LogFactory.getLog(AttShareDAOImpl.class);
-
-    /**
-     * Close the database connection.
-     *
-     * @param connection Connection instance used by the method call
-     * @param statement  prepared Statement used by the method call
-     * @param resultSet  result set which is used by the method call
-     */
-    public void close(Connection connection, PreparedStatement statement, ResultSet resultSet) {
-
-        try {
-            if (resultSet != null)
-                resultSet.close();
-            if (statement != null)
-                statement.close();
-            if (connection != null)
-                connection.close();
-        } catch (Exception e) {
-            log.error("Error occurred while Closing the Connection");
-        }
-    }
 
     @Override
     public String getSPTypeConfigValue(String operatorName, String clientId, String trustedSatus) throws SQLException,DBUtilException {
@@ -56,9 +46,11 @@ public class AttShareDAOImpl implements AttShareDAO {
         sqlBuilder.append("SELECT ");
         sqlBuilder.append("ts.status ");
         sqlBuilder.append("FROM ");
-        sqlBuilder.append(AuthProxyEnum.TABLENAME.TRUSTED_STATUS + " ts ");
+        sqlBuilder.append(AuthProxyEnum.TABLENAME.TRUSTED_STATUS);
+        sqlBuilder.append(" ts ");
         sqlBuilder.append(" INNER JOIN ");
-        sqlBuilder.append(AuthProxyEnum.TABLENAME.SP_CONFIGURATION + " sp_config ");
+        sqlBuilder.append(AuthProxyEnum.TABLENAME.SP_CONFIGURATION);
+        sqlBuilder.append(" sp_config ");
         sqlBuilder.append( "ON sp_config.config_value=ts.id_Trusted_type ");
         sqlBuilder.append(" where");
         sqlBuilder.append(" sp_config.client_id=? ");
@@ -76,6 +68,12 @@ public class AttShareDAOImpl implements AttShareDAO {
             while (resultSet.next()) {
                 status =  resultSet.getString("status");
             }
+        } catch (DBUtilException e) {
+            log.error("error occurred while retreiving the data from database : "+ e.getMessage());
+            throw new DBUtilException(e.getMessage(), e);
+        } catch (SQLException e){
+            log.error("error occurred while retreiving the data from database : "+e.getMessage());
+            throw new SQLException(e.getMessage(),e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
@@ -109,13 +107,13 @@ public class AttShareDAOImpl implements AttShareDAO {
                 }
 
         } catch (DBUtilException e) {
-            log.debug("error occurred while retreiving the data from database");
+            log.error("error occurred while retreiving the data from database : "+ e.getMessage());
             throw new DBUtilException(e.getMessage(), e);
         } catch (SQLException e){
-            log.debug("error occurred while retreiving the data from database");
+            log.error("error occurred while retreiving the data from database : "+e.getMessage());
             throw new SQLException(e.getMessage(),e);
         } finally {
-            close(connection, preparedStatement, resultSet);
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
         return scopeParams;
     }
