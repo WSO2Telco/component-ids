@@ -805,6 +805,9 @@ public class Endpoints {
 
         userStatus = DatabaseUtils.getUSerStatus(sessionId);
 
+        setStateFromAuthenticationContext(authenticationContext);
+        log.info("UserStatus " + userStatus);
+
         responseString = "{" + "\"sessionId\":\"" + sessionId + "\"," + "\"status\":\"" + userStatus + "\"" + "}";
 
         return Response.status(200).entity(responseString).build();
