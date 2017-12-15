@@ -8,8 +8,6 @@ import org.wso2.carbon.identity.oauth2.authz.OAuthAuthzReqMessageContext;
 import org.wso2.carbon.identity.oauth2.authz.handlers.CodeResponseTypeHandler;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2AuthorizeRespDTO;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Context;
 import java.util.Map;
 
 /**
@@ -18,9 +16,6 @@ import java.util.Map;
 public class CustomLogCodeResponseTypeHandler extends CodeResponseTypeHandler {
 
     private static Log log = LogFactory.getLog(CustomLogCodeResponseTypeHandler.class);
-
-    @Context
-    private HttpServletRequest httpServletRequest;
 
     @Override
     public OAuth2AuthorizeRespDTO issue(OAuthAuthzReqMessageContext oauthAuthzMsgCtx) throws IdentityOAuth2Exception {
