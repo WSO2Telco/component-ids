@@ -167,7 +167,7 @@
                             org.wso2.carbon.utils.multitenancy; version="${carbon.kernel.package.import.version.range}",
 							com.wso2telco.core.config.*
 						</Import-Package>
-						<Export-Package>com.wso2telco.gsma*, com.wso2telco.historylog.*</Export-Package>
+						<Export-Package>com.wso2telco.gsma*, com.wso2telco.historylog.*, com.wso2telco.handlers.*</Export-Package>
 						<DynamicImport-Package>*</DynamicImport-Package>
 					</instructions>
 				</configuration>
