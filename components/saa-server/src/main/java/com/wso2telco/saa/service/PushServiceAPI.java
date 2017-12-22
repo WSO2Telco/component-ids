@@ -16,6 +16,9 @@
 package com.wso2telco.saa.service;
 
 import com.google.gson.Gson;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.entity.AuthenticationMessageDetail;
 import com.wso2telco.entity.ClientDetails;
@@ -41,7 +44,7 @@ import java.sql.SQLException;
 @Path("/pushServiceAPI/")
 public class PushServiceAPI {
 
-    private static final String FCM_URL = "https://fcm.googleapis.com/fcm/send";
+    private static String fcmUrl = null;
     private static final String MSISDN = "msisdn";
     private static final String DATA = "data";
     private static final String MESSAGE = "message";
@@ -49,13 +52,20 @@ public class PushServiceAPI {
     private static final String REFERENCE = "referenceID";
     private static final String ACR = "acr";
     private static final String SP_LOGO_URL = "spImgUrl";
-    private static final String FCM_KEY = "key=AIzaSyCIqO7iVo2djUVRIKh-DUe1kn3zODTzcDg";
+    private static String fcmKey = null;
     private static final String SUCCESS = "success";
     private static final String FAILURE = "failure";
-
-    private Log log = LogFactory.getLog(PushServiceAPI.class);
+    private static MobileConnectConfig mobileConnectConfigs = null;
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+    private static Log log = LogFactory.getLog(PushServiceAPI.class);
     private DBConnection dbConnection = null;
 
+    static {
+        //Load mobile-connect.xml file.
+        mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
+        fcmUrl = mobileConnectConfigs.getSaaConfig().getFcmEndpoint();
+        fcmKey = mobileConnectConfigs.getSaaConfig().getFcmKey();
+    }
 
     /**
      * OutBound to Push Service*
@@ -70,7 +80,6 @@ public class PushServiceAPI {
     @Produces(MediaType.APPLICATION_JSON)
     public Response sendPushNotification(@PathParam(MSISDN) String msisdn, String pushMessageData) {
 
-        //// TODO: 3/6/17 Remove Success or Failure variables and keep one variable- status
         JSONObject pushMessageObj = new JSONObject(pushMessageData);
         JSONObject messageData = pushMessageObj.getJSONObject(DATA);
         JSONObject pushMessageResponse = new JSONObject();
@@ -92,19 +101,20 @@ public class PushServiceAPI {
                 data.setSp(applicationName);
                 data.setRef(referenceId);
                 data.setAcr(acr);
-                data.setSp_url(spImageUrl);
+                data.setSpUrl(spImageUrl);
 
                 FirebaseCloudMessageDetails firebaseCloudMessageDetails = new FirebaseCloudMessageDetails();
                 firebaseCloudMessageDetails.setTo(pushToken);
                 firebaseCloudMessageDetails.setData(data);
 
                 DefaultHttpClient client = new DefaultHttpClient();
-                HttpPost post = new HttpPost(FCM_URL);
+                HttpPost post = new HttpPost(fcmUrl);
 
-                post.setHeader("Authorization", FCM_KEY);
+                post.setHeader("Authorization", fcmKey);
                 post.setHeader("Content-Type", MediaType.APPLICATION_JSON);
 
-                StringEntity requestEntity = new StringEntity(new Gson().toJson(firebaseCloudMessageDetails), ContentType.APPLICATION_JSON);
+                StringEntity requestEntity = new StringEntity(new Gson().toJson(firebaseCloudMessageDetails),
+                        ContentType.APPLICATION_JSON);
                 post.setEntity(requestEntity);
 
                 HttpResponse httpResponse = client.execute(post);
@@ -118,7 +128,8 @@ public class PushServiceAPI {
                 pushMessageResponse.put(FAILURE, 1);
             }
         } catch (SQLException | IOException | DBUtilException | EmptyResultSetException | ClassNotFoundException e) {
-            log.error("Error occurred in sending message through Firebase Cloud Messaging Service for the client with MSISDN:" + msisdn + "error:" + e.getMessage());
+            log.error("Error occurred in sending message through Firebase Cloud Messaging Service for the client with" +
+                    " MSISDN:" + msisdn + "error:" + e.getMessage());
             pushMessageResponse.put(SUCCESS, 0);
             pushMessageResponse.put(FAILURE, 1);
         }
