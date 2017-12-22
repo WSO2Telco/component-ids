@@ -8,11 +8,14 @@ var timeRemaining = timeout;
 var hasResponse = false;
 var isTimeout = false;
 var status = 'pending';
+var STATUS_APPROVED = "APPROVED";
+var STATUS_REJECTED = "REJECTED";
+var STATUS_PENDING = "PENDING";
 var sessionId;
+var action;
 console.log(" timeout : " + timeout + " pollingInterval : " + pollingInterval + " timeRemaining : " + timeRemaining + " hasResponse : " + hasResponse + " isTimeout : " + isTimeout + " status : " + status);
 
 var pollingVar = setInterval(pollForStatus, pollingInterval);
-console.log("waiting");
 
 /* 
  * Check for USSD response status if timeout not is reached 
@@ -20,7 +23,6 @@ console.log("waiting");
  */
 function pollForStatus() {
     console.log(" timeout : " + timeout + " pollingInterval : " + pollingInterval + " timeRemaining : " + timeRemaining + " hasResponse : " + hasResponse + " isTimeout : " + isTimeout + " status : " + status);
-
 
     // If timeout has not reached.
     if (timeRemaining > 0) {
@@ -44,40 +46,41 @@ function pollForStatus() {
 /*
  * Handle polling termination and form submit.
  */
-function handleTermination() {
+function handleTermination(cancelButton) {
 
+    var commonAuthURL;
     window.clearInterval(pollingVar);
-    var STATUS_PENDING = "pending";
-    if (!status == STATUS_PENDING) {
-        //$('.page__header').show();
-        $('#sms_fallback').show();
-    }
-    //$('.page__header').hide();
-    $('#sms_fallback').hide();
 
-    setTimeout(function () {
+    	if(cancelButton){
+    		action = "userCanceled";
+    	} else if(status.toUpperCase() == STATUS_APPROVED){
+            action = "approved";
+        } else if(status.toUpperCase() == STATUS_REJECTED){
+            action = "userCanceled";
+        }else{
+            action = "userRespondedOrTimeout";
+        }
+
         callCommonAuth();
-    }, 5000);
-
-
 }
 
 /*
  * Redirect after end of registration
  */
-
-
 function callCommonAuth() {
     var commonAuthURL;
 
     if (hasResponse) {
-        commonAuthURL = "/commonauth/?sessionDataKey=" + tokenVal + "&isTerminated=false";
+	    commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
+		    + "&msisdn=" + msisdn
+		    + "&action=" + action + "&canHandle=true"+"&isTerminated=false";
     } else {
-        commonAuthURL = "/commonauth/?sessionDataKey=" + tokenVal + "&isTerminated=true";
+	    commonAuthURL = "/commonauth/?sessionDataKey=" + sessionDataKey
+		    + "&msisdn=" + msisdn
+		    + "&action=" + action + "&canHandle=true"+"&isTerminated=true";
     }
     window.location = commonAuthURL;
 }
-
 
 function deleteUser(sessionId) {
     var deleteUserUrl = "/dashboard/delete_user.jag?username=" + sessionId;
@@ -105,7 +108,8 @@ function checkUSSDResponseStatus() {
     console.log("Inside check saa status -------------------------------");
     var url = "/sessionupdater/tnspoints/endpoint/saa/status?sessionId=" + sessionId;
 
-    var STATUS_APPROVED = "Approved";
+    var STATUS_APPROVED = "APPROVED";
+    var STATUS_REJECTED = "REJECTED";
 
     $.ajax({
         type: "GET",
@@ -116,9 +120,8 @@ function checkUSSDResponseStatus() {
             if (result != null) {
                 var responseStatus = result.status;
 
-                if (responseStatus != null && responseStatus.toUpperCase() == STATUS_APPROVED.toUpperCase()) {
+                if (responseStatus != null && (responseStatus.toUpperCase() == STATUS_APPROVED ||responseStatus.toUpperCase() == STATUS_REJECTED )) {
                     status = result.status;
-                    console.log("status : " + status);
                     hasResponse = true;
                 }
             }

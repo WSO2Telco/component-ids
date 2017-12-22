@@ -82,7 +82,6 @@ function handleTermination(cancelButton) {
 		+ "&action=" + action + "&canHandle=true";
 
 	window.location = commonAuthURL;
-	//}, 5000);
 }
 
 /*

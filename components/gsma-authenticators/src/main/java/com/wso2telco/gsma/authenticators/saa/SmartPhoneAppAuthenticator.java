@@ -59,12 +59,37 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
     private static Log log = LogFactory.getLog(SmartPhoneAppAuthenticator.class);
 
     private static final String IS_FLOW_COMPLETED = "isFlowCompleted";
-    private static final String PIN_CLAIM = "http://wso2.org/claims/pin";
     private static final String MSISDN = "msisdn";
     private static final String CLIENT_ID = "relyingParty";
     private static final String ACR = "acr_values";
     private SpConfigService spConfigService = new SpConfigServiceImpl();
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
+    private static final String AUTH_FAILED = "Authentication failed";
+
+    private static final String AUTH_FAILED_DETAILED = "Smart phone Authentication failed while trying to authenticate";
+
+    /**
+     * The Enum UserResponse.
+     */
+    protected enum UserResponse {
+
+        /**
+         * The approved.
+         */
+        APPROVED,
+
+        /**
+         * The rejected.
+         */
+        REJECTED,
+
+        /**
+         * The Expired.
+         */
+        EXPIRED
+
+    }
 
     @Override
     public boolean canHandle(HttpServletRequest request) {
@@ -75,19 +100,16 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
     public AuthenticatorFlowStatus process(HttpServletRequest request,
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
+        return initAuthFlowStatus(request, response, context);
+    }
 
+    protected AuthenticatorFlowStatus initAuthFlowStatus(HttpServletRequest request, HttpServletResponse response,
+                                                         AuthenticationContext context)
+            throws AuthenticationFailedException, LogoutFailedException {
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
         } else {
-            super.process(request, response, context);
-
-            boolean isFlowCompleted = (boolean) context.getProperty(IS_FLOW_COMPLETED);
-
-            if (isFlowCompleted) {
-                return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
-            } else {
-                return AuthenticatorFlowStatus.INCOMPLETE;
-            }
+            return super.process(request, response, context);
         }
     }
 
@@ -96,7 +118,7 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        log.info("Initiating authentication request");
+        log.debug("Initiating authentication request from Smart Phone Authenticator");
 
         boolean isFlowCompleted = false;
 
@@ -125,23 +147,24 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
 
             fallbackIfMsisdnNotRegistered(msisdn);
 
-            SaaRequest saaRequest = createSaaRequest(paramMap, clientId, applicationName, context.getContextIdentifier());
+            SaaRequest saaRequest = createSaaRequest(paramMap, clientId, applicationName, context
+                    .getContextIdentifier());
 
             StringEntity postData = new StringEntity(new Gson().toJson(saaRequest));
 
             postDataToSaaServer(url, postData);
 
         } catch (IOException e) {
-            log.info("Error occurred while posting data to SAA server", e);
+            log.error("Error occurred while posting data to SAA server", e);
             isFlowCompleted = true;
         } catch (SaaException e) {
-            log.info("SAA server returned invalid http status", e);
+            log.error("SAA server returned invalid http status", e);
             isFlowCompleted = true;
         } catch (AuthenticatorException e) {
-            log.info("Error occurred while retrieving authentication details form database", e);
+            log.error("Error occurred while retrieving authentication details form database", e);
             isFlowCompleted = true;
         } catch (Exception e) {
-            log.info("Error occurred", e);
+            log.error("Error occurred", e);
             isFlowCompleted = true;
         } finally {
             handleRedirect(response, context, isFlowCompleted);
@@ -166,7 +189,8 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
             try {
                 response.sendRedirect(redirectUrl);
             } catch (IOException e) {
-                log.info("Error occurred while redirecting to waiting page. Passing control to the next authenticator");
+                log.error("Error occurred while redirecting to waiting page. Passing control to the next " +
+                        "authenticator");
             }
         } else {
             log.info("Passing control to the next authenticator");
@@ -238,12 +262,81 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-        if(request.getParameter("isTerminated") != null && "true".equals(request.getParameter("isTerminated"))){
+        if (request.getParameter("isTerminated") != null && "true".equals(request.getParameter("isTerminated"))) {
             throw new AuthenticationFailedException("Request timed out");
         }
-        AuthenticationContextHelper.setSubject(context, (String) context.getProperty(Constants.MSISDN));
-        context.setProperty(IS_FLOW_COMPLETED, true);
-        context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+
+        UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
+        String sessionDataKey = request.getParameter("sessionDataKey");
+        String msisdn = (String) context.getProperty("msisdn");
+        String userAction = request.getParameter(Constants.ACTION);
+
+        if (log.isDebugEnabled()) {
+            log.debug("SessionDataKey : " + sessionDataKey);
+        }
+        try {
+            if (userAction != null && !userAction.isEmpty()) {
+                // Change behaviour depending on user action
+                switch (userAction) {
+                    case Constants.USER_ACTION_USER_CANCELED:
+                        //User clicked cancel button from login or from cancel the transaction from app
+                        terminateAuthentication(context, sessionDataKey, UserResponse.REJECTED.name(), UserResponse
+                                .EXPIRED.name());
+                        break;
+                    case Constants.USER_ACTION_REG_REJECTED:
+                        //User clicked cancel button from registration
+                        terminateAuthentication(context, sessionDataKey, UserResponse.REJECTED.name(), UserResponse
+                                .EXPIRED.name());
+                        break;
+                    case Constants.USER_ACTION_USER_TIMEOUT:
+                        //User timeout at login
+                        terminateAuthentication(context, sessionDataKey, UserResponse.REJECTED.name(), UserResponse
+                                .EXPIRED.name());
+                        break;
+                    case Constants.USER_APPROVE:
+                        context.setProperty(IS_FLOW_COMPLETED, true);
+                        context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+                        break;
+                }
+            }
+
+            // Check if the user has provided consent
+            String responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
+            if (!responseStatus.equalsIgnoreCase(UserResponse.APPROVED.name())) {
+                log.error(AUTH_FAILED);
+                throw new AuthenticatorException(AUTH_FAILED);
+            }
+
+        } catch (AuthenticatorException e) {
+            log.error(AUTH_FAILED_DETAILED, e);
+            throw new AuthenticationFailedException(e.getMessage(), e);
+        }
+        AuthenticationContextHelper.setSubject(context, msisdn);
+
+    }
+
+    /**
+     * Terminates the authenticator due to user implicit action
+     *
+     * @param context        Authentication Context
+     * @param authFlowStatus Authflow status
+     * @param sessionID      sessionID
+     * @param userResponse   user response status
+     * @throws AuthenticationFailedException
+     */
+    private void terminateAuthentication(AuthenticationContext context, String sessionID, String userResponse, String
+            authFlowStatus) throws AuthenticationFailedException {
+        log.info("User has terminated the authentication flow");
+        context.setProperty(Constants.IS_TERMINATED, true);
+        try {
+            DBUtils.updateUserResponse(sessionID, userResponse);
+            if (!DBUtils.getAuthFlowStatus(sessionID).equalsIgnoreCase(UserResponse.APPROVED.name()))
+                DBUtils.updateAuthFlowStatus(sessionID, authFlowStatus);
+        } catch (AuthenticatorException e) {
+            log.error("Authentication Exception occurred in terminateAuthentication method in Smart Phone " +
+                    "Authenticator", e);
+        }
+        throw new AuthenticationFailedException("Authenticator is terminated");
     }
 
     @Override
@@ -266,10 +359,4 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
         return Constants.SAA_AUTHENTICATOR_NAME;
     }
 
-    private enum UserResponse {
-
-        PENDING,
-        APPROVED,
-        REJECTED
-    }
 }

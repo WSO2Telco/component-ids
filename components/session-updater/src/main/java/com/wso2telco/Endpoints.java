@@ -167,7 +167,7 @@ public class Endpoints {
                     .entity(new Gson().toJson(saaResponse)).build();
             log.error("Error occurred while updating status for saa", e);
         }
-        log.info("Updated saa status " + saaResponse);
+        log.info("Updated saa status: " + saaResponse);
         return response;
     }
 

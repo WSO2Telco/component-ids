@@ -423,6 +423,8 @@ public final class Constants {
 
     public static final String USER_ACTION_USER_TIMEOUT = "userRespondedOrTimeout";
 
+    public static final String USER_APPROVE ="approved";
+
     public static final String SCOPE = "scope";
 
     public static final String PROMPT = "telco_prompt";

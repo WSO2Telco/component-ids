@@ -15,30 +15,30 @@
  ******************************************************************************/
 package com.wso2telco.saa.service;
 
-import com.wso2telco.core.config.service.ConfigurationService;
-import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.core.dbutils.DBUtilException;
-import com.wso2telco.entity.ClientDetails;
-import com.wso2telco.exception.EmptyResultSetException;
-import com.wso2telco.saaEnums.*;
-import com.wso2telco.util.DBConnection;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.json.JSONObject;
+        import com.wso2telco.core.config.service.ConfigurationService;
+        import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+        import com.wso2telco.core.dbutils.DBUtilException;
+        import com.wso2telco.entity.ClientDetails;
+        import com.wso2telco.exception.EmptyResultSetException;
+        import com.wso2telco.saaEnums.*;
+        import com.wso2telco.util.DBConnection;
+        import org.apache.commons.logging.Log;
+        import org.apache.commons.logging.LogFactory;
+        import org.apache.http.HttpResponse;
+        import org.apache.http.client.HttpClient;
+        import org.apache.http.client.methods.HttpPost;
+        import org.apache.http.entity.ContentType;
+        import org.apache.http.entity.StringEntity;
+        import org.apache.http.impl.client.HttpClientBuilder;
+        import org.json.JSONObject;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.sql.SQLException;
+        import javax.ws.rs.*;
+        import javax.ws.rs.core.MediaType;
+        import javax.ws.rs.core.Response;
+        import java.io.BufferedReader;
+        import java.io.IOException;
+        import java.io.InputStreamReader;
+        import java.sql.SQLException;
 
 @Path("/serverAPI/")
 public class ServerAPI {
@@ -57,7 +57,7 @@ public class ServerAPI {
     private static final String REGISTERED = "registered";
     private static final String REMOVE_CLIENT = "removeClient";
 
-    private Log log = LogFactory.getLog(ServerAPI.class);
+    private static Log log = LogFactory.getLog(ServerAPI.class);
     private DBConnection dbConnection = null;
     private ConfigurationService configurationService = new ConfigurationServiceImpl();
 
@@ -256,13 +256,12 @@ public class ServerAPI {
 
                 if (authenticatedStatus == 1) {
                     dbConnection.updateMessageTable(refID, 'S');
-                    success = 1;
-                    responseMessage = AuthenticateClientBySAAClientStatus.STATUS_UPDATED.toString();
-
                 } else {
-                    failure = 1;
-                    responseMessage = AuthenticateClientBySAAClientStatus.INVALID_REFERENCE_ID.toString();
+                    dbConnection.updateMessageTable(refID, 'C');
                 }
+                success = 1;
+                responseMessage = AuthenticateClientBySAAClientStatus.STATUS_UPDATED.toString();
+
             } else {
                 failure = 1;
                 responseMessage = AuthenticateClientBySAAClientStatus.ERROR_IN_SENDING_AUTHORIZATION_RESPONSE.toString();
