@@ -266,7 +266,6 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
             throw new AuthenticationFailedException("Request timed out");
         }
 
-        UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         String sessionDataKey = request.getParameter("sessionDataKey");
         String msisdn = (String) context.getProperty("msisdn");
         String userAction = request.getParameter(Constants.ACTION);
@@ -296,6 +295,9 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
                     case Constants.USER_APPROVE:
                         context.setProperty(IS_FLOW_COMPLETED, true);
                         context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+                        break;
+
+                    default:
                         break;
                 }
             }
