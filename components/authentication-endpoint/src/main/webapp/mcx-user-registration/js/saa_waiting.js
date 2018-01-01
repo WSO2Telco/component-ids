@@ -48,7 +48,6 @@ function pollForStatus() {
  */
 function handleTermination(cancelButton) {
 
-    var commonAuthURL;
     window.clearInterval(pollingVar);
 
     	if(cancelButton){
