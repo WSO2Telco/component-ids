@@ -100,16 +100,18 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
     public AuthenticatorFlowStatus process(HttpServletRequest request,
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
-        return initAuthFlowStatus(request, response, context);
-    }
-
-    protected AuthenticatorFlowStatus initAuthFlowStatus(HttpServletRequest request, HttpServletResponse response,
-                                                         AuthenticationContext context)
-            throws AuthenticationFailedException, LogoutFailedException {
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
         } else {
-            return super.process(request, response, context);
+            super.process(request, response, context);
+
+            boolean isFlowCompleted = (boolean) context.getProperty(IS_FLOW_COMPLETED);
+
+            if (isFlowCompleted) {
+                return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+            } else {
+                return AuthenticatorFlowStatus.INCOMPLETE;
+            }
         }
     }
 
