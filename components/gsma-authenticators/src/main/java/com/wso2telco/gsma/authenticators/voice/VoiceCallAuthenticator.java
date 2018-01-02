@@ -112,17 +112,15 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
             boolean isUserEnrolledInValidSoft = verifyIsUserActiveFromValidSoftServer(isUserEnrolledUrl, postData);
             context.setProperty(IS_FLOW_COMPLETED, false);
             DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
+            VoiceIVRFutureCallback futureCallback = new VoiceIVRFutureCallback(context,msisdn);
             if (isUserEnrolledInValidSoft) {
-                VoiceIVRFutureCallback futureCallback = new VoiceIVRFutureCallback(context,msisdn);
                 postRequest(verifyUserUrl, verifyAndRegistartionPostData ,
                         futureCallback);
-                response.sendRedirect(redirectUrl);
             } else {
-                VoiceIVRFutureCallback futureCallback = new VoiceIVRFutureCallback(context,msisdn);
                 postRequest(onBoardUserUrl, verifyAndRegistartionPostData ,
                         futureCallback);
-                response.sendRedirect(redirectUrl);
             }
+            response.sendRedirect(redirectUrl);
         } catch (UnsupportedEncodingException e) {
             log.error("Error occurred due to UnsupportedEncoding Exception", e);
             throw new AuthenticationFailedException ("Error occurred due to UnsupportedEncoding Exception", e);
@@ -142,51 +140,51 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
     }
 
     @Override
-    protected void processAuthenticationResponse(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationContext authenticationContext) throws AuthenticationFailedException {
+    protected void processAuthenticationResponse(HttpServletRequest httpServletRequest, HttpServletResponse
+            httpServletResponse, AuthenticationContext authenticationContext) throws AuthenticationFailedException {
         log.info("Initiating AuthenticationResponse from Voice Call Authenticator");
         String msisdn = (String) authenticationContext.getProperty(MSISDN);
         String sessionDataKey = httpServletRequest.getParameter("sessionDataKey");
-        boolean isUserExists =false;
+        boolean isUserExists = false;
         String responseStatus = null;
         try {
-            isUserExists= AdminServiceUtil.isUserExists(msisdn);
 
-            if(!isUserExists){
-                String operator = (String) authenticationContext.getProperty(Constants.OPERATOR);
-                new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
-            }
-            authenticationContext.setProperty(IS_FLOW_COMPLETED , true);
-            AuthenticationContextHelper.setSubject(authenticationContext,
-                    authenticationContext.getProperty(Constants.MSISDN).toString());
-            log.info("FederatedAuthenticator Authentication success");
             responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
 
+            if (responseStatus != null && responseStatus.equalsIgnoreCase("APPROVED")) {
+                isUserExists = AdminServiceUtil.isUserExists(msisdn);
+
+                if (!isUserExists) {
+                    String operator = (String) authenticationContext.getProperty(Constants.OPERATOR);
+
+                    //todo : Create profile for LOA3
+                    new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
+                }
+                authenticationContext.setProperty(IS_FLOW_COMPLETED, true);
+                AuthenticationContextHelper.setSubject(authenticationContext,
+                        authenticationContext.getProperty(Constants.MSISDN).toString());
+
+                log.info("Voice Authentication success");
+
+            } else {
+                log.info("Authentication failed. Consent not provided.");
+                authenticationContext.setProperty("faileduser", (String) authenticationContext.getProperty("msisdn"));
+                throw new AuthenticationFailedException("Authentication Failed");
+            }
 
         } catch (UserStoreException e) {
             log.error("Error occurred due to UserStoreException Exception", e);
             throw new AuthenticationFailedException("Error occurred due to UserStoreException Exception", e);
         } catch (UserRegistrationAdminServiceIdentityException e) {
             log.error("Error occurred due to UserRegistrationAdminServiceIdentityException Exception", e);
-            throw new AuthenticationFailedException("Error occurred due to UserRegistrationAdminServiceIdentityException Exception", e);
+            throw new AuthenticationFailedException("Error occurred due to " +
+                    "UserRegistrationAdminServiceIdentityException Exception", e);
         } catch (RemoteException e) {
             log.error("Error occurred due to RemoteException", e);
             throw new AuthenticationFailedException("Error occurred due to RemoteException", e);
         } catch (AuthenticatorException e) {
             throw new AuthenticationFailedException("USSD Authentication failed while trying to authenticate", e);
         }
-
-        if (responseStatus != null && responseStatus.equalsIgnoreCase("APPROVED")){
-            authenticationContext.setProperty(IS_FLOW_COMPLETED , true);
-            AuthenticationContextHelper.setSubject(authenticationContext,
-                    authenticationContext.getProperty(Constants.MSISDN).toString());
-            log.info("FederatedAuthenticator Authentication success");
-
-        } else {
-            log.info("Authentication failed. Consent not provided.");
-            authenticationContext.setProperty("faileduser", (String) authenticationContext.getProperty("msisdn"));
-            throw new AuthenticationFailedException("Authentication Failed");
-        }
-        
     }
 
     @Override

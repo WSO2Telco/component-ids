@@ -323,7 +323,6 @@ public class DatabaseUtils {
 
         }
 
-        log.info("UserStatus " + userStatus);
         return userStatus;
     }
 

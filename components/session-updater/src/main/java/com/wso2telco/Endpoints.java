@@ -805,6 +805,9 @@ public class Endpoints {
 
         userStatus = DatabaseUtils.getUSerStatus(sessionId);
 
+        setStateFromAuthenticationContext(authenticationContext);
+        log.info("UserStatus " + userStatus + " for session id : " + sessionId);
+
         responseString = "{" + "\"sessionId\":\"" + sessionId + "\"," + "\"status\":\"" + userStatus + "\"" + "}";
 
         return Response.status(200).entity(responseString).build();
@@ -1112,6 +1115,7 @@ public class Endpoints {
         setStateFromAuthenticationContext(authenticationContext);
 
         userStatus = DatabaseUtils.getUSerStatus(sessionID);
+        log.info("UserStatus " + userStatus + " for session id : " + sessionID);
 
         responseString = "{" + "\"sessionID\":\"" + sessionID + "\","
                 + "\"status\":\"" + userStatus + "\"" + "}";
