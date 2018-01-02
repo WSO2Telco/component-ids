@@ -65,10 +65,6 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
 
         log.info("Processing started");
 
-        DataPublisherUtil.updateAndPublishUserStatus(
-                (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-                DataPublisherUtil.UserState.FED_IDP_AUTH_PROCESSING, this.getClass().getName() + " processing started");
-
         if ((canHandle(request) && !triggerInitiateAuthRequest(context) && (request
                 .getAttribute(FrameworkConstants.REQ_ATTR_HANDLED) == null || !(Boolean) request
                 .getAttribute(FrameworkConstants.REQ_ATTR_HANDLED)))) {
@@ -137,6 +133,10 @@ public class FederatedAuthenticator extends AbstractApplicationAuthenticator imp
             AuthenticationContext context) throws AuthenticationFailedException {
 
         log.info("Initiating authentication request");
+
+        DataPublisherUtil.updateAndPublishUserStatus(
+                (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                DataPublisherUtil.UserState.FED_IDP_AUTH_PROCESSING, this.getClass().getName() + " processing started");
 
         super.initiateAuthenticationRequest(request, response, context);
         String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),

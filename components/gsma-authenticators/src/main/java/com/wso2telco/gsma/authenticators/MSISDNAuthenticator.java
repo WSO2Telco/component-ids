@@ -104,10 +104,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
         log.info("Processing started");
 
-        DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
-                        .USER_STATUS_DATA_PUBLISHING_PARAM),
-                DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING, "MSISDNAuthenticator processing started");
-
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
         } else {
@@ -127,6 +123,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
 
         log.info("Initiating authentication request");
+        DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
+                        .USER_STATUS_DATA_PUBLISHING_PARAM),
+                DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING, "MSISDNAuthenticator processing started");
 
         String loginPage;
         try {
@@ -250,10 +249,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
             AuthenticationContextHelper.setSubject(context, msisdn);
             log.info("Authentication success");
-            DataPublisherUtil.updateAndPublishUserStatus(
-                    (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-                    DataPublisherUtil.UserState.MSISDN_AUTH_SUCCESS,
-                    "MSISDN Authentication success");
 
             String rememberMe = request.getParameter("chkRemember");
             if (rememberMe != null && "eon".equals(rememberMe)) {

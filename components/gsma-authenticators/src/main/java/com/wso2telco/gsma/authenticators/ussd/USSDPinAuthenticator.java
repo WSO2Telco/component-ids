@@ -113,12 +113,6 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
 
-        DataPublisherUtil
-                .updateAndPublishUserStatus((UserStatus) context.getParameter(
-                        Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-                        DataPublisherUtil.UserState.USSDPIN_AUTH_PROCESSING,
-                        "USSDPinAuthenticator processing started");
-
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
         } else {
@@ -137,6 +131,12 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
         log.info("Initiating authentication request");
+
+        DataPublisherUtil
+                .updateAndPublishUserStatus((UserStatus) context.getParameter(
+                        Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.USSDPIN_AUTH_PROCESSING,
+                        "USSDPinAuthenticator processing started");
 
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
 
@@ -298,6 +298,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
     protected void processAuthenticationResponse(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
+
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
 
         log.info("Processing authentication response");
