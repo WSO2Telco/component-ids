@@ -45,6 +45,7 @@ import org.apache.oltu.openidconnect.as.messages.IDTokenException;
 import org.codehaus.jettison.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.oauth.cache.*;
@@ -369,13 +370,9 @@ public class MIFEOpenIDTokenBuilder implements
     private String getValuesFromCache(OAuthTokenReqMessageContext request, String key)
             throws IdentityOAuth2Exception {
         String keyValue = null;
-        AuthorizationGrantCacheKey authorizationGrantCacheKey = new AuthorizationGrantCacheKey(
-                request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
-        AuthorizationGrantCacheEntry authorizationGrantCacheEntry = (AuthorizationGrantCacheEntry)
-                AuthorizationGrantCache
-                        .getInstance().getValueFromCache(authorizationGrantCacheKey);
+        AuthenticatedUser user = request.getAuthorizedUser();
 
-        Iterator<ClaimMapping> userAttributes = authorizationGrantCacheEntry.getUserAttributes()
+        Iterator<ClaimMapping> userAttributes = user.getUserAttributes()
                 .keySet().iterator();
 
         ClaimMapping acrKey = null;
@@ -391,7 +388,7 @@ public class MIFEOpenIDTokenBuilder implements
         }
 //TODO Code Diff
         if (null != acrKey) {
-            return authorizationGrantCacheEntry.getUserAttributes().get(acrKey);
+            return user.getUserAttributes().get(acrKey);
         } else {
             throw new IdentityOAuth2Exception("Error occured while retrieving " + key
                     + " from cache");
@@ -400,11 +397,8 @@ public class MIFEOpenIDTokenBuilder implements
 
     private String getClaimValues(OAuthTokenReqMessageContext request)
             throws IdentityOAuth2Exception {
-        AuthorizationGrantCacheKey authorizationGrantCacheKey = new AuthorizationGrantCacheKey(
-                request.getOauth2AccessTokenReqDTO().getAuthorizationCode());
-        AuthorizationGrantCacheEntry authorizationGrantCacheEntry = AuthorizationGrantCache
-                .getInstance().getValueFromCache(authorizationGrantCacheKey);
-        Map<ClaimMapping, String> claimMap = authorizationGrantCacheEntry.getUserAttributes();
+        AuthenticatedUser user = request.getAuthorizedUser();
+        Map<ClaimMapping, String> claimMap = user.getUserAttributes();
         StringBuilder tokenClaims = new StringBuilder("");
         for (Map.Entry<ClaimMapping, String> entry : claimMap.entrySet()) {
             if (!tokenClaims.toString().isEmpty()) {
@@ -905,22 +899,19 @@ public class MIFEOpenIDTokenBuilder implements
     private String getValuesFromCacheForFederatedIDP(OAuthTokenReqMessageContext request, String key)
             throws IdentityOAuth2Exception {
 
-        AuthorizationGrantCacheKey authorizationGrantCacheKey = new AuthorizationGrantCacheKey(request
-                .getOauth2AccessTokenReqDTO().getAuthorizationCode());
-        AuthorizationGrantCacheEntry authorizationGrantCacheEntry = AuthorizationGrantCache.getInstance()
-                .getValueFromCache(authorizationGrantCacheKey);
+        AuthenticatedUser user = request.getAuthorizedUser();
 
-        ClaimMapping acrKey = getValueFromCacheClaims(authorizationGrantCacheEntry, key);
+        ClaimMapping acrKey = getValueFromCacheClaims(user, key);
 
         if (acrKey == null)
             throw new IdentityOAuth2Exception("Error occured while retrieving " + key + " from cache");
 
-        return authorizationGrantCacheEntry.getUserAttributes().get(acrKey);
+        return user.getUserAttributes().get(acrKey);
 
     }
 
-    private ClaimMapping getValueFromCacheClaims(AuthorizationGrantCacheEntry authorizationGrantCacheEntry, String key) {
-        Map<ClaimMapping, String> userAttributes = authorizationGrantCacheEntry.getUserAttributes();
+    private ClaimMapping getValueFromCacheClaims(AuthenticatedUser user, String key) {
+        Map<ClaimMapping, String> userAttributes = user.getUserAttributes();
         ClaimMapping acrKey = null;
         for (Map.Entry<ClaimMapping, String> entry : userAttributes.entrySet()) {
             ClaimMapping mapping = entry.getKey();
