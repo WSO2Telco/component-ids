@@ -142,11 +142,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
 
-            DataPublisherUtil
-                    .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
-                            .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
-                            .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
-
             log.info("Redirecting to MSISDN enter page");
 
             response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
@@ -271,6 +266,10 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
     private void retryAuthenticatorForConsent(AuthenticationContext context) throws AuthenticationFailedException {
         context.setProperty(Constants.REDIRECT_CONSENT, Boolean.TRUE);
+        DataPublisherUtil
+                .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
+                        .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
+                        .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
         log.info("Redirecting to consent or profile upgrade page");
         throw new AuthenticationFailedException("Moving to get consent or profile upgrade");
     }
