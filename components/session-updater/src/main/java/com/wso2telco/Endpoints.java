@@ -1233,8 +1233,7 @@ public class Endpoints {
             throws SQLException {
         String responseString;
 
-        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
-        setStateFromAuthenticationContext(authenticationContext);
+
 
         log.info("Processing sms confirmation");
         if (configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig().getIsShortUrl()) {
@@ -1264,6 +1263,10 @@ public class Endpoints {
                 return Response.status(500).entity("").build();
             }
         }
+
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+        setStateFromAuthenticationContext(authenticationContext);
+
         if (log.isDebugEnabled()) {
             log.debug("Context Identifier: " + sessionID);
         }
@@ -1556,9 +1559,12 @@ public class Endpoints {
             String jsonBody) {
         String response = null;
         int statusCode=Response.Status.BAD_REQUEST.getStatusCode();
-        log.info("Received OTP SMS from client " + jsonBody);
+
         org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
         String session_id = jsonObj.getString("session_id");
+        AuthenticationContext authenticationContext = getAuthenticationContext(session_id);
+        setStateFromAuthenticationContext(authenticationContext);
+        log.info("Received OTP SMS from client " + jsonBody);
         String otp = jsonObj.getString("otp");
         try {
             DataPublisherUtil.UserState userState=null;
@@ -1574,7 +1580,7 @@ public class Endpoints {
                 statusCode=Response.Status.FORBIDDEN.getStatusCode();
                 userState=DataPublisherUtil.UserState.SMS_OTP_AUTH_FAIL;
             }
-            AuthenticationContext authenticationContext = getAuthenticationContext(session_id);
+
             if(authenticationContext!=null){
                 DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),userState, "SMS OTP "+state);
             }
