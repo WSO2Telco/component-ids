@@ -42,6 +42,7 @@ import org.apache.http.util.EntityUtils;
 import org.wso2.carbon.identity.application.authentication.framework.AbstractApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.LocalApplicationAuthenticator;
+import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.ApplicationConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
@@ -176,8 +177,10 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
     private void handleRedirect(HttpServletResponse response, AuthenticationContext context, boolean isFlowCompleted)
             throws AuthenticationFailedException {
 
-        String loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
-                Constants.SAA_WAITING_JSP;
+//        String loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+//                Constants.SAA_WAITING_JSP;
+
+        String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         context.setProperty(IS_FLOW_COMPLETED, isFlowCompleted);
 
         if (!isFlowCompleted) {
@@ -294,11 +297,6 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
                         terminateAuthentication(context, sessionDataKey, UserResponse.REJECTED.name(), UserResponse
                                 .EXPIRED.name());
                         break;
-                    case Constants.USER_APPROVE:
-                        context.setProperty(IS_FLOW_COMPLETED, true);
-                        context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
-                        break;
-
                     default:
                         break;
                 }
@@ -309,6 +307,8 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
             if (!responseStatus.equalsIgnoreCase(UserResponse.APPROVED.name())) {
                 log.error(AUTH_FAILED);
                 throw new AuthenticatorException(AUTH_FAILED);
+            }else{
+                context.setProperty(IS_FLOW_COMPLETED, true);
             }
 
         } catch (AuthenticatorException e) {
@@ -316,6 +316,7 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
         AuthenticationContextHelper.setSubject(context, msisdn);
+        context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
 
     }
 
