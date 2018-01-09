@@ -177,9 +177,6 @@ public class SmartPhoneAppAuthenticator extends AbstractApplicationAuthenticator
     private void handleRedirect(HttpServletResponse response, AuthenticationContext context, boolean isFlowCompleted)
             throws AuthenticationFailedException {
 
-//        String loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
-//                Constants.SAA_WAITING_JSP;
-
         String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         context.setProperty(IS_FLOW_COMPLETED, isFlowCompleted);
 
