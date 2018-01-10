@@ -69,10 +69,10 @@ public class AttShareDAOImpl implements AttShareDAO {
                 status =  resultSet.getString("status");
             }
         } catch (DBUtilException e) {
-            log.error("error occurred while retreiving the data from database : "+ e.getMessage());
+            log.error("DBUtilException exception occurred while retrieving the data from database : "+ e.getMessage());
             throw new DBUtilException(e.getMessage(), e);
         } catch (SQLException e){
-            log.error("error occurred while retreiving the data from database : "+e.getMessage());
+            log.error("SQLException exception occurred while retrieving the data from database : "+e.getMessage());
             throw new SQLException(e.getMessage(),e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
@@ -107,10 +107,10 @@ public class AttShareDAOImpl implements AttShareDAO {
                 }
 
         } catch (DBUtilException e) {
-            log.error("error occurred while retreiving the data from database : "+ e.getMessage());
+            log.error("DBUtilException exception occurred while retrieving the data from database : "+ e.getMessage());
             throw new DBUtilException(e.getMessage(), e);
         } catch (SQLException e){
-            log.error("error occurred while retreiving the data from database : "+e.getMessage());
+            log.error("SQLException exception occurred while retrieving the data from database : "+e.getMessage());
             throw new SQLException(e.getMessage(),e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);

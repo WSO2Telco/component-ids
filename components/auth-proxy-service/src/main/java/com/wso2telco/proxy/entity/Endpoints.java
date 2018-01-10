@@ -521,8 +521,8 @@ public class Endpoints {
                             }
 
                         } catch (Exception e) {
-                            log.error("pcr in the login hint cannot be accepted" );
-                            throw new AuthenticationFailedException("pcr in the login hint cannot be accepted");
+                            log.error("Given pcr in the login hint cannot be accepted" );
+                            throw new AuthenticationFailedException("Given pcr in the login hint cannot be accepted");
                         }
 
                     }
@@ -578,6 +578,7 @@ public class Endpoints {
                                 break;
                             } catch (Exception e) {
                                 log.error("Error while decrypting login hint : " + loginHint, e);
+                                throw new AuthenticationFailedException("Error while decrypting login hint");
                             }
                         }
                     } else {
@@ -585,12 +586,10 @@ public class Endpoints {
                         break;
                     }
                 case MSISDN:
-                    if (StringUtils.isNotEmpty(loginHint)) {
-                        if (loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX)) {
-                            msisdn = loginHint.replace(LOGIN_HINT_NOENCRYPTED_PREFIX, "");
-                            isValidFormatType = true;
-                            break;
-                        }
+                    if (StringUtils.isNotEmpty(loginHint) && loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX)) {
+                        msisdn = loginHint.replace(LOGIN_HINT_NOENCRYPTED_PREFIX, "");
+                        isValidFormatType = true;
+                        break;
                     } else {
                         isValidFormatType = true;
                         break;
@@ -616,6 +615,7 @@ public class Endpoints {
                     break;
                 default:
                     log.warn("Invalid Login Hint format - " + loginHintFormatDetails.getFormatType());
+                    break;
             }
 
             //msisdn/loginhint should be a either of defined formats
