@@ -48,7 +48,7 @@
                 <url>https://github.com/WSO2Telco/component-ids.git</url>
                 <developerConnection>scm:git:https://github.com/WSO2Telco/component-ids.git</developerConnection>
                 <connection>scm:git:https://github.com/WSO2Telco/component-ids.git</connection>
-                <tag>v2_3_0-rc7</tag>
+                <tag>v2_3_0-rc6</tag>
         </scm>
 
 
