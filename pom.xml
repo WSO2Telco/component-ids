@@ -29,7 +29,7 @@
 	<groupId>com.wso2telco.ids</groupId>
 	<artifactId>component-ids</artifactId>
 	<packaging>pom</packaging>
-	<version>2.3.0-SNAPSHOT</version>
+	<version>2.3.0</version>
 	<name>WSO2Telco Core - Component</name>
 	<description>WSO2Telco Core Aggregate Pom</description>
 	<url>http://wso2telco.com</url>
@@ -83,7 +83,7 @@
 		<url>https://github.com/WSO2Telco/component-ids.git</url>
 		<developerConnection>scm:git:https://github.com/WSO2Telco/component-ids.git</developerConnection>
 		<connection>scm:git:https://github.com/WSO2Telco/component-ids.git</connection>
-		<tag>v2_3_0-rc6</tag>
+		<tag>v2_3_0-rc7</tag>
 	</scm>
 
 
