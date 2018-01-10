@@ -338,20 +338,15 @@ public class Endpoints {
             }
         }
 
-        if (invalid)
-
-        {
+        if (invalid) {
             if (redirectURL == null) {
                 throw new Exception("Invalid Request- Redirect URL not found");
             }
             httpServletResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid Request");
-        } else
-
-        {
+        } else {
             log.info(String.format("Redirecting to : %s", redirectURL));
             httpServletResponse.sendRedirect(redirectURL);
         }
-
     }
 
     /**
@@ -564,10 +559,9 @@ public class Endpoints {
                             }
 
                         } catch (Exception e) {
-                            log.error("pcr in the login hint cannot be accepted");
-                            throw new AuthenticationFailedException("pcr in the login hint cannot be accepted");
+                            log.error("Given pcr in the login hint cannot be accepted");
+                            throw new AuthenticationFailedException("Given pcr in the login hint cannot be accepted");
                         }
-
                     }
                     break;
                 default:
@@ -620,6 +614,7 @@ public class Endpoints {
                                 isValidFormatType = true;
                             } catch (Exception e) {
                                 log.error("Error while decrypting login hint : " + loginHint, e);
+                                throw new AuthenticationFailedException("Error while decrypting login hint");
                             }
                         }
                     } else {
@@ -627,11 +622,10 @@ public class Endpoints {
                     }
                     break;
                 case MSISDN:
-                    if (StringUtils.isNotEmpty(loginHint)) {
-                        if (loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX)) {
-                            msisdn = loginHint.replace(LOGIN_HINT_NOENCRYPTED_PREFIX, "");
-                            isValidFormatType = true;
-                        }
+                    if (StringUtils.isNotEmpty(loginHint) && loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX)) {
+                        msisdn = loginHint.replace(LOGIN_HINT_NOENCRYPTED_PREFIX, "");
+                        isValidFormatType = true;
+                        break;
                     } else {
                         isValidFormatType = true;
                     }
@@ -662,6 +656,7 @@ public class Endpoints {
                     break;
                 default:
                     log.warn("Invalid Login Hint format - " + loginHintFormatDetails.getFormatType());
+                    break;
             }
 
             //msisdn/loginhint should be a either of defined formats
