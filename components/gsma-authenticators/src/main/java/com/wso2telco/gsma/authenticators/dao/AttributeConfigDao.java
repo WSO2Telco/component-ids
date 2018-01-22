@@ -16,26 +16,29 @@
 package com.wso2telco.gsma.authenticators.dao;
 
 import com.wso2telco.core.config.model.ScopeParam;
-import com.wso2telco.gsma.authenticators.model.SPConsent;
+import com.wso2telco.core.dbutils.DBUtilException;
+import com.wso2telco.gsma.authenticators.model.SpConsent;
 import com.wso2telco.gsma.authenticators.model.UserConsentDetails;
 import com.wso2telco.gsma.authenticators.model.UserConsentHistory;
 
 import javax.naming.NamingException;
-import java.sql.SQLException;
 import java.util.List;
 
-public interface AttributeConfigDAO {
+public interface AttributeConfigDao {
 
-    List<SPConsent> getScopeExprieTime(String operator, String consumerKey, String scope) throws SQLException, NamingException;
+    List<SpConsent> getScopeExpireTime(String operator, String consumerKey, String scope) throws NamingException,
+            DBUtilException;
 
-    UserConsentDetails getUserConsentDetails(UserConsentDetails userConsentDetails) throws SQLException, NamingException;
+    UserConsentDetails getUserConsentDetails(UserConsentDetails userConsentDetails) throws NamingException,
+            DBUtilException;
 
-    public String getSPConfigValue(String operator, String clientID, String key)
-            throws SQLException, NamingException;
+    String getSpConfigValue(String operator, String clientID, String key)
+            throws NamingException, DBUtilException;
 
-    public void saveUserConsentedAttributes(List<UserConsentHistory> userConsentHistory) throws SQLException, NamingException;
+    void saveUserConsentedAttributes(List<UserConsentHistory> userConsentHistory) throws NamingException,
+            DBUtilException;
 
-    public List<ScopeParam> getScopeParams(String scopes) throws SQLException, NamingException;
+    List<ScopeParam> getScopeParams(String scopes) throws NamingException, DBUtilException;
 
 
 }

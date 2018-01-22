@@ -36,6 +36,7 @@ import org.wso2.carbon.um.ws.api.stub.ClaimValue;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
+
 import java.io.UnsupportedEncodingException;
 import java.rmi.RemoteException;
 import java.security.MessageDigest;
@@ -71,13 +72,14 @@ public class UserProfileManager {
         init();
     }
 
-    public boolean createUserProfileLoa2(String username, String operator, boolean isAttributeScope,String spType,String attrbShareType) throws
+    public boolean createUserProfileLoa2(String username, String operator, boolean isAttributeScope, String spType,
+                                         String attrbShareType) throws
             UserRegistrationAdminServiceIdentityException, RemoteException {
         boolean isNewUser = false;
         try {
             if (AdminServiceUtil.isUserExists(username)) {
                 try {
-                    updateUserStatus(username,isAttributeScope,spType,attrbShareType);
+                    updateUserStatus(username, isAttributeScope, spType, attrbShareType);
                 } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
                     log.error("RemoteUserStoreManagerServiceUserStoreExceptionException : " + e.getMessage());
                 }
@@ -88,7 +90,8 @@ public class UserProfileManager {
                 if (log.isDebugEnabled()) {
                     log.debug(adminURL);
                 }
-                UserRegistrationAdminServiceClient userRegistrationAdminServiceClient = new UserRegistrationAdminServiceClient(
+                UserRegistrationAdminServiceClient userRegistrationAdminServiceClient = new
+                        UserRegistrationAdminServiceClient(
                         adminURL);
 
                 UserFieldDTO[] userFieldDTOs = new UserFieldDTO[0];
@@ -118,7 +121,9 @@ public class UserProfileManager {
                     } else if (MOBILE_CLAIM_NAME.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
                         userFieldDTOs[count].setFieldValue(username);
                     } else if (STATUS_CLAIM_NAME.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
-                        if (isAttributeScope && spType.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name())&& attrbShareType.equalsIgnoreCase(AuthenticatorEnum.AttributeShareScopeTypes.PROVISIONING_SCOPE.getAttributeShareScopeType())) {
+                        if (isAttributeScope && spType.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED
+                                .name()) && attrbShareType.equalsIgnoreCase(AuthenticatorEnum
+                                .AttributeShareScopeTypes.PROVISIONING_SCOPE.getAttributeShareScopeType())) {
                             userFieldDTOs[count].setFieldValue(STATUS_ACTIVE);
                         } else if (isAttributeScope) {
                             userFieldDTOs[count].setFieldValue(STATUS_PARTIALLY_ACTIVE);
@@ -160,13 +165,14 @@ public class UserProfileManager {
     }
 
     public boolean createUserProfileLoa3(String username, String operator, String challengeAnswer1,
-                                         String challengeAnswer2, String pin,boolean isAttributeScope,String spType,String attrbShareType) throws
+                                         String challengeAnswer2, String pin, boolean isAttributeScope, String
+                                                 spType, String attrbShareType) throws
             UserRegistrationAdminServiceIdentityException, RemoteException {
         boolean isNewUser = false;
         try {
             if (AdminServiceUtil.isUserExists(username)) {
                 try {
-                    updateUserStatus(username,isAttributeScope,spType,attrbShareType);
+                    updateUserStatus(username, isAttributeScope, spType, attrbShareType);
                 } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
                     log.error("RemoteUserStoreManagerServiceUserStoreExceptionException : " + e.getMessage());
                 }
@@ -177,7 +183,8 @@ public class UserProfileManager {
                 if (log.isDebugEnabled()) {
                     log.debug(adminURL);
                 }
-                UserRegistrationAdminServiceClient userRegistrationAdminServiceClient = new UserRegistrationAdminServiceClient(
+                UserRegistrationAdminServiceClient userRegistrationAdminServiceClient = new
+                        UserRegistrationAdminServiceClient(
                         adminURL);
 
                 UserFieldDTO[] userFieldDTOs = new UserFieldDTO[0];
@@ -203,19 +210,21 @@ public class UserProfileManager {
                         } else if (UserProfileClaimsConstant.PIN.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
                             userFieldDTOs[count].setFieldValue(getHashValue(pin));
                         } else if (STATUS_CLAIM_NAME.equalsIgnoreCase(userFieldDTOs[count].getClaimUri())) {
-                            if (isAttributeScope && spType.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name())&& attrbShareType.equalsIgnoreCase(AuthenticatorEnum.AttributeShareScopeTypes.PROVISIONING_SCOPE.getAttributeShareScopeType())){
+                            if (isAttributeScope && spType.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED
+                                    .name()) && attrbShareType.equalsIgnoreCase(AuthenticatorEnum
+                                    .AttributeShareScopeTypes.PROVISIONING_SCOPE.getAttributeShareScopeType())) {
                                 userFieldDTOs[count].setFieldValue(STATUS_ACTIVE);
-                            } else if(isAttributeScope){
+                            } else if (isAttributeScope) {
                                 userFieldDTOs[count].setFieldValue(STATUS_PARTIALLY_ACTIVE);
-                            }
-                            else
+                            } else
                                 userFieldDTOs[count].setFieldValue(STATUS_ACTIVE);
                         } else {
                             userFieldDTOs[count].setFieldValue("");
                         }
                         if (log.isDebugEnabled()) {
-                            log.debug("Value :" + userFieldDTOs[count].getFieldValue() + " : Claim " + userFieldDTOs[count]
-                                    .getClaimUri() + " : Name " + userFieldDTOs[count].getFieldName());
+                            log.debug("Value :" + userFieldDTOs[count].getFieldValue() + " : Claim " +
+                                    userFieldDTOs[count]
+                                            .getClaimUri() + " : Name " + userFieldDTOs[count].getFieldName());
                         }
                     }
                 } catch (UserRegistrationAdminServiceIdentityException e) {
@@ -376,7 +385,9 @@ public class UserProfileManager {
      * @throws NoSuchAlgorithmException                                 no such algorithm exception
      */
     public void updateUserProfileForLOA3(String challengeQuestionAnswer1,
-                                         String challengeQuestionAnswer2, String pin, String userName, boolean isStatusUpdate,boolean isAttributeScope,String spType,String attrbShareType)
+                                         String challengeQuestionAnswer2, String pin, String userName, boolean
+                                                 isStatusUpdate, boolean isAttributeScope, String spType, String
+                                                 attrbShareType)
             throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException,
             UnsupportedEncodingException, NoSuchAlgorithmException {
 
@@ -385,8 +396,8 @@ public class UserProfileManager {
             log.debug("user profile update for loa " + Constants.LOA3);
         }
 
-        if(isStatusUpdate){
-            updateUserStatus(userName,isAttributeScope,spType,attrbShareType);
+        if (isStatusUpdate) {
+            updateUserStatus(userName, isAttributeScope, spType, attrbShareType);
         }
         remoteUserStoreServiceAdminClient.setUserClaim(userName, UserProfileClaimsConstant.LOA, Constants.LOA3,
                 UserCoreConstants.DEFAULT_PROFILE);
@@ -498,28 +509,29 @@ public class UserProfileManager {
      * @throws RemoteUserStoreManagerServiceUserStoreExceptionException
      * @throws RemoteException                                          fieldValues, userName,isAttributeScope
      */
-    private void updateUserStatus(String userName,boolean isAttributeScope,String spType,String attrbShareType)
+    private void updateUserStatus(String userName, boolean isAttributeScope, String spType, String attrbShareType)
             throws RemoteException, RemoteUserStoreManagerServiceUserStoreExceptionException {
 
         String userStatus;
-            try {
-                userStatus = AdminServiceUtil.getUserStatus(userName);
-                if (isAttributeScope && spType.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name())&& attrbShareType.equalsIgnoreCase(AuthenticatorEnum.AttributeShareScopeTypes.PROVISIONING_SCOPE.getAttributeShareScopeType())){
-                    updateUserStatus(userStatus,userName,STATUS_ACTIVE);
-                } else if(isAttributeScope){
-                    updateUserStatus(userStatus,userName,STATUS_PARTIALLY_ACTIVE);
-                }
-                else{
-                    updateUserStatus(userStatus,userName,STATUS_ACTIVE);
-                }
-
-            } catch (IdentityException e) {
-                log.error("IdentityException for User- "+userName+":" + e.getMessage());
-            } catch (UserStoreException e) {
-                log.error("UserStoreException- "+userName+":" + e.getMessage());
-            } catch (LoginAuthenticationExceptionException e) {
-                log.error("LoginAuthenticationExceptionException- "+userName+":" + e.getMessage());
+        try {
+            userStatus = AdminServiceUtil.getUserStatus(userName);
+            if (isAttributeScope && spType.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name()) &&
+                    attrbShareType.equalsIgnoreCase(AuthenticatorEnum.AttributeShareScopeTypes.PROVISIONING_SCOPE
+                            .getAttributeShareScopeType())) {
+                updateUserStatus(userStatus, userName, STATUS_ACTIVE);
+            } else if (isAttributeScope) {
+                updateUserStatus(userStatus, userName, STATUS_PARTIALLY_ACTIVE);
+            } else {
+                updateUserStatus(userStatus, userName, STATUS_ACTIVE);
             }
+
+        } catch (IdentityException e) {
+            log.error("IdentityException for User- " + userName + ":" + e.getMessage());
+        } catch (UserStoreException e) {
+            log.error("UserStoreException- " + userName + ":" + e.getMessage());
+        } catch (LoginAuthenticationExceptionException e) {
+            log.error("LoginAuthenticationExceptionException- " + userName + ":" + e.getMessage());
+        }
     }
 
     private void updateUserStatus(String userStatus, String userName, String statusToBeUpdate) {
