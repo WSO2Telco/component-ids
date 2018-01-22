@@ -18,6 +18,7 @@ package com.wso2telco.gsma.authenticators;
 import com.wso2telco.Util;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.gsma.authenticators.attributeshare.AbstractAttributeShare;
 import com.wso2telco.gsma.authenticators.attributeshare.AttributeShareFactory;
 import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;
@@ -140,8 +141,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
         try {
 
-
-
             String queryParams = FrameworkUtils
                     .getQueryStringWithFrameworkContextId(context.getQueryParams(),
                             context.getCallerSessionKey(),
@@ -157,14 +156,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                             .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
                             .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
 
-
-
-
-
-
-            Map<String, String> attributeset = new HashMap();
-            boolean isattribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
-            String msisdn="";
+            Map<String, String> attributeSet = new HashMap();
+            boolean isAttribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+            String msisdn = "";
 
 
             DataPublisherUtil
@@ -173,34 +167,37 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                             .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
 
 
-            if(isattribute && Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString())){
+            if (isAttribute && Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString())) {
 
-                if(request.getParameter(Constants.ACTION) != null || context.getProperty(Constants.MSISDN) != null ){
-                    msisdn =  ((request.getParameter(Constants.ACTION) != null ) ? request.getParameter(Constants.ACTION) : context.getProperty(Constants.MSISDN).toString());
+                if (request.getParameter(Constants.ACTION) != null || context.getProperty(Constants.MSISDN) != null) {
+                    msisdn = ((request.getParameter(Constants.ACTION) != null) ? request.getParameter(Constants
+                            .ACTION) : context.getProperty(Constants.MSISDN).toString());
                 }
 
-                if(StringUtils.isNotEmpty(msisdn)){
-                    attributeset = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants.TRUSTED_STATUS).toString()).getAttributeShareDetails(context);
-                    isExplicitScope = Boolean.parseBoolean( attributeset.get(Constants.IS_DISPLAYSCOPE));
+                if (StringUtils.isNotEmpty(msisdn)) {
+                    attributeSet = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants
+                            .TRUSTED_STATUS).toString()).getAttributeShareDetails(context);
+                    isExplicitScope = Boolean.parseBoolean(attributeSet.get(Constants.IS_DISPLAYSCOPE));
                 }
 
             }
 
-            loginPage = getAuthEndpointUrl(context,isExplicitScope);
+            loginPage = getAuthEndpointUrl(context, isExplicitScope);
 
-           if(Boolean.valueOf(attributeset.get(Constants.IS_AUNTHENTICATION_CONTINUE))){
-                handleAttriShareResponse(context);
+            if (Boolean.valueOf(attributeSet.get(Constants.IS_AUNTHENTICATION_CONTINUE))) {
+                handleAttributeShareResponse(context);
 
-            }else  if(msisdn != null && StringUtils.isNotEmpty(msisdn) && Boolean.parseBoolean( attributeset.get(Constants.IS_DISPLAYSCOPE))){
+            } else if (msisdn != null && StringUtils.isNotEmpty(msisdn) && Boolean.parseBoolean(attributeSet.get
+                    (Constants.IS_DISPLAYSCOPE))) {
 
-               getConsentFromUser(request,response,context,attributeset,retryParam);
-           } else {
+                getConsentFromUser(request, response, context, attributeSet, retryParam);
+            } else {
                 response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
                         request.getParameter("redirect_uri") + "&authenticators="
                         + getName() + ":" + "LOCAL" + retryParam);
             }
 
-        } catch (IOException  e) {
+        } catch (IOException e) {
             log.error("Error occurred while redirecting request", e);
             DataPublisherUtil
                     .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
@@ -230,7 +227,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         log.info("Processing authentication response");
 
         String msisdn;
-        boolean isShowTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
+        boolean isShowTnc = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
 
         try {
             if (context.getProperty(Constants.MSISDN) == null && (request.getParameter(Constants.MSISDN) != null &&
@@ -240,11 +237,14 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 boolean isUserExists = false;
                 boolean isConvertToActive = false;
 
-                if (AdminServiceUtil.isUserExists(msisdn) && (AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(STATUS_ACTIVE) || AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(STATUS_PARTIALLY_ACTIVE)) ) {
-                        isUserExists = true;
-                        if ((AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(STATUS_PARTIALLY_ACTIVE)) && (!(Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE))) {
-                            isConvertToActive = true;
-                        }
+                if (AdminServiceUtil.isUserExists(msisdn) && (AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase
+                        (STATUS_ACTIVE) || AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase
+                        (STATUS_PARTIALLY_ACTIVE))) {
+                    isUserExists = true;
+                    if ((AdminServiceUtil.getUserStatus(msisdn).equalsIgnoreCase(STATUS_PARTIALLY_ACTIVE)) && (!
+                            (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE))) {
+                        isConvertToActive = true;
+                    }
                 }
 
                 context.setProperty(Constants.IS_REGISTERING, !isUserExists);
@@ -258,7 +258,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 context.setProperty(Constants.IS_PROFILE_UPGRADE, isProfileUpgrade);
 
 
-                if (!isUserExists && isShowTnC) {
+                if (!isUserExists && isShowTnc) {
                     retryAuthenticatorForConsent(context);
                 }
 
@@ -277,7 +277,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
                             //User agreed to registration consent
                             if ((Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE)) {
-                                handleAttriShareResponse(context);
+                                handleAttributeShareResponse(context);
                             }
                             break;
                         case Constants.USER_ACTION_REG_REJECTED:
@@ -287,7 +287,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     }
                 } else {
                     boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-                    if (isRegistering && isShowTnC) {
+                    if (isRegistering && isShowTnc) {
                         retryAuthenticatorForConsent(context);
                     }
                 }
@@ -347,32 +347,38 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 == null || !(Boolean) request.getAttribute("commonAuthHandled"))) {
             try {
                 boolean isattribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
-                String msisdn ="";
+                String msisdn = "";
                 Map<String, String> attributeset;
                 boolean isDisplayScopes;
                 String retryParam = "";
 
                 processAuthenticationResponse(request, response, context);
-                if (isattribute && Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString())) {
+                if (isattribute && Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString
+                        ())) {
 
-                    if(request.getParameter(Constants.MSISDN) != null || context.getProperty(Constants.MSISDN) != null ){
-                        msisdn =  ((request.getParameter(Constants.MSISDN) != null ) ? request.getParameter(Constants.MSISDN) : context.getProperty(Constants.MSISDN).toString());
+                    if (request.getParameter(Constants.MSISDN) != null || context.getProperty(Constants.MSISDN) !=
+                            null) {
+                        msisdn = ((request.getParameter(Constants.MSISDN) != null) ? request.getParameter(Constants
+                                .MSISDN) : context.getProperty(Constants.MSISDN).toString());
                     }
-                    if(StringUtils.isNotEmpty(msisdn)){
-                        context.setProperty("msisdn",msisdn);
-                        attributeset = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants.TRUSTED_STATUS).toString()).getAttributeShareDetails(context);
-                        boolean flowStatus = Boolean.parseBoolean(attributeset.get(Constants.IS_AUNTHENTICATION_CONTINUE));
-                        isDisplayScopes = Boolean.parseBoolean( attributeset.get(Constants.IS_DISPLAYSCOPE).toString());
+                    if (StringUtils.isNotEmpty(msisdn)) {
+                        context.setProperty("msisdn", msisdn);
+                        attributeset = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants
+                                .TRUSTED_STATUS).toString()).getAttributeShareDetails(context);
+                        boolean flowStatus = Boolean.parseBoolean(attributeset.get(Constants
+                                .IS_AUNTHENTICATION_CONTINUE));
+                        isDisplayScopes = Boolean.parseBoolean(attributeset.get(Constants.IS_DISPLAYSCOPE).toString());
 
-                        if(flowStatus){
+                        if (flowStatus) {
 
-                            AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN).toString());
+                            AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN)
+                                    .toString());
                             context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
                             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
 
                         } else if (!flowStatus && isDisplayScopes) {
 
-                            getConsentFromUser(request,response,context,attributeset,retryParam);
+                            getConsentFromUser(request, response, context, attributeset, retryParam);
                             context.setCurrentAuthenticator(getName());
                             return AuthenticatorFlowStatus.INCOMPLETE;
                         }
@@ -414,7 +420,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     throw new AuthenticationFailedException("Authenticator is terminated");
                 }
 
-                if((boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE) && Boolean.valueOf(context.getProperty(Constants.AUTHENTICATED_USER).toString())){
+                if ((boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE) && Boolean.valueOf(context
+                        .getProperty(Constants.AUTHENTICATED_USER).toString())) {
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 }
                 if (retryAuthenticationEnabled() && !stepHasMultiOption) {
@@ -425,13 +432,14 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 } else {
                     throw e;
                 }
-            } catch (SQLException|NamingException e ){
-                if(Boolean.valueOf(context.getProperty(Constants.AUTHENTICATED_USER).toString())){
+            } catch (DBUtilException | NamingException e) {
+                if (Boolean.valueOf(context.getProperty(Constants.AUTHENTICATED_USER).toString())) {
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 }
 
                 log.debug("error occurred while retreaving data from database" + e.getMessage());
-                throw  new AuthenticationFailedException("error occurred while retreaving data from database" +e.getMessage());
+                throw new AuthenticationFailedException("error occurred while retreaving data from database" + e
+                        .getMessage());
 
             }
         } else {
@@ -498,7 +506,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             if (isShowTnC && isRegistering) {
 
                 if (explicitScope) {
-                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.ATTRIBUTE_CONSENT_JSP;
+                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+                            Constants.ATTRIBUTE_CONSENT_JSP;
                 } else {
                     loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
                             Constants.CONSENT_JSP;
@@ -564,43 +573,45 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         return null;
     }
 
-    private void handleAttriShareResponse(AuthenticationContext context) throws AuthenticationFailedException{
+    private void handleAttributeShareResponse(AuthenticationContext context) throws AuthenticationFailedException {
 
-
-        if(context.getProperty(Constants.LONGLIVEDSCOPES)!= null) {
+        if (context.getProperty(Constants.LONGLIVEDSCOPES) != null) {
             try {
                 AbstractAttributeShare.persistConsentedScopeDetails(context);
-            } catch (Exception e){
-                throw new  AuthenticationFailedException("error occurred while persiste data");
+            } catch (Exception e) {
+                throw new AuthenticationFailedException("error occurred while persiste data");
             }
         }
 
-        if(!AuthenticatorEnum.TrustedStatus.UNTRUSTED.toString().equalsIgnoreCase(context.getProperty(Constants.TRUSTED_STATUS).toString())) {
+        if (!AuthenticatorEnum.TrustedStatus.UNTRUSTED.toString().equalsIgnoreCase(context.getProperty(Constants
+                .TRUSTED_STATUS).toString())) {
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
 
-            if(isRegistering){
+            if (isRegistering) {
                 AbstractAttributeShare.createUserProfile(context);
             }
             AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN).toString());
-            context.setProperty(Constants.AUTHENTICATED_USER,"true");
+            context.setProperty(Constants.AUTHENTICATED_USER, "true");
             context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
             throw new AuthenticationFailedException("Terminate authentication flow");
         }
     }
 
     private void getConsentFromUser(HttpServletRequest request, HttpServletResponse response,
-                                    AuthenticationContext context,Map<String, String> attributeset,String retryParam) throws AuthenticationFailedException{
+                                    AuthenticationContext context, Map<String, String> attributeset, String
+                                            retryParam) throws AuthenticationFailedException {
 
 
-        String loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.ATTRIBUTE_CONSENT_JSP;
+        String loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+                Constants.ATTRIBUTE_CONSENT_JSP;
         try {
             response.sendRedirect(response.encodeRedirectURL(loginPage) + "?" + OAuthConstants.SESSION_DATA_KEY + "="
-                    + context.getContextIdentifier() + "&skipConsent=true&scope=" + attributeset.get(Constants.DISPLAY_SCOPES) + "&registering=" + attributeset.get(Constants.IS_TNC) + "&redirect_uri=" +
-                    request.getParameter("redirect_uri") + "&authenticators=" + getName() + ":" + "LOCAL"+ retryParam  );
+                    + context.getContextIdentifier() + "&skipConsent=true&scope=" + attributeset.get(Constants
+                    .DISPLAY_SCOPES) + "&registering=" + attributeset.get(Constants.IS_TNC) + "&redirect_uri=" +
+                    request.getParameter("redirect_uri") + "&authenticators=" + getName() + ":" + "LOCAL" + retryParam);
 
-        } catch (IOException e){
+        } catch (IOException e) {
             throw new AuthenticationFailedException("I/O exception occurred");
         }
-
     }
 }

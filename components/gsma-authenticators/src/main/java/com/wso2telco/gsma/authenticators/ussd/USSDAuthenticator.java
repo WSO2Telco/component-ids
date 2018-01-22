@@ -258,10 +258,10 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
         String sessionDataKey = request.getParameter("sessionDataKey");
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-        boolean isStatusUpdate =  (boolean)context.getProperty(Constants.IS_STATUS_TO_CHANGE);
+        boolean isStatusUpdate = (boolean) context.getProperty(Constants.IS_STATUS_TO_CHANGE);
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         String operator = (String) context.getProperty(Constants.OPERATOR);
-        boolean isAttributeScope = (Boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+        boolean isAttributeScope = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
         String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
         String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
 
@@ -278,9 +278,11 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             if (responseStatus != null && responseStatus.equalsIgnoreCase(UserResponse.APPROVED.toString())) {
 
                 if (isRegistering || isStatusUpdate) {
-                    new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope,spType,attrShareType);
+                    new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope, spType,
+                            attrShareType);
 
-                    MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
+                    MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder()
+                            .getMobileConnectConfig().getSmsConfig();
                     if (!smsConfig.getWelcomeMessageDisabled()) {
                         WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
                     }
@@ -305,7 +307,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
                             e.getMessage());
             throw new AuthenticationFailedException("Error occurred while creating user profile", e);
         } catch (DataAccessException | IOException e) {
-            log.error("Welcome SMS sending failed" ,e);
+            log.error("Welcome SMS sending failed", e);
         }
         AuthenticationContextHelper.setSubject(context, msisdn);
 

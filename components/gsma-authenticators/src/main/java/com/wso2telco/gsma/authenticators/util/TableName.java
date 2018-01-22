@@ -15,43 +15,20 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.util;
 
+public class TableName {
 
-public enum TableName {
-
-    CLIENT_STATUS("clientstatus"),
-
-    AUTHENTICATED_LOGIN("authenticated_login"),
-
-    REG_STATUS("regstatus"),
-
-    ALLOWED_AUTHENTICATORS_MNO("allowed_authenticators_mno"),
-
-    ALLOWED_AUTHENTICATORS_SP("allowed_authenticators_sp"),
-
-    CONSENT("consent"),
-    SCOPE_PARAMETER("scope_parameter"),
-
-    SMS_OTP("sms_otp"),
-    USER_CONSENT("user_consent"),
-
-    SP_CONFIGURATION("sp_configuration");
-
-    private final String text;
-
-    /**
-     * @param text
-     */
-    private TableName(final String text) {
-        this.text = text;
-    }
-
-    /* (non-Javadoc)
-     * @see java.lang.Enum#toString()
-     */
-    @Override
-    public String toString() {
-        return text;
-    }
-
+    public static final String CLIENT_STATUS = "clientstatus";
+    public static final String AUTHENTICATED_LOGIN = "authenticated_login";
+    public static final String REG_STATUS = "regstatus";
+    public static final String ALLOWED_AUTHENTICATORS_MNO = "allowed_authenticators_mno";
+    public static final String ALLOWED_AUTHENTICATORS_SP = "allowed_authenticators_sp";
+    public static final String CONSENT = "consent";
+    public static final String SCOPE_PARAMETER = "scope_parameter";
+    public static final String SMS_OTP = "sms_otp";
+    public static final String USER_CONSENT = "user_consent";
+    public static final String SP_CONFIGURATION = "sp_configuration";
+    public static final String OPERATOR = "operators";
+    public static final String CONSENT_TYPE = "consent_type";
+    public static final String CONSENT_VALIDITY_TYPE = "consent_validity_type";
 
 }

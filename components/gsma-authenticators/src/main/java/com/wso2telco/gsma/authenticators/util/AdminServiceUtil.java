@@ -23,7 +23,9 @@ import org.wso2.carbon.user.core.UserStoreManager;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
+
 import java.rmi.RemoteException;
+
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
 
@@ -42,9 +44,10 @@ public class AdminServiceUtil {
         }
     }
 
-    public static String getUserStatus(String username) throws IdentityException, UserStoreException, RemoteException, LoginAuthenticationExceptionException,
+    public static String getUserStatus(String username) throws IdentityException, UserStoreException,
+            RemoteException, LoginAuthenticationExceptionException,
             RemoteUserStoreManagerServiceUserStoreExceptionException {
-        int tenantId = -1234;
+        final int tenantId = -1234;
         UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService().getTenantUserRealm(tenantId);
         UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
         return userStoreManager.getUserClaimValue(username, "http://wso2.org/claims/status", null);

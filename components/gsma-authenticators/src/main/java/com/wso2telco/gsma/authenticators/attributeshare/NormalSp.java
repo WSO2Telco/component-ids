@@ -15,59 +15,59 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.attributeshare;
 
+import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.gsma.authenticators.Constants;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 
 import javax.naming.NamingException;
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class NormalSP extends AbstractAttributeShare {
+public class NormalSp extends AbstractAttributeShare {
 
-    private static Log log = LogFactory.getLog(NormalSP.class);
+    private static Log log = LogFactory.getLog(NormalSp.class);
+
     /**
-     *
      * @param context
      * @return
-     * @throws SQLException
+     * @throws DBUtilException
      * @throws NamingException
      */
     @Override
-    public Map<String, String> getAttributeShareDetails(AuthenticationContext context) throws SQLException, NamingException {
+    public Map<String, String> getAttributeShareDetails(AuthenticationContext context) throws NamingException,
+            DBUtilException {
         String displayScopes = "";
         String isDisplayScope = "false";
-        String authenticationFlowStatus="false";
-        String isTNCForNewUser;
+        String authenticationFlowStatus = "false";
+        String isTncForNewUser;
         boolean isRegistering = false;
 
-        Map<String, List<String>> attributeset = getAttributeMap(context);
-        Map<String,String> attributeShareDetails = new HashMap();
-        if(context.getProperty(Constants.IS_REGISTERING)!=null){
-             isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+        Map<String, List<String>> attributeSet = getAttributeMap(context);
+        Map<String, String> attributeShareDetails = new HashMap();
+        if (context.getProperty(Constants.IS_REGISTERING) != null) {
+            isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
 
         }
 
-
-        if(!attributeset.get(Constants.EXPLICIT_SCOPES).isEmpty()){
+        if (!attributeSet.get(Constants.EXPLICIT_SCOPES).isEmpty()) {
             isDisplayScope = "true";
-            displayScopes = Arrays.toString(attributeset.get(Constants.EXPLICIT_SCOPES).toArray());
-            log.debug("Found the explicite scopes to gt the consent" + displayScopes );
+            displayScopes = Arrays.toString(attributeSet.get(Constants.EXPLICIT_SCOPES).toArray());
+            log.debug("Found the explicit scopes to gt the consent" + displayScopes);
         }
 
-         if(isRegistering){
-             isTNCForNewUser = "true";
-             attributeShareDetails.put(Constants.IS_TNC,isTNCForNewUser);
-         }
-        context.setProperty(Constants.IS_CONSENTED,Constants.YES);
+        if (isRegistering) {
+            isTncForNewUser = "true";
+            attributeShareDetails.put(Constants.IS_TNC, isTncForNewUser);
+        }
+        context.setProperty(Constants.IS_CONSENTED, Constants.YES);
 
         attributeShareDetails.put(Constants.IS_DISPLAYSCOPE, isDisplayScope);
         attributeShareDetails.put(Constants.DISPLAY_SCOPES, displayScopes);
-        attributeShareDetails.put(Constants.IS_AUNTHENTICATION_CONTINUE,authenticationFlowStatus);
+        attributeShareDetails.put(Constants.IS_AUNTHENTICATION_CONTINUE, authenticationFlowStatus);
 
         return attributeShareDetails;
     }

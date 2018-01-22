@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright  (c) 2015-2017, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
+ *
+ * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
 package com.wso2telco.gsma.authenticators.internal;
 
 import java.util.EnumSet;
@@ -5,9 +20,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-/**
- * Created by aushani on 9/22/17.
- */
 public class AuthenticatorEnum {
 
     public enum TrustedStatus {
@@ -17,14 +29,14 @@ public class AuthenticatorEnum {
         UNTRUSTED("normal"),
         UNDEFINED("undefined");
 
-        private final String trustedStatu;
+        private final String trustedStatus;
 
         TrustedStatus(String trustedStatus) {
-            this.trustedStatu = trustedStatus;
+            this.trustedStatus = trustedStatus;
         }
 
-        public String getTrustedStatu() {
-            return this.trustedStatu;
+        public String getTrustedStatus() {
+            return this.trustedStatus;
         }
     }
 
@@ -56,21 +68,22 @@ public class AuthenticatorEnum {
             this.consent = text;
         }
 
-        public String getConsent(){
+        public String getConsent() {
             return consent;
 
         }
 
-        static Map<String,ConsentType> valueMap= new HashMap<>();
+        static Map<String, ConsentType> valueMap = new HashMap<>();
+
         static {
             Iterator<ConsentType> enumTy = EnumSet.allOf(ConsentType.class).iterator();
-            while(enumTy.hasNext()){
+            while (enumTy.hasNext()) {
                 ConsentType consentType = enumTy.next();
                 valueMap.put(consentType.getConsent(), consentType);
             }
         }
 
-        public static ConsentType get(final String code){
+        public static ConsentType get(final String code) {
             return valueMap.get(code);
         }
     }
