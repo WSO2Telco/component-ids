@@ -13,31 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.gsma.authenticators.attributeshare;
+package com.wso2telco.proxy.dao;
 
 import com.wso2telco.core.dbutils.DBUtilException;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
-import javax.naming.NamingException;
-import java.util.List;
 import java.util.Map;
 
-public interface AttributeSharable {
+public interface AttributeShareDao {
 
-    /**
-     * @param context
-     * @throws DBUtilException
-     * @throws NamingException
-     */
-    Map<String, List<String>> getAttributeMap(AuthenticationContext context) throws NamingException, DBUtilException;
+    String getSpTypeConfigValue(String operatorName, String clientId, String spType) throws
+            DBUtilException;
 
-    /**
-     * @param context
-     * @throws NamingException
-     * @throws AuthenticationFailedException
-     */
-    Map<String, String> getAttributeShareDetails(AuthenticationContext context) throws NamingException,
-            AuthenticationFailedException, DBUtilException;
-
+    Map<String, String> getScopeParams() throws DBUtilException;
 }

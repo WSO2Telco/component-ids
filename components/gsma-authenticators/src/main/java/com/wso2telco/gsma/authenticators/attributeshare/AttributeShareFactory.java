@@ -26,36 +26,39 @@ import org.apache.commons.logging.LogFactory;
 */
 public class AttributeShareFactory {
 
-    static TrustedSP2 trustedSP2;
-    static TrustedSP trustedSP;
-    static NormalSP normalSP;
+    static TrustedSp2 trustedSp2;
+    static TrustedSp trustedSp;
+    static NormalSp normalSp;
     private static Log log = LogFactory.getLog(AttributeShareFactory.class);
 
-    private AttributeShareFactory(){}
+    private AttributeShareFactory() {
+    }
 
     public static AttributeSharable getAttributeSharable(String trustedStatus) {
 
         AttributeSharable attributeSharable = null;
 
-            if (trustedStatus != null && (trustedStatus.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.TRUSTED.name()))) {
-                if (trustedSP2 == null) {
-                    trustedSP2 = new TrustedSP2();
-                }
-                attributeSharable = trustedSP2;
+        if (trustedStatus != null && (trustedStatus.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.TRUSTED.name()))) {
+            if (trustedSp2 == null) {
+                trustedSp2 = new TrustedSp2();
             }
-            if (trustedStatus != null && (trustedStatus.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.FULLY_TRUSTED.name()))) {
-                if (trustedSP == null) {
-                    trustedSP = new TrustedSP();
-                }
-                attributeSharable = trustedSP;
+            attributeSharable = trustedSp2;
+        }
+        if (trustedStatus != null && (trustedStatus.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.FULLY_TRUSTED
+                .name()))) {
+            if (trustedSp == null) {
+                trustedSp = new TrustedSp();
             }
-            if (trustedStatus != null && (trustedStatus.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name()))) {
-                if (normalSP == null) {
-                    normalSP = new NormalSP();
-                }
-                attributeSharable = normalSP;
+            attributeSharable = trustedSp;
+        }
+        if (trustedStatus != null && (trustedStatus.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name()
+        ))) {
+            if (normalSp == null) {
+                normalSp = new NormalSp();
+            }
+            attributeSharable = normalSp;
 
-            }
+        }
         log.debug("SP type" + attributeSharable);
         return attributeSharable;
     }

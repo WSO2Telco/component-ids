@@ -435,7 +435,7 @@ public final class Constants {
 
     public static final String IS_ATTRIBUTE_SHARING_SCOPE = "isAttrScope";
 
-    public static final String EXP_PERIOD= "exp_period" ;
+    public static final String EXP_PERIOD = "exp_period";
 
     public static final String TELCO_SCOPE = "telco_scope";
 
@@ -455,7 +455,7 @@ public final class Constants {
 
     public static final String LONGLIVEDSCOPES = " longlivedScopes";
 
-    public static final String ATTRIBUTE_CONSENT_JSP ="/attributeconsent.do";
+    public static final String ATTRIBUTE_CONSENT_JSP = "/attributeconsent.do";
 
 
     public static final String IS_DISPLAYSCOPE = "isDisplayScope";
@@ -464,11 +464,11 @@ public final class Constants {
     public static final String IS_CONSENT = "isConsent";
     public static final String VALIDITY_TYPE = "validityType";
     public static final String IS_AUNTHENTICATION_CONTINUE = "authenticationFlowStatus";
-    public static final String IS_TNC="isTNCForNewUser";
-    public static final String AUTHENTICATED_USER ="AuthenticatedUser";
+    public static final String IS_TNC = "isTNCForNewUser";
+    public static final String AUTHENTICATED_USER = "AuthenticatedUser";
     public static final String ATTRSHARE_SCOPE_TYPE = "attrShareType";
 
     public static final String TRUE = "true";
 
-    public static final String FALSE = "false" ;
+    public static final String FALSE = "false";
 }

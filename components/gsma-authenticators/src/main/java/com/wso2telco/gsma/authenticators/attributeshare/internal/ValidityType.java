@@ -43,7 +43,7 @@ public enum ValidityType {
         Iterator<ValidityType> enumTy = EnumSet.allOf(ValidityType.class).iterator();
         while (enumTy.hasNext()) {
             ValidityType validityType = enumTy.next();
-            valueMap.put(validityType.getValidityType(),validityType);
+            valueMap.put(validityType.getValidityType(), validityType);
         }
     }
 

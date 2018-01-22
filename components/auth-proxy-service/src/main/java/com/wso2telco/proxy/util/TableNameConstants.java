@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.gsma.authenticators.attributeshare.internal;
+package com.wso2telco.proxy.util;
 
-public enum UserConsentStatus {
-    REVOKED,
-    ACTIVE;
-
+/**
+ * This file contains the constants, named for tables in IDS related databases.
+ */
+public class TableNameConstants {
+    public static final String SP_CONFIGURATION = "sp_configuration";
+    public static final String TRUSTED_STATUS = "trustedStatus";
+    public static final String SCOPE_PARAMETER = "scope_parameter";
 }
