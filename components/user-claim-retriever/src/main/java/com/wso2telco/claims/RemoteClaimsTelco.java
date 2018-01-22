@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright  (c) 2015-2017, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
+ *
+ * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
 package com.wso2telco.claims;
 
 import com.google.gson.Gson;
@@ -9,11 +24,12 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Map;
 
-public class RemoteClaimsTelco implements RemoteClaims{
+public class RemoteClaimsTelco implements RemoteClaims {
 
     /**
      * The log.
@@ -65,7 +81,7 @@ public class RemoteClaimsTelco implements RemoteClaims{
         totalClaims.put("phone_number", customer.getPhoneNumber());
         totalClaims.put("phone_number_country_code", customer.getPhoneNumberCountryCode());
         totalClaims.put("zoneinfo", customer.getZoneinfo());
-        totalClaims.put("BillingSegment", customer.getBiilingSegment());
+        totalClaims.put("BillingSegment", customer.getBilingSegment());
         totalClaims.put("is_lost_stolen", customer.getIsLostStolen());
         totalClaims.put("id_hash", customer.getIdHash());
         totalClaims.put("SubscriptionActivity", customer.getSubscriptionActivity());

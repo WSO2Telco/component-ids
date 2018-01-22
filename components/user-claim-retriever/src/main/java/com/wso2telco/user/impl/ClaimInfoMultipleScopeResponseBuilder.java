@@ -66,7 +66,8 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
     /**
      * The openid scopes.
      */
-    List<String> openidScopes = Arrays.asList("profile", "email", "address", "phone", "openid","mc_identity_phonenumber_hashed");
+    List<String> openidScopes = Arrays.asList("profile", "email", "address", "phone", "openid",
+            "mc_identity_phonenumber_hashed");
 
     private static DbService dbConnection = new DbService();
     private static MobileConnectConfig mobileConnectConfig = null;
@@ -120,7 +121,7 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
 
         Map<String, Object> claims = null;
         //read claimValues per scope from scope-config.xml
-        ScopeDetailsConfig scopeConfigs =com.wso2telco.core.config.ConfigLoader.getInstance().getScopeDetailsConfig();
+        ScopeDetailsConfig scopeConfigs = com.wso2telco.core.config.ConfigLoader.getInstance().getScopeDetailsConfig();
 
         try {
             claims = ClaimUtil.getClaimsFromUserStore(tokenResponse);
@@ -130,11 +131,11 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
 
         String contextPath = System.getProperty("request.context.path");
         String[] requestedScopes = tokenResponse.getScope();
-        scopes=scopeConfigs.getPremiumScopes();
+        scopes = scopeConfigs.getPremiumScopes();
         if (contextPath.equals("/oauth2")) {
             //oauth2/userinfo requests should serve scopes in openid connect onl
             requestedScopes = getValidScopes(requestedScopes);
-            scopes=scopeConfigs.getUserInfoScope();
+            scopes = scopeConfigs.getUserInfoScope();
 
         }
 
@@ -144,18 +145,20 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
             ScopeDetails scopeDetails = dbConnection.getScopeFromAcessToken(tokenResponse
                     .getAuthorizationContextToken().getTokenString());
 
-            List<MobileConnectConfig.OperatorData> operators= com.wso2telco.core.config.ConfigLoader.getInstance().getMobileConnectConfig().getOperatorsList().getOperatorData();
-            String  operatorName =(String)claims.get(operatorClaim);
-            String claimsRetrieverType= ClaimsRetrieverType.LOCAL.toString();
+            List<MobileConnectConfig.OperatorData> operators = com.wso2telco.core.config.ConfigLoader.getInstance()
+                    .getMobileConnectConfig().getOperatorsList().getOperatorData();
+            String operatorName = (String) claims.get(operatorClaim);
+            String claimsRetrieverType = ClaimsRetrieverType.LOCAL.toString();
 
             for (MobileConnectConfig.OperatorData operator : operators) {
-                if(operator.getOperatorName().equalsIgnoreCase(operatorName)){
-                    claimsRetrieverType=operator.getUserInfoEndPointType();
+                if (operator.getOperatorName().equalsIgnoreCase(operatorName)) {
+                    claimsRetrieverType = operator.getUserInfoEndPointType();
                     break;
                 }
             }
 
-            requestedClaims= ClaimsRetrieverFactory.getClaimsRetriever(claimsRetrieverType).getRequestedClaims(requestedScopes, scopes, claims);
+            requestedClaims = ClaimsRetrieverFactory.getClaimsRetriever(claimsRetrieverType).getRequestedClaims
+                    (requestedScopes, scopes, claims);
             requestedClaims.put("sub", scopeDetails.getPcr());
 
         } catch (NoSuchAlgorithmException e) {
@@ -187,7 +190,12 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         return validScopes.toArray(new String[validScopes.size()]);
     }
 
-
+    /**
+     * Gets the hashed value of given claims.
+     *
+     * @param claimValue the claim value
+     * @return the hashed value of the claim
+     */
     private String getHashedClaimValue(String claimValue) throws NoSuchAlgorithmException {
 
         MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -212,13 +220,14 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
      * @return db instance
      */
     private FederatedIdpMappingDTO checkDbIfFederatedAccessToken(FederatedIdpMappingDTO fidpInstance,
-            OAuth2TokenValidationResponseDTO tokenResponse) {
+                                                                 OAuth2TokenValidationResponseDTO tokenResponse) {
 
         try {
             fidpInstance = dbConnection.retrieveFederatedTokenMappings(tokenResponse.getAuthorizationContextToken()
                     .getTokenString());
         } catch (Exception e) {
-            log.error("Error while retrieving federated token mapping information from DB, hence continuing regular flow : "
+            log.error("Error while retrieving federated token mapping information from DB, hence continuing regular " +
+                    "flow : "
                     + tokenResponse.getAuthorizationContextToken().getTokenString());
         }
         return fidpInstance;
@@ -261,7 +270,8 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         try {
             jsonString = processFederatedUserInfoResponse(urlResponse);
         } catch (IOException e) {
-            String errorMsg = "Error while getting response from Federated IDP for userinfo request using access_token : "
+            String errorMsg = "Error while getting response from Federated IDP for userinfo request using " +
+                    "access_token : "
                     + fidpInstance.getAccessToken();
             log.error(errorMsg);
             throw new UserInfoEndpointException(errorMsg, e);
@@ -291,7 +301,8 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         } catch (UnsupportedEncodingException e) {
             String errorMsg = "Error while encoding the URL for federated Callback : "
                     + mobileConnectConfig.getFederatedCallbackUrl() + " operator : " + fidpInstance.getOperator()
-                    + " endpoint : " + url;;
+                    + " endpoint : " + url;
+            ;
             log.error(errorMsg);
             throw new UserInfoEndpointException(errorMsg, e);
         } catch (ClientProtocolException e) {
@@ -300,7 +311,8 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
             log.error(errorMsg);
             throw new UserInfoEndpointException(errorMsg, e);
         } catch (IOException e) {
-            String errorMsg = "Error while getting response from Federated IDP for userinfo request using access_token : "
+            String errorMsg = "Error while getting response from Federated IDP for userinfo request using " +
+                    "access_token : "
                     + fidpInstance.getAccessToken()
                     + " operator : "
                     + fidpInstance.getOperator()

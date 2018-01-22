@@ -126,8 +126,6 @@ public class Endpoints {
                 scopeMap.put(sc.getName(), sc);
             }
 
-
-
         } catch (SQLException e) {
             log.error("Error occurred while retrieving operator MSISDN properties of operators.");
         } catch (NamingException e) {
@@ -222,15 +220,15 @@ public class Endpoints {
                         }
                     }
                 }
-                ipAddress = getIpAddress(httpHeaders,httpServletRequest, operatorName);
+                ipAddress = getIpAddress(httpHeaders, httpServletRequest, operatorName);
 
                 //Validate with Scope wise parameters and throw exceptions
                 ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo,
-                        userStatus,redirectURL);
+                        userStatus, redirectURL);
 
                 String loginhint_msisdn = null;
                 try {
-                    loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam,redirectURL);
+                    loginhint_msisdn = retreiveLoginHintMsisdn(loginHint, scopeParam, redirectURL);
                 } catch (Exception e) {
                     log.error("Error retrieving loginhint msisdn : " + e);
                 }
@@ -280,7 +278,8 @@ public class Endpoints {
                         loginhint_msisdn = "";
                     }
 
-                    Map<String,String> attShareDetails = AttributeShare.validateAttShareScopes(scopeName,operatorName,clientId,loginhint_msisdn,msisdn);
+                    Map<String, String> attShareDetails = AttributeShare.attributeShareScopesValidation(scopeName,
+                            operatorName, clientId, loginhint_msisdn, msisdn);
 
                     redirectUrlInfo.setMsisdnHeader(msisdn);
                     redirectUrlInfo.setLoginhintMsisdn(loginhint_msisdn);
@@ -288,9 +287,11 @@ public class Endpoints {
                     redirectUrlInfo.setIpAddress(ipAddress);
                     redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
                     redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
-                    redirectUrlInfo.setAttributeSharingScope(Boolean.parseBoolean(attShareDetails.get(AuthProxyConstants.ATTR_SHARE_SCOPE)));
+                    redirectUrlInfo.setAttributeSharingScope(Boolean.parseBoolean(attShareDetails.get
+                            (AuthProxyConstants.ATTR_SHARE_SCOPE)));
                     redirectUrlInfo.setTrustedStatus(attShareDetails.get(AuthProxyConstants.TRUSTED_STATUS));
-                    redirectUrlInfo.setAttributeSharingScopeType(attShareDetails.get(AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE));
+                    redirectUrlInfo.setAttributeSharingScopeType(attShareDetails.get(AuthProxyConstants
+                            .ATTR_SHARE_SCOPE_TYPE));
 
                     redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
 
@@ -339,7 +340,8 @@ public class Endpoints {
      * @throws ConfigurationException
      */
     private ScopeParam validateAndSetScopeParameters(String loginHint, String msisdnHeader, String scope,
-                                                     RedirectUrlInfo redirectUrlInfo, UserStatus userStatus,String redirectURL)
+                                                     RedirectUrlInfo redirectUrlInfo, UserStatus userStatus, String
+                                                             redirectURL)
             throws AuthenticationFailedException, ConfigurationException {
         //TODO: get all scope related params. This should be move to a initialization method or add to cache later
         ScopeParam scopeParam = getScopeParam(scope, userStatus);
@@ -394,7 +396,7 @@ public class Endpoints {
             }
 
             if (StringUtils.isNotEmpty(verifiedLoginHint)) {
-                if (ScopeParam.msisdnMismatchResultTypes.ERROR_RETURN.equals(scopeParam.getMsisdnMismatchResult())) {
+                if (ScopeParam.MsisdnMismatchResultTypes.ERROR_RETURN.equals(scopeParam.getMsisdnMismatchResult())) {
                     if (!verifiedLoginHint.equals(msisdnHeader)) {
                         DataPublisherUtil.updateAndPublishUserStatus(userStatus,
                                 DataPublisherUtil.UserState.LOGIN_HINT_MISMATCH,
@@ -467,7 +469,8 @@ public class Endpoints {
                         log.debug("Plain text login hint : " + plainTextLoginHint);
                     }
                     if (StringUtils.isNotEmpty(loginHint) && (!loginHint.startsWith(LOGIN_HINT_ENCRYPTED_PREFIX) &&
-                            !loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX) && !loginHint.startsWith(LOGIN_HINT_PCR))) {
+                            !loginHint.startsWith(LOGIN_HINT_NOENCRYPTED_PREFIX) && !loginHint.startsWith
+                            (LOGIN_HINT_PCR))) {
                         plainTextLoginHint = loginHint;
                         isValidFormatType = true;
                     }
@@ -507,7 +510,7 @@ public class Endpoints {
                     }
                     break;
                 case PCR:
-                    if (StringUtils.isNotEmpty(loginHint) && loginHint.startsWith(LOGIN_HINT_PCR) ) {
+                    if (StringUtils.isNotEmpty(loginHint) && loginHint.startsWith(LOGIN_HINT_PCR)) {
 
                         pcrValue = loginHint.replace(LOGIN_HINT_PCR, "");
                         isValidFormatType = true;
@@ -521,8 +524,9 @@ public class Endpoints {
                             }
 
                         } catch (Exception e) {
-                            log.error("Given pcr in the login hint cannot be accepted" );
-                            throw new AuthenticationFailedException("Given pcr in the login hint cannot be accepted");
+                            log.error("Given pcr in the login hint cannot be accepted");
+                            throw new AuthenticationFailedException("Given pcr in the login hint cannot be accepted"
+                                    + e);
                         }
 
                     }
@@ -551,7 +555,7 @@ public class Endpoints {
     }
 
 
-    private String retreiveLoginHintMsisdn(String loginHint, ScopeParam scopeParam,String callbackurl)
+    private String retreiveLoginHintMsisdn(String loginHint, ScopeParam scopeParam, String callbackurl)
             throws AuthenticationFailedException, ConfigurationException {
         boolean isValidFormatType = false; //msisdn/loginhint should be a either of defined formats
         String msisdn = null;
@@ -578,7 +582,7 @@ public class Endpoints {
                                 break;
                             } catch (Exception e) {
                                 log.error("Error while decrypting login hint : " + loginHint, e);
-                                throw new AuthenticationFailedException("Error while decrypting login hint");
+                                throw new AuthenticationFailedException("Error while decrypting login hint :" + e);
                             }
                         }
                     } else {
@@ -598,14 +602,16 @@ public class Endpoints {
                     if (StringUtils.isNotEmpty(loginHint)) {
                         if (loginHint.startsWith(LOGIN_HINT_PCR)) {
                             try {
-                                String retreivedMsisdn= getMSISDNbyPcr(callbackurl,loginHint.replace(LOGIN_HINT_PCR, ""));
-                                if(StringUtils.isNotEmpty(retreivedMsisdn)){
-                                    msisdn=retreivedMsisdn;
+                                String retreivedMsisdn = getMSISDNbyPcr(callbackurl, loginHint.replace
+                                        (LOGIN_HINT_PCR, ""));
+                                if (StringUtils.isNotEmpty(retreivedMsisdn)) {
+                                    msisdn = retreivedMsisdn;
                                 }
 
-                            } catch (Exception e){
+                            } catch (Exception e) {
                                 log.error("pcr in the login hint cannot be accepted");
-                                throw new AuthenticationFailedException("pcr in the login hint cannot be accepted");
+                                throw new AuthenticationFailedException("pcr in the login hint cannot be accepted: "
+                                        + e);
                             }
                             isValidFormatType = true;
                         }
@@ -645,8 +651,8 @@ public class Endpoints {
     private String getMSISDNbyPcr(String callbackUrl, String pcr) throws PCRException {
         String retrievedMsisdn = "";
         if (StringUtils.isNotEmpty(pcr)) {
-                MIFEOpenIDTokenBuilder mifeOpenIDTokenBuilder = new MIFEOpenIDTokenBuilder();
-                retrievedMsisdn = mifeOpenIDTokenBuilder.getMSISDNbyPcr(callbackUrl, pcr);
+            MIFEOpenIDTokenBuilder mifeOpenIDTokenBuilder = new MIFEOpenIDTokenBuilder();
+            retrievedMsisdn = mifeOpenIDTokenBuilder.getMSISDNbyPcr(callbackUrl, pcr);
         }
         return retrievedMsisdn;
     }
@@ -680,7 +686,7 @@ public class Endpoints {
         return msisdn;
     }
 
-    private String getIpAddress(HttpHeaders httpHeaders,HttpServletRequest httpServletRequest, String operatorName) {
+    private String getIpAddress(HttpHeaders httpHeaders, HttpServletRequest httpServletRequest, String operatorName) {
         String ipAddress = null;
         boolean isOverrideIpHeader = mobileConnectConfigs.getHEADERENRICH().isOverrideIpheader();
         MobileConnectConfig.OPERATOR operatorProperties = operatorPropertiesMap.get(operatorName);
@@ -691,16 +697,17 @@ public class Endpoints {
                 if (httpHeaders.getRequestHeader(ipHeaderName) != null) {
                     ipAddress = httpHeaders.getRequestHeader(ipHeaderName).get(0);
                 }
-                ipAddress = ( ((ipAddress == null) || isOverrideIpHeader )  ? captureIpFallbackRemoteHost(httpServletRequest) : ipAddress);
+                ipAddress = (((ipAddress == null) || isOverrideIpHeader) ? captureIpFallbackRemoteHost
+                        (httpServletRequest) : ipAddress);
             }
         }
         return ipAddress;
     }
 
-    private String captureIpFallbackRemoteHost(HttpServletRequest httpServletRequest){
-    	String remoteIpAddress = null;
-    	remoteIpAddress = httpServletRequest.getRemoteAddr();
-    	return remoteIpAddress;
+    private String captureIpFallbackRemoteHost(HttpServletRequest httpServletRequest) {
+        String remoteIpAddress = null;
+        remoteIpAddress = httpServletRequest.getRemoteAddr();
+        return remoteIpAddress;
     }
 
     private String constructRedirectUrl(RedirectUrlInfo redirectUrlInfo, UserStatus userStatus) throws
@@ -714,11 +721,12 @@ public class Endpoints {
         String telcoScope = redirectUrlInfo.getTelcoScope();
         String ipAddress = redirectUrlInfo.getIpAddress();
         String prompt = redirectUrlInfo.getPrompt();
-        String validationRegex=configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getValidationRegex();
-        boolean isAttrScope= redirectUrlInfo.isAttributeSharingScope();
+        String validationRegex = configurationService.getDataHolder().getMobileConnectConfig().getMsisdn()
+                .getValidationRegex();
+        boolean isAttrScope = redirectUrlInfo.isAttributeSharingScope();
         boolean isShowTnc = redirectUrlInfo.isShowTnc();
-        ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
-        ScopeParam.heFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
+        ScopeParam.MsisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
+        ScopeParam.HeFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
         String spType = redirectUrlInfo.getTrustedStatus();
         String attrShareScopeType = redirectUrlInfo.getAttributeSharingScopeType();
 
@@ -729,7 +737,8 @@ public class Endpoints {
                     AuthProxyConstants.SHOW_TNC + "=" + isShowTnc + "&" + AuthProxyConstants.HEADER_MISMATCH_RESULT +
                     "=" + headerMismatchResult + "&" + AuthProxyConstants.HE_FAILURE_RESULT +
                     "=" + heFailureResult + "&" + AuthProxyConstants.ATTR_SHARE_SCOPE +
-                    "=" + isAttrScope+ "&" + AuthProxyConstants.TRUSTED_STATUS + "=" + spType +"&" + AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE + "=" + attrShareScopeType ;
+                    "=" + isAttrScope + "&" + AuthProxyConstants.TRUSTED_STATUS + "=" + spType + "&" +
+                    AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE + "=" + attrShareScopeType;
 
             if (msisdnHeader != null && StringUtils.isNotEmpty(msisdnHeader)) {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.MSISDN_HEADER + "=" + msisdnHeader;
@@ -755,7 +764,7 @@ public class Endpoints {
                         "=" + prompt;
             }
 
-            if(StringUtils.isNotEmpty(validationRegex)){
+            if (StringUtils.isNotEmpty(validationRegex)) {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.MSISDN_VALIDATION_REGEX +
                         "=" + validationRegex;
             }

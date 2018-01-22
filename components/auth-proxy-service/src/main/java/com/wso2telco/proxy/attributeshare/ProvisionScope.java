@@ -17,26 +17,27 @@ package com.wso2telco.proxy.attributeshare;
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
-public class ProvisionScope extends  AbstractAttributeShare{
+public class ProvisionScope extends AbstractAttributeShare {
 
 
-    public void mandatoryFeildValidation() {
+    public void mandatoryFieldValidation() {
       /*mandatory feild validation in next phase*/
     }
 
-    public void scopeNClaimMatching() {
+    public void scopeAndClaimMatching() {
      /*
      * this should be implemented in the next phase*/
     }
 
-    public void shaAlgortithemValidation() {
+    public void shaAlgorithmValidation() {
         /*
      * this should be implemented in the next phase*/
     }
 
     @Override
-    public String attShareDetails(String operatorName, String clientId,String loginhintMsisdn,String msisdn) throws AuthenticationFailedException {
+    public String getAttributeShareDetails(String operatorName, String clientId, String loginHintMsisdn, String
+            msisdn) throws AuthenticationFailedException {
 
-        return getTrsutedStatus(operatorName, clientId,loginhintMsisdn,msisdn);
+        return getTrustedStatus(operatorName, clientId, loginHintMsisdn, msisdn);
     }
 }

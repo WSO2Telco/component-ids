@@ -16,49 +16,48 @@
 package com.wso2telco.proxy.attributeshare;
 
 import com.wso2telco.core.dbutils.DBUtilException;
-import com.wso2telco.proxy.dao.AttShareDAO;
-import com.wso2telco.proxy.dao.attsharedaoimpl.AttShareDAOImpl;
+import com.wso2telco.proxy.dao.AttributeShareDao;
+import com.wso2telco.proxy.dao.attsharedaoimpl.AttributeShareDaoImpl;
 import com.wso2telco.proxy.util.AuthProxyEnum;
 import com.wso2telco.proxy.util.AuthProxyConstants;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
-import java.sql.SQLException;
-
-
-public abstract class AbstractAttributeShare implements AttrubteSharable {
+public abstract class AbstractAttributeShare implements AttributeSharable {
 
     private static Log log = LogFactory.getLog(AbstractAttributeShare.class);
 
     /**
+     * Get trusted status of given clientId
      *
      * @param operatorName
      * @param clientId
-     * @param loginhintMsisdn
+     * @param loginHintMsisdn
      * @param msisdn
-     * @return
+     * @return trusted status of SP
      * @throws AuthenticationFailedException
      */
-    public String getTrsutedStatus(String operatorName, String clientId, String loginhintMsisdn, String msisdn) throws AuthenticationFailedException{
+    public String getTrustedStatus(String operatorName, String clientId, String loginHintMsisdn, String msisdn)
+            throws AuthenticationFailedException {
 
         String trustedStatus = null;
 
         try {
-            AttShareDAO attShareDAO = new AttShareDAOImpl();
-            trustedStatus = attShareDAO.getSPTypeConfigValue(operatorName, clientId, AuthProxyConstants.TRUSTED_STATUS);
+            AttributeShareDao attShareDAO = new AttributeShareDaoImpl();
+            trustedStatus = attShareDAO.getSpTypeConfigValue(operatorName, clientId, AuthProxyConstants.TRUSTED_STATUS);
 
             AuthProxyEnum.TRUSTEDSTATUS sp = AuthProxyEnum.TRUSTEDSTATUS.getStatus(trustedStatus);
 
             switch (sp) {
                 case FULLY_TRUSTED:
                     trustedStatus = AuthProxyEnum.TRUSTEDSTATUS.FULLY_TRUSTED.name();
-                    checkMSISDNAvailability(loginhintMsisdn,msisdn,trustedStatus);
+                    checkMsisdnAvailability(loginHintMsisdn, msisdn, trustedStatus);
                     break;
 
                 case TRUSTED:
                     trustedStatus = AuthProxyEnum.TRUSTEDSTATUS.TRUSTED.name();
-                    checkMSISDNAvailability(loginhintMsisdn,msisdn,trustedStatus);
+                    checkMsisdnAvailability(loginHintMsisdn, msisdn, trustedStatus);
                     break;
 
                 case UNTRUSTED:
@@ -68,36 +67,41 @@ public abstract class AbstractAttributeShare implements AttrubteSharable {
                     trustedStatus = AuthProxyEnum.TRUSTEDSTATUS.UNDEFINED.name();
             }
 
-            log.debug("Trusted Status of "+clientId+ ":" + trustedStatus);
+            log.debug("Trusted Status of " + clientId + ":" + trustedStatus);
 
-        } catch (DBUtilException|SQLException e){
-            log.error("Error occurred in retrieving data from database :"+ e.getMessage());
-            throw new AuthenticationFailedException(e.getMessage(),e);
+        } catch (DBUtilException e) {
+            log.error("Error occurred in retrieving data from database :" + e.getMessage());
+            throw new AuthenticationFailedException(e.getMessage(), e);
         }
 
         return trustedStatus;
-   }
+    }
 
     /**
+     * Check loginHint/headerEnrichment availability for Trusted SPs
      *
-     * @param loginhintMsisdn
+     * @param loginHintMsisdn
      * @param headerMsisdn
      * @param trustedStatus
      * @throws AuthenticationFailedException
      */
-    private void checkMSISDNAvailability(String loginhintMsisdn, String headerMsisdn, String trustedStatus) throws AuthenticationFailedException{
+    private void checkMsisdnAvailability(String loginHintMsisdn, String headerMsisdn, String trustedStatus) throws
+            AuthenticationFailedException {
 
-       if(loginhintMsisdn.isEmpty() && headerMsisdn.isEmpty()){
-           log.error("MSISDN is not available for "+ trustedStatus +"");
-           throw new AuthenticationFailedException("Msisdn not available for " + trustedStatus +"");
-       }
+        if (loginHintMsisdn.isEmpty() && headerMsisdn.isEmpty()) {
+            log.error("MSISDN is not available for " + trustedStatus);
+            throw new AuthenticationFailedException("Msisdn not available for " + trustedStatus);
+        }
 
     }
 
-    public abstract void mandatoryFeildValidation();
+    /**
+     * Validate availability of mandatory parameters in verification requests
+     */
+    public abstract void mandatoryFieldValidation();
 
-    public abstract void scopeNClaimMatching();
+    public abstract void scopeAndClaimMatching();
 
-    public abstract void shaAlgortithemValidation();
+    public abstract void shaAlgorithmValidation();
 
 }

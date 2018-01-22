@@ -16,15 +16,14 @@
 package com.wso2telco.proxy.attributeshare;
 
 import com.wso2telco.core.dbutils.DBUtilException;
-import com.wso2telco.proxy.dao.AttShareDAO;
-import com.wso2telco.proxy.dao.attsharedaoimpl.AttShareDAOImpl;
+import com.wso2telco.proxy.dao.AttributeShareDao;
+import com.wso2telco.proxy.dao.attsharedaoimpl.AttributeShareDaoImpl;
 import com.wso2telco.proxy.util.AuthProxyConstants;
 import edu.emory.mathcs.backport.java.util.Arrays;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,66 +33,73 @@ public class AttributeShare {
 
     private static Log log = LogFactory.getLog(AttributeShare.class);
 
-    private static AttShareDAO attShareDAO;
+    private static AttributeShareDao attShareDao;
     private static Map<String, String> scopeTypes;
 
-    private AttributeShare(){}
+    private AttributeShare() {
+    }
+
     static {
 
         try {
-            attShareDAO = new AttShareDAOImpl();
-            scopeTypes  =attShareDAO.getScopeParams();
-        } catch (SQLException |DBUtilException e) {
-             log.error("Error occurred while scope retrieving the data from database : " +e);
+            attShareDao = new AttributeShareDaoImpl();
+            scopeTypes = attShareDao.getScopeParams();
+        } catch (DBUtilException e) {
+            log.error("Error occurred while scope retrieving the data from database : " + e);
         }
     }
 
     /**
+     * Identifying the availability of attribute sharing scopes in the request
      *
      * @param scopeName
      * @param operatorName
      * @param clientId
-     * @param loginhintMsisdn
+     * @param loginHintMsisdn
      * @param msisdn
-     * @return
+     * @return Map containing details about scopes
      * @throws AuthenticationFailedException
      */
-    public static Map<String,String> validateAttShareScopes(String scopeName, String operatorName, String clientId, String loginhintMsisdn, String msisdn) throws AuthenticationFailedException {
+    public static Map<String, String> attributeShareScopesValidation(String scopeName, String operatorName, String
+            clientId, String loginHintMsisdn, String msisdn) throws
+            AuthenticationFailedException {
 
         String trustedStatus = null;
         boolean isAttributeShare = false;
-        String attrSharetype = null;
-        Map<String, String> attShareScoprDetails = new HashMap<>();
+        String attShareType = null;
+        Map<String, String> attShareScopeDetails = new HashMap<>();
         try {
 
             if (scopeName == null || scopeName.isEmpty()) {
                 log.error("Scope Name list is null");
+                throw new AuthenticationFailedException("Scope Name list is null or empty");
             } else {
                 List<String> scopeList = new ArrayList(Arrays.asList(scopeName.split(" ")));
 
                 if (!scopeTypes.isEmpty()) {
                     for (String scope : scopeList) {
-                        attrSharetype = scopeTypes.get(scope);
-                        if (attrSharetype != null) {
+                        attShareType = scopeTypes.get(scope);
+                        if (attShareType != null) {
                             isAttributeShare = true;
-                            trustedStatus = ScopeFactory.getAttribAttrubteSharable(attrSharetype).attShareDetails
-                                    (operatorName, clientId, loginhintMsisdn, msisdn);
-                        break;
+                            AttributeSharable attributeShare = ScopeFactory.getAttributeSharable(attShareType);
+                            if (attributeShare != null) {
+                                trustedStatus = attributeShare.getAttributeShareDetails
+                                        (operatorName, clientId, loginHintMsisdn, msisdn);
+                            }
+                            break;
                         }
                     }
                 }
             }
 
         } catch (AuthenticationFailedException e) {
-            log.error("Authentication Exception in validateAttShareScopes : " + e.getMessage());
+            log.error("Authentication Exception in validateAttributeShareScopes : " + e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(), e);
-
         }
-        attShareScoprDetails.put(AuthProxyConstants.ATTR_SHARE_SCOPE, Boolean.toString(isAttributeShare));
-        attShareScoprDetails.put(AuthProxyConstants.TRUSTED_STATUS, trustedStatus);
-        attShareScoprDetails.put(AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE, attrSharetype);
+        attShareScopeDetails.put(AuthProxyConstants.ATTR_SHARE_SCOPE, Boolean.toString(isAttributeShare));
+        attShareScopeDetails.put(AuthProxyConstants.TRUSTED_STATUS, trustedStatus);
+        attShareScopeDetails.put(AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE, attShareType);
 
-        return attShareScoprDetails;
-
+        return attShareScopeDetails;
     }
 }
