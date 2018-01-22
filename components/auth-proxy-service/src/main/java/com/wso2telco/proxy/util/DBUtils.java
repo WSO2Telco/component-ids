@@ -307,7 +307,7 @@ public class DBUtils {
                 Boolean isMultiscope = results.getBoolean("is_multiscope");
                 scopeValuesFromDatabase.add(results.getString("scope"));
 
-                if(!isMultiscope) {
+                if (!isMultiscope) {
                     //throw error if multiple main scopes found
                     if (mainScopeFound) {
                         throw new ConfigurationException("Multiple main scopes found");
@@ -323,9 +323,9 @@ public class DBUtils {
                     parameters.setScope(results.getString("scope"));
                     parameters.setLoginHintMandatory(results.getBoolean("is_login_hint_mandatory"));
                     parameters.setHeaderMsisdnMandatory(results.getBoolean("is_header_msisdn_mandatory"));
-                    parameters.setMsisdnMismatchResult(ScopeParam.msisdnMismatchResultTypes.valueOf(results.getString(
+                    parameters.setMsisdnMismatchResult(ScopeParam.MsisdnMismatchResultTypes.valueOf(results.getString(
                             "msisdn_mismatch_result")));
-                    parameters.setHeFailureResult(ScopeParam.heFailureResults.valueOf(results.getString(
+                    parameters.setHeFailureResult(ScopeParam.HeFailureResults.valueOf(results.getString(
                             "he_failure_result")));
                     parameters.setTncVisible(results.getBoolean("is_tnc_visible"));
                     parameters.setLoginHintFormat(getLoginHintFormatTypeDetails(results.getInt("param_id"), conn));
@@ -335,8 +335,8 @@ public class DBUtils {
             }
 
             //validate all scopes and compare with scopes fetched from database
-            for(String scopeToValidate : scopeValues){
-                if(!scopeValuesFromDatabase.contains(scopeToValidate)){
+            for (String scopeToValidate : scopeValues) {
+                if (!scopeValuesFromDatabase.contains(scopeToValidate)) {
                     throw new ConfigurationException("One or more scopes are not valid");
                 }
             }

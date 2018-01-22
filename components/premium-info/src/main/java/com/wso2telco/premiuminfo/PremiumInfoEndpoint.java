@@ -51,19 +51,22 @@ public class PremiumInfoEndpoint {
         String response = null;
         try {
             // validate the request
-            UserInfoRequestValidator requestValidator = UserInfoEndpointConfig.getInstance().getUserInfoRequestValidator();
+            UserInfoRequestValidator requestValidator = UserInfoEndpointConfig.getInstance()
+                    .getUserInfoRequestValidator();
             String accessToken = requestValidator.validateRequest(request);
             // validate the access token
-            UserInfoAccessTokenValidator tokenValidator = UserInfoEndpointConfig.getInstance().getUserInfoAccessTokenValidator();
+            UserInfoAccessTokenValidator tokenValidator = UserInfoEndpointConfig.getInstance()
+                    .getUserInfoAccessTokenValidator();
             OAuth2TokenValidationResponseDTO tokenResponse = tokenValidator.validateToken(accessToken);
             // build the claims
             //Validate the grant type to be implicit or authorization_code before retrieving claims
-            UserInfoResponseBuilder userInfoResponseBuilder = UserInfoEndpointConfig.getInstance().getUserInfoResponseBuilder();
+            UserInfoResponseBuilder userInfoResponseBuilder = UserInfoEndpointConfig.getInstance()
+                    .getUserInfoResponseBuilder();
             response = userInfoResponseBuilder.getResponseString(tokenResponse);
 
         } catch (UserInfoEndpointException e) {
             log.error("UserInfoEndpoint Exception occurred when calling getUserClaims : ", e);
-            response= handleError(e).toString();
+            response = handleError(e).toString();
         } catch (OAuthSystemException e) {
             log.error("OAuthSystemException Exception occurred when calling getUserClaims : ", e);
             throw new OAuthSystemException("UserInfoEndpoint Failed");

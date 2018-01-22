@@ -125,8 +125,6 @@ public class Endpoints {
             for (ScopeDetailsConfig.Scope sc : scopes) {
                 scopeMap.put(sc.getName(), sc);
             }
-
-
         } catch (SQLException e) {
             log.error("Error occurred while retrieving operator MSISDN properties of operators.");
         } catch (NamingException e) {
@@ -248,6 +246,7 @@ public class Endpoints {
 
                     ipAddress = getIpAddress(httpHeaders, httpServletRequest, operatorName);
 
+                    //Validate with Scope wise parameters and throw exceptions
                     ScopeParam scopeParam = validateAndSetScopeParameters(loginHint, msisdn, scopeName, redirectUrlInfo,
                             userStatus, redirectURL);
 
@@ -307,7 +306,7 @@ public class Endpoints {
                             log.debug("redirectURL : " + redirectURL);
                         }
 
-                        Map<String, String> attShareDetails = validateAttributeShareScopes(scopeName,
+                        Map<String, String> attShareDetails = AttributeShare.attributeShareScopesValidation(scopeName,
                                 operatorName, clientId, loginhint_msisdn, msisdn);
 
                         redirectUrlInfo.setMsisdnHeader(msisdn);
@@ -319,11 +318,13 @@ public class Endpoints {
                         redirectUrlInfo.setAttributeSharingScope(Boolean.parseBoolean(attShareDetails.get
                                 (AuthProxyConstants.ATTR_SHARE_SCOPE)));
                         redirectUrlInfo.setTrustedStatus(attShareDetails.get(AuthProxyConstants.TRUSTED_STATUS));
+                        redirectUrlInfo.setAttributeSharingScopeType(attShareDetails.get(AuthProxyConstants
+                                .ATTR_SHARE_SCOPE_TYPE));
+
                         redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
 
                         DataPublisherUtil.updateAndPublishUserStatus(
-                                userStatus, DataPublisherUtil.UserState.PROXY_REQUEST_FORWARDED_TO_IS, "Redirect " +
-                                        "URL : "
+                                userStatus, DataPublisherUtil.UserState.PROXY_REQUEST_FORWARDED_TO_IS, "Redirect URL : "
                                         + redirectURL);
                     }
 
@@ -431,7 +432,7 @@ public class Endpoints {
             }
 
             if (StringUtils.isNotEmpty(verifiedLoginHint)) {
-                if (ScopeParam.msisdnMismatchResultTypes.ERROR_RETURN.equals(scopeParam.getMsisdnMismatchResult())) {
+                if (ScopeParam.MsisdnMismatchResultTypes.ERROR_RETURN.equals(scopeParam.getMsisdnMismatchResult())) {
                     if (!verifiedLoginHint.equals(msisdnHeader)) {
                         DataPublisherUtil.updateAndPublishUserStatus(userStatus,
                                 DataPublisherUtil.UserState.LOGIN_HINT_MISMATCH,
@@ -560,7 +561,8 @@ public class Endpoints {
 
                         } catch (Exception e) {
                             log.error("Given pcr in the login hint cannot be accepted");
-                            throw new AuthenticationFailedException("Given pcr in the login hint cannot be accepted");
+                            throw new AuthenticationFailedException("Given pcr in the login hint cannot be accepted:"
+                                    + e);
                         }
                     }
                     break;
@@ -614,7 +616,7 @@ public class Endpoints {
                                 isValidFormatType = true;
                             } catch (Exception e) {
                                 log.error("Error while decrypting login hint : " + loginHint, e);
-                                throw new AuthenticationFailedException("Error while decrypting login hint");
+                                throw new AuthenticationFailedException("Error while decrypting login hint :" + e);
                             }
                         }
                     } else {
@@ -646,7 +648,8 @@ public class Endpoints {
 
                             } catch (Exception e) {
                                 log.error("pcr in the login hint cannot be accepted");
-                                throw new AuthenticationFailedException("pcr in the login hint cannot be accepted");
+                                throw new AuthenticationFailedException("pcr in the login hint cannot be accepted: "
+                                        + e);
                             }
                             isValidFormatType = true;
                         }
@@ -759,10 +762,9 @@ public class Endpoints {
         String validationRegex = configurationService.getDataHolder().getMobileConnectConfig().getMsisdn()
                 .getValidationRegex();
         boolean isAttrScope = redirectUrlInfo.isAttributeSharingScope();
-
         boolean isShowTnc = redirectUrlInfo.isShowTnc();
-        ScopeParam.msisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
-        ScopeParam.heFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
+        ScopeParam.MsisdnMismatchResultTypes headerMismatchResult = redirectUrlInfo.getHeaderMismatchResult();
+        ScopeParam.HeFailureResults heFailureResult = redirectUrlInfo.getHeFailureResult();
         String spType = redirectUrlInfo.getTrustedStatus();
         String attrShareScopeType = redirectUrlInfo.getAttributeSharingScopeType();
 

@@ -200,7 +200,12 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         return validScopes.toArray(new String[validScopes.size()]);
     }
 
-
+    /**
+     * Gets the hashed value of given claims.
+     *
+     * @param claimValue the claim value
+     * @return the hashed value of the claim
+     */
     private String getHashedClaimValue(String claimValue) throws NoSuchAlgorithmException {
 
         MessageDigest md = MessageDigest.getInstance("SHA-256");

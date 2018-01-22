@@ -23,23 +23,23 @@ public class VerificationScope extends AbstractAttributeShare {
 
     private static Log logger = LogFactory.getLog(AttributeShare.class);
 
-    public void mandatoryFeildValidation() {
+    public void mandatoryFieldValidation() {
          /*this method for do the mandatory field validation in attribute verification*/
     }
 
-    public void scopeNClaimMatching() {
+    public void scopeAndClaimMatching() {
        /*this method for do the scope and claim value matching in attribute verification*/
     }
 
-    public void shaAlgortithemValidation() {
+    public void shaAlgorithmValidation() {
         /*this method for do the scope and claim value matching in attribute verification*/
     }
 
     @Override
-    public String attShareDetails(String operatorName, String clientId,String loginhintMsisdn,String msisdn) throws AuthenticationFailedException {
-        logger.debug(" verification scope validation for client id : "+clientId);
-
-        return getTrsutedStatus(operatorName, clientId,loginhintMsisdn,msisdn);
+    public String getAttributeShareDetails(String operatorName, String clientId, String loginHintMsisdn, String
+            msisdn) throws AuthenticationFailedException {
+        logger.debug(" Verification scope validation for client id : " + clientId);
+        return getTrustedStatus(operatorName, clientId, loginHintMsisdn, msisdn);
     }
 
 }

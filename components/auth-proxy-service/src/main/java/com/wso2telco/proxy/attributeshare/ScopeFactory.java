@@ -20,10 +20,17 @@ import com.wso2telco.proxy.util.AuthProxyEnum;
 public class ScopeFactory {
 
     private static ProvisionScope provisionScope;
-    private static VerificationScope variVerificationScope;
-    private ScopeFactory(){}
+    private static VerificationScope verificationScope;
 
-    public static AttrubteSharable getAttribAttrubteSharable(String scopeType){
+    private ScopeFactory() {
+    }
+
+    /***
+     * Identifying the type of the request(Provision request/Verification request)
+     * @param scopeType
+     * @return AttributeSharable object
+     */
+    public static AttributeSharable getAttributeSharable(String scopeType) {
 
         AbstractAttributeShare attributeShareScope = null;
 
@@ -32,10 +39,10 @@ public class ScopeFactory {
         if (scopetype != null) {
             switch (scopetype) {
                 case ATT_VERIFICATION:
-                    if (variVerificationScope == null) {
-                        variVerificationScope = new VerificationScope();
+                    if (verificationScope == null) {
+                        verificationScope = new VerificationScope();
                     }
-                    attributeShareScope = variVerificationScope;
+                    attributeShareScope = verificationScope;
                     break;
                 case ATT_SHARE:
                     if (provisionScope == null) {
@@ -50,6 +57,5 @@ public class ScopeFactory {
         }
 
         return attributeShareScope;
-
     }
 }
