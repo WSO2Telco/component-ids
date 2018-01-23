@@ -74,6 +74,7 @@
 		<module>components/dashboard</module>
 		<module>components/authentication-endpoint</module>
         <module>components/saa-server</module>
+        <module>components/premium-info</module>
 		<module>features</module>
         <module>components/openid-extension</module>
     </modules>

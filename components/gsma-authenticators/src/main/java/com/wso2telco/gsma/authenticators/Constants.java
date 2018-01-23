@@ -417,4 +417,49 @@ public final class Constants {
     public static final String SCOPE = "scope";
 
     public static final String PROMPT = "telco_prompt";
+
+    public static final String OPERATOR_ID = "operatorID";
+
+    public static final String ACTIVE = "ACTIVE";
+
+    public static final String SP_TYPE = "spType";
+
+    public static final String IS_ATTRIBUTE_SHARING_SCOPE = "isAttrScope";
+
+    public static final String EXP_PERIOD = "exp_period";
+
+    public static final String TELCO_SCOPE = "telco_scope";
+
+    public static final String IS_CONSENTED = "isConsented";
+
+    public static final String IS_STATUS_TO_CHANGE = "status_claim_update";
+
+    public static final String NO = "no";
+
+    public static final String YES = "yes";
+
+    public static final String EXPLICIT_SCOPES = "explicitScopes";
+
+    public static final String IMPLICIT_SCOPES = "implicitScopes";
+
+    public static final String NO_CONSENT_SCOPES = "no consent";
+
+    public static final String LONGLIVEDSCOPES = " longlivedScopes";
+
+    public static final String ATTRIBUTE_CONSENT_JSP = "/attributeconsent.do";
+
+
+    public static final String IS_DISPLAYSCOPE = "isDisplayScope";
+    public static final String DISPLAY_SCOPES = "displayScopes";
+    public static final String TRUSTED_STATUS = "trustedstatus";
+    public static final String IS_CONSENT = "isConsent";
+    public static final String VALIDITY_TYPE = "validityType";
+    public static final String IS_AUNTHENTICATION_CONTINUE = "authenticationFlowStatus";
+    public static final String IS_TNC = "isTNCForNewUser";
+    public static final String AUTHENTICATED_USER = "AuthenticatedUser";
+    public static final String ATTRSHARE_SCOPE_TYPE = "attrShareType";
+
+    public static final String TRUE = "true";
+
+    public static final String FALSE = "false";
 }
