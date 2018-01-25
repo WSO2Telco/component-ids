@@ -26,6 +26,7 @@ import com.wso2telco.core.config.ConfigLoader;
 import com.wso2telco.core.config.MIFEAuthentication;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.authenticators.*;
 import com.wso2telco.gsma.authenticators.federated.FederatedAuthenticator;
 import com.wso2telco.gsma.authenticators.sms.SMSOTPAuthenticator;
 import org.apache.commons.logging.Log;
@@ -33,14 +34,6 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.framework.BundleContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 
-import com.wso2telco.gsma.authenticators.GSMAMSISDNAuthenticator;
-import com.wso2telco.gsma.authenticators.LOACompositeAuthenticator;
-import com.wso2telco.gsma.authenticators.MSISDNAuthenticator;
-import com.wso2telco.gsma.authenticators.MSSAuthenticator;
-import com.wso2telco.gsma.authenticators.MSSPinAuthenticator;
-import com.wso2telco.gsma.authenticators.OpCoCompositeAuthenticator;
-import com.wso2telco.gsma.authenticators.PinAuthenticator;
-import com.wso2telco.gsma.authenticators.SelfAuthenticator;
 import com.wso2telco.gsma.authenticators.headerenrich.HeaderEnrichmentAuthenticator;
 import com.wso2telco.gsma.authenticators.sms.SMSAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDAuthenticator;
@@ -102,6 +95,8 @@ public class Activator implements BundleActivator {
                 new SelfAuthenticator(), null);
         bundleContext.registerService(ApplicationAuthenticator.class.getName(),
                 new FederatedAuthenticator(), null);
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new BasicAuthenticator(), null);
 
 
         if (log.isDebugEnabled()) {
