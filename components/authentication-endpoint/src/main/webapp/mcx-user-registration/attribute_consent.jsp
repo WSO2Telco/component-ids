@@ -161,7 +161,7 @@
       </c:forEach>
   </ul>
 </div>
- <a id="anchor1" class="anchorLink" style="cursor:pointer;"><img src="mcx-user-registration/mcresources/img/arrow.png" style="margin-left:43%;cursor:pointer;"></a>
+ <a id="anchor1" class="anchorLink" style="cursor:pointer;"><img src="mcx-user-registration/mcresources/img/arrow.png" style="margin-left:46%;cursor:pointer;"></a>
 
         <form class="form-horizontal" id="selfReg" name="selfReg" data-parsley-validate>
             <input type="hidden" name="regExp_PRIMARY" value="^[\S]{5,30}$">
