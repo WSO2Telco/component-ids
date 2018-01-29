@@ -151,7 +151,7 @@
         </header>
         <br>
         
-<div class="grid">
+<div class="grid" id="Attribgroup">
   <ul class="list-group" id="list-group-accordion">
       <c:forEach var="scope" items="${pageScope.attributeScopes}">
                <li class="list-group-item">
@@ -161,6 +161,7 @@
       </c:forEach>
   </ul>
 </div>
+ <a id="anchor1" class="anchorLink" style="cursor:pointer;"><img src="mcx-user-registration/mcresources/img/arrow.png" style="margin-left:43%;cursor:pointer;"></a>
 
         <form class="form-horizontal" id="selfReg" name="selfReg" data-parsley-validate>
             <input type="hidden" name="regExp_PRIMARY" value="^[\S]{5,30}$">
@@ -210,6 +211,13 @@
         </form>
     </main>
 </div>
+<style>
+#Attribgroup{
+    height:26rem;
+    overflow-x:hidden;
+	overflow-y:auto;
+}
+</style>
 <script type="text/javascript">
 
     $('#validate-btn1').click(function (event) {
@@ -236,6 +244,19 @@
       }
     }
   });
+  
+     if($('#list-group-accordion').height() < 259 ){
+   $('#anchor1').hide();
+   var height = $('#list-group-accordion').height() + 25 + 'px';
+    $("#Attribgroup").css("height", height);   
+   }
+  
+  $('#anchor1').click(function(){
+    $('#Attribgroup').animate({
+        scrollTop: $('#Attribgroup')[0].scrollHeight}, 2000);
+});
+  
+  
 })
 
 
