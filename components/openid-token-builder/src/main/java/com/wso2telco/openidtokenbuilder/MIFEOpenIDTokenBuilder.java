@@ -458,24 +458,25 @@ public class MIFEOpenIDTokenBuilder implements
      */
     public OAuthAppDO getAppInformation(OAuth2AccessTokenReqDTO tokenReqDTO)
             throws IdentityOAuth2Exception, InvalidOAuthClientException {
+        OAuthAppDO oAuthAppDO=null;
         BaseCache<String, OAuthAppDO> appInfoCache = new BaseCache<String, OAuthAppDO>(
                 "AppInfoCache"); //$NON-NLS-1$
-        if (null != appInfoCache) {
+        if (appInfoCache != null) {
             if (log.isDebugEnabled()) {
                 log.debug("Successfully created AppInfoCache under " //$NON-NLS-1$
                         + OAuthConstants.OAUTH_CACHE_MANAGER);
             }
+            try {
+                oAuthAppDO = appInfoCache.getValueFromCache(tokenReqDTO.getClientId());
+            }catch (Exception e){
+                log.error("Error occurred while fetching application information from cache");
+            }
+            if (oAuthAppDO == null){
+                oAuthAppDO = new OAuthAppDAO().getAppInformation(tokenReqDTO.getClientId());
+                appInfoCache.addToCache(tokenReqDTO.getClientId(), oAuthAppDO);
+            }
         }
-
-        OAuthAppDO oAuthAppDO = appInfoCache.getValueFromCache(tokenReqDTO.getClientId());
-        if (oAuthAppDO == null){
-            oAuthAppDO = new OAuthAppDAO().getAppInformation(tokenReqDTO.getClientId());
-            appInfoCache.addToCache(tokenReqDTO.getClientId(), oAuthAppDO);
-        }
-            //appInfoCache.addToCache(tokenReqDTO.getClientId(), oAuthAppDO);
-
         return oAuthAppDO;
-        
     }
 
 
