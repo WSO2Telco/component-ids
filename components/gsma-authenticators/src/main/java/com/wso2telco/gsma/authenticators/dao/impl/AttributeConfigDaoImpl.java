@@ -98,11 +98,11 @@ public class AttributeConfigDaoImpl implements AttributeConfigDao {
                 String clientId = consumerKey;
                 String operatorId = operator;
 
-                if (consentDataAvailable(scope, operatorId, clientId) == false) {
+                if (!consentDataAvailable(scope, operatorId, clientId)) {
 
-                    if (consentDataAvailable(scope, "ALL", clientId) == false) {
+                    if (!consentDataAvailable(scope, "ALL", clientId)) {
 
-                        if (consentDataAvailable(scope, operatorId, "ALL") == false) {
+                        if (!consentDataAvailable(scope, operatorId, "ALL")) {
                             clientId = "ALL";
                             operatorId = "ALL";
                         } else {
@@ -178,11 +178,11 @@ public class AttributeConfigDaoImpl implements AttributeConfigDao {
                 String clientId = consumerKey;
                 String operatorId = operator;
 
-                if (consentDataAvailable(scope, operatorId, clientId) == false) {
+                if (!consentDataAvailable(scope, operatorId, clientId)) {
 
-                    if (consentDataAvailable(scope, "ALL", clientId) == false) {
+                    if (!consentDataAvailable(scope, "ALL", clientId)) {
 
-                        if (consentDataAvailable(scope, operatorId, "ALL") == false) {
+                        if (!consentDataAvailable(scope, operatorId, "ALL")) {
                             clientId = "ALL";
                             operatorId = "ALL";
                         } else {
