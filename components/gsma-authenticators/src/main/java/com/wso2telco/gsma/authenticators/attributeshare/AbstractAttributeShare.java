@@ -71,8 +71,10 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
         Map<String, List<String>> scopesList = new HashMap();
         List<String> longLivedScopes = new ArrayList();
         AttributeConfigDao attributeConfigDao = new AttributeConfigDaoImpl();
+        String operator = context.getProperty(Constants.OPERATOR).toString();
+        String clientId = context.getProperty(Constants.CLIENT_ID).toString();
         List<ScopeParam> scopeParamList = attributeConfigDao.getScopeParams(context.getProperty(Constants
-                .TELCO_SCOPE).toString());
+                .TELCO_SCOPE).toString(), operator, clientId);
 
         for (ScopeParam scopeParam : scopeParamList) {
             String consentType = scopeParam.getConsentType();
@@ -98,7 +100,7 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
         scopesList.put(Constants.IMPLICIT_SCOPES, implicitScopes);
         scopesList.put(Constants.NO_CONSENT_SCOPES, noConsentScopes);
         if (!longLivedScopes.isEmpty()) {
-            context.setProperty(Constants.LONGLIVEDSCOPES, longLivedScopes.toString());
+            context.setProperty(Constants.LONGLIVEDSCOPES, longLivedScopes.toString().replaceAll(", ", ","));
         }
         return scopesList;
     }

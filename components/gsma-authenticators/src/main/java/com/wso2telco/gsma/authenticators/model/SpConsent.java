@@ -19,7 +19,7 @@ public class SpConsent {
 
     private String consumerKey;
 
-    private int operatorId;
+    private String operatorId;
 
     private int scopeId;
 
@@ -40,11 +40,11 @@ public class SpConsent {
         this.consumerKey = consumerKey;
     }
 
-    public int getOperatorID() {
+    public String getOperatorID() {
         return operatorId;
     }
 
-    public void setOperatorID(int operatorID) {
+    public void setOperatorID(String operatorID) {
         this.operatorId = operatorId;
     }
 
