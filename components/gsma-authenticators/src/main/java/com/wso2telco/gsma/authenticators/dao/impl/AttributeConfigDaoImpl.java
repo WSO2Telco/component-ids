@@ -83,114 +83,203 @@ public class AttributeConfigDaoImpl implements AttributeConfigDao {
         throw new SQLException("Connect Datasource not initialized properly");
     }
 
-    public List<SpConsent> getScopeExpireTime(String operator, String consumerKey, String scope)
+    public List<SpConsent> getScopeExpireTime(String operator, String consumerKey, String scopes)
             throws NamingException, DBUtilException {
 
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
+        Connection connectionConsent = null;
+        PreparedStatement preparedStatementConsent = null;
+        ResultSet resultSetConsent = null;
 
-        String[] scopeValues = (scope.substring(1, scope.length() - 1)).split(",");
-
-        StringBuilder params = new StringBuilder("(select param_id from scope_parameter where scope= ?)");
-        for (int i = 1; i < scopeValues.length; i++) {
-            params.append(",(select param_id from scope_parameter where scope= ?)");
-        }
-
-        String query = "SELECT con.scope_id,con.exp_period,con.operator_id ,con.consent_id FROM " + TableName.CONSENT
-                + " con INNER JOIN " + TableName.OPERATOR + " op ON op.ID=con.operator_id INNER JOIN " + TableName
-                .SCOPE_PARAMETER + " scp ON scp" +
-                ".param_id=con.scope_id where op.operatorname=? AND con.client_id=? AND con.scope_id in (" + params +
-                ");";
-
+        String[] scopeValues = (scopes.substring(1, scopes.length() - 1)).split(",");
         List<SpConsent> spConsentList = new ArrayList();
-
         try {
-            connection = getConnectDBConnection();
-            preparedStatement = connection.prepareStatement(query);
-            preparedStatement.setString(1, operator);
-            preparedStatement.setString(2, consumerKey);
             for (int i = 0; i < scopeValues.length; i++) {
-                preparedStatement.setString(i + 3, scopeValues[i].trim());
+                String scope = scopeValues[i];
+                String clientId = consumerKey;
+                String operatorId = operator;
+
+                if (consentDataAvailable(scope, operatorId, clientId) == false) {
+
+                    if (consentDataAvailable(scope, "ALL", clientId) == false) {
+
+                        if (consentDataAvailable(scope, operatorId, "ALL") == false) {
+                            clientId = "ALL";
+                            operatorId = "ALL";
+                        } else {
+                            clientId = "ALL";
+                            operatorId = operator;
+                        }
+                    } else {
+                        clientId = consumerKey;
+                        operatorId = "ALL";
+                    }
+                } else {
+                    clientId = consumerKey;
+                    operatorId = operator;
+                }
+
+                try {
+                    String query = "SELECT con.scope_id,con.exp_period,con.operator_id ,con.consent_id FROM " +
+                            TableName.CONSENT
+                            + " con INNER JOIN " + TableName
+                            .SCOPE_PARAMETER + " scp ON scp" +
+                            ".param_id=con.scope_id where con.operator_id=? AND con.client_id=? AND con.scope_id= " +
+                            "(SELECT param_id FROM " + TableName.SCOPE_PARAMETER + " WHERE scope=?);";
+
+                    connectionConsent = getConnectDBConnection();
+                    preparedStatementConsent = connectionConsent.prepareStatement(query);
+                    preparedStatementConsent.setString(1, operatorId);
+                    preparedStatementConsent.setString(2, clientId);
+                    preparedStatementConsent.setString(3, scope);
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Query in method getScopeExpireTime:" + preparedStatementConsent);
+                    }
+                    resultSetConsent = preparedStatementConsent.executeQuery();
+                    while (resultSetConsent.next()) {
+                        SpConsent spConsent = new SpConsent();
+                        spConsent.setScope(resultSetConsent.getInt("scope_id"));
+                        spConsent.setExpPeriod(resultSetConsent.getInt(Constants.EXP_PERIOD));
+                        spConsent.setOperatorID(resultSetConsent.getString("operator_id"));
+                        spConsent.setConsentId(resultSetConsent.getInt("consent_id"));
+                        spConsentList.add(spConsent);
+                    }
+                } catch (SQLException e) {
+                    log.error("Exception occurred while retrieving data to the database for consumerKey: " +
+                            consumerKey + " " +
+                            ",operator: " + operator + " scope: " + scope + " : " + e.getMessage());
+                    throw new DBUtilException(e.getMessage(), e);
+                } finally {
+                    IdentityDatabaseUtil.closeAllConnections(connectionConsent, resultSetConsent,
+                            preparedStatementConsent);
+                }
             }
 
-            if (log.isDebugEnabled()) {
-                log.debug("Query in method getScopeExpireTime:" + preparedStatement);
-            }
-            resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                SpConsent spConsent = new SpConsent();
-                spConsent.setScope(resultSet.getInt("scope_id"));
-                spConsent.setExpPeriod(resultSet.getInt(Constants.EXP_PERIOD));
-                spConsent.setOperatorID(resultSet.getInt("operator_id"));
-                spConsent.setConsentId(resultSet.getInt("consent_id"));
-                spConsentList.add(spConsent);
-            }
-        } catch (SQLException e) {
-            log.error("Exception occurred while retrieving data to the database for consumerKey: " + consumerKey + " " +
-                    ",operator: " + operator + " scope: " + scope + " : " + e.getMessage());
+        } catch (DBUtilException e) {
+            log.error("Exception occurred while retrieving data to the database for scopes : " + scopes + ": " + e
+                    .getMessage());
             throw new DBUtilException(e.getMessage(), e);
-
-        } finally {
-            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
-
         return spConsentList;
     }
 
-    public List<ScopeParam> getScopeParams(String scopes) throws NamingException, DBUtilException {
+    public List<ScopeParam> getScopeParams(String scopes, String operator, String consumerKey) throws
+            NamingException, DBUtilException {
 
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
 
         String[] scopeValues = scopes.split("\\s+|\\+");
-        StringBuilder params = new StringBuilder("?");
-
-        for (int i = 1; i < scopeValues.length; i++) {
-            params.append(",?");
-        }
-
-        String query = "SELECT scp.scope,con.consent_type,vt.validity_type FROM " + TableName.SCOPE_PARAMETER + " scp" +
-                " INNER JOIN " + TableName.CONSENT_TYPE + " con ON scp.consent_type=con.consent_typeID INNER JOIN " +
-                TableName.CONSENT_VALIDITY_TYPE +
-                " vt ON scp.consent_validity_type=vt.validity_id WHERE scp.scope in (" + params + ");";
-
-        List<ScopeParam> scopeParams = new ArrayList();
+        List<ScopeParam> scopeParamsList = new ArrayList();
         try {
+            for (int i = 1; i < scopeValues.length; i++) {
+                String scope = scopeValues[i];
+                String clientId = consumerKey;
+                String operatorId = operator;
 
+                if (consentDataAvailable(scope, operatorId, clientId) == false) {
+
+                    if (consentDataAvailable(scope, "ALL", clientId) == false) {
+
+                        if (consentDataAvailable(scope, operatorId, "ALL") == false) {
+                            clientId = "ALL";
+                            operatorId = "ALL";
+                        } else {
+                            clientId = "ALL";
+                            operatorId = operator;
+                        }
+                    } else {
+                        clientId = consumerKey;
+                        operatorId = "ALL";
+                    }
+                } else {
+                    clientId = consumerKey;
+                    operatorId = operator;
+                }
+
+                try {
+                    String query = "SELECT scp.scope,con.consent_type,vt.validity_type " +
+                            "FROM " + TableName.SCOPE_PARAMETER + " scp ," + TableName.CONSENT + " cons " +
+                            "INNER JOIN " + TableName.CONSENT_TYPE + " con on cons.consent_type=con.consent_typeID " +
+                            "INNER JOIN " + TableName.CONSENT_VALIDITY_TYPE + " vt on cons.consent_validity_type=vt" +
+                            ".validity_id " +
+                            "WHERE cons.operator_id =? and cons.client_id=? " +
+                            "and scp.scope =? and scp.param_id=cons.scope_id ;";
+
+                    connection = getConnectDBConnection();
+                    preparedStatement = connection.prepareStatement(query);
+                    preparedStatement.setString(1, operatorId);
+                    preparedStatement.setString(2, clientId);
+                    preparedStatement.setString(3, scope);
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("Query in method getScopeParams:" + preparedStatement);
+                    }
+
+                    resultSet = preparedStatement.executeQuery();
+
+                    while (resultSet.next()) {
+                        ScopeParam scopeParam = new ScopeParam();
+                        scopeParam.setScope(resultSet.getString("scope"));
+                        scopeParam.setConsentValidityType(resultSet.getString("validity_type"));
+                        scopeParam.setConsentType(resultSet.getString("consent_type"));
+                        scopeParamsList.add(scopeParam);
+                    }
+                } catch (SQLException e) {
+                    log.error("Exception occurred while retrieving data to the database for scopes : " + scopes + ": " +
+                            "" + e
+                            .getMessage());
+                    throw new DBUtilException(e.getMessage(), e);
+                } finally {
+                    IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
+                }
+            }
+
+        } catch (DBUtilException e) {
+            log.error("Exception occurred while retrieving data to the database for scopes : " + scopes + ": " + e
+                    .getMessage());
+            throw new DBUtilException(e.getMessage(), e);
+        }
+        return scopeParamsList;
+    }
+
+    public boolean consentDataAvailable(String scope, String operatorId, String clientId) throws
+            DBUtilException {
+
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        boolean avalability = false;
+
+        try {
             connection = getConnectDBConnection();
-            preparedStatement = connection.prepareStatement(query);
-            for (int i = 0; i < scopeValues.length; i++) {
-                preparedStatement.setString(i + 1, scopeValues[i]);
-            }
+            String query1 = "SELECT * from " + TableName.CONSENT + " where scope_id = (select param_id from " +
+                    "scope_parameter where " +
+                    "scope" +
+                    " = ?) and operator_id=? and client_id=?;";
 
-            if (log.isDebugEnabled()) {
-                log.debug("Query in method getScopeParams:" + preparedStatement);
-            }
+            preparedStatement = connection.prepareStatement(query1);
+            preparedStatement.setString(1, scope);
+            preparedStatement.setString(2, operatorId);
+            preparedStatement.setString(3, clientId);
 
             resultSet = preparedStatement.executeQuery();
 
-            while (resultSet.next()) {
-                ScopeParam scopeParam = new ScopeParam();
-                scopeParam.setScope(resultSet.getString("scope"));
-                scopeParam.setConsentValidityType(resultSet.getString("validity_type"));
-                scopeParam.setConsentType(resultSet.getString("consent_type"));
-                scopeParams.add(scopeParam);
+            if (!resultSet.next()) {
+                avalability = false;
+            } else {
+                avalability = true;
             }
-
-        } catch (SQLException e) {
-            log.error("Exception occurred while retrieving data to the database for scopes : " + scopes + ": " + e
+        } catch (SQLException | NamingException e) {
+            log.error("Exception occurred while retrieving data to the database for scope : " + scope + ": " + e
                     .getMessage());
             throw new DBUtilException(e.getMessage(), e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
-
-        return scopeParams;
-
+        return avalability;
     }
-
 
     public UserConsentDetails getUserConsentDetails(UserConsentDetails userConsentDetails) throws NamingException,
             DBUtilException {
@@ -203,7 +292,7 @@ public class AttributeConfigDaoImpl implements AttributeConfigDao {
         String query = "SELECT usercon.consent_status as activestatus ,usercon.expire_time as consent_expire_time " +
                 "FROM " + TableName.USER_CONSENT + " usercon INNER JOIN " + TableName.CONSENT + " con ON con" +
                 ".consent_id = usercon" +
-                ".consent_id INNER JOIN " + TableName.OPERATOR + " op ON op.ID=con.operator_id INNER JOIN " +
+                ".consent_id INNER JOIN " + TableName.OPERATOR + " op ON op.operatorname=con.operator_id INNER JOIN " +
                 TableName.SCOPE_PARAMETER + " scp ON scp" +
                 ".param_id=con.scope_id WHERE op.operatorname=? AND scp.scope=? AND con.client_id=? AND usercon" +
                 ".msisdn=?;";
