@@ -19,6 +19,6 @@ import java.util.Map;
 
 public interface RemoteClaims {
 
-    Map<String, Object> getTotalClaims(String operatorEndPoint, String msisdn);
+    Map<String, Object> getTotalClaims(String operatorEndPoint, CustomerInfo customerInfo);
 
 }

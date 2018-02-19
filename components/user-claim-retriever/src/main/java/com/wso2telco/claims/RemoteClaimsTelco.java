@@ -37,12 +37,12 @@ public class RemoteClaimsTelco implements RemoteClaims {
     private static Log log = LogFactory.getLog(RemoteClaimsTelco.class);
 
     @Override
-    public Map<String, Object> getTotalClaims(String operatorEndPoint, String msisdn) {
+    public Map<String, Object> getTotalClaims(String operatorEndPoint, CustomerInfo customerInfo) {
 
         Map<String, Object> totalClaims = new HashedMap();
         Customer customer = new Customer();
         try {
-            String url = operatorEndPoint + "?msisdn=" + msisdn;
+            String url = operatorEndPoint + "?msisdn=" + customerInfo.getMsisdn();
             HttpClient client = HttpClientBuilder.create().build();
             HttpGet request = new HttpGet(url);
             HttpResponse response = client.execute(request);
@@ -96,5 +96,4 @@ public class RemoteClaimsTelco implements RemoteClaims {
 
         return totalClaims;
     }
-
 }
