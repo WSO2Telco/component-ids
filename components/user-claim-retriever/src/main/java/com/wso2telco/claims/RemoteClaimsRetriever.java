@@ -74,11 +74,14 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
     public Map<String, Object> getRequestedClaims(String[] scopes, List<ScopeDetailsConfig.Scope> scopeConfigs,
                                                   Map<String, Object> totalClaims) throws NoSuchAlgorithmException {
         Map<String, Object> requestedClaims = new HashMap();
+        CustomerInfo customerInfo = new CustomerInfo();
 
         populateScopeConfigs(scopeConfigs);
         String operatorName = (String) totalClaims.get(operator);
-        String phoneNumber = (String) totalClaims.get(phoneNumberClaim);
-        Map<String, Object> totalClaimsValues = getTotalClaims(operatorName, phoneNumber);
+        customerInfo.setMsisdn((String) totalClaims.get(phoneNumberClaim));
+        customerInfo.setScope(scopes);
+
+        Map<String, Object> totalClaimsValues = getTotalClaims(operatorName, customerInfo);
 
         for (String scope : scopes) {
             if (scopeConfigsMap.containsKey(scope) && totalClaimsValues != null) {
@@ -94,7 +97,7 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
         return requestedClaims;
     }
 
-    public static Map<String, Object> getTotalClaims(String operatorName, String msisdn) {
+    public static Map<String, Object> getTotalClaims(String operatorName, CustomerInfo customerInfo) {
 
         Map<String, Object> totalClaims = null;
         String className = null;
@@ -110,7 +113,7 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
         try {
             Class c = Class.forName(className);
             RemoteClaims remoteClaims = (RemoteClaims) c.newInstance();
-            totalClaims = remoteClaims.getTotalClaims(operatorEndPoint, msisdn);
+            totalClaims = remoteClaims.getTotalClaims(operatorEndPoint, customerInfo);
         } catch (ClassNotFoundException e) {
             log.error(className + " Class Not Found Exception");
         } catch (InstantiationException e) {
