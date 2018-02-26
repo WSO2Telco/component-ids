@@ -33,7 +33,7 @@ public class AuthenticationMessageDetail {
     private String acr;
 
     //URL for the Service Provider Image
-    private String sp_url;
+    private String spUrl;
 
     public String getMsg() {
         return msg;
@@ -67,11 +67,11 @@ public class AuthenticationMessageDetail {
         this.acr = acr;
     }
 
-    public String getSp_url() {
-        return sp_url;
+    public String getSpUrl() {
+        return spUrl;
     }
 
-    public void setSp_url(String sp_url) {
-        this.sp_url = sp_url;
+    public void setSpUrl(String spUrl) {
+        this.spUrl = spUrl;
     }
 }

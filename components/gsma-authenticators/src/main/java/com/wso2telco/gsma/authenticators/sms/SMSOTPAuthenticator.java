@@ -62,6 +62,10 @@ public class SMSOTPAuthenticator extends SMSAuthenticator {
 
         log.info("Initiating authentication request");
 
+        DataPublisherUtil.updateAndPublishUserStatus(
+                (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                DataPublisherUtil.UserState.SMS_AUTH_PROCESSING, this.getClass().getName()+" processing started");
+
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         SMSMessage smsMessage = getRedirectInitAuthentication(response, context, userStatus);
         if (smsMessage != null && smsMessage.getRedirectURL() != null && !smsMessage.getRedirectURL().isEmpty()) {

@@ -14,15 +14,17 @@
 		<header class="page__header">
 			<h1 class="page__heading">
 			<%
-			String authenticators = request.getParameter("authenticators");
-			if(authenticators != null && authenticators.contains("VoiceCallAuthenticator")) {
-			%>
-			<fmt:message key='waiting-label-continue-on-ivr-device-heading'/>
-			<%} else {%>
+            String authenticators = request.getParameter("authenticators");
+            if(authenticators != null && authenticators.contains("VoiceCallAuthenticator")) {%>
+            <fmt:message key='waiting-label-continue-on-ivr-device-heading'/>
+            <%} else if(authenticators != null && authenticators.contains("SmartPhoneAppAuthenticator")) {%>
+            <fmt:message key='waiting-label-continue-on-saa_device'/>
+            <%}else{%>
             <fmt:message key='waiting-label-continue-on-device-heading'/>
             <%}%>
-			</h1>
-			<p style="font-size: 0.9em;">
+            </h1>
+
+            <p style="font-size: 0.9em;">
 
 				<%
 
@@ -31,7 +33,9 @@
 					if(authenticators != null && authenticators.contains("SMSOTPAuthenticator")) {
 						smsotp=true;
 				%>
+
 				<fmt:message key='waiting-label-continue-on-device-intro-otp-sms'/>
+
 				<%} else if(authenticators != null && authenticators.contains("SMSAuthenticator")) { %>
 				<fmt:message key='waiting-label-continue-on-device-intro-sms'/>
 				<%} else if (authenticators != null && authenticators.contains("USSDAuthenticator")) {
@@ -40,10 +44,11 @@
 				<%} else if (authenticators != null && authenticators.contains("USSDPinAuthenticator")){
 					showSMSLink = true; %>
 				{{continue-on-device-intro-ussd-pin}}
-				<%} else {%>
-				{{continue-on-device-intro-default}}
-				<%}%>
-
+				<%} else if(authenticators != null && authenticators.contains("SmartPhoneAppAuthenticator")){%>
+				<fmt:message key='waiting-label-continue-on-device-intro-saa'/>
+				<%}else{%>
+                  {{continue-on-device-intro-default}}
+                <%}%>
                 <%
                     String acr = request.getParameter("acr_values");
                     if (acr.equals("3")) {

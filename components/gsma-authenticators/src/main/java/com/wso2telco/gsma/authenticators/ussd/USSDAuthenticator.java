@@ -97,10 +97,6 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
     public AuthenticatorFlowStatus process(HttpServletRequest request,
                                            HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
-        DataPublisherUtil
-                .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
-                                .USER_STATUS_DATA_PUBLISHING_PARAM),
-                        DataPublisherUtil.UserState.USSD_AUTH_PROCESSING, "USSDAuthenticator processing started");
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
         } else {
@@ -120,6 +116,10 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
 
         log.info("Initiating authentication request");
+        DataPublisherUtil
+                .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
+                                .USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.USSD_AUTH_PROCESSING, "USSDAuthenticator processing started");
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         String loginPage;
         String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),

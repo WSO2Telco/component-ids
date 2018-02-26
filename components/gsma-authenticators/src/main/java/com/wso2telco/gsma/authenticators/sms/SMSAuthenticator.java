@@ -133,11 +133,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
 
         log.info("Processing started");
-
-        DataPublisherUtil.updateAndPublishUserStatus(
-                (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-                DataPublisherUtil.UserState.SMS_AUTH_PROCESSING, this.getClass().getName()+" processing started");
-            return initAuthFlowStatus(request,response,context);
+        return initAuthFlowStatus(request,response,context);
     }
 
     protected AuthenticatorFlowStatus initAuthFlowStatus(HttpServletRequest request, HttpServletResponse response,AuthenticationContext context)
@@ -158,6 +154,11 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
     @Override protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response,
             AuthenticationContext context) throws AuthenticationFailedException {
         log.info("Initiating authentication request");
+
+        DataPublisherUtil.updateAndPublishUserStatus(
+                (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                DataPublisherUtil.UserState.SMS_AUTH_PROCESSING, this.getClass().getName()+" processing started");
+
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         SMSMessage smsMessage = getRedirectInitAuthentication(response, context, userStatus);
         if (smsMessage != null && smsMessage.getRedirectURL() != null && !smsMessage.getRedirectURL().isEmpty()) {

@@ -251,8 +251,6 @@ public final class Constants {
 
     public static final String PIN_REGISTRATION_JSP = "/mcx-user-registration/auth_pin_registration";
 
-    public static final String SAA_WAITING_JSP = "/mcx-user-registration/auth_registration_saa_waiting";
-
     public static final String REDIRECT_URI = "redirectURI";
 
     public static final String COMMON_AUTH_HANDLED = "commonAuthHandled";
@@ -422,6 +420,8 @@ public final class Constants {
     public static final String USER_ACTION_USER_CANCELED = "userCanceled";
 
     public static final String USER_ACTION_USER_TIMEOUT = "userRespondedOrTimeout";
+
+    public static final String USER_APPROVE ="approved";
 
     public static final String SCOPE = "scope";
 

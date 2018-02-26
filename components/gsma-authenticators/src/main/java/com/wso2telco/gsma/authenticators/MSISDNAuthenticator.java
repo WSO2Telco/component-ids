@@ -104,10 +104,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
         log.info("Processing started");
 
-        DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
-                        .USER_STATUS_DATA_PUBLISHING_PARAM),
-                DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING, "MSISDNAuthenticator processing started");
-
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
         } else {
@@ -127,6 +123,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             throws AuthenticationFailedException {
 
         log.info("Initiating authentication request");
+        DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
+                        .USER_STATUS_DATA_PUBLISHING_PARAM),
+                DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING, "MSISDNAuthenticator processing started");
 
         String loginPage;
         try {
@@ -142,11 +141,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             if (context.isRetrying()) {
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
-
-            DataPublisherUtil
-                    .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
-                            .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
-                            .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
 
             log.info("Redirecting to MSISDN enter page");
 
@@ -250,10 +244,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
             AuthenticationContextHelper.setSubject(context, msisdn);
             log.info("Authentication success");
-            DataPublisherUtil.updateAndPublishUserStatus(
-                    (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-                    DataPublisherUtil.UserState.MSISDN_AUTH_SUCCESS,
-                    "MSISDN Authentication success");
 
             String rememberMe = request.getParameter("chkRemember");
             if (rememberMe != null && "eon".equals(rememberMe)) {
@@ -276,6 +266,10 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
     private void retryAuthenticatorForConsent(AuthenticationContext context) throws AuthenticationFailedException {
         context.setProperty(Constants.REDIRECT_CONSENT, Boolean.TRUE);
+        DataPublisherUtil
+                .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
+                        .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
+                        .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
         log.info("Redirecting to consent or profile upgrade page");
         throw new AuthenticationFailedException("Moving to get consent or profile upgrade");
     }
