@@ -30,7 +30,7 @@
     <groupId>com.wso2telco.ids</groupId>
     <artifactId>component-ids</artifactId>
     <packaging>pom</packaging>
-    <version>2.3.1-SNAPSHOT</version>
+    <version>2.3.0</version>
     <name>WSO2Telco Core - Component</name>
     <description>WSO2Telco Core Aggregate Pom</description>
     <url>http://wso2telco.com</url>
@@ -76,7 +76,6 @@
         <module>components/authentication-endpoint</module>
         <module>components/saa-server</module>
         <module>components/premium-info</module>
-        <module>features</module>
         <module>components/openid-extension</module>
         <module>components/token-introspection</module>
         <module>features</module>

@@ -478,7 +478,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     }
 
                 } else if (isAttributeScope) {
-                    handleAttriShareResponse(context);
+                    handleAttributeShareResponse(context);
                 }
             }
             context.setProperty(Constants.IS_PIN_RESET, false);

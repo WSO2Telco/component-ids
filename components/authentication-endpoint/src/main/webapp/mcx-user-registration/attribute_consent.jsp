@@ -191,7 +191,7 @@
                 <div class="grid__item one-half">
                     <c:choose>
                        <c:when test="${param.registering=='true'}">
-                           <a onclick="TCBoxValidation('<%=request.getParameter("sessionDataKey")%>','approve')" id="approve-btn" class="btn btn--full btn--white btn--fill btn--large btn--color">
+                           <a onclick="TCBoxValidation('<%=request.getParameter("sessionDataKey")%>','RegConsent')" id="approve-btn" class="btn btn--full btn--white btn--fill btn--large btn--color">
                               Approve
                            </a>
                        </c:when> 

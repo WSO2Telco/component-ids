@@ -56,15 +56,16 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
 
 
     @Override
-    public AuthenticatorFlowStatus process(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
+    public AuthenticatorFlowStatus process(HttpServletRequest request, HttpServletResponse response,
+                                           AuthenticationContext context) throws AuthenticationFailedException,
+            LogoutFailedException {
 
         log.info("Initiating process from Voice Call Authentication");
 
         super.process(request, response, context);
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
-        }
-        else {
+        } else {
             boolean isFlowCompleted = (boolean) context.getProperty(IS_FLOW_COMPLETED);
 
             if (isFlowCompleted) {
@@ -78,7 +79,8 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
 
 
     @Override
-    protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context) throws AuthenticationFailedException {
+    protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response,
+                                                 AuthenticationContext context) throws AuthenticationFailedException {
         super.initiateAuthenticationRequest(request, response, context);
         log.info("Initiating authentication request from Voice Call Authentication");
 
@@ -86,7 +88,8 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
                 context.getCallerSessionKey(), context.getContextIdentifier());
         String msisdn = (String) context.getProperty(MSISDN);
         String sessionKey = context.getCallerSessionKey();
-        MobileConnectConfig.VoiceConfig voiceConfig = configurationService.getDataHolder().getMobileConnectConfig().getVoiceConfig();
+        MobileConnectConfig.VoiceConfig voiceConfig = configurationService.getDataHolder().getMobileConnectConfig()
+                .getVoiceConfig();
         String isUserEnrolledUrl = voiceConfig.getUserStatusCheckEndpoint();
         String verifyUserUrl = voiceConfig.getUserAuthenticationEndpoint();
         String onBoardUserUrl = voiceConfig.getUserOnboardEndpoint();
@@ -100,7 +103,8 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
             String loginPage = getAuthEndpointUrl(context);
 
             postData = new StringEntity(validSoftJsonHelper.getIsUserActiveRequestJson());
-            verifyAndRegistartionPostData = new StringEntity(validSoftJsonHelper.getUserRegistrationAndAuthenticationJson());
+            verifyAndRegistartionPostData = new StringEntity(validSoftJsonHelper
+                    .getUserRegistrationAndAuthenticationJson());
 
 
             String redirectUrl = response.encodeRedirectURL(loginPage + ("?" + queryParams))
@@ -112,28 +116,28 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
             boolean isUserEnrolledInValidSoft = verifyIsUserActiveFromValidSoftServer(isUserEnrolledUrl, postData);
             context.setProperty(IS_FLOW_COMPLETED, false);
             DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
-            VoiceIVRFutureCallback futureCallback = new VoiceIVRFutureCallback(context,msisdn);
+            VoiceIVRFutureCallback futureCallback = new VoiceIVRFutureCallback(context, msisdn);
             if (isUserEnrolledInValidSoft) {
-                postRequest(verifyUserUrl, verifyAndRegistartionPostData ,
+                postRequest(verifyUserUrl, verifyAndRegistartionPostData,
                         futureCallback);
             } else {
-                postRequest(onBoardUserUrl, verifyAndRegistartionPostData ,
+                postRequest(onBoardUserUrl, verifyAndRegistartionPostData,
                         futureCallback);
             }
             response.sendRedirect(redirectUrl);
         } catch (UnsupportedEncodingException e) {
             log.error("Error occurred due to UnsupportedEncoding Exception", e);
-            throw new AuthenticationFailedException ("Error occurred due to UnsupportedEncoding Exception", e);
+            throw new AuthenticationFailedException("Error occurred due to UnsupportedEncoding Exception", e);
         } catch (IOException e) {
             log.error("Error occurred while redirecting request", e);
             throw new AuthenticationFailedException("Error occurred while redirecting request", e);
-        } catch(JSONException je){
+        } catch (JSONException je) {
             log.error("Error occurred due to JSON Exception", je);
             throw new AuthenticationFailedException("Error occurred due to JSON Exception", je);
-        } catch(SQLException sqle){
+        } catch (SQLException sqle) {
             log.error("Error occurred due to SQL Exception", sqle);
             throw new AuthenticationFailedException("Error occurred due to SQL Exception", sqle);
-        } catch(AuthenticatorException ae){
+        } catch (AuthenticatorException ae) {
             log.error("Error occurred due to AuthenticatorException Exception", ae);
             throw new AuthenticationFailedException("Error occurred due to AuthenticatorException Exception", ae);
         }
@@ -156,9 +160,14 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
 
                 if (!isUserExists) {
                     String operator = (String) authenticationContext.getProperty(Constants.OPERATOR);
+                    boolean isAttributeScope = (Boolean) authenticationContext.getProperty(Constants
+                            .IS_ATTRIBUTE_SHARING_SCOPE);
+                    String spType = authenticationContext.getProperty(Constants.TRUSTED_STATUS).toString();
+                    String attrShareType = authenticationContext.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
 
                     //todo : Create profile for LOA3
-                    new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
+                    new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope, spType,
+                            attrShareType);
                 }
                 authenticationContext.setProperty(IS_FLOW_COMPLETED, true);
                 AuthenticationContextHelper.setSubject(authenticationContext,
@@ -209,8 +218,8 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
     }
 
 
-
-    private boolean verifyIsUserActiveFromValidSoftServer(String url, StringEntity postData) throws IOException, JSONException {
+    private boolean verifyIsUserActiveFromValidSoftServer(String url, StringEntity postData) throws IOException,
+            JSONException {
         log.info("Calling VlaidSoft to verify User ");
         HttpClient httpClient = HttpClientBuilder.create().build();
         HttpPost httpPost = new HttpPost(url);
@@ -218,7 +227,8 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
         httpPost.setEntity(postData);
         HttpResponse httpResponse = httpClient.execute(httpPost);
         if (httpResponse.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-            log.error("ValidSoft server replied with invalid HTTP status [ " + httpResponse.getStatusLine().getStatusCode()
+            log.error("ValidSoft server replied with invalid HTTP status [ " + httpResponse.getStatusLine()
+                    .getStatusCode()
                     + "] ");
             throw new IOException(
                     "Error occurred while Calling ValidSoft server");
@@ -228,7 +238,8 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
             JSONObject jsonObj = new JSONObject(json);
             ValidSoftJsonHelper jsonHeler = new ValidSoftJsonHelper();
             boolean userStatus = jsonHeler.validateisUserEnrolledJsonRespone(jsonObj);
-            log.info("ValidSoft server replied with OK HTTP status with Json response " + json + " Status : " + userStatus);
+            log.info("ValidSoft server replied with OK HTTP status with Json response " + json + " Status : " +
+                    userStatus);
             return userStatus;
         }
 
@@ -250,7 +261,7 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
         input.setContentType(MediaType.APPLICATION_JSON);
         postRequest.setEntity(input);
         log.info("Posting data  [ " + requestStr + " ] to url [ " + url + " ]");
-        Util.sendAsyncRequest(postRequest, futureCallback,true);
+        Util.sendAsyncRequest(postRequest, futureCallback, true);
     }
 
     private String getAuthEndpointUrl(AuthenticationContext context) {
