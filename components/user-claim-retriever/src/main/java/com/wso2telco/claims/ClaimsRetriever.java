@@ -34,5 +34,6 @@ public interface ClaimsRetriever {
      * ClaimsRetriever
      */
     public Map<String, Object> getRequestedClaims(String[] scopes, List<ScopeDetailsConfig.Scope> scopeConfigs,
-                                                  Map<String, Object> totalClaims) throws NoSuchAlgorithmException;
+                                                  Map<String, Object> totalClaims) throws NoSuchAlgorithmException,
+            IllegalAccessException, ClassNotFoundException, InstantiationException;
 }

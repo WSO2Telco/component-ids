@@ -131,8 +131,13 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         Integer requestedLoa = Integer.parseInt(request.getParameter(Constants.PARAM_ACR));
         String ipAddress = request.getParameter(Constants.IP_ADDRESS);
         String transactionId = request.getParameter(Constants.TRANSACTION_ID);
+        String trustedStatus = request.getParameter(Constants.TRUSTED_STATUS);
+        boolean isAttrScope = Boolean.parseBoolean(request.getParameter(Constants.IS_ATTRIBUTE_SHARING_SCOPE));
+        String telcoScope = request.getParameter(Constants.TELCO_SCOPE);
+        String attrShareScopeType = request.getParameter(Constants.ATTRSHARE_SCOPE_TYPE);
+        boolean isShowTnc = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
 
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("mobileNetworkOperator : " + mobileNetworkOperator);
             log.debug("serviceProvider : " + serviceProvider);
             log.debug("msisdnHeader : " + msisdnHeader);
@@ -141,12 +146,6 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
             log.debug("ipAddress : " + ipAddress);
             log.debug("transactionId : " + transactionId);
         }
-
-        boolean isShowTnc = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
-        boolean isAttrScope = Boolean.parseBoolean(request.getParameter(Constants.IS_ATTRIBUTE_SHARING_SCOPE));
-        String telcoScope = request.getParameter(Constants.TELCO_SCOPE);
-        String trustedStatus = request.getParameter(Constants.TRUSTED_STATUS);
-        String attrShareScopeType = request.getParameter(Constants.ATTRSHARE_SCOPE_TYPE);
 
         ScopeParam.MsisdnMismatchResultTypes headerMismatchResult = ScopeParam.MsisdnMismatchResultTypes.valueOf(
                 request.getParameter(Constants.HEADER_MISMATCH_RESULT));

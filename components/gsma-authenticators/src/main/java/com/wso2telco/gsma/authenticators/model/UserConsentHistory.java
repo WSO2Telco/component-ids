@@ -17,10 +17,12 @@ package com.wso2telco.gsma.authenticators.model;
 
 public class UserConsentHistory {
 
-  private String  msisdn;
+    private String msisdn;
     private String consentExpireTime;
     private String consentStatus;
     private int consentId;
+    private String clientId;
+    private String operatorName;
 
     public String getMsisdn() {
         return msisdn;
@@ -52,5 +54,21 @@ public class UserConsentHistory {
 
     public void setConsentId(int consentId) {
         this.consentId = consentId;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getOperatorName() {
+        return operatorName;
+    }
+
+    public void setOperatorName(String operatorName) {
+        this.operatorName = operatorName;
     }
 }

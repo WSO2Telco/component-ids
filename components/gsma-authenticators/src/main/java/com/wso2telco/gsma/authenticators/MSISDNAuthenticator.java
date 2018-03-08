@@ -39,6 +39,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
@@ -160,7 +161,17 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
             Map<String, String> attributeSet = new HashMap();
             boolean isAttribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+            String trustedStatus = request.getParameter(Constants.TRUSTED_STATUS);
             String msisdn = "";
+
+            if (isAttribute && (null != request.getParameter(Constants.TRUSTED_STATUS))) {
+                if ((trustedStatus.equalsIgnoreCase(AuthenticatorEnum
+                        .TrustedStatus.TRUSTED
+                        .name())) || (trustedStatus.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED
+                        .name()))) {
+                    context.setProperty(Constants.IS_SHOW_TNC, false);
+                }
+            }
 
             if (isAttribute && Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString())) {
 
@@ -360,6 +371,20 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 boolean isDisplayScopes;
                 String retryParam = "";
 
+                if (isattribute && !(context.getProperty(Constants
+                        .TRUSTED_STATUS)).toString().equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name
+                        ()) && triggerInitiateAuthRequest(context)) {
+                    try {
+                        initiateAuthenticationRequest(request, response, context);
+                    } catch (Exception e) {
+                        if (Boolean.valueOf(context.getProperty(Constants.AUTHENTICATED_USER).toString())) {
+                            return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+                        }
+                    }
+                    context.setCurrentAuthenticator(getName());
+                    return AuthenticatorFlowStatus.INCOMPLETE;
+                }
+
                 processAuthenticationResponse(request, response, context);
 
                 if (isattribute && Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString
@@ -428,13 +453,11 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
                 if (isTerminated) {
                     throw new AuthenticationFailedException("Authenticator is terminated");
-                }
-
-                if ((boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE) && Boolean.valueOf(context
-                        .getProperty(Constants.AUTHENTICATED_USER).toString())) {
+                } else if ((boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE) && Boolean.valueOf
+                        (context
+                                .getProperty(Constants.AUTHENTICATED_USER).toString())) {
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
-                }
-                if (retryAuthenticationEnabled() && !stepHasMultiOption) {
+                } else if (retryAuthenticationEnabled() && !stepHasMultiOption) {
                     context.setRetrying(true);
                     context.setCurrentAuthenticator(getName());
                     initiateAuthenticationRequest(request, response, context);
@@ -463,6 +486,14 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             context.setCurrentAuthenticator(getName());
             return AuthenticatorFlowStatus.INCOMPLETE;
         }
+    }
+
+    private boolean triggerInitiateAuthRequest(AuthenticationContext context) {
+
+        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+        boolean showTnc = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
+
+        return (isRegistering && showTnc);
     }
 
     private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context, User

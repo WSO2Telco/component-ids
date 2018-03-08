@@ -44,6 +44,7 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
 
     private static String operator = "operator";
 
+    private static Map<String, Object[]> remoteClaimsMap = new HashMap();
 
     private void populateScopeConfigs(List<ScopeDetailsConfig.Scope> scopeConfigs) {
         if (scopeConfigsMap.size() == 0) {
@@ -72,13 +73,19 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
 
     @Override
     public Map<String, Object> getRequestedClaims(String[] scopes, List<ScopeDetailsConfig.Scope> scopeConfigs,
-                                                  Map<String, Object> totalClaims) throws NoSuchAlgorithmException {
+                                                  Map<String, Object> totalClaims) throws NoSuchAlgorithmException,
+            IllegalAccessException, ClassNotFoundException, InstantiationException {
         Map<String, Object> requestedClaims = new HashMap();
+        CustomerInfo customerInfo = new CustomerInfo();
 
         populateScopeConfigs(scopeConfigs);
         String operatorName = (String) totalClaims.get(operator);
-        String phoneNumber = (String) totalClaims.get(phoneNumberClaim);
-        Map<String, Object> totalClaimsValues = getTotalClaims(operatorName, phoneNumber);
+        customerInfo.setMsisdn((String) totalClaims.get(phoneNumberClaim));
+        customerInfo.setScopes(scopes);
+
+        Map<String, Object> totalClaimsValues = null;
+
+        totalClaimsValues = getTotalClaims(operatorName, customerInfo);
 
         for (String scope : scopes) {
             if (scopeConfigsMap.containsKey(scope) && totalClaimsValues != null) {
@@ -94,33 +101,54 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
         return requestedClaims;
     }
 
-    public static Map<String, Object> getTotalClaims(String operatorName, String msisdn) {
+    public Map<String, Object> getTotalClaims(String operatorName, CustomerInfo customerInfo) throws
+            IllegalAccessException, InstantiationException, ClassNotFoundException {
 
-        Map<String, Object> totalClaims = null;
-        String className = null;
-        String operatorEndPoint = null;
-        for (MobileConnectConfig.OperatorData operator : operators) {
-            if (operator.getOperatorName().equalsIgnoreCase(operatorName)) {
-                className = operator.getClassName();
-                operatorEndPoint = operator.getUserInfoEndPointURL();
-                break;
-            }
-        }
+        Map<String, Object> totalClaims;
 
         try {
-            Class c = Class.forName(className);
-            RemoteClaims remoteClaims = (RemoteClaims) c.newInstance();
-            totalClaims = remoteClaims.getTotalClaims(operatorEndPoint, msisdn);
+            totalClaims = getRemoteTotalClaims(operatorName, customerInfo);
         } catch (ClassNotFoundException e) {
-            log.error(className + " Class Not Found Exception");
+            log.error("Class Not Found Exception occurred when calling operator'd endpoint - " + operatorName + ":" +
+                    e);
+            throw new ClassNotFoundException(e.getMessage(), e);
         } catch (InstantiationException e) {
-            log.error(className + " Instantiation Exception");
+            log.error("Instantiation Exception occurred when calling operator'd endpoint - " + operatorName + ":" + e);
+            throw new InstantiationException(e.getMessage());
         } catch (IllegalAccessException e) {
-            log.error(className + " Illegal Access Exception");
+            log.error("Illegal Access Exception occurred when calling operator'd endpoint - " + operatorName + ":" + e);
+            throw new IllegalAccessException(e.getMessage());
         }
         return totalClaims;
     }
 
+    private Map<String, Object> getRemoteTotalClaims(String operatorName, CustomerInfo customerInfo) throws
+            ClassNotFoundException,
+            IllegalAccessException, InstantiationException {
+
+        RemoteClaims remoteClaims;
+        Object[] claimValueObject = new Object[3];
+
+        if (remoteClaimsMap.containsKey(operatorName)) {
+            claimValueObject = remoteClaimsMap.get(operatorName);
+        } else {
+            for (MobileConnectConfig.OperatorData operator : operators) {
+                if (operator.getOperatorName().equalsIgnoreCase(operatorName)) {
+                    String className = operator.getClassName();
+                    claimValueObject[0] = className;
+                    claimValueObject[1] = operator.getUserInfoEndPointURL();
+                    Class c = Class.forName(className);
+                    claimValueObject[2] = (RemoteClaims) c.newInstance();
+                    remoteClaimsMap.put(operatorName, claimValueObject);
+                    break;
+                }
+            }
+        }
+
+        remoteClaims = (RemoteClaims) claimValueObject[2];
+        return remoteClaims.getTotalClaims(claimValueObject[1].toString(), customerInfo);
+
+    }
 
     private String getHashedClaimValue(String claimValue) throws NoSuchAlgorithmException {
 

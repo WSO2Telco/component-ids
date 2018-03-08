@@ -17,8 +17,11 @@ package com.wso2telco.claims;
 
 import java.util.Map;
 
+/**
+ * The Interface to collect user related information from outside operator endpoint.
+ */
 public interface RemoteClaims {
 
-    Map<String, Object> getTotalClaims(String operatorEndPoint, String msisdn);
+    Map<String, Object> getTotalClaims(String operatorEndPoint, CustomerInfo customerInfo);
 
 }

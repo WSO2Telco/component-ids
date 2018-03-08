@@ -219,6 +219,8 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
             userConsentHistory.setConsentId(spConsent.getConsentId());
             userConsentHistory.setConsentExpireTime(dateFormat.format(calendar.getTime()));
             userConsentHistory.setConsentStatus(Constants.TRUE);
+            userConsentHistory.setClientId(clientId);
+            userConsentHistory.setOperatorName(operator);
 
             userConsentHistoryList.add(userConsentHistory);
         }

@@ -283,9 +283,9 @@ public class AttributeConfigDaoImpl implements AttributeConfigDao {
         String query = "SELECT usercon.consent_status as activestatus ,usercon.expire_time as consent_expire_time " +
                 "FROM " + TableName.USER_CONSENT + " usercon INNER JOIN " + TableName.CONSENT + " con ON con" +
                 ".consent_id = usercon" +
-                ".consent_id INNER JOIN " + TableName.OPERATOR + " op ON op.operatorname=con.operator_id INNER JOIN " +
+                ".consent_id INNER JOIN " + TableName.OPERATOR + " op ON op.operatorname=usercon.operator INNER JOIN " +
                 TableName.SCOPE_PARAMETER + " scp ON scp" +
-                ".param_id=con.scope_id WHERE op.operatorname=? AND scp.scope=? AND con.client_id=? AND usercon" +
+                ".param_id=con.scope_id WHERE op.operatorname=? AND scp.scope=? AND usercon.client_id=? AND usercon" +
                 ".msisdn=?;";
 
         try {
@@ -329,8 +329,9 @@ public class AttributeConfigDaoImpl implements AttributeConfigDao {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
-        String query = "INSERT INTO " + TableName.USER_CONSENT + "(consent_id,msisdn,expire_time,consent_status) " +
-                "VALUES (?,?,?,?);";
+        String query = "INSERT INTO " + TableName.USER_CONSENT + "(consent_id,msisdn,expire_time,consent_status," +
+                "client_id,operator) " +
+                "VALUES (?,?,?,?,?,?);";
 
         try {
             connection = getConnectDBConnection();
@@ -341,6 +342,8 @@ public class AttributeConfigDaoImpl implements AttributeConfigDao {
                 preparedStatement.setString(2, userConsentHistory1.getMsisdn());
                 preparedStatement.setString(3, userConsentHistory1.getConsentExpireTime());
                 preparedStatement.setBoolean(4, Boolean.parseBoolean(userConsentHistory1.getConsentStatus()));
+                preparedStatement.setString(5, userConsentHistory1.getClientId());
+                preparedStatement.setString(6, userConsentHistory1.getOperatorName());
                 preparedStatement.addBatch();
             }
 
