@@ -307,6 +307,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         PinConfig pinConfig = PinConfigUtil.getPinConfig(context);
 
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+        boolean isStatusUpdate = (boolean) context.getProperty(Constants.IS_STATUS_TO_CHANGE);
         boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
         boolean isPinReset = isPinReset(pinConfig);
         boolean isPinResetConfirmation = isPinResetConfirmation(pinConfig);
@@ -343,7 +344,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
                 handleUserRegistration(context, userStatus);
             } else {
                 if (isProfileUpgrade) {
-                    handleProfileUpgrade(context);
+                    handleProfileUpgrade(context, isStatusUpdate);
                 } else if (isPinReset) {
                     retryAuthenticatorForPinReset(context);
                 } else if (isPinResetConfirmation) {
@@ -542,7 +543,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         return pinConfig.getCurrentStep() == PinConfig.CurrentStep.PIN_RESET;
     }
 
-    private void handleProfileUpgrade(AuthenticationContext context) throws
+    private void handleProfileUpgrade(AuthenticationContext context, boolean isStatusUpdate) throws
             RemoteUserStoreManagerServiceUserStoreExceptionException, RemoteException, UnsupportedEncodingException,
             NoSuchAlgorithmException, AuthenticationFailedException {
         boolean securityQuestionsShown = context.getProperty(Constants.IS_SECURITY_QUESTIONS_SHOWN) != null &&
@@ -556,6 +557,9 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             String challengeQuestion1 = (String) context.getProperty(Constants.CHALLENGE_QUESTION_1);
             String challengeQuestion2 = (String) context.getProperty(Constants.CHALLENGE_QUESTION_2);
             String msisdn = (String) context.getProperty(Constants.MSISDN);
+            boolean isAttributeScope = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+            String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
+            String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
             PinConfig pinConfig = (PinConfig) context.getProperty(com.wso2telco.core.config.util.Constants
                     .PIN_CONFIG_OBJECT);
 
@@ -571,7 +575,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             challengeAnswer2 = challengeQuestion2 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer2;
 
             new UserProfileManager().updateUserProfileForLOA3(challengeAnswer1, challengeAnswer2, pinConfig
-                    .getConfirmedPin(), msisdn);
+                    .getConfirmedPin(), msisdn, isStatusUpdate, isAttributeScope, spType, attrShareType);
         } else {
             context.setProperty(Constants.IS_SECURITY_QUESTIONS_ANSWERED, Boolean.TRUE);
 
@@ -588,6 +592,9 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
         String challengeQuestion2 = (String) context.getProperty(Constants.CHALLENGE_QUESTION_2);
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         String operator = (String) context.getProperty(Constants.OPERATOR);
+        boolean isAttributeScope = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+        String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
+        String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
         PinConfig pinConfig = PinConfigUtil.getPinConfig(context);
 
         if (pinConfig.isPinsMatched()) {
@@ -603,9 +610,10 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
             challengeAnswer2 = challengeQuestion2 + Constants.USER_CHALLENGE_SEPARATOR + challengeAnswer2;
 
             new UserProfileManager().createUserProfileLoa3(msisdn, operator, challengeAnswer1, challengeAnswer2,
-                    pinConfig.getRegisteredPin());
+                    pinConfig.getRegisteredPin(), isAttributeScope, spType, attrShareType);
 
-            MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
+            MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig()
+                    .getSmsConfig();
             if (!smsConfig.getWelcomeMessageDisabled()) {
                 try {
                     WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);

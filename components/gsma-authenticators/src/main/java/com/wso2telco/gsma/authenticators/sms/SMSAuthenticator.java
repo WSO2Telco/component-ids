@@ -86,7 +86,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
     /**
      * The Enum UserResponse.
      */
-     protected enum UserResponse {
+    protected enum UserResponse {
 
         /**
          * The pending.
@@ -130,13 +130,17 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
      */
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request, HttpServletResponse response,
-        AuthenticationContext context) throws AuthenticationFailedException, LogoutFailedException {
 
-        log.info("Processing started");
-        return initAuthFlowStatus(request,response,context);
+                                           AuthenticationContext context) throws AuthenticationFailedException,
+            LogoutFailedException {
+        DataPublisherUtil.updateAndPublishUserStatus(
+                (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                DataPublisherUtil.UserState.SMS_AUTH_PROCESSING, this.getClass().getName() + " processing started");
+        return initAuthFlowStatus(request, response, context);
     }
 
-    protected AuthenticatorFlowStatus initAuthFlowStatus(HttpServletRequest request, HttpServletResponse response,AuthenticationContext context)
+    protected AuthenticatorFlowStatus initAuthFlowStatus(HttpServletRequest request, HttpServletResponse response,
+                                                         AuthenticationContext context)
             throws AuthenticationFailedException, LogoutFailedException {
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
@@ -151,20 +155,22 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
      * .servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context
      * .AuthenticationContext)
      */
-    @Override protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationContext context) throws AuthenticationFailedException {
+    @Override
+    protected void initiateAuthenticationRequest(HttpServletRequest request, HttpServletResponse response,
+                                                 AuthenticationContext context) throws AuthenticationFailedException {
         log.info("Initiating authentication request");
 
         DataPublisherUtil.updateAndPublishUserStatus(
                 (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-                DataPublisherUtil.UserState.SMS_AUTH_PROCESSING, this.getClass().getName()+" processing started");
+                DataPublisherUtil.UserState.SMS_AUTH_PROCESSING, this.getClass().getName() + " processing started");
 
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         SMSMessage smsMessage = getRedirectInitAuthentication(response, context, userStatus);
         if (smsMessage != null && smsMessage.getRedirectURL() != null && !smsMessage.getRedirectURL().isEmpty()) {
             try {
                 BasicFutureCallback futureCallback =
-                        userStatus != null ? new SMSFutureCallback(userStatus.cloneUserStatus(),"SMS") : new SMSFutureCallback();
+                        userStatus != null ? new SMSFutureCallback(userStatus.cloneUserStatus(), "SMS") : new
+                                SMSFutureCallback();
                 smsMessage.setFutureCallback(futureCallback);
                 String smsResponse = new SendSMS()
                         .sendSMS(smsMessage.getMsisdn(), smsMessage.getMessageText(), smsMessage.getOperator(),
@@ -184,7 +190,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
     }
 
     protected SMSMessage getRedirectInitAuthentication(HttpServletResponse response, AuthenticationContext context,
-            UserStatus userStatus) throws AuthenticationFailedException {
+                                                       UserStatus userStatus) throws AuthenticationFailedException {
         SMSMessage smsMessage = null;
         String loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         String queryParams = FrameworkUtils
@@ -246,7 +252,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
             OutboundMessage.MessageType messageType = OutboundMessage.MessageType.SMS_LOGIN;
 
-            if(isRegistering){
+            if (isRegistering) {
                 messageType = OutboundMessage.MessageType.SMS_REGISTRATION;
             }
             String messageText = OutboundMessage
@@ -302,54 +308,67 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
         }
         try {
 
-        if (userAction != null && !userAction.isEmpty()) {
+            if (userAction != null && !userAction.isEmpty()) {
 
-            log.info("User action from UI : " + userAction);
+                log.info("User action from UI : " + userAction);
 
-            // Change behaviour depending on user action
-            switch (userAction) {
-            case Constants.USER_ACTION_USER_CANCELED:
-                //User clicked cancel button from login
-                DataPublisherUtil
-                        .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
-                                "User Terminated Authentication Flow");
-                terminateAuthentication(context, sessionDataKey,UserResponse.REJECTED.name(),UserResponse.EXPIRED.name());
-                break;
-            case Constants.USER_ACTION_REG_REJECTED:
-                DataPublisherUtil
-                        .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
-                                "User Registration Rejected");
-                //User clicked cancel button from registration
-                terminateAuthentication(context, sessionDataKey,UserResponse.REJECTED.name(),UserResponse.EXPIRED.name());
-                break;
-            case Constants.USER_ACTION_USER_TIMEOUT:
-                DataPublisherUtil
-                        .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL,
-                                "User Timeout occurred");
-                //User timeout at login
-                terminateAuthentication(context, sessionDataKey,UserResponse.REJECTED.name(),UserResponse.EXPIRED.name());
-                break;
-            }
-        }
+                // Change behaviour depending on user action
+                switch (userAction) {
+                    case Constants.USER_ACTION_USER_CANCELED:
+                        //User clicked cancel button from login
+                        DataPublisherUtil
+                                .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState
+                                                .SMS_AUTH_PROCESSING_FAIL,
 
-        // Check if the user has provided consent
-        String responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
-        if (!responseStatus.equalsIgnoreCase(UserResponse.APPROVED.name())) {
-            log.error(AUTH_FAILED);
-            throw new AuthenticatorException(AUTH_FAILED);
-        } else {
-            boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-            if (isRegistering) {
-                UserProfileManager userProfileManager = new UserProfileManager();
-                userProfileManager.createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
-
-                MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
-                if (!smsConfig.getWelcomeMessageDisabled()) {
-                    WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
-                    log.info("Welcome SMS sent");
+                                        "User Terminated Authentication Flow");
+                        terminateAuthentication(context, sessionDataKey, UserResponse.REJECTED.name(), UserResponse
+                                .EXPIRED.name());
+                        break;
+                    case Constants.USER_ACTION_REG_REJECTED:
+                        DataPublisherUtil
+                                .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState
+                                                .SMS_AUTH_PROCESSING_FAIL,
+                                        "User Registration Rejected");
+                        //User clicked cancel button from registration
+                        terminateAuthentication(context, sessionDataKey, UserResponse.REJECTED.name(), UserResponse
+                                .EXPIRED.name());
+                        break;
+                    case Constants.USER_ACTION_USER_TIMEOUT:
+                        DataPublisherUtil
+                                .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState
+                                                .SMS_AUTH_PROCESSING_FAIL,
+                                        "User Timeout occurred");
+                        //User timeout at login
+                        terminateAuthentication(context, sessionDataKey, UserResponse.REJECTED.name(), UserResponse
+                                .EXPIRED.name());
+                        break;
                 }
             }
-        }
+
+            // Check if the user has provided consent
+            String responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
+            if (!responseStatus.equalsIgnoreCase(UserResponse.APPROVED.name())) {
+                log.error(AUTH_FAILED);
+                throw new AuthenticatorException(AUTH_FAILED);
+            } else {
+                boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+                boolean isStatusUpdate = (boolean) context.getProperty(Constants.IS_STATUS_TO_CHANGE);
+                boolean isAttributeScope = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+                String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
+                String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
+
+                if (isRegistering || isStatusUpdate) {
+                    UserProfileManager userProfileManager = new UserProfileManager();
+                    userProfileManager.createUserProfileLoa2(msisdn, operator, isAttributeScope, spType, attrShareType);
+
+                    MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder()
+                            .getMobileConnectConfig().getSmsConfig();
+                    if (!smsConfig.getWelcomeMessageDisabled()) {
+                        WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
+                        log.info("Welcome SMS sent");
+                    }
+                }
+            }
 
         } catch (AuthenticatorException | RemoteException | UserRegistrationAdminServiceIdentityException e) {
             log.error(AUTH_FAILED_DETAILED, e);
@@ -377,13 +396,15 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
     /**
      * Terminates the authenticator due to user implicit action
      *
-     * @param context Authentication Context
+     * @param context        Authentication Context
      * @param authFlowStatus Authflow status
-     * @param sessionID sessionID
-     * @param userResponse user response status
+     * @param sessionID      sessionID
+     * @param userResponse   user response status
      * @throws AuthenticationFailedException
      */
-    private void terminateAuthentication(AuthenticationContext context,String sessionID,String userResponse,String authFlowStatus) throws AuthenticationFailedException {
+
+    private void terminateAuthentication(AuthenticationContext context, String sessionID, String userResponse, String
+            authFlowStatus) throws AuthenticationFailedException {
         log.info("User has terminated the authentication flow");
         context.setProperty(Constants.IS_TERMINATED, true);
         try {
@@ -442,5 +463,4 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
     public String getAmrValue(int acr) {
         return "SMS_URL_OK";
     }
-
 }

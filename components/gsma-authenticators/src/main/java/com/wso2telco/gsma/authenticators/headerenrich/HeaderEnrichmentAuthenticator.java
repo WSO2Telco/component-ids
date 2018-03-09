@@ -20,10 +20,14 @@ import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.core.sp.config.utils.exception.DataAccessException;
 import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.IPRangeChecker;
+import com.wso2telco.gsma.authenticators.attributeshare.AbstractAttributeShare;
+import com.wso2telco.gsma.authenticators.attributeshare.AttributeShareFactory;
+import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;
 import com.wso2telco.gsma.authenticators.util.*;
 import com.wso2telco.gsma.manager.client.ClaimManagementClient;
 import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
@@ -45,18 +49,18 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
+import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.api.UserStoreException;
 
+import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.rmi.RemoteException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.SQLException;
+import java.util.*;
 
 // TODO: Auto-generated Javadoc
 
@@ -99,6 +103,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
     static {
         // loads operator and ip validation to static map
         operators = configurationService.getDataHolder().getMobileConnectConfig().getHEADERENRICH().getOperators();
+
         for (MobileConnectConfig.OPERATOR op : operators) {
             operatorIpValidation.put(op.getOperatorName(), Boolean.valueOf(op.getIpValidation()));
         }
@@ -111,11 +116,9 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
     @Override
     public boolean canHandle(HttpServletRequest request) {
 
-
         if (log.isDebugEnabled()) {
             log.debug("Header Enrich Authenticator canHandle invoked");
         }
-
         return true;
     }
 
@@ -143,13 +146,43 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         }
     }
 
-
     public AuthenticatorFlowStatus processRequest(HttpServletRequest request, HttpServletResponse response,
                                                   AuthenticationContext context) throws
             AuthenticationFailedException, LogoutFailedException {
         if ((canHandle(request) && !triggerInitiateAuthRequest(context) && (request.getAttribute(FrameworkConstants
                 .REQ_ATTR_HANDLED) == null || !(Boolean) request.getAttribute(FrameworkConstants.REQ_ATTR_HANDLED)))) {
             try {
+
+                boolean isAttribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+                boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+                String msisdn = context.getProperty(Constants.MSISDN).toString();
+                Map<String, String> attributeSet;
+                boolean isDisplayScopes;
+
+                if (!isRegistering && isAttribute && Constants.NO.equalsIgnoreCase(context.getProperty(Constants
+                        .IS_CONSENTED).toString()) && StringUtils.isNotEmpty(msisdn)) {
+
+                    attributeSet = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants
+                            .TRUSTED_STATUS).toString()).getAttributeShareDetails(context);
+                    boolean flowStatus = Boolean.valueOf(attributeSet.get(Constants.IS_AUNTHENTICATION_CONTINUE));
+                    isDisplayScopes = Boolean.parseBoolean(attributeSet.get(Constants.IS_DISPLAYSCOPE).toString());
+
+                    if (flowStatus) {
+
+                        AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN)
+                                .toString());
+                        context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+                        return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+
+                    } else if (!flowStatus && isDisplayScopes) {
+
+                        getConsentFromUser(request, response, context, attributeSet);
+                        context.setCurrentAuthenticator(getName());
+                        return AuthenticatorFlowStatus.INCOMPLETE;
+                    }
+                }
+
+
                 processAuthenticationResponse(request, response, context);
                 if (this instanceof LocalApplicationAuthenticator && !context.getSequenceConfig()
                         .getApplicationConfig().isSaaSApp()) {
@@ -191,11 +224,26 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     initiateAuthenticationRequest(request, response, context);
                     return AuthenticatorFlowStatus.INCOMPLETE;
                 } else {
+                    if (Boolean.valueOf(context.getProperty(Constants.AUTHENTICATED_USER).toString())) {
+                        return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+                    }
                     throw e;
                 }
+            } catch (Exception e) {
+                if (Boolean.valueOf(context.getProperty(Constants.AUTHENTICATED_USER).toString())) {
+                    return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+                }
+                log.debug("error occurred while doing the attribute share ");
+                return null;
             }
         } else {
-            initiateAuthenticationRequest(request, response, context);
+            try {
+                initiateAuthenticationRequest(request, response, context);
+            } catch (Exception e) {
+                if (Boolean.valueOf(context.getProperty(Constants.AUTHENTICATED_USER).toString())) {
+                    return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+                }
+            }
             context.setProperty(Constants.HE_INITIATE_TRIGGERED, Boolean.TRUE);
             context.setCurrentAuthenticator(getName());
             return AuthenticatorFlowStatus.INCOMPLETE;
@@ -234,11 +282,10 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
     private boolean triggerInitiateAuthRequest(AuthenticationContext context) {
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-        boolean isProfileUpgrade = (boolean) context.getProperty(Constants.IS_PROFILE_UPGRADE);
-        boolean showTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
+        boolean showTnc = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
 
         return ((context.getProperty(Constants.HE_INITIATE_TRIGGERED) == null || !(Boolean) context.getProperty
-                (Constants.HE_INITIATE_TRIGGERED)) && isRegistering && showTnC);
+                (Constants.HE_INITIATE_TRIGGERED)) && isRegistering && showTnc);
 
     }
 
@@ -266,9 +313,10 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
 
         boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-        boolean showTnC = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
+        boolean showTnc = (boolean) context.getProperty(Constants.IS_SHOW_TNC);
+        boolean isExplicitScope = false;
 
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("Detected MSISDN : " + msisdn);
         }
 
@@ -294,23 +342,43 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             log.debug("Query parameters : " + queryParams);
         }
 
+        Map<String, String> attributeSet = new HashMap();
 
         try {
 
-            String loginPage = getAuthEndpointUrl(showTnC, isRegistering);
+            boolean isAttribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
 
             DataPublisherUtil
                     .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
                             .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
                             .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
 
-            response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams))
-                    + "&redirect_uri=" + request.getParameter("redirect_uri")
-                    + "&authenticators=" + getName() + ":" + "LOCAL");
+            if (isAttribute && StringUtils.isNotEmpty(msisdn)) {
+                attributeSet = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants
+                        .TRUSTED_STATUS).toString()).getAttributeShareDetails(context);
+                isExplicitScope = Boolean.parseBoolean(attributeSet.get(Constants.IS_DISPLAYSCOPE));
+            }
+
+
+            if (Boolean.valueOf(attributeSet.get(Constants.IS_AUNTHENTICATION_CONTINUE))) {
+                handleAttributeShareResponse(context);
+
+            } else if (Boolean.parseBoolean(attributeSet.get(Constants.IS_DISPLAYSCOPE))) {
+
+                getConsentFromUser(request, response, context, attributeSet);
+            } else {
+                String loginPage = getAuthEndpointUrl(showTnc, isRegistering, isExplicitScope);
+                response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams))
+                        + "&redirect_uri=" + request.getParameter("redirect_uri")
+                        + "&authenticators=" + getName() + ":" + "LOCAL");
+            }
         } catch (IOException e) {
             DataPublisherUtil
                     .updateAndPublishUserStatus(userStatus,
                             DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL, e.getMessage());
+            throw new AuthenticationFailedException(e.getMessage(), e);
+
+        } catch (DBUtilException | NamingException e) {
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
         return;
@@ -327,6 +395,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
     protected void processAuthenticationResponse(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
+
 
         String msisdn = context.getProperty(Constants.MSISDN).toString();
         String operator = context.getProperty(Constants.OPERATOR).toString();
@@ -372,24 +441,32 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             populateAuthEndpointData(request, context);
 
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+            boolean isAttributeScope = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+            boolean isStatusUpdate = (boolean) context.getProperty(Constants.IS_STATUS_TO_CHANGE);
+            String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
+            String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
+
 
             validateOperator(request, context, msisdn, operator, userStatus);
 
             if (requestedLoa == 3) {
                 // if acr is 3, pass the user to next authenticator
-
             }
 
             if (requestedLoa == 2) {
-                if (isRegistering) {
-                    // if acr is 2, do the registration. register user if a new msisdn and remove other
+                if (isRegistering || isStatusUpdate) {
                     // authenticators from step map
                     try {
-                        new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
+                        new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope,
+                                spType, attrShareType);
 
-                        MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
+                        MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder()
+                                .getMobileConnectConfig().getSmsConfig();
                         if (!smsConfig.getWelcomeMessageDisabled()) {
                             WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
+                        }
+                        if (isAttributeScope) {
+                            handleAttributeShareResponse(context);
                         }
 
                     } catch (RemoteException | UserRegistrationAdminServiceIdentityException e) {
@@ -399,13 +476,14 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     } catch (DataAccessException | IOException e) {
                         log.error("Welcome SMS sending failed", e);
                     }
-                } else {
-                    // login flow
+
+                } else if (isAttributeScope) {
+                    handleAttributeShareResponse(context);
                 }
-                context.setProperty(Constants.IS_PIN_RESET, false);
-                // explicitly remove all other authenticators and mark as a success
-                context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
             }
+            context.setProperty(Constants.IS_PIN_RESET, false);
+            // explicitly remove all other authenticators and mark as a success
+            context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
 
             AuthenticationContextHelper.setSubject(context, msisdn);
 
@@ -604,15 +682,28 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
      * @throws LoginAuthenticationExceptionException
      * @throws RemoteUserStoreManagerServiceUserStoreExceptionException
      */
-    private String getAuthEndpointUrl(boolean isShowTnc, boolean isRegistering) {
+    private String getAuthEndpointUrl(boolean isShowTnc, boolean isRegistering, boolean explicitScope) {
 
         String loginPage;
 
         if (isRegistering && isShowTnc) {
-            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
-                    Constants.CONSENT_JSP;
+
+            if (explicitScope) {
+                loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+                        Constants.ATTRIBUTE_CONSENT_JSP;
+            } else {
+                loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+                        Constants.CONSENT_JSP;
+            }
         } else {
-            loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
+
+            if (explicitScope) {
+                loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+                        Constants.ATTRIBUTE_CONSENT_JSP;
+            } else {
+                loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
+            }
+
         }
         return loginPage;
     }
@@ -771,5 +862,46 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
     @Override
     public String getAmrValue(int acr) {
         return "HE_OK";
+    }
+
+    private void handleAttributeShareResponse(AuthenticationContext context) throws AuthenticationFailedException {
+
+        if (context.getProperty(Constants.LONGLIVEDSCOPES) != null) {
+            try {
+                AbstractAttributeShare.persistConsentedScopeDetails(context);
+            } catch (Exception e) {
+                throw new AuthenticationFailedException("error occurred while persiste data");
+            }
+        }
+
+        if (!AuthenticatorEnum.TrustedStatus.UNTRUSTED.toString().equalsIgnoreCase(context.getProperty(Constants
+                .TRUSTED_STATUS).toString())) {
+            boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+
+            if (isRegistering) {
+                AbstractAttributeShare.createUserProfile(context);
+            }
+            AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN).toString());
+            context.setProperty(Constants.AUTHENTICATED_USER, "true");
+            context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+            throw new AuthenticationFailedException("Terminate authentication flow");
+        }
+    }
+
+    private void getConsentFromUser(HttpServletRequest request, HttpServletResponse response,
+                                    AuthenticationContext context, Map<String, String> attributeset) throws
+            AuthenticationFailedException {
+
+        String loginPage = getAuthEndpointUrl(false, false, Boolean.parseBoolean(attributeset.get(Constants
+                .IS_DISPLAYSCOPE)));
+        try {
+            response.sendRedirect(response.encodeRedirectURL(loginPage) + "?" + OAuthConstants.SESSION_DATA_KEY + "="
+                    + context.getContextIdentifier() + "&skipConsent=true&scope=" + attributeset.get(Constants
+                    .DISPLAY_SCOPES) + "&registering=" + attributeset.get(Constants.IS_TNC)
+                    + "&redirect_uri=" + request.getParameter("redirect_uri")
+                    + "&authenticators=" + getName() + ":" + "LOCAL");
+        } catch (IOException e) {
+            throw new AuthenticationFailedException("I/O exception occurred");
+        }
     }
 }

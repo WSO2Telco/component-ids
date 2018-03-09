@@ -1,4 +1,3 @@
-
 /*******************************************************************************
  * Copyright  (c) 2015-2016, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
  *
@@ -16,7 +15,6 @@
  ******************************************************************************/
 package com.wso2telco.user.impl;
 
-
 import com.google.gson.Gson;
 import com.wso2telco.config.*;
 import com.wso2telco.core.config.model.MobileConnectConfig;
@@ -24,12 +22,13 @@ import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.dbutils.DbService;
 import com.wso2telco.core.dbutils.model.FederatedIdpMappingDTO;
+import com.wso2telco.claims.ClaimsRetrieverFactory;
+import com.wso2telco.core.config.model.ScopeDetailsConfig;
 import com.wso2telco.dao.DBConnection;
 import com.wso2telco.dao.ScopeDetails;
 import com.wso2telco.util.ClaimUtil;
-
 import org.apache.amber.oauth2.common.utils.JSONUtils;
-import org.apache.commons.lang.ArrayUtils;
+import com.wso2telco.util.ClaimsRetrieverType;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -38,12 +37,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
-import org.codehaus.jettison.json.JSONException;
-import org.wso2.carbon.identity.application.common.model.ClaimMapping;
-import org.wso2.carbon.identity.oauth.cache.AuthorizationGrantCache;
-import org.wso2.carbon.identity.oauth.cache.AuthorizationGrantCacheEntry;
-import org.wso2.carbon.identity.oauth.cache.AuthorizationGrantCacheKey;
-import org.wso2.carbon.identity.oauth.user.UserInfoClaimRetriever;
 import org.wso2.carbon.identity.oauth.user.UserInfoEndpointException;
 import org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
@@ -58,8 +51,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-// TODO: Auto-generated Javadoc
-
 /**
  * The Class ClaimInfoMultipleScopeResponseBuilder.
  */
@@ -70,9 +61,7 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
      */
     private static Log log = LogFactory.getLog(ClaimInfoMultipleScopeResponseBuilder.class);
 
-    private final String hashPhoneScope = "mc_identity_phonenumber_hashed";
-
-    private final String phone_number_claim = "phone_number";
+    private static String operatorClaim = "operator";
 
     /**
      * The openid scopes.
@@ -92,7 +81,7 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
             .getFederatedIdentityProviders();
 
     private static HashMap<String, MobileConnectConfig.Provider> federatedIdpMap = new HashMap<>();
- 
+
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder#getResponseString(org.wso2.carbon.identity
      * .oauth2.dto.OAuth2TokenValidationResponseDTO)
@@ -106,6 +95,8 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         org.apache.log4j.MDC.put("REF_ID", tokenValue);
 
         log.info("Start Generating User Claim Info for Access token : " + tokenValue);
+        List<ScopeDetailsConfig.Scope> scopes;
+
 
         if (log.isDebugEnabled()) {
             log.debug("Generating Claim Info for Access token : " + tokenValue);
@@ -133,43 +124,25 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
             }
         }
 
-        Map<ClaimMapping, String> userAttributes = getUserAttributesFromCache(tokenResponse);
         Map<String, Object> claims = null;
         //read claimValues per scope from scope-config.xml
-        DataHolder.getInstance().setScopeConfigs(ConfigLoader.getInstance().getScopeConfigs());
-        ScopeConfigs scopeConfigs = DataHolder.getInstance().getScopeConfigs();
+        ScopeDetailsConfig scopeConfigs = com.wso2telco.core.config.ConfigLoader.getInstance().getScopeDetailsConfig();
 
-        if (userAttributes != null) {
-            UserInfoClaimRetriever retriever = UserInfoEndpointConfig.getInstance().getUserInfoClaimRetriever();
-            claims = retriever.getClaimsMap(userAttributes);
-
-            boolean hasAcr = claims.containsKey("acr");
-            boolean hasAmr = claims.containsKey("amr");
-            if (hasAcr && hasAmr && userAttributes.size() == 2) {
-                //userattributes only contains only acr and amr values
-                userAttributes = null;
-
-            }
-        }
-        // Commenting out this since a null entry resides inside cache
-//        if (userAttributes == null || userAttributes.isEmpty()) {
-//            if (log.isDebugEnabled()) {
-//                log.debug("User attributes not found in cache. Trying to retrieve from user store.");
-//            }
         try {
             claims = ClaimUtil.getClaimsFromUserStore(tokenResponse);
         } catch (Exception e) {
-            log.error("Error while retrieving claims from user store : "+e.getMessage());
+            log.error("Error while retrieving claims from user store : " + e.getMessage());
             throw new UserInfoEndpointException("Error while retrieving claims from user store.");
         }
-//        }
 
         String contextPath = System.getProperty("request.context.path");
         String[] requestedScopes = tokenResponse.getScope();
-
+        scopes = scopeConfigs.getPremiumScopes();
         if (contextPath.equals("/oauth2")) {
             //oauth2/userinfo requests should serve scopes in openid connect onl
             requestedScopes = getValidScopes(requestedScopes);
+            scopes = scopeConfigs.getUserInfoScope();
+
         }
 
         Map<String, Object> requestedClaims = null;
@@ -177,77 +150,38 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
             DBConnection dbConnection = DBConnection.getInstance();
             ScopeDetails scopeDetails = dbConnection.getScopeFromAcessToken(tokenResponse
                     .getAuthorizationContextToken().getTokenString());
-            requestedClaims = getRequestedClaims(requestedScopes, scopeConfigs, claims);
+
+            List<MobileConnectConfig.OperatorData> operators = com.wso2telco.core.config.ConfigLoader.getInstance()
+                    .getMobileConnectConfig().getOperatorsList().getOperatorData();
+            String operatorName = (String) claims.get(operatorClaim);
+            String claimsRetrieverType = ClaimsRetrieverType.LOCAL.toString();
+
+            for (MobileConnectConfig.OperatorData operator : operators) {
+                if (operator.getOperatorName().equalsIgnoreCase(operatorName)) {
+                    claimsRetrieverType = operator.getUserInfoEndPointType();
+                    break;
+                }
+            }
+
+            requestedClaims = ClaimsRetrieverFactory.getClaimsRetriever(claimsRetrieverType).getRequestedClaims
+                    (requestedScopes, scopes, claims);
             requestedClaims.put("sub", scopeDetails.getPcr());
+
         } catch (NoSuchAlgorithmException e) {
-            log.error("User Info retrieval failed because of error while generating hashed claim values : "+e.getMessage());
+            log.error("User Info retrieval failed because of error while generating hashed claim values : " + e
+                    .getMessage());
             throw new UserInfoEndpointException("Error while generating hashed claim values.");
         } catch (Exception e) {
-            log.error("User Info retrieval failed because of error while generating sub value : "+e.getMessage());
+            log.error("User Info retrieval failed because of error while generating sub value : " + e.getMessage());
             throw new UserInfoEndpointException("Error while generating sub value");
         }
 
         Gson gson = new Gson();
         String userInfoJson = gson.toJson(requestedClaims);
         log.info("User Info retrieval Success");
-        log.info("User data : "+userInfoJson);
+        log.info("User data : " + userInfoJson);
         return userInfoJson;
     }
-
-    /**
-     * Gets the user attributes from cache.
-     *
-     * @param tokenResponse the token response
-     * @return the user attributes from cache
-     */
-    private Map<ClaimMapping, String> getUserAttributesFromCache(OAuth2TokenValidationResponseDTO tokenResponse) {
-        AuthorizationGrantCacheKey cacheKey = new AuthorizationGrantCacheKey(tokenResponse
-                .getAuthorizationContextToken().getTokenString());
-        AuthorizationGrantCacheEntry cacheEntry = (AuthorizationGrantCacheEntry) AuthorizationGrantCache.getInstance
-                ().getValueFromCache(cacheKey);
-        if (cacheEntry == null) {
-            return new HashMap<ClaimMapping, String>();
-        }
-        return cacheEntry.getUserAttributes();
-    }
-
-    /**
-     * Gets the requested claims.
-     *
-     * @param scopes       the scopes
-     * @param scopeConfigs the scope configs
-     * @param totalClaims  the total claims
-     * @return the requested claims
-     */
-    private Map<String, Object> getRequestedClaims(String[] scopes, ScopeConfigs scopeConfigs, Map<String, Object>
-            totalClaims) throws NoSuchAlgorithmException {
-        Map<String, Object> requestedClaims = new HashMap<String, Object>();
-        if (scopeConfigs != null) {
-            if (ArrayUtils.contains(scopes, hashPhoneScope)) {
-                String hashed_msisdn = getHashedClaimValue((String) totalClaims.get(phone_number_claim));
-                requestedClaims.put(phone_number_claim, hashed_msisdn);
-            } else {
-                for (Scope scope : scopeConfigs.getScopes().getScopeList()) {
-                    if (ArrayUtils.contains(scopes, scope.getName())) {
-                        for (String claims : scope.getClaims().getClaimValues()) {
-                            if (totalClaims.get(claims) == null) {
-                                requestedClaims.put(claims, "");
-                            } else {
-                                requestedClaims.put(claims, totalClaims.get(claims));
-                            }
-                        }
-                    }
-                }
-            }
-
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Could not load user-info claims.");
-            }
-        }
-        return requestedClaims;
-    }
-
 
     /**
      * Gets the valid scopes.
@@ -256,7 +190,7 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
      * @return the valid scopes
      */
     private String[] getValidScopes(String[] requestedScopes) {
-        List<String> validScopes = new ArrayList<String>();
+        List<String> validScopes = new ArrayList();
         for (String scope : requestedScopes) {
             if (!openidScopes.contains(scope)) {
                 continue;
@@ -266,6 +200,12 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         return validScopes.toArray(new String[validScopes.size()]);
     }
 
+    /**
+     * Gets the hashed value of given claims.
+     *
+     * @param claimValue the claim value
+     * @return the hashed value of the claim
+     */
     private String getHashedClaimValue(String claimValue) throws NoSuchAlgorithmException {
 
         MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -281,22 +221,23 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
 
         return sb.toString();
     }
-    
+
     /**
      * To verify whether this is federated Token request
-     * 
+     *
      * @param fidpInstance
      * @param tokenResponse
      * @return db instance
      */
     private FederatedIdpMappingDTO checkDbIfFederatedAccessToken(FederatedIdpMappingDTO fidpInstance,
-            OAuth2TokenValidationResponseDTO tokenResponse) {
+                                                                 OAuth2TokenValidationResponseDTO tokenResponse) {
 
         try {
             fidpInstance = dbConnection.retrieveFederatedTokenMappings(tokenResponse.getAuthorizationContextToken()
                     .getTokenString());
         } catch (Exception e) {
-            log.error("Error while retrieving federated token mapping information from DB, hence continuing regular flow : "
+            log.error("Error while retrieving federated token mapping information from DB, hence continuing regular " +
+                    "flow : "
                     + tokenResponse.getAuthorizationContextToken().getTokenString());
         }
         return fidpInstance;
@@ -339,7 +280,8 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         try {
             jsonString = processFederatedUserInfoResponse(urlResponse);
         } catch (IOException e) {
-            String errorMsg = "Error while getting response from Federated IDP for userinfo request using access_token : "
+            String errorMsg = "Error while getting response from Federated IDP for userinfo request using " +
+                    "access_token : "
                     + fidpInstance.getAccessToken();
             log.error(errorMsg);
             throw new UserInfoEndpointException(errorMsg, e);
@@ -369,7 +311,8 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         } catch (UnsupportedEncodingException e) {
             String errorMsg = "Error while encoding the URL for federated Callback : "
                     + mobileConnectConfig.getFederatedCallbackUrl() + " operator : " + fidpInstance.getOperator()
-                    + " endpoint : " + url;;
+                    + " endpoint : " + url;
+            ;
             log.error(errorMsg);
             throw new UserInfoEndpointException(errorMsg, e);
         } catch (ClientProtocolException e) {
@@ -378,7 +321,8 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
             log.error(errorMsg);
             throw new UserInfoEndpointException(errorMsg, e);
         } catch (IOException e) {
-            String errorMsg = "Error while getting response from Federated IDP for userinfo request using access_token : "
+            String errorMsg = "Error while getting response from Federated IDP for userinfo request using " +
+                    "access_token : "
                     + fidpInstance.getAccessToken()
                     + " operator : "
                     + fidpInstance.getOperator()

@@ -30,14 +30,21 @@ public class RedirectUrlInfo {
     private String telcoScope;
     private boolean isLoginhintMandatory;
     private boolean showTnc;
-    private ScopeParam.msisdnMismatchResultTypes headerMismatchResult;
-    private ScopeParam.heFailureResults heFailureResult;
+    private ScopeParam.MsisdnMismatchResultTypes headerMismatchResult;
+    private ScopeParam.HeFailureResults heFailureResult;
     private String transactionId;
     private String prompt;
+    private boolean attributeSharingScope;
+    private String trustedStatus;
+    private String attributeSharingScopeType;
 
-    public void setPrompt(String prompt) { this.prompt = prompt; }
+    public void setPrompt(String prompt) {
+        this.prompt = prompt;
+    }
 
-    public String getPrompt() { return prompt; }
+    public String getPrompt() {
+        return prompt;
+    }
 
     public String getQueryString() {
         return queryString;
@@ -111,19 +118,19 @@ public class RedirectUrlInfo {
         return showTnc;
     }
 
-    public void setHeaderMismatchResult(ScopeParam.msisdnMismatchResultTypes headerMismatchResult) {
+    public void setHeaderMismatchResult(ScopeParam.MsisdnMismatchResultTypes headerMismatchResult) {
         this.headerMismatchResult = headerMismatchResult;
     }
 
-    public ScopeParam.msisdnMismatchResultTypes getHeaderMismatchResult() {
+    public ScopeParam.MsisdnMismatchResultTypes getHeaderMismatchResult() {
         return headerMismatchResult;
     }
 
-    public void setHeFailureResult(ScopeParam.heFailureResults heFailureResult) {
+    public void setHeFailureResult(ScopeParam.HeFailureResults heFailureResult) {
         this.heFailureResult = heFailureResult;
     }
 
-    public ScopeParam.heFailureResults getHeFailureResult() {
+    public ScopeParam.HeFailureResults getHeFailureResult() {
         return heFailureResult;
     }
 
@@ -133,5 +140,29 @@ public class RedirectUrlInfo {
 
     public String getTransactionId() {
         return transactionId;
+    }
+
+    public boolean isAttributeSharingScope() {
+        return attributeSharingScope;
+    }
+
+    public void setAttributeSharingScope(boolean attributeSharingScope) {
+        this.attributeSharingScope = attributeSharingScope;
+    }
+
+    public String getTrustedStatus() {
+        return trustedStatus;
+    }
+
+    public void setTrustedStatus(String trustedStatus) {
+        this.trustedStatus = trustedStatus;
+    }
+
+    public String getAttributeSharingScopeType() {
+        return attributeSharingScopeType;
+    }
+
+    public void setAttributeSharingScopeType(String attributeSharingScopeType) {
+        this.attributeSharingScopeType = attributeSharingScopeType;
     }
 }
