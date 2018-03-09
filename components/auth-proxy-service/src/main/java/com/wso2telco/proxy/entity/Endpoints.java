@@ -679,9 +679,10 @@ public class Endpoints {
      */
     private boolean validateMsisdnFormat(String msisdn) {
         if (StringUtils.isNotEmpty(msisdn)) {
-            String plaintextMsisdnRegex =
-                    configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getValidationRegex();
-            return msisdn.matches(plaintextMsisdnRegex);
+            String regex = configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getValidationRegex();
+            if (StringUtils.isNotEmpty(regex)) {
+                return msisdn.matches(regex);
+            }
         }
         return true;
     }

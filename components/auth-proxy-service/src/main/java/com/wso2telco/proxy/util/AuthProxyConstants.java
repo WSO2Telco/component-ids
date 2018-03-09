@@ -67,5 +67,9 @@ public class AuthProxyConstants {
     public static final String ATTR_SHARE_SCOPE = "isAttrScope";
     public static final String TRUSTED_STATUS = "trustedstatus";
     public static final String ATTR_SHARE_SCOPE_TYPE = "attrShareType";
+    public static final String STATE =  "state";
+    public static final String NONCE =  "nonce";
+    public static final String NOTIFICATION_URI =  "notification_uri";
+    public static final String ACR_VALUE = "acr_value";
 
 }
