@@ -64,5 +64,9 @@ public class AuthProxyConstants {
     public static final String TRANSACTION_ID = "transactionId";
     public static final String MSISDN_VALIDATION_REGEX =  "validationRegex";
     public static final String RESPONSE_TYPE =  "response_type";
+    public static final String STATE =  "state";
+    public static final String NONCE =  "nonce";
+    public static final String NOTIFICATION_URI =  "notification_uri";
+    public static final String ACR_VALUE = "acr_value";
 
 }
