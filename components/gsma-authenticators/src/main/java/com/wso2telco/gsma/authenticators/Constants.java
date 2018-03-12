@@ -108,6 +108,8 @@ public final class Constants {
      */
     public static final String USSD_AUTHENTICATOR_NAME = "USSDAuthenticator";
 
+    public static final String SERVER_INITIATED_USSD_AUTHENTICATOR_NAME = "ServerInitiatedUSSDAuthenticator";
+
     /**
      * The Constant USSD_AUTHENTICATOR_FRIENDLY_NAME.
      */
