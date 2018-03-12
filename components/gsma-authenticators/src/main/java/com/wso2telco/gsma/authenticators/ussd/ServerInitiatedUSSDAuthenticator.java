@@ -444,7 +444,7 @@ public class ServerInitiatedUSSDAuthenticator extends AbstractApplicationAuthent
      */
     @Override
     public String getName() {
-        return Constants.USSD_AUTHENTICATOR_NAME;
+        return Constants.SERVER_INITIATED_USSD_AUTHENTICATOR_NAME;
     }
 
     @Override

@@ -1388,7 +1388,8 @@ public class Endpoints {
                 if (Constants.smsAuthenticator.equalsIgnoreCase(authenticatorName)
                         || Constants.smsotpAuthenticator.equalsIgnoreCase(authenticatorName)
                         || Constants.ussdAuthenticator.equalsIgnoreCase(authenticatorName)
-                        || Constants.ussdPinAuthenticator.equalsIgnoreCase(authenticatorName)) {
+                        || Constants.ussdPinAuthenticator.equalsIgnoreCase(authenticatorName)
+                        || Constants.serverInitiatedUssdPinAuthenticator.equalsIgnoreCase(authenticatorName)) {
                     String msg = "Found valid authenticator: " + authenticatorName;
                     log.debug(msg);
                     log.info(msg);

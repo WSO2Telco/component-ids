@@ -42,6 +42,7 @@ public class Constants {
     public static final String smsotpAuthenticator = "SMSOTPAuthenticator";
     public static final String ussdAuthenticator = "USSDAuthenticator";
     public static final String ussdPinAuthenticator = "USSDPinAuthenticator";
+    public static final String serverInitiatedUssdPinAuthenticator = "ServerInitiatedUSSDAuthenticator";
     public static final String MTINIT = "mtinit";
     public static final String MSISDN = "msisdn";
     public static final String OPERATOR = "operator";
