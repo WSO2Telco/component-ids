@@ -40,14 +40,14 @@
 				<fmt:message key='waiting-label-continue-on-device-intro-sms'/>
 				<%} else if (authenticators != null && authenticators.contains("USSDAuthenticator")) {
 					showSMSLink = true; %>
-				{{continue-on-device-intro-ussd}}
+					<fmt:message key='waiting-label-continue-on-device-intro-ussd'/>
 				<%} else if (authenticators != null && authenticators.contains("USSDPinAuthenticator")){
 					showSMSLink = true; %>
-				{{continue-on-device-intro-ussd-pin}}
+					<fmt:message key='waiting-label-continue-on-device-intro-ussd-pin'/>
 				<%} else if(authenticators != null && authenticators.contains("SmartPhoneAppAuthenticator")){%>
 				<fmt:message key='waiting-label-continue-on-device-intro-saa'/>
 				<%}else{%>
-                  {{continue-on-device-intro-default}}
+				<fmt:message key='waiting-label-continue-on-device-intro-default'/>
                 <%}%>
                 <%
                     String acr = request.getParameter("acr_values");
