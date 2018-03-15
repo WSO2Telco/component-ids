@@ -13,15 +13,12 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="stylesheet" href="mcresources/css/style.css">
 
-  
   <!-- load main script early asyncronously -->
   <script type="text/javascript" src="mcresources/js/main.js" async></script>
   <script src="js/public/js/jquery.min.js" type="text/javascript"></script>
   <script src="js/public/js/main.js" type="text/javascript"></script>
   <script src="js/public/js/modal.js" type="text/javascript"></script>
   <script src="js/landing.js" type="text/javascript"></script>
-
-
 
   <noscript>
     <!-- Fallback synchronous download, halt page rendering if load is slow  -->
@@ -157,14 +154,14 @@
       <br>Check your&nbsp;device.
     </div>
     <div align="center" id ="sms_fallback" style="display:block">
-      <p>No message arrived? <br><u><a onclick="sendSms()" style="cursor: pointer;">Click to get a text message instead.</a><u></p>
+      <p>No message arrived? <br><u><a onclick="sendSms()" style="cursor: pointer;">Click to get a text message instead.</a></u></p>
     </div>
     <a onclick="cancelProcessToRegister(true)" class="btn btn--outline btn--full btn--large"><fmt:message key='common-button-misc-cancel'/></a>
+    <div>
+        <p class="page-footer-message"><fmt:message key='waiting-label-continue-on-device-success-before-timeout-phase1'/><br><fmt:message key='waiting-label-continue-on-device-success-before-timeout-phase2'/></p>
+     </div>
   </main>
 </div>
-
-
-
 
 <script type="text/javascript">
 

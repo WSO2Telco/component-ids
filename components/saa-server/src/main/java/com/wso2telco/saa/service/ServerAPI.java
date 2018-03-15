@@ -57,7 +57,7 @@ public class ServerAPI {
     private static final String REGISTERED = "registered";
     private static final String REMOVE_CLIENT = "removeClient";
 
-    private Log log = LogFactory.getLog(ServerAPI.class);
+    private static Log log = LogFactory.getLog(ServerAPI.class);
     private DBConnection dbConnection = null;
     private ConfigurationService configurationService = new ConfigurationServiceImpl();
 
@@ -256,13 +256,12 @@ public class ServerAPI {
 
                 if (authenticatedStatus == 1) {
                     dbConnection.updateMessageTable(refID, 'S');
-                    success = 1;
-                    responseMessage = AuthenticateClientBySAAClientStatus.STATUS_UPDATED.toString();
-
                 } else {
-                    failure = 1;
-                    responseMessage = AuthenticateClientBySAAClientStatus.INVALID_REFERENCE_ID.toString();
+                    dbConnection.updateMessageTable(refID, 'C');
                 }
+                success = 1;
+                responseMessage = AuthenticateClientBySAAClientStatus.STATUS_UPDATED.toString();
+
             } else {
                 failure = 1;
                 responseMessage = AuthenticateClientBySAAClientStatus.ERROR_IN_SENDING_AUTHORIZATION_RESPONSE.toString();

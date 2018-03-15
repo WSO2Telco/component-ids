@@ -48,20 +48,20 @@
     <!-- *************** End of Global configurations ********************** -->
 
     <!--Display scopes in the consent page.-->
-    <listener>       
-      <listener-class>com.wso2telco.identity.application.authentication.endpoint.InitVariables</listener-class>
-   	</listener>  
-   
+    <listener>
+        <listener-class>com.wso2telco.identity.application.authentication.endpoint.InitVariables</listener-class>
+    </listener>
+
     <context-param>
         <param-name>displayScopes</param-name>
         <param-value>true</param-value>
     </context-param>
 
     <!-- Set default Locale Resource Path here -->
-    <context-param> 
-    	<param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
-    	<param-value>org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources</param-value> 
-    </context-param> 
+    <context-param>
+        <param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
+        <param-value>org.wso2.carbon.identity.application.authentication.endpoint.i18n.Resources</param-value>
+    </context-param>
 
     <filter>
         <filter-name>HttpHeaderSecurityFilter</filter-name>
@@ -146,11 +146,6 @@
     </servlet>
 
     <servlet>
-        <servlet-name>auth_registration_saa_waiting</servlet-name>
-        <jsp-file>/mcx-user-registration/saa_waiting.jsp</jsp-file>
-    </servlet>
-
-    <servlet>
         <servlet-name>oauth2_logout_consent.do</servlet-name>
         <jsp-file>/oauth2_logout_consent.jsp</jsp-file>
     </servlet>
@@ -231,10 +226,14 @@
         <jsp-file>/registration.jsp</jsp-file>
     </servlet>
 
-    <!-- -->
     <servlet>
         <servlet-name>voice_ivr_waiting</servlet-name>
         <jsp-file>/voice_ivr_waiting.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>user_attribute_consent.do</servlet-name>
+        <jsp-file>/mcx-user-registration/attribute_consent.jsp</jsp-file>
     </servlet>
 
     <servlet-mapping>
@@ -286,12 +285,6 @@
         <servlet-name>auth_registration_pin_reset</servlet-name>
         <url-pattern>/mcx-user-registration/auth_registration_pin_reset</url-pattern>
     </servlet-mapping>
-
-    <servlet-mapping>
-        <servlet-name>auth_registration_saa_waiting</servlet-name>
-        <url-pattern>/mcx-user-registration/auth_registration_saa_waiting</url-pattern>
-    </servlet-mapping>
-
 
     <servlet-mapping>
         <servlet-name>sms_auth</servlet-name>
@@ -371,6 +364,10 @@
     <servlet-mapping>
         <servlet-name>registration.do</servlet-name>
         <url-pattern>/registration.do</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>user_attribute_consent.do</servlet-name>
+        <url-pattern>/attributeconsent.do</url-pattern>
     </servlet-mapping>
 
     <!-- Voice ivr waiting page-->

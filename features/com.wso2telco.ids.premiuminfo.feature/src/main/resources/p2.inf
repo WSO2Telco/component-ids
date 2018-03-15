@@ -1,0 +1,2 @@
+instructions.configure = \
+org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/com.wso2telco.ids.premiuminfo_${feature.version}/generated/premiuminfo.war,target:${installFolder}/../../deployment/server/webapps/premiuminfo.war,overwrite:true);
