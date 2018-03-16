@@ -70,7 +70,7 @@ public class DataBaseConnectUtils {
      * Gets the connect db connection.
      *
      * @return the connect db connection
-     * @throws SQLException           the SQL exception
+     * @throws SQLException                 the SQL exception
      * @throws CommonAuthenticatorException the authenticator exception
      */
     private static Connection getConnectDBConnection() throws SQLException, NamingException {
@@ -93,7 +93,8 @@ public class DataBaseConnectUtils {
         PreparedStatement preparedStatement = null;
 
         String addUserDetailsQuery =
-                "insert into backchannel_user_details(user_id,msisdn,bearer_token,notification_url) values(?,?,?,?);";
+                "insert into backchannel_request_details(correlation_id,msisdn,notification_bearer_token," +
+                        "notification_url,request_initiated_time) values(?,?,?,?,NOW());";
 
         try {
             connection = getConnectDBConnection();
@@ -103,9 +104,9 @@ public class DataBaseConnectUtils {
             }
 
             preparedStatement = connection.prepareStatement(addUserDetailsQuery);
-            preparedStatement.setString(1, backChannelUserDetails.getUserId());
+            preparedStatement.setString(1, backChannelUserDetails.getCorrelationId());
             preparedStatement.setString(2, backChannelUserDetails.getMsisdn());
-            preparedStatement.setString(3, backChannelUserDetails.getBearerToken());
+            preparedStatement.setString(3, backChannelUserDetails.getNotificationBearerToken());
             preparedStatement.setString(4, backChannelUserDetails.getNotificationUrl());
             preparedStatement.execute();
 
@@ -124,10 +125,10 @@ public class DataBaseConnectUtils {
     /**
      * Update user details in Back Channeling Scenario : update Session ID
      *
-     * @param sessionId ID of the session
-     * @param userId    unique ID of the user
+     * @param sessionId     ID of the session
+     * @param correlationId unique ID of the user
      */
-    public static void updateSessionIdInBackChannel(String userId, String sessionId) throws
+    public static void updateSessionIdInBackChannel(String correlationId, String sessionId) throws
             ConfigurationException, CommonAuthenticatorException {
 
         Connection connection = null;
@@ -135,7 +136,7 @@ public class DataBaseConnectUtils {
         String updateUserDetailsQuery = null;
 
         updateUserDetailsQuery =
-                "update backchannel_user_details set session_id=? where user_id=?;";
+                "update backchannel_request_details set session_id=? where correlation_id=?;";
 
         try {
             connection = getConnectDBConnection();
@@ -146,12 +147,12 @@ public class DataBaseConnectUtils {
 
             preparedStatement = connection.prepareStatement(updateUserDetailsQuery);
             preparedStatement.setString(1, sessionId);
-            preparedStatement.setString(2, userId);
+            preparedStatement.setString(2, correlationId);
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
             handleException(
-                    "Error occurred while updating user details for : " + userId + "in " +
+                    "Error occurred while updating user details for : " + correlationId + "in " +
                             "BackChannel Scenario.",
                     e);
         } catch (NamingException e) {
@@ -159,17 +160,16 @@ public class DataBaseConnectUtils {
         } finally {
             closeAllConnections(preparedStatement, connection);
         }
-
     }
 
     /**
      * Update user details in Back Channeling Scenario : update Oauthcode and Accesstoken
      *
-     * @param code   Auth code
-     * @param userId unique ID of the user
-     * @param token  Access Token
+     * @param code          Auth code
+     * @param correlationId unique ID of the user
+     * @param token         Access Token
      */
-    public static void updateCodeAndTokenInBackChannel(String userId, String code, String token) throws
+    public static void updateCodeAndTokenInBackChannel(String correlationId, String code, String token) throws
             ConfigurationException, CommonAuthenticatorException {
 
         Connection connection = null;
@@ -177,7 +177,7 @@ public class DataBaseConnectUtils {
         String updateUserDetailsQuery = null;
 
         updateUserDetailsQuery =
-                "update backchannel_user_details set access_token=?,auth_code=? where user_id=?;";
+                "update backchannel_request_details set access_token=?,auth_code=? where correlation_id=?;";
 
         try {
             connection = getConnectDBConnection();
@@ -189,12 +189,12 @@ public class DataBaseConnectUtils {
             preparedStatement = connection.prepareStatement(updateUserDetailsQuery);
             preparedStatement.setString(1, token);
             preparedStatement.setString(2, code);
-            preparedStatement.setString(3, userId);
+            preparedStatement.setString(3, correlationId);
             preparedStatement.executeUpdate();
 
         } catch (SQLException e) {
             handleException(
-                    "Error occurred while updating user details for : " + userId + "in " +
+                    "Error occurred while updating user details for : " + correlationId + "in " +
                             "BackChannel Scenario.",
                     e);
         } catch (NamingException e) {
@@ -202,15 +202,14 @@ public class DataBaseConnectUtils {
         } finally {
             closeAllConnections(preparedStatement, connection);
         }
-
     }
 
     /**
      * Get user details in Back Channeling Scenario using sessionID
      *
-     * @param userId unique userId given by the table
+     * @param correlationId unique userId given by the table
      */
-    public static BackChannelUserDetails getBackChannelUserDetails(String userId) throws ConfigurationException,
+    public static BackChannelUserDetails getBackChannelUserDetails(String correlationId) throws ConfigurationException,
             CommonAuthenticatorException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
@@ -218,7 +217,7 @@ public class DataBaseConnectUtils {
         ResultSet resultSet = null;
 
         String getUserDetailsQuery =
-                "select * from backchannel_user_details where user_id=?";
+                "select * from backchannel_request_details where correlation_id=?";
 
         try {
             connection = getConnectDBConnection();
@@ -228,21 +227,23 @@ public class DataBaseConnectUtils {
             }
 
             preparedStatement = connection.prepareStatement(getUserDetailsQuery);
-            preparedStatement.setString(1, userId);
+            preparedStatement.setString(1, correlationId);
             resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
                 backChannelUserDetails = new BackChannelUserDetails();
                 backChannelUserDetails.setSessionId(resultSet.getString("session_id"));
                 backChannelUserDetails.setNotificationUrl(resultSet.getString("notification_url"));
-                backChannelUserDetails.setBearerToken(resultSet.getString("bearer_token"));
+                backChannelUserDetails.setNotificationBearerToken(resultSet.getString("notification_bearer_token"));
                 backChannelUserDetails.setAccessToken(resultSet.getString("aceess_token"));
                 backChannelUserDetails.setAuthCode(resultSet.getString("auth_code"));
                 backChannelUserDetails.setMsisdn(resultSet.getString("msisdn"));
+                backChannelUserDetails.setRequestIniticatedTime(resultSet.getString("request_initiated_time"));
             }
         } catch (SQLException e) {
             handleException(
-                    "Error occurred while getting user related details for : " + userId + "in BackChannel Scenario.",
+                    "Error occurred while getting user related details for : " + correlationId + "in BackChannel " +
+                            "Scenario.",
                     e);
         } catch (NamingException e) {
             throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");

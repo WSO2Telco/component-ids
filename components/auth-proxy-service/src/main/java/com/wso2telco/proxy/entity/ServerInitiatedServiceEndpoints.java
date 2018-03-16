@@ -178,11 +178,13 @@ public class ServerInitiatedServiceEndpoints {
         } else {
             StringBuilder urlBuilder = new StringBuilder();
             BackChannelUserDetails backChannelUserDetails = new BackChannelUserDetails();
-            String userId = UUID.randomUUID().toString();
 
-            backChannelUserDetails.setUserId(userId);
+            //todo : change the endpoint to read correlation ID from the auth call
+            String correlationId = UUID.randomUUID().toString();
+
+            backChannelUserDetails.setCorrelationId(correlationId);
             backChannelUserDetails.setMsisdn(loginHint);
-            backChannelUserDetails.setBearerToken(clientNotificationToken);
+            backChannelUserDetails.setNotificationBearerToken(clientNotificationToken);
             backChannelUserDetails.setNotificationUrl(redirectURL);
 
             DataBaseConnectUtils.addBackChannelUserDetails(backChannelUserDetails);
@@ -202,7 +204,7 @@ public class ServerInitiatedServiceEndpoints {
                     .append("&acr_values=").append(acrValue)
                     .append("&operator=").append(operatorName)
                     .append("&login_hint=").append(loginHint)
-                    .append("&user_id=").append(userId)
+                    .append("&correlation_id=").append(correlationId)
                     .append("&is_backChannel_allowed=").append(isBackChannelAllowed);
 
             // Then there should be a update done in USSD/SMS etc authenticated when the SMS is initiated
@@ -211,7 +213,7 @@ public class ServerInitiatedServiceEndpoints {
 
             //todo : implement Token retreval
             String token = "vvfvfrfvdvdvdvdvdvd";
-            DataBaseConnectUtils.updateCodeAndTokenInBackChannel(userId, code, token);
+            DataBaseConnectUtils.updateCodeAndTokenInBackChannel(correlationId, code, token);
 
             if (code == null) {
                 return Response.status(Response.Status.UNAUTHORIZED.getStatusCode()).entity(Response.Status.UNAUTHORIZED.toString())
