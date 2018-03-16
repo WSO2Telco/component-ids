@@ -205,6 +205,9 @@ public class Endpoints {
                 String ipAddress = null;
                 String msisdn = null;
                 String queryString = "";
+                boolean isBackChannelAllowed;
+                String userId = null;
+                String redirectUrl = null;
 
                 try {
                     msisdn = decryptMSISDN(httpHeaders, operatorName);
@@ -232,6 +235,15 @@ public class Endpoints {
                     RedirectUrlInfo redirectUrlInfo = new RedirectUrlInfo();
                     redirectUrlInfo.setAuthorizeUrl(authorizeUrlProperty);
                     redirectUrlInfo.setOperatorName(operatorName);
+
+                    isBackChannelAllowed = Boolean.parseBoolean(queryParams.get(AuthProxyConstants.IS_BACKCHANNEL_ALLOWED).get(0).toString());
+                    if(isBackChannelAllowed){
+                        userId = queryParams.get(AuthProxyConstants.USER_ID).get(0);
+                        redirectUrl = queryParams.get(AuthProxyConstants.REDIRECT_URL).get(0);
+                        redirectUrlInfo.setBackChannelAllowed(isBackChannelAllowed);
+                        redirectUrlInfo.setUserId(userId);
+                        redirectUrlInfo.setRedirectUrl(redirectUrl);
+                    }
 
                     if (httpHeaders != null) {
                         if (log.isDebugEnabled()) {

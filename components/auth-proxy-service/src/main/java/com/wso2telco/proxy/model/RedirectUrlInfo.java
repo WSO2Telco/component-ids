@@ -37,6 +37,9 @@ public class RedirectUrlInfo {
     private boolean attributeSharingScope;
     private String trustedStatus;
     private String attributeSharingScopeType;
+    private String userId;
+    private String redirectUrl;
+    private boolean isBackChannelAllowed;
 
     public void setPrompt(String prompt) {
         this.prompt = prompt;
@@ -164,5 +167,29 @@ public class RedirectUrlInfo {
 
     public void setAttributeSharingScopeType(String attributeSharingScopeType) {
         this.attributeSharingScopeType = attributeSharingScopeType;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getRedirectUrl() {
+        return redirectUrl;
+    }
+
+    public void setRedirectUrl(String redirectUrl) {
+        this.redirectUrl = redirectUrl;
+    }
+
+    public boolean isBackChannelAllowed() {
+        return isBackChannelAllowed;
+    }
+
+    public void setBackChannelAllowed(boolean backChannelAllowed) {
+        isBackChannelAllowed = backChannelAllowed;
     }
 }

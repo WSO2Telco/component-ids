@@ -24,8 +24,10 @@ import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.PromptData;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.DecryptionAES;
+import com.wso2telco.exception.CommonAuthenticatorException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import com.wso2telco.dbUtil.DataBaseConnectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,6 +48,7 @@ import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 
+import javax.naming.ConfigurationException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
@@ -136,6 +139,10 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         String telcoScope = request.getParameter(Constants.TELCO_SCOPE);
         String attrShareScopeType = request.getParameter(Constants.ATTRSHARE_SCOPE_TYPE);
         boolean isShowTnc = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
+        String redirectUrl =  request.getParameter(Constants.REDIRECT_URL);
+        String userId = request.getParameter(Constants.USER_ID);
+        boolean isBackChannelAllowed = Boolean.getBoolean(request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED));
+
 
         if (log.isDebugEnabled()) {
             log.debug("mobileNetworkOperator : " + mobileNetworkOperator);
@@ -169,6 +176,20 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.AUTHENTICATED_USER, false);
         context.setProperty(Constants.TRUSTED_STATUS, trustedStatus);
         context.setProperty(Constants.ATTRSHARE_SCOPE_TYPE, attrShareScopeType);
+        context.setProperty(Constants.REDIRECT_URL,redirectUrl);
+        context.setProperty(Constants.USER_ID,userId);
+        context.setProperty(Constants.IS_BACKCHANNEL_ALLOWED,isBackChannelAllowed);
+
+        if(isBackChannelAllowed){
+            try {
+                String sessionID = context.getContextIdentifier();
+                DataBaseConnectUtils.updateSessionIdInBackChannel(userId,sessionID);
+            } catch (CommonAuthenticatorException e) {
+                throw new AuthenticationFailedException(e.getMessage(), e);
+            } catch (ConfigurationException e) {
+                throw new AuthenticationFailedException(e.getMessage(), e);
+            }
+        }
 
         // set prompt variable default to false
         Boolean isFrorceOffnetDueToPromptParameter = false;
