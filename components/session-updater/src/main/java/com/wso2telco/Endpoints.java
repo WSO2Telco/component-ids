@@ -29,6 +29,7 @@ import com.wso2telco.entity.*;
 import com.wso2telco.exception.AuthenticatorException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import com.wso2telco.util.BasicFutureCallback;
 import com.wso2telco.util.Constants;
 import com.wso2telco.util.DbUtil;
 import org.apache.axis2.AxisFault;
@@ -36,10 +37,17 @@ import org.apache.commons.lang.IncompleteArgumentException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
+import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
@@ -62,7 +70,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.rmi.RemoteException;
 import java.security.MessageDigest;
@@ -170,6 +180,126 @@ public class Endpoints {
         log.info("Updated saa status: " + saaResponse);
         return response;
     }
+
+
+
+    @POST
+    @Path("/serverinitiated/login/ussd/")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public void serverinitiatedLoginUssd(String jsonBody) throws SQLException, JSONException, IOException {
+        Gson gson = new GsonBuilder().serializeNulls().create();
+        org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
+        String message = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("inboundUSSDMessage");
+        String sessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("clientCorrelator");
+        String msisdn = extractMsisdn(jsonObj);
+
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+        setStateFromAuthenticationContext(authenticationContext);
+
+        log.info("Received login request");
+
+        if (log.isDebugEnabled()) {
+            log.debug("Json Body : " + jsonBody);
+        }
+
+        int responseCode = 400;
+        String responseString = null;
+
+        String status = null;
+
+        String ussdSessionID = null;
+        if (jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID") && !jsonObj.getJSONObject
+                ("inboundUSSDMessageRequest").isNull("sessionID")) {
+            ussdSessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("sessionID");
+            if (log.isDebugEnabled()) {
+                log.debug("UssdSessionID 01 : " + ussdSessionID);
+            }
+        }
+        ussdSessionID = ((ussdSessionID != null) ? ussdSessionID : "");
+        if (log.isDebugEnabled()) {
+            log.debug("UssdSessionID 02 : " + ussdSessionID);
+        }
+        //Accept or Reject response depending on configured values
+        String acceptInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig()
+                .getAcceptUserInputs();
+        String rejectInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig()
+                .getRejectUserInputs();
+
+        if (validateUserInputs(acceptInputs, message)) {
+            status = "Approved";
+            responseCode = Response.Status.CREATED.getStatusCode();
+            DatabaseUtils.updateStatus(sessionID, status);
+            if(authenticationContext!=null){
+                DataPublisherUtil.updateAndPublishUserStatus(
+                        (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_APPROVED, "USSD login push approved");
+            }
+        } else if (validateUserInputs(rejectInputs, message)) {
+            status = "Rejected";
+            responseCode = Response.Status.BAD_REQUEST.getStatusCode();
+            DatabaseUtils.updateStatus(sessionID, status);
+            if(authenticationContext!=null) {
+                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_REJECTED, "USSD login push rejected");
+            }
+        } else {
+            status = "Rejected";
+            responseCode = Response.Status.NOT_ACCEPTABLE.getStatusCode();
+            DatabaseUtils.updateStatus(sessionID, status);
+            if(authenticationContext!=null) {
+                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_FAIL, "USSD login push failed");
+            }
+        }
+
+        if (responseCode == Response.Status.BAD_REQUEST.getStatusCode() || responseCode == Response.Status
+                .NOT_ACCEPTABLE.getStatusCode()) {
+            responseString = "{" + "\"requestError\":" + "{"
+                    + "\"serviceException\":" + "{" + "\"messageId\":\"" + "SVC0275" + "\"" + "," + "\"text\":\"" +
+                    "Internal server Error" + "\"" + "}"
+                    + "}}";
+
+            //TODO:build an error respond
+
+        } else {
+            responseString = SendUSSD.getUSSDJsonPayload(msisdn, sessionID, 5, "mtfin", ussdSessionID);
+
+//todo : get the token using correlation id and send to notification url
+
+        }
+
+        String spTokenEndpoint = ""; //todo : fetch from db
+        String spBearerToken = "";//todo : fetch from db
+
+
+        postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
+
+
+    }
+
+
+    //todo: move this to a common util for MIG
+    protected void postTokenRequest(String url, String requestStr, String token)
+            throws IOException {
+
+        HttpClient client = new DefaultHttpClient();
+        HttpPost postRequest = new HttpPost(url);
+
+        postRequest.addHeader("accept", "application/json");
+        postRequest.addHeader("Authorization", "Bearer " + token);
+
+        StringEntity input = new StringEntity(requestStr);
+        input.setContentType("application/json");
+
+        postRequest.setEntity(input);
+
+        HttpResponse httpResponse = client.execute(postRequest);
+        log.info(httpResponse.getStatusLine().getStatusCode());
+
+    }
+
+
 
     /**
      * Ussd receive.
@@ -1296,6 +1426,82 @@ public class Endpoints {
         }
         return Response.status(200).entity(responseString).build();
     }
+
+
+
+    @GET
+    @Path("/serverinitiated/sms/response/{id}")
+    // @Consumes("application/json")
+    @Produces("text/plain")
+    public Response serverInitiatedSmsConfirm(@PathParam("id") String sessionID)
+            throws SQLException {
+        String responseString;
+
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+        setStateFromAuthenticationContext(authenticationContext);
+
+        log.info("Processing sms confirmation");
+        if (configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig().getIsShortUrl()) {
+            // If a URL shortening service is enabled, that means, the id query parameter is the encrypted context
+            // identifier. Therefore, to get the actual context identifier, we can decrypt the value of id query param.
+            log.debug("A short URL service is enabled in mobile-connect.xml");
+            try {
+                sessionID = AESencrp.decrypt(sessionID.replaceAll(" ", "+"));
+            } catch (Exception e) {
+                log.error("An error occurred while decrypting session ID", e);
+                responseString = e.getLocalizedMessage();
+                return Response.status(500).entity(responseString).build();
+            }
+        } else {
+            // If a URL shortening service is not enabled, that means, the actual context-identifier was encrypted and
+            // a hash key was generated from the encrypted context identifier and a database entry mapping the hash key
+            // to the context identifier (not encrypted) should have been inserted.
+            // Therefore, to get the context identifier we need to look up the database.
+            log.debug("A short URL service is not enabled in mobile-connect.xml");
+            try {
+                sessionID = DbUtil.getContextIDForHashKey(sessionID);
+                if (sessionID == null) {
+                    log.debug("There is no context identifier corresponding to the hash id: " + sessionID);
+                }
+            } catch (AuthenticatorException | SQLException e) {
+                log.error("An error occurred while retriving context identifier", e);
+                return Response.status(500).entity("").build();
+            }
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Context Identifier: " + sessionID);
+        }
+        String status;
+        String userStatus = DatabaseUtils.getUSerStatus(sessionID);
+        DataPublisherUtil.UserState userState = DataPublisherUtil.UserState.SMS_URL_AUTH_FAIL;
+        if (userStatus.equalsIgnoreCase("PENDING")) {
+            DatabaseUtils.updateStatus(sessionID, "APPROVED");
+            status = "APPROVED";
+            responseString = " You are successfully authenticated via mobile-connect";
+            userState=DataPublisherUtil.UserState.SMS_URL_AUTH_SUCCESS;
+        } else if (userStatus.equalsIgnoreCase("EXPIRED")) {
+            status = "EXPIRED";
+            responseString = " Your token is expired";
+        } else {
+            status = "EXPIRED";
+            responseString = " Your token has already approved";
+        }
+
+        responseString = "{" + "\"status\":\"" + status + "\","
+                + "\"text\":\"" + responseString + "\"" + "}";
+
+        log.info("Sending sms confirmation response" + responseString);
+        if(authenticationContext!=null) {
+            DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                    userState, "SMS URL " + status);
+        }
+        return Response.status(200).entity(responseString).build();
+
+        //todo: change the return type and post the token to the sp endpoint
+
+    }
+
+
 
     /**
      * Mepin confirm.

@@ -26,6 +26,7 @@ import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.ussd.command.LoginUssdCommand;
 import com.wso2telco.gsma.authenticators.ussd.command.RegistrationUssdCommand;
+import com.wso2telco.gsma.authenticators.ussd.command.ServerInitiatedLoginUssdCommand;
 import com.wso2telco.gsma.authenticators.ussd.command.UssdCommand;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
@@ -56,7 +57,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-// TODO:Need to revisit log of thie authenticator
 //import org.wso2.carbon.identity.core.dao.OAuthAppDAO;
 
 
@@ -66,29 +66,16 @@ import java.util.Map;
 public class ServerInitiatedUSSDAuthenticator extends AbstractApplicationAuthenticator
         implements LocalApplicationAuthenticator, BaseApplicationAuthenticator {
 
-    /**
-     * The Constant serialVersionUID.
-     */
-    private static final long serialVersionUID = 7785133722588291677L;
 
     /**
      * The log.
      */
     private static Log log = LogFactory.getLog(ServerInitiatedUSSDAuthenticator.class);
 
-    /**
-     * The Configuration service
-     */
-    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
-
-    /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
-     * .servlet.http.HttpServletRequest)
-     */
     @Override
     public boolean canHandle(HttpServletRequest request) {
         if (log.isDebugEnabled()) {
-            log.debug("USSD Authenticator canHandle invoked");
+            log.debug("Server Initiated USSD Authenticator canHandle invoked");
         }
         return true;
     }
@@ -105,7 +92,7 @@ public class ServerInitiatedUSSDAuthenticator extends AbstractApplicationAuthent
         DataPublisherUtil
                 .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
                                 .USER_STATUS_DATA_PUBLISHING_PARAM),
-                        DataPublisherUtil.UserState.USSD_AUTH_PROCESSING, "USSDAuthenticator processing started");
+                        DataPublisherUtil.UserState.USSD_AUTH_PROCESSING, "ServerInitiatedUSSDAuthenticator processing started");
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
         } else {
@@ -113,88 +100,10 @@ public class ServerInitiatedUSSDAuthenticator extends AbstractApplicationAuthent
         }
     }
 
-
-
-    /* (non-Javadoc)
-     * @see org.wso2.carbon.identity.application.authentication.framework
-     * .AbstractApplicationAuthenticator#initiateAuthenticationRequest(javax.servlet.http.HttpServletRequest, javax
-     * .servlet.http.HttpServletResponse, org.wso2.carbon.identity.application.authentication.framework.context
-     * .AuthenticationContext)
-     */
-    @Override
-    protected void initiateAuthenticationRequest(HttpServletRequest request,
-                                                 HttpServletResponse response, AuthenticationContext context)
-            throws AuthenticationFailedException {
-
-        log.info("Initiating authentication request");
-        UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
-        String loginPage;
-        String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
-                context.getCallerSessionKey(), context.getContextIdentifier());
-
-        String msisdn = (String) context.getProperty(Constants.MSISDN);
-        boolean isUserExists = !(boolean) context.getProperty(Constants.IS_REGISTERING);
-        String serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
-
-        if (log.isDebugEnabled()) {
-            log.debug("MSISDN : " + msisdn);
-            log.debug("Service provider : " + serviceProviderName);
-            log.debug("User exist : " + isUserExists);
-            log.debug("Query parameters : " + queryParams);
-        }
-
-        try {
-            String retryParam = "";
-
-            loginPage = getAuthEndpointUrl(context);
-
-            if (serviceProviderName.equals("wso2_sp_dashboard")) {
-                serviceProviderName = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig()
-                        .getDashBoard();
-            }
-            String operator = (String) context.getProperty(Constants.OPERATOR);
-
-            DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
-            sendUssd(context, msisdn, serviceProviderName, operator, isUserExists);
-
-            if (log.isDebugEnabled()) {
-                log.debug("Operator : " + operator);
-                log.debug("Redirect URI : " + context.getProperty("redirectURI"));
-            }
-            /*response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
-                    (String) context.getProperty("redirectURI") + "&authenticators="
-                    + getName() + ":" + "LOCAL" + retryParam);*/
-
-        } catch (IOException | SQLException | AuthenticatorException e) {
-            DataPublisherUtil
-                    .updateAndPublishUserStatus(userStatus,
-                            DataPublisherUtil.UserState.USSD_AUTH_PROCESSING_FAIL, e.getMessage());
-            throw new AuthenticationFailedException(e.getMessage(), e);
-        }
-    }
-
-    private String getAuthEndpointUrl(AuthenticationContext context) {
-        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-        String loginPage;
-
-        if (isRegistering) {
-            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
-                    Constants.REGISTRATION_WAITING_JSP;
-        } else {
-            loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
-        }
-        return loginPage;
-    }
-
     private void sendUssd(AuthenticationContext context, String msisdn, String serviceProviderName, String operator,
                           boolean isUserExists) throws IOException {
         UssdCommand ussdCommand;
-
-        if (isUserExists) {
-            ussdCommand = new LoginUssdCommand();
-        } else {
-            ussdCommand = new RegistrationUssdCommand();
-        }
+        ussdCommand = new ServerInitiatedLoginUssdCommand();
 
         String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
                 context.getCallerSessionKey(), context.getContextIdentifier());
@@ -268,119 +177,90 @@ public class ServerInitiatedUSSDAuthenticator extends AbstractApplicationAuthent
         String msisdn = (String) context.getProperty(Constants.MSISDN);
         String operator = (String) context.getProperty(Constants.OPERATOR);
 
+        boolean isUserExists = !(boolean) context.getProperty(Constants.IS_REGISTERING);
+        String serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
+
         if (log.isDebugEnabled()) {
             log.debug("SessionDataKey : " + sessionDataKey);
             log.debug("Registering : " + isRegistering);
             log.debug("MSISDN : " + msisdn);
             log.debug("Operator : " + operator);
+            log.debug("UserExists : " + isUserExists);
+            log.debug("ServiceProviderName : " + serviceProviderName);
         }
 
+
         try {
+            sendUssd(context, msisdn, serviceProviderName, operator, isUserExists);
             String responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
-
-            if (responseStatus != null && responseStatus.equalsIgnoreCase(UserResponse.APPROVED.toString())) {
-
-                if (isRegistering) {
-                    new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
-
-                    MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
-                    if (!smsConfig.getWelcomeMessageDisabled()) {
-                        WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
-                    }
-                }
-            } else {
-               /* log.info("Authentication failed. Consent not provided.");
-                context.setProperty("faileduser", (String) context.getProperty("msisdn"));
-                DataPublisherUtil
-                        .updateAndPublishUserStatus(userStatus,
-                                DataPublisherUtil.UserState.USSD_AUTH_PROCESSING_FAIL, "User consent not provided");
-                throw new AuthenticationFailedException("Authentication Failed");*/
+            if (log.isDebugEnabled()) {
+                log.debug("responseStatus : " + responseStatus);
             }
-
-        } catch (AuthenticatorException e) {
+        } catch (IOException | AuthenticatorException e) {
             DataPublisherUtil
                     .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.USSD_AUTH_PROCESSING_FAIL,
                             e.getMessage());
             throw new AuthenticationFailedException("USSD Authentication failed while trying to authenticate", e);
-        } catch (UserRegistrationAdminServiceIdentityException | RemoteException e) {
-            DataPublisherUtil
-                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.USSD_AUTH_PROCESSING_FAIL,
-                            e.getMessage());
-            throw new AuthenticationFailedException("Error occurred while creating user profile", e);
-        } catch (DataAccessException | IOException e) {
-            log.error("Welcome SMS sending failed" ,e);
         }
+
         AuthenticationContextHelper.setSubject(context, msisdn);
 
         log.info("Authentication success");
 
         DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.USSD_AUTH_SUCCESS,
                 "USSD Authentication success");
-
-        String rememberMe = request.getParameter("chkRemember");
-
-        if (rememberMe != null && "on".equals(rememberMe)) {
-            context.setRememberMe(true);
-        }
     }
 
 
     public AuthenticatorFlowStatus processRequest(HttpServletRequest request, HttpServletResponse response,
                                                   AuthenticationContext context) throws
             AuthenticationFailedException, LogoutFailedException {
-        if (canHandle(request)) {
-            try {
-                processAuthenticationResponse(request, response, context);
-                if (this instanceof LocalApplicationAuthenticator && !context.getSequenceConfig()
-                        .getApplicationConfig().isSaaSApp()) {
-                    String e = context.getSubject().getTenantDomain();
-                    String stepMap1 = context.getTenantDomain();
-                    if (!StringUtils.equals(e, stepMap1)) {
-                        context.setProperty("UserTenantDomainMismatch", Boolean.valueOf(true));
-                        throw new AuthenticationFailedException("Service Provider tenant domain must be equal to user" +
-                                " tenant domain for non-SaaS applications");
-                    }
-                }
-
-                request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, Boolean.TRUE);
-                publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
-                return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
-            } catch (AuthenticationFailedException e) {
-                Object property = context.getProperty(Constants.IS_TERMINATED);
-                boolean isTerminated = false;
-                if (property != null) {
-                    isTerminated = (boolean) property;
-                }
-
-                Map stepMap = context.getSequenceConfig().getStepMap();
-                boolean stepHasMultiOption = false;
-                publishAuthenticationStepAttempt(request, context, e.getUser(), false);
-                if (stepMap != null && !stepMap.isEmpty()) {
-                    StepConfig stepConfig = (StepConfig) stepMap.get(Integer.valueOf(context.getCurrentStep()));
-                    if (stepConfig != null) {
-                        stepHasMultiOption = stepConfig.isMultiOption();
-                    }
-                }
-
-                if (isTerminated) {
-                    throw new AuthenticationFailedException("Authenticator is terminated");
-                }
-                if (retryAuthenticationEnabled() && !stepHasMultiOption) {
-                    context.setRetrying(true);
-                    context.setCurrentAuthenticator(getName());
-                    initiateAuthenticationRequest(request, response, context);
-                    return AuthenticatorFlowStatus.INCOMPLETE;
-                } else {
-                    throw e;
+        try {
+            processAuthenticationResponse(request, response, context);
+            if (this instanceof LocalApplicationAuthenticator && !context.getSequenceConfig()
+                    .getApplicationConfig().isSaaSApp()) {
+                String e = context.getSubject().getTenantDomain();
+                String stepMap1 = context.getTenantDomain();
+                if (!StringUtils.equals(e, stepMap1)) {
+                    context.setProperty("UserTenantDomainMismatch", Boolean.valueOf(true));
+                    throw new AuthenticationFailedException("Service Provider tenant domain must be equal to user" +
+                            " tenant domain for non-SaaS applications");
                 }
             }
-        } else {
-            initiateAuthenticationRequest(request, response, context);
-            context.setCurrentAuthenticator(getName());
-            return AuthenticatorFlowStatus.INCOMPLETE;
+
+            request.setAttribute(FrameworkConstants.REQ_ATTR_HANDLED, Boolean.TRUE);
+            publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
+            return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+        } catch (AuthenticationFailedException e) {
+            Object property = context.getProperty(Constants.IS_TERMINATED);
+            boolean isTerminated = false;
+            if (property != null) {
+                isTerminated = (boolean) property;
+            }
+
+            Map stepMap = context.getSequenceConfig().getStepMap();
+            boolean stepHasMultiOption = false;
+            publishAuthenticationStepAttempt(request, context, e.getUser(), false);
+            if (stepMap != null && !stepMap.isEmpty()) {
+                StepConfig stepConfig = (StepConfig) stepMap.get(Integer.valueOf(context.getCurrentStep()));
+                if (stepConfig != null) {
+                    stepHasMultiOption = stepConfig.isMultiOption();
+                }
+            }
+
+            if (isTerminated) {
+                throw new AuthenticationFailedException("Authenticator is terminated");
+            }
+            if (retryAuthenticationEnabled() && !stepHasMultiOption) {
+                context.setRetrying(true);
+                context.setCurrentAuthenticator(getName());
+                initiateAuthenticationRequest(request, response, context);
+                return AuthenticatorFlowStatus.INCOMPLETE;
+            } else {
+                throw e;
+            }
         }
     }
-
 
 
     private void publishAuthenticationStepAttempt(HttpServletRequest request, AuthenticationContext context,
@@ -436,7 +316,7 @@ public class ServerInitiatedUSSDAuthenticator extends AbstractApplicationAuthent
      */
     @Override
     public String getFriendlyName() {
-        return Constants.USSD_AUTHENTICATOR_FRIENDLY_NAME;
+        return Constants.SERVER_INITIATED_USSD_AUTHENTICATOR_FRIENDLY_NAME;
     }
 
     /* (non-Javadoc)

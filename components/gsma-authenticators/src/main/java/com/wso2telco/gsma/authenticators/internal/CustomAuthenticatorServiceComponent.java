@@ -22,6 +22,7 @@ import com.wso2telco.gsma.authenticators.headerenrich.HeaderEnrichmentAuthentica
 import com.wso2telco.gsma.authenticators.saa.SmartPhoneAppAuthenticator;
 import com.wso2telco.gsma.authenticators.sms.SMSAuthenticator;
 import com.wso2telco.gsma.authenticators.sms.SMSOTPAuthenticator;
+import com.wso2telco.gsma.authenticators.sms.ServerInitiatedSMSAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.ServerInitiatedUSSDAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDPinAuthenticator;
@@ -106,6 +107,9 @@ public class CustomAuthenticatorServiceComponent {
                 new BasicAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new ServerInitiatedUSSDAuthenticator(), null);
+        ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
+                new ServerInitiatedSMSAuthenticator(), null);
+
 
         if (log.isDebugEnabled()) {
             log.debug("Custom Application Authenticator bundle is activated");
