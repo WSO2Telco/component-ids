@@ -63,6 +63,8 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
     @Override
     public boolean validateGrant(OAuthTokenReqMessageContext tokReqMsgCtx) throws IdentityOAuth2Exception {
         org.apache.log4j.MDC.put("REF_ID", tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
+        org.apache.log4j.MDC.remove("MSISDN");
+
         log.info("AuthCode Validatation process triggered for authorize code : "
                 + tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
         boolean isValidAuthCode;
@@ -75,14 +77,18 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
             throw new IdentityOAuth2Exception(ex.getMessage(), ex);
         }
 
-        if (!isValidAuthCode)
+        if (!isValidAuthCode) {
+            log.error("Invalid auth code " + tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
             publishForFailureData(tokReqMsgCtx, isPublishingEnabled);
+        }
 
         return isValidAuthCode;
     }
 
     @Override
     public OAuth2AccessTokenRespDTO issue(OAuthTokenReqMessageContext tokReqMsgCtx) throws IdentityOAuth2Exception {
+        org.apache.log4j.MDC.put("REF_ID", tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
+        org.apache.log4j.MDC.remove("MSISDN");
 
         log.info("Access Token process triggered for authorize code : "
                 + tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
@@ -92,10 +98,10 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
         try {
             if (!mobileConnectConfig.isFederatedDeployment()) {
                 tokenRespDTO = issueTokenFromIS(tokReqMsgCtx);
-                log.info("Issued token from IS" + tokenRespDTO.getAccessToken());
+                log.info("Issued token from IS " + tokenRespDTO.getAccessToken());
             } else{
                 tokenRespDTO = issueTokenForFederatedIds(tokReqMsgCtx);
-                log.info("Issued token from FederatedIds" + tokenRespDTO.getAccessToken());
+                log.info("Issued token from FederatedIds " + tokenRespDTO.getAccessToken());
             }
 
         } catch (Exception ex) {
@@ -110,6 +116,9 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
 
     private OAuth2AccessTokenRespDTO issueTokenForFederatedIds(OAuthTokenReqMessageContext tokReqMsgCtx)
             throws IdentityOAuth2Exception {
+        org.apache.log4j.MDC.put("REF_ID", tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
+        org.apache.log4j.MDC.remove("MSISDN");
+
         OAuth2AccessTokenRespDTO tokenRespDTO;
         if (isdebug) {
             log.debug(" Identified as FederatedIDP integrated deployment, hence modified Token flow triggered for authcode : "
