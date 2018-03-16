@@ -37,7 +37,7 @@ public class RedirectUrlInfo {
     private boolean attributeSharingScope;
     private String trustedStatus;
     private String attributeSharingScopeType;
-    private String userId;
+    private String correlationId;
     private String redirectUrl;
     private boolean isBackChannelAllowed;
 
@@ -169,14 +169,6 @@ public class RedirectUrlInfo {
         this.attributeSharingScopeType = attributeSharingScopeType;
     }
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
     public String getRedirectUrl() {
         return redirectUrl;
     }
@@ -191,5 +183,13 @@ public class RedirectUrlInfo {
 
     public void setBackChannelAllowed(boolean backChannelAllowed) {
         isBackChannelAllowed = backChannelAllowed;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
     }
 }

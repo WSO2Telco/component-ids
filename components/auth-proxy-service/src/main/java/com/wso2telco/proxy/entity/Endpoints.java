@@ -206,10 +206,11 @@ public class Endpoints {
                 String msisdn = null;
                 String queryString = "";
                 boolean isBackChannelAllowed;
-                String userId = null;
+                String correlationId = null;
                 String redirectUrl = null;
 
                 try {
+
                     msisdn = decryptMSISDN(httpHeaders, operatorName);
 
                     List<String> loginHintParameter = queryParams.get(AuthProxyConstants.LOGIN_HINT);
@@ -229,6 +230,7 @@ public class Endpoints {
                         String errMsg = "mobile-connect.xml could not be found";
                         DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState
                                 .CONFIGURATION_ERROR, errMsg);
+
                         throw new FileNotFoundException(errMsg);
                     }
 
@@ -236,12 +238,13 @@ public class Endpoints {
                     redirectUrlInfo.setAuthorizeUrl(authorizeUrlProperty);
                     redirectUrlInfo.setOperatorName(operatorName);
 
-                    isBackChannelAllowed = Boolean.parseBoolean(queryParams.get(AuthProxyConstants.IS_BACKCHANNEL_ALLOWED).get(0).toString());
-                    if(isBackChannelAllowed){
-                        userId = queryParams.get(AuthProxyConstants.USER_ID).get(0);
+                    if (null != (queryParams.get(AuthProxyConstants.IS_BACKCHANNEL_ALLOWED)) &&
+                            (isBackChannelAllowed = Boolean.parseBoolean(queryParams.get(AuthProxyConstants
+                                    .IS_BACKCHANNEL_ALLOWED).get(0).toString()))) {
+                        correlationId = queryParams.get(AuthProxyConstants.CORRELATION_ID).get(0);
                         redirectUrl = queryParams.get(AuthProxyConstants.REDIRECT_URL).get(0);
                         redirectUrlInfo.setBackChannelAllowed(isBackChannelAllowed);
-                        redirectUrlInfo.setUserId(userId);
+                        redirectUrlInfo.setCorrelationId(correlationId);
                         redirectUrlInfo.setRedirectUrl(redirectUrl);
                     }
 
@@ -298,7 +301,6 @@ public class Endpoints {
                         // Encrypt MSISDN
                         msisdn = EncryptAES.encrypt(msisdn);
 
-
                         // Encrypt login-hint msisdn
                         loginhint_msisdn = EncryptAES.encrypt(loginhint_msisdn);
 
@@ -308,6 +310,7 @@ public class Endpoints {
                         } else {
                             msisdn = "";
                         }
+
                         // URL encode login hint msisdn
                         if (loginhint_msisdn != null) {
                             loginhint_msisdn = URLEncoder.encode(loginhint_msisdn, AuthProxyConstants.UTF_ENCODER);
@@ -348,7 +351,12 @@ public class Endpoints {
                                     .OTHER_ERROR,
                             e.getMessage());
                 }
+
+                if (log.isDebugEnabled()) {
+                    log.debug("redirectURL : " + redirectURL);
+                }
             }
+
         }
 
         if (invalid) {
@@ -360,7 +368,10 @@ public class Endpoints {
             log.info(String.format("Redirecting to : %s", redirectURL));
             httpServletResponse.sendRedirect(redirectURL);
         }
+
+
     }
+
 
     /**
      * Check if the Scope is allowed for SP
@@ -369,7 +380,6 @@ public class Endpoints {
      * @param clientId
      * @return true if scope is allowed, else false
      */
-
     private boolean isValidScope(String scopeName, String clientId)
             throws AuthenticatorException, ConfigurationException {
         return DBUtils.isSPAllowedScope(scopeName, clientId);
@@ -576,6 +586,7 @@ public class Endpoints {
                             throw new AuthenticationFailedException("Given pcr in the login hint cannot be accepted:"
                                     + e);
                         }
+
                     }
                     break;
                 default:
@@ -691,7 +702,8 @@ public class Endpoints {
      */
     private boolean validateMsisdnFormat(String msisdn) {
         if (StringUtils.isNotEmpty(msisdn)) {
-            String regex = configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getValidationRegex();
+            String regex = configurationService.getDataHolder().getMobileConnectConfig().getMsisdn()
+                    .getValidationRegex();
             if (StringUtils.isNotEmpty(regex)) {
                 return msisdn.matches(regex);
             }

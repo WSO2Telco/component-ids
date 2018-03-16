@@ -79,15 +79,14 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
      * The log.
      */
     private static Log log = LogFactory.getLog(LOACompositeAuthenticator.class);
-
-    public LOACompositeAuthenticator() {
-        //Use this credentials to login to IS.
-    }
-
     /**
      * The Configuration service
      */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
+    public LOACompositeAuthenticator() {
+        //Use this credentials to login to IS.
+    }
 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
@@ -141,7 +140,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         boolean isShowTnc = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
         String redirectUrl =  request.getParameter(Constants.REDIRECT_URL);
         String userId = request.getParameter(Constants.USER_ID);
-        boolean isBackChannelAllowed = Boolean.getBoolean(request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED));
+        boolean isBackChannelAllowed = false;
 
 
         if (log.isDebugEnabled()) {
@@ -176,14 +175,19 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.AUTHENTICATED_USER, false);
         context.setProperty(Constants.TRUSTED_STATUS, trustedStatus);
         context.setProperty(Constants.ATTRSHARE_SCOPE_TYPE, attrShareScopeType);
-        context.setProperty(Constants.REDIRECT_URL,redirectUrl);
         context.setProperty(Constants.USER_ID,userId);
-        context.setProperty(Constants.IS_BACKCHANNEL_ALLOWED,isBackChannelAllowed);
+        
+        if (null != request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED) && (isBackChannelAllowed = Boolean
+                .parseBoolean(request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED)))) {
 
-        if(isBackChannelAllowed){
             try {
+                String correlationId = request.getParameter(Constants.CORRELATION_ID);
                 String sessionID = context.getContextIdentifier();
-                DataBaseConnectUtils.updateSessionIdInBackChannel(userId,sessionID);
+                context.setProperty(Constants.REDIRECT_URL, redirectUrl);
+                context.setProperty(Constants.CORRELATION_ID, correlationId);
+                context.setProperty(Constants.IS_BACKCHANNEL_ALLOWED, isBackChannelAllowed);
+
+                DataBaseConnectUtils.updateSessionIdInBackChannel(correlationId, sessionID);
             } catch (CommonAuthenticatorException e) {
                 throw new AuthenticationFailedException(e.getMessage(), e);
             } catch (ConfigurationException e) {
