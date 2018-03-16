@@ -426,4 +426,10 @@ public final class Constants {
     public static final String SCOPE = "scope";
 
     public static final String PROMPT = "telco_prompt";
+
+    public static final String IS_BACKCHANNEL_ALLOWED = "isBackChannelAllowed";
+
+    public static final String USER_ID = "userId";
+
+    public static final String REDIRECT_URL = "redirectUrl";
 }

@@ -34,10 +34,17 @@ public class RedirectUrlInfo {
     private ScopeParam.heFailureResults heFailureResult;
     private String transactionId;
     private String prompt;
+    private String userId;
+    private String redirectUrl;
+    private boolean isBackChannelAllowed;
 
-    public void setPrompt(String prompt) { this.prompt = prompt; }
+    public void setPrompt(String prompt) {
+        this.prompt = prompt;
+    }
 
-    public String getPrompt() { return prompt; }
+    public String getPrompt() {
+        return prompt;
+    }
 
     public String getQueryString() {
         return queryString;
@@ -133,5 +140,29 @@ public class RedirectUrlInfo {
 
     public String getTransactionId() {
         return transactionId;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getRedirectUrl() {
+        return redirectUrl;
+    }
+
+    public void setRedirectUrl(String redirectUrl) {
+        this.redirectUrl = redirectUrl;
+    }
+
+    public boolean isBackChannelAllowed() {
+        return isBackChannelAllowed;
+    }
+
+    public void setBackChannelAllowed(boolean backChannelAllowed) {
+        isBackChannelAllowed = backChannelAllowed;
     }
 }
