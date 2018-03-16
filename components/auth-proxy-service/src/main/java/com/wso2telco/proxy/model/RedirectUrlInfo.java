@@ -34,7 +34,7 @@ public class RedirectUrlInfo {
     private ScopeParam.heFailureResults heFailureResult;
     private String transactionId;
     private String prompt;
-    private String userId;
+    private String correlationId;
     private String redirectUrl;
     private boolean isBackChannelAllowed;
 
@@ -142,14 +142,6 @@ public class RedirectUrlInfo {
         return transactionId;
     }
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
     public String getRedirectUrl() {
         return redirectUrl;
     }
@@ -164,5 +156,13 @@ public class RedirectUrlInfo {
 
     public void setBackChannelAllowed(boolean backChannelAllowed) {
         isBackChannelAllowed = backChannelAllowed;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
     }
 }
