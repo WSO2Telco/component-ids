@@ -20,13 +20,14 @@ package com.wso2telco.model;
  * This class is using to keep user details in BackChannel Scenario.
  */
 public class BackChannelUserDetails {
-    private String userId;
+    private String correlationId;
     private String sessionId;
     private String msisdn;
     private String authCode;
-    private String bearerToken;
+    private String notificationBearerToken;
     private String accessToken;
     private String notificationUrl;
+    private String requestIniticatedTime;
 
     public String getSessionId() {
         return sessionId;
@@ -52,14 +53,6 @@ public class BackChannelUserDetails {
         this.authCode = authCode;
     }
 
-    public String getBearerToken() {
-        return bearerToken;
-    }
-
-    public void setBearerToken(String bearerToken) {
-        this.bearerToken = bearerToken;
-    }
-
     public String getAccessToken() {
         return accessToken;
     }
@@ -76,11 +69,27 @@ public class BackChannelUserDetails {
         this.notificationUrl = notificationUrl;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getCorrelationId() {
+        return correlationId;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
+    }
+
+    public String getNotificationBearerToken() {
+        return notificationBearerToken;
+    }
+
+    public void setNotificationBearerToken(String notificationBearerToken) {
+        this.notificationBearerToken = notificationBearerToken;
+    }
+
+    public String getRequestIniticatedTime() {
+        return requestIniticatedTime;
+    }
+
+    public void setRequestIniticatedTime(String requestIniticatedTime) {
+        this.requestIniticatedTime = requestIniticatedTime;
     }
 }

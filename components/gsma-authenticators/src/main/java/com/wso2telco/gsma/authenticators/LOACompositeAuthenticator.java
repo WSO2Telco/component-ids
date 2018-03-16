@@ -131,11 +131,9 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         Integer requestedLoa = Integer.parseInt(request.getParameter(Constants.PARAM_ACR));
         String ipAddress = request.getParameter(Constants.IP_ADDRESS);
         String transactionId = request.getParameter(Constants.TRANSACTION_ID);
-        String redirectUrl =  request.getParameter(Constants.REDIRECT_URL);
-        String userId = request.getParameter(Constants.USER_ID);
-        boolean isBackChannelAllowed = Boolean.parseBoolean(request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED));
+        boolean isBackChannelAllowed = false;
 
-        if(log.isDebugEnabled()){
+        if (log.isDebugEnabled()) {
             log.debug("mobileNetworkOperator : " + mobileNetworkOperator);
             log.debug("serviceProvider : " + serviceProvider);
             log.debug("msisdnHeader : " + msisdnHeader);
@@ -161,14 +159,19 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.LOGIN_HINT_MSISDN, loginHintMsisdn);
         context.setProperty(Constants.IP_ADDRESS, ipAddress);
         context.setProperty(Constants.TRANSACTION_ID, transactionId);
-        context.setProperty(Constants.REDIRECT_URL,redirectUrl);
-        context.setProperty(Constants.USER_ID,userId);
-        context.setProperty(Constants.IS_BACKCHANNEL_ALLOWED,isBackChannelAllowed);
 
-        if(isBackChannelAllowed){
+        if (null != request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED) && (isBackChannelAllowed = Boolean
+                .parseBoolean(request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED)))) {
+
             try {
+                String redirectUrl = request.getParameter(Constants.REDIRECT_URL);
+                String correlationId = request.getParameter(Constants.CORRELATION_ID);
                 String sessionID = context.getContextIdentifier();
-                DataBaseConnectUtils.updateSessionIdInBackChannel(userId,sessionID);
+                context.setProperty(Constants.REDIRECT_URL, redirectUrl);
+                context.setProperty(Constants.CORRELATION_ID, correlationId);
+                context.setProperty(Constants.IS_BACKCHANNEL_ALLOWED, isBackChannelAllowed);
+
+                DataBaseConnectUtils.updateSessionIdInBackChannel(correlationId, sessionID);
             } catch (CommonAuthenticatorException e) {
                 throw new AuthenticationFailedException(e.getMessage(), e);
             } catch (ConfigurationException e) {
@@ -183,7 +186,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         String[] scopes = request.getParameter(Constants.SCOPE).split(" ");
 
         // RULE 1: change the flow due to prompt parameter only on HE scenarios
-        if(StringUtils.isNotEmpty(msisdnHeader)) {
+        if (StringUtils.isNotEmpty(msisdnHeader)) {
             promptData = DBUtils.getPromptData(scopes[0],
                     request.getParameter(Constants.PROMPT), StringUtils.isNotEmpty(loginHintMsisdn));
             // RULE 2: put on offnet flow if prompt config is offnet, otherwise go in normal HE flow
@@ -207,12 +210,12 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
             msisdnToBeDecrypted = msisdnHeader;
         } else {
             //RULE: Trust msisdn header or login hint depending on scope parameter configuration or prompt param
-            if (isFrorceOffnetDueToPromptParameter){
+            if (isFrorceOffnetDueToPromptParameter) {
                 //set msisdn to login hint
                 if (promptData.getBehaviour() == PromptData.behaviorTypes.OFFNET_TRUST_LOGIN_HINT) {
-                        msisdnToBeDecrypted = loginHintMsisdn;
-                        msisdnStatus = DataPublisherUtil.UserState.MSISDN_SET_TO_LOGIN_HINT;
-                }else{
+                    msisdnToBeDecrypted = loginHintMsisdn;
+                    msisdnStatus = DataPublisherUtil.UserState.MSISDN_SET_TO_LOGIN_HINT;
+                } else {
                     // don't set msisdn
                 }
             } else if (StringUtils.isNotEmpty(msisdnHeader) && StringUtils.isNotEmpty(loginHintMsisdn)) {
@@ -283,8 +286,9 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         Set<String> authenticatorsAllowedForMNO = new HashSet<>();
         Set<String> authenticatorsAllowedForSP = new HashSet<>();
         if (isGlobalMNOBasedAuthenticatorSelectionEnabled) {
-            Map<String, Set<String>> authenticatorMNOMap = configurationService.getDataHolder().getAuthenticatorMNOMap();
-            authenticatorsAllowedForMNO=authenticatorMNOMap.get(mobileNetworkOperator);
+            Map<String, Set<String>> authenticatorMNOMap = configurationService.getDataHolder()
+                    .getAuthenticatorMNOMap();
+            authenticatorsAllowedForMNO = authenticatorMNOMap.get(mobileNetworkOperator);
         }
 
         if (isGlobalSPBasedAuthenticatorSelectionEnabled) {
@@ -298,10 +302,10 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         //Authenticator selection is enabled for a given MNO/SP only when MNO/SP based authenticator selection is
         //globally enabled AND there are database entries of allowed authenticators for that specific MNO/SP.
         boolean isAuthenticatorSelectionEnabledForMNO = isGlobalMNOBasedAuthenticatorSelectionEnabled
-                && authenticatorsAllowedForMNO!=null
+                && authenticatorsAllowedForMNO != null
                 && !authenticatorsAllowedForMNO.isEmpty();
         boolean isAuthenticatorSelectionEnabledForSP = isGlobalSPBasedAuthenticatorSelectionEnabled
-                && authenticatorsAllowedForSP!=null
+                && authenticatorsAllowedForSP != null
                 && !authenticatorsAllowedForSP.isEmpty();
 
 
@@ -437,7 +441,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
             headerMismatchResult, Boolean offnet) {
 
         //RULE : force offnet flow
-        if(offnet){
+        if (offnet) {
             return "offnet";
         }
 
@@ -445,7 +449,8 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         if (ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK.equals(headerMismatchResult) ||
                 ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK_TRUST_HEADER.equals(headerMismatchResult) ||
                 ScopeParam.msisdnMismatchResultTypes.OFFNET_FALLBACK_TRUST_LOGINHINT.equals(headerMismatchResult)) {
-            //RULE 1.1: if header MSISDN is not empty and USSD_LOGIN HINT is empty OR header MSISDN and USSD_LOGIN HINT is
+            //RULE 1.1: if header MSISDN is not empty and USSD_LOGIN HINT is empty OR header MSISDN and USSD_LOGIN
+            // HINT is
             // equal, [onnet]
             if (StringUtils.isNotEmpty(headerMsisdn) && (StringUtils.isEmpty(loginHintMsisdn) || headerMsisdn.equals
                     (loginHintMsisdn))) {

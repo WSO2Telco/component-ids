@@ -70,6 +70,6 @@ public class AuthProxyConstants {
     public static final String ACR_VALUE = "acr_value";
     public static final String CLIENT_NOTIFICATION_TOKEN = "client_notification_token";
     public static final String IS_BACKCHANNEL_ALLOWED = "is_backChannel_allowed";
-    public static final String USER_ID = "user_id";
+    public static final String CORRELATION_ID = "correlation_id";
     public static final String REDIRECT_URL = "redirect_uri";
 }
