@@ -152,7 +152,6 @@ public class ServerInitiatedServiceEndpoints {
             log.debug("Recovered payload message: " + payload);
         }
 
-        //todo: add to read bearer token
         JSONObject payloadObj = new JSONObject(payload.toJSONObject());
         String authorizeEndpointUrl = "https://localhost:9443/authproxy/oauth2/authorize";
         String loginHint = payloadObj.get(AuthProxyConstants.LOGIN_HINT).toString();
@@ -167,11 +166,11 @@ public class ServerInitiatedServiceEndpoints {
 
         String sharedKey = getSharedKey(clientId);
         if (!isVerifiedSignature(jwsObject, sharedKey)) {
-            throw new AuthenticatorException("Couldn't verify signature: " + jwsObject);
+            log.error("Couldn't verify signature: " + jwsObject);
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST
+                    .toString()).build();
         }
 
-        //todo: remove this after implementing the new grant type
-        responseType = "code";
 
         if (StringUtils.isEmpty(redirectURL) || StringUtils.isEmpty(scopeName) || StringUtils.isEmpty(responseType)) {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST
@@ -187,6 +186,10 @@ public class ServerInitiatedServiceEndpoints {
             backChannelUserDetails.setNotificationUrl(redirectURL);
 
             DataBaseConnectUtils.addBackChannelUserDetails(backChannelUserDetails);
+
+
+            //Currenty it supports only code grant type
+            responseType = "code";
 
             urlBuilder.append(authorizeEndpointUrl)
                     .append("/operator/").append(operatorName)
