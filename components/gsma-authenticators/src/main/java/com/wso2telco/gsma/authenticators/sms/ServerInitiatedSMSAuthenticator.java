@@ -292,7 +292,8 @@ public class ServerInitiatedSMSAuthenticator extends AbstractApplicationAuthenti
 
             String encryptedContextIdentifier = AESencrp.encrypt(context.getContextIdentifier());
             //String messageURL = connectConfig.getSmsConfig().getAuthUrl() + Constants.AUTH_URL_ID_PREFIX;
-            String messageURL =  "http://localhost:9763/sessionupdater/tnspoints/endpoint/serverinitiated/sms/response"+ Constants.AUTH_URL_ID_PREFIX;
+            String messageURL =  "" +
+                    "/sessionupdater/tnspoints/endpoint/serverinitiated/sms/response"+ Constants.AUTH_URL_ID_PREFIX; //todo: add to config
 
 
             Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
