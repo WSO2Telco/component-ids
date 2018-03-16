@@ -193,6 +193,8 @@ public class ServerInitiatedServiceEndpoints {
             } else {
                 return Response.status(Response.Status.OK.getStatusCode()).entity(Response.Status.OK.toString()).build();
             }
+
+            //todo: prepare proper error/success response payload.
         }
 
     }

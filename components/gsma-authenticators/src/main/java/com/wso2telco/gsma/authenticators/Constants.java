@@ -115,6 +115,8 @@ public final class Constants {
      */
     public static final String USSD_AUTHENTICATOR_FRIENDLY_NAME = "ussd";
 
+    public static final String SERVER_INITIATED_USSD_AUTHENTICATOR_FRIENDLY_NAME = "ussd";
+
     /**
      * The Constant USSD_AUTHENTICATOR_STATUS.
      */
@@ -140,6 +142,8 @@ public final class Constants {
      */
     public static final String SMS_AUTHENTICATOR_NAME = "SMSAuthenticator";
 
+    public static final String SERVER_INITIATED_SMS_AUTHENTICATOR_NAME = "ServerInitiatedSMSAuthenticator";
+
     /**
      * The Constant SMSOTP_AUTHENTICATOR_NAME.
      */
@@ -149,6 +153,8 @@ public final class Constants {
      * The Constant SMS_AUTHENTICATOR_FRIENDLY_NAME.
      */
     public static final String SMS_AUTHENTICATOR_FRIENDLY_NAME = "sms";
+
+    public static final String SERVER_INITIATED_SMS_AUTHENTICATOR_FRIENDLY_NAME = "sms";
 
     /**
      * The Constant SMSOTP_AUTHENTICATOR_FRIENDLY_NAME.
@@ -428,4 +434,5 @@ public final class Constants {
     public static final String SCOPE = "scope";
 
     public static final String PROMPT = "telco_prompt";
+
 }
