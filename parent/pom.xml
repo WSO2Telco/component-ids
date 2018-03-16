@@ -839,30 +839,34 @@
                 <artifactId>ids-data-publisher</artifactId>
                 <version>${com.wso2telco.ids.version}</version>
             </dependency>
-
 			<dependency>
-                                <groupId>com.wso2telco.ids</groupId>
-                                <artifactId>user-claim-retriever</artifactId>
-                                <version>${com.wso2telco.ids.version}</version>
-                        </dependency>
-		<dependency>
-			<groupId>com.wso2telco.ids</groupId>
-			<artifactId>url-shorten</artifactId>
-			<version>${com.wso2telco.ids.version}</version>	
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>com.wso2telco.ids</groupId>
-			<artifactId>authenticate-selector</artifactId>
-			 <version>${com.wso2telco.ids.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.wso2telco.ids</groupId>
-			<artifactId>authentication-endpoint</artifactId>
-			<version>${com.wso2telco.ids.version}</version>
-			<type>war</type>
-		</dependency>
+				<groupId>com.wso2telco.ids</groupId>
+				<artifactId>common-util</artifactId>
+				<version>${com.wso2telco.ids.version}</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+                <groupId>com.wso2telco.ids</groupId>
+                <artifactId>user-claim-retriever</artifactId>
+                <version>${com.wso2telco.ids.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.wso2telco.ids</groupId>
+				<artifactId>url-shorten</artifactId>
+				<version>${com.wso2telco.ids.version}</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.wso2telco.ids</groupId>
+				<artifactId>authenticate-selector</artifactId>
+			 	<version>${com.wso2telco.ids.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.wso2telco.ids</groupId>
+				<artifactId>authentication-endpoint</artifactId>
+				<version>${com.wso2telco.ids.version}</version>
+				<type>war</type>
+			</dependency>
 
 			<dependency>
 				<groupId>com.wso2telco.ids</groupId>

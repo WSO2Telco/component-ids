@@ -24,8 +24,10 @@ import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.PromptData;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.DecryptionAES;
+import com.wso2telco.exception.CommonAuthenticatorException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import com.wso2telco.dbUtil.DataBaseConnectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,6 +48,7 @@ import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 
+import javax.naming.ConfigurationException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
@@ -74,15 +77,14 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
      * The log.
      */
     private static Log log = LogFactory.getLog(LOACompositeAuthenticator.class);
-
-    public LOACompositeAuthenticator() {
-        //Use this credentials to login to IS.
-    }
-
     /**
      * The Configuration service
      */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
+    public LOACompositeAuthenticator() {
+        //Use this credentials to login to IS.
+    }
 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
@@ -129,6 +131,9 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         Integer requestedLoa = Integer.parseInt(request.getParameter(Constants.PARAM_ACR));
         String ipAddress = request.getParameter(Constants.IP_ADDRESS);
         String transactionId = request.getParameter(Constants.TRANSACTION_ID);
+        String redirectUrl =  request.getParameter(Constants.REDIRECT_URL);
+        String userId = request.getParameter(Constants.USER_ID);
+        boolean isBackChannelAllowed = Boolean.parseBoolean(request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED));
 
         if(log.isDebugEnabled()){
             log.debug("mobileNetworkOperator : " + mobileNetworkOperator);
@@ -156,6 +161,20 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.LOGIN_HINT_MSISDN, loginHintMsisdn);
         context.setProperty(Constants.IP_ADDRESS, ipAddress);
         context.setProperty(Constants.TRANSACTION_ID, transactionId);
+        context.setProperty(Constants.REDIRECT_URL,redirectUrl);
+        context.setProperty(Constants.USER_ID,userId);
+        context.setProperty(Constants.IS_BACKCHANNEL_ALLOWED,isBackChannelAllowed);
+
+        if(isBackChannelAllowed){
+            try {
+                String sessionID = context.getContextIdentifier();
+                DataBaseConnectUtils.updateSessionIdInBackChannel(userId,sessionID);
+            } catch (CommonAuthenticatorException e) {
+                throw new AuthenticationFailedException(e.getMessage(), e);
+            } catch (ConfigurationException e) {
+                throw new AuthenticationFailedException(e.getMessage(), e);
+            }
+        }
 
         // set prompt variable default to false
         Boolean isFrorceOffnetDueToPromptParameter = false;

@@ -1,32 +1,39 @@
+/*******************************************************************************
+ * Copyright  (c) 2015-2018, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
+ *
+ * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ******************************************************************************/
+
 package com.wso2telco.proxy.entity;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACVerifier;
-import com.wso2telco.core.config.model.MobileConnectConfig;
-import com.wso2telco.ids.datapublisher.model.UserStatus;
-import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import com.wso2telco.model.BackChannelUserDetails;
 import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.util.AuthProxyConstants;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import com.wso2telco.dbUtil.DataBaseConnectUtils;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.client.utils.URIUtils;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.json.JSONObject;
-import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
-import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
-import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -40,11 +47,9 @@ import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.sql.SQLException;
 import java.text.ParseException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 
 @Path("/mc")
 public class ServerInitiatedServiceEndpoints {
@@ -105,7 +110,11 @@ public class ServerInitiatedServiceEndpoints {
     }*/
 
 
-    //String url = "http://localhost:9763/oauth2/authorize?login_hint=911111111111&scope=openid&acr_values=500&response_type=code&redirect_uri=http://localhost:9763/playground2/oauth2client&state=state22&nonce=nounce1222&client_id=96sgoYjKb2fJ7AvaCbql0nZhAL8a&operator=spark&&operator=spark&telco_scope=openid&isShowTnc=true&headerMismatchResult=CONTINUE_WITH_HEADER&heFailureResult=TRUST_LOGINHINT_MSISDN&loginhintMsisdn=3Ro%2F1blCTvHN9X%2F%2BJNmy9g%3D%3D&transactionId=9c457c52-c149-4ecb-842a-1656d14268db";
+    //String url = "http://localhost:9763/oauth2/authorize?login_hint=911111111111&scope=openid&acr_values=500
+    // &response_type=code&redirect_uri=http://localhost:9763/playground2/oauth2client&state=state22&nonce=nounce1222
+    // &client_id=96sgoYjKb2fJ7AvaCbql0nZhAL8a&operator=spark&&operator=spark&telco_scope=openid&isShowTnc=true
+    // &headerMismatchResult=CONTINUE_WITH_HEADER&heFailureResult=TRUST_LOGINHINT_MSISDN&loginhintMsisdn=3Ro
+    // %2F1blCTvHN9X%2F%2BJNmy9g%3D%3D&transactionId=9c457c52-c149-4ecb-842a-1656d14268db";
 
            /* String url = authorizeEndpointUrl+"?login_hint="+loginHint+"&scope="+scopeName+"" +
                     "&acr_values="+acrValue+"&response_type="+responseType+
@@ -114,7 +123,9 @@ public class ServerInitiatedServiceEndpoints {
                     "&isShowTnc=false&headerMismatchResult=CONTINUE_WITH_HEADER&heFailureResult=TRUST_LOGINHINT_MSISDN";
 */
 
-    // String url="https://localhost:9443/authproxy/oauth2/authorize/operator/spark?response_type=code&scope=openid&redirect_uri=http%3A%2F%2Flocalhost%3A9763%2Fplayground2%2Foauth2client&nonce=nounce1222&state=state22&client_id=96sgoYjKb2fJ7AvaCbql0nZhAL8a&acr_values=500&operator=spark&login_hint=911111111111";
+    // String url="https://localhost:9443/authproxy/oauth2/authorize/operator/spark?response_type=code&scope=openid
+    // &redirect_uri=http%3A%2F%2Flocalhost%3A9763%2Fplayground2%2Foauth2client&nonce=nounce1222&state=state22
+    // &client_id=96sgoYjKb2fJ7AvaCbql0nZhAL8a&acr_values=500&operator=spark&login_hint=911111111111";
 
 
     @POST
@@ -124,7 +135,7 @@ public class ServerInitiatedServiceEndpoints {
                                @PathParam("operatorName") String operatorName, String jsonBody) throws Exception {
         operatorName = operatorName.toLowerCase();
         JWSObject jwsObject;
-
+        boolean isBackChannelAllowed = true;
 
         try {
             jwsObject = processJWE(jsonBody);
@@ -141,6 +152,7 @@ public class ServerInitiatedServiceEndpoints {
             log.debug("Recovered payload message: " + payload);
         }
 
+        //todo: add to read bearer token
         JSONObject payloadObj = new JSONObject(payload.toJSONObject());
         String authorizeEndpointUrl = "https://localhost:9443/authproxy/oauth2/authorize";
         String loginHint = payloadObj.get(AuthProxyConstants.LOGIN_HINT).toString();
@@ -151,6 +163,7 @@ public class ServerInitiatedServiceEndpoints {
         String state = payloadObj.get(AuthProxyConstants.STATE).toString();
         String nonce = payloadObj.get(AuthProxyConstants.NONCE).toString();
         String clientId = payloadObj.get(AuthProxyConstants.CLIENT_ID).toString();
+        String clientNotificationToken = payloadObj.get(AuthProxyConstants.CLIENT_NOTIFICATION_TOKEN).toString();
 
         String sharedKey = getSharedKey(clientId);
         if (!isVerifiedSignature(jwsObject, sharedKey)) {
@@ -161,9 +174,20 @@ public class ServerInitiatedServiceEndpoints {
         responseType = "code";
 
         if (StringUtils.isEmpty(redirectURL) || StringUtils.isEmpty(scopeName) || StringUtils.isEmpty(responseType)) {
-            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST.toString()).build();
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST
+                    .toString()).build();
         } else {
             StringBuilder urlBuilder = new StringBuilder();
+            BackChannelUserDetails backChannelUserDetails = new BackChannelUserDetails();
+            String userId = UUID.randomUUID().toString();
+
+            backChannelUserDetails.setUserId(userId);
+            backChannelUserDetails.setMsisdn(loginHint);
+            backChannelUserDetails.setBearerToken(clientNotificationToken);
+            backChannelUserDetails.setNotificationUrl(redirectURL);
+
+            DataBaseConnectUtils.addBackChannelUserDetails(backChannelUserDetails);
+
             urlBuilder.append(authorizeEndpointUrl)
                     .append("/operator/").append(operatorName)
                     .append("?response_type=").append(responseType)
@@ -174,29 +198,26 @@ public class ServerInitiatedServiceEndpoints {
                     .append("&client_id=").append(clientId)
                     .append("&acr_values=").append(acrValue)
                     .append("&operator=").append(operatorName)
-                    .append("&login_hint=").append(loginHint);
+                    .append("&login_hint=").append(loginHint)
+                    .append("&user_id=").append(userId)
+                    .append("&is_backChannel_allowed=").append(isBackChannelAllowed);
 
-            //todo: implemenet a method to save details against session Id.
             // Then there should be a update done in USSD/SMS etc authenticated when the SMS is initiated
 
             String code = getAuthCode(urlBuilder.toString());
 
-
-            //Save code against sessionId
-
-            //generate token and save against sessionId
-
-
+            //todo : implement Token retreval
+            String token = "vvfvfrfvdvdvdvdvdvd";
+            DataBaseConnectUtils.updateCodeAndTokenInBackChannel(userId, code, token);
 
             if (code == null) {
-                return Response.status(Response.Status.OK.getStatusCode()).entity(Response.Status.OK.toString()).build();
+                return Response.status(Response.Status.UNAUTHORIZED.getStatusCode()).entity(Response.Status.UNAUTHORIZED.toString())
+                        .build();
             } else {
-                return Response.status(Response.Status.OK.getStatusCode()).entity(Response.Status.OK.toString()).build();
+                return Response.status(Response.Status.OK.getStatusCode()).entity(Response.Status.OK.toString())
+                        .build();
             }
-
-            //todo: prepare proper error/success response payload.
         }
-
     }
 
     private String getAuthCode(String url) {

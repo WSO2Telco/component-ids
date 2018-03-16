@@ -63,6 +63,7 @@
 		<module>parent</module>
         <module>components/ids-data-publisher</module>
 		<module>components/url-shorten</module>
+        <module>components/common-util</module>
 		<module>components/user-claim-retriever</module>
 	    <module>components/authenticate-selector</module>
 		<module>components/openid-token-builder</module>
