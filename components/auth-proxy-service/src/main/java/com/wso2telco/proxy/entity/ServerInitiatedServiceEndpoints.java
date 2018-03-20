@@ -18,9 +18,14 @@ package com.wso2telco.proxy.entity;
 
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACVerifier;
+import com.wso2telco.adminServiceUtil.client.OAuthAdminServiceClient;
+import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.ids.datapublisher.util.DBUtil;
 import com.wso2telco.model.BackChannelUserDetails;
 import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.util.AuthProxyConstants;
+import com.wso2telco.proxy.util.DBUtils;
+import org.apache.axis2.AxisFault;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,6 +39,9 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.json.JSONObject;
+import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
+import org.wso2.carbon.identity.oauth.IdentityOAuthAdminException;
+import org.wso2.carbon.identity.oauth.dto.OAuthConsumerAppDTO;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -47,7 +55,9 @@ import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.rmi.RemoteException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -158,7 +168,7 @@ public class ServerInitiatedServiceEndpoints {
         String scopeName = payloadObj.get(AuthProxyConstants.SCOPE).toString();
         String acrValue = payloadObj.get(AuthProxyConstants.ACR_VALUE).toString();
         String responseType = payloadObj.get(AuthProxyConstants.RESPONSE_TYPE).toString();
-        String redirectURL = payloadObj.get(AuthProxyConstants.NOTIFICATION_URI).toString();
+        String notificationUrl = payloadObj.get(AuthProxyConstants.NOTIFICATION_URI).toString();
         String state = payloadObj.get(AuthProxyConstants.STATE).toString();
         String nonce = payloadObj.get(AuthProxyConstants.NONCE).toString();
         String clientId = payloadObj.get(AuthProxyConstants.CLIENT_ID).toString();
@@ -172,7 +182,7 @@ public class ServerInitiatedServiceEndpoints {
         }
 
 
-        if (StringUtils.isEmpty(redirectURL) || StringUtils.isEmpty(scopeName) || StringUtils.isEmpty(responseType)) {
+        if (StringUtils.isEmpty(notificationUrl) || StringUtils.isEmpty(scopeName) || StringUtils.isEmpty(responseType)) {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST
                     .toString()).build();
         } else {
@@ -180,12 +190,13 @@ public class ServerInitiatedServiceEndpoints {
             BackChannelUserDetails backChannelUserDetails = new BackChannelUserDetails();
 
             //todo : change the endpoint to read correlation ID from the auth call
+            //if there a correlationId in the request set it instead of creating new one.
             String correlationId = UUID.randomUUID().toString();
 
             backChannelUserDetails.setCorrelationId(correlationId);
             backChannelUserDetails.setMsisdn(loginHint);
             backChannelUserDetails.setNotificationBearerToken(clientNotificationToken);
-            backChannelUserDetails.setNotificationUrl(redirectURL);
+            backChannelUserDetails.setNotificationUrl(notificationUrl);
 
             DataBaseConnectUtils.addBackChannelUserDetails(backChannelUserDetails);
 
@@ -193,11 +204,30 @@ public class ServerInitiatedServiceEndpoints {
             //Currenty it supports only code grant type
             responseType = "code";
 
+
+            if (!isValidNotificationUrl(clientId, notificationUrl)) {
+                return Response.status(Response.Status.UNAUTHORIZED.getStatusCode()).entity(Response.Status.UNAUTHORIZED.toString())
+                        .build();
+            }
+
+            String redirectUrl;
+            try {
+                redirectUrl = getPersistedCallbackUrl(clientId);
+                if (StringUtils.isEmpty(redirectUrl)) {
+                    throw new AuthenticatorException("Callback Url is empty for Client Id: " + clientId);
+                }
+            } catch (RemoteException | LoginAuthenticationExceptionException | IdentityOAuthAdminException | AuthenticatorException e) {
+                log.error("Error while retrieving Callback Url via Admin calls. ", e);
+                return Response.status(Response.Status.UNAUTHORIZED.getStatusCode()).entity(Response.Status.UNAUTHORIZED.toString())
+                        .build();
+            }
+
+
             urlBuilder.append(authorizeEndpointUrl)
                     .append("/operator/").append(operatorName)
                     .append("?response_type=").append(responseType)
                     .append("&scope=").append(scopeName)
-                    .append("&redirect_uri=").append(redirectURL)
+                    .append("&redirect_uri=").append(redirectUrl)
                     .append("&nonce=").append(nonce)
                     .append("&state=").append(state)
                     .append("&client_id=").append(clientId)
@@ -223,6 +253,30 @@ public class ServerInitiatedServiceEndpoints {
                         .build();
             }
         }
+    }
+
+
+    private boolean isValidNotificationUrl(String clientId, String notificationUrl) {
+        List<String> allowedURLs;
+        try {
+            allowedURLs = DBUtils.getNotificationUrls(clientId);
+            allowedURLs.add(notificationUrl); //todo:remove this like after fetching url's from db
+        } catch (Exception ex) {
+            log.error("Error while fetching Notification URL list. ", ex);
+            return false;
+        }
+
+        if (!allowedURLs.contains(notificationUrl)) {
+            log.error("Invalid Notification URL : " + notificationUrl);
+            return false;
+        }
+        return true;
+    }
+
+    private String getPersistedCallbackUrl(String clientId) throws RemoteException, LoginAuthenticationExceptionException, IdentityOAuthAdminException {
+        OAuthAdminServiceClient oAuthAdminServiceClient = new OAuthAdminServiceClient();
+        OAuthConsumerAppDTO oAuthConsumerAppDTO = oAuthAdminServiceClient.getOAuthApplicationData(clientId);
+        return oAuthConsumerAppDTO.getCallbackUrl();
     }
 
     private String getAuthCode(String url) {
