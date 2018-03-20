@@ -35,10 +35,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This class is used to read operator, msisdn and login hint properties.
@@ -435,6 +432,13 @@ public class DBUtils {
             closeAllConnections(preparedStatement, connection, resultSet);
         }
         return isSPAllowedScope;
+    }
+
+    public static List<String> getNotificationUrls(String clientId)   {
+        //todo: complete this method. Need to intriduce a new table to have multiple urls against a consumer key
+        //fill the data in sp on boarding. need to pass client id and get urls here
+
+        return Collections.emptyList();
     }
 
 
