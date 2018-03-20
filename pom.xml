@@ -1740,7 +1740,7 @@
         <org.wso2.amber.version>0.22.1358727.wso2v4</org.wso2.amber.version>
         <hash.ids.version>1.0.1</hash.ids.version>
         <!--from intermediate pom -->
-        <com.wso2telco.ids.version>2.3.0</com.wso2telco.ids.version>
+        <com.wso2telco.ids.version>2.4.0-SNAPSHOT</com.wso2telco.ids.version>
         <org.wso2.carbon.version>4.4.3</org.wso2.carbon.version>
         <org.wso2.carbon.identity.version>5.0.7</org.wso2.carbon.identity.version>
         <!--org.wso2.carbon.identity.provider.version>5.0.7</org.wso2.carbon.identity.provider.version-->
