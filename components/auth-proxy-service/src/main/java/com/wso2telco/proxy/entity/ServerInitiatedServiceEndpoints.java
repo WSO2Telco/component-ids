@@ -17,6 +17,7 @@
 package com.wso2telco.proxy.entity;
 
 import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.wso2telco.adminServiceUtil.client.OAuthAdminServiceClient;
 import com.wso2telco.core.config.DataHolder;
@@ -33,15 +34,20 @@ import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import com.wso2telco.dbUtil.DataBaseConnectUtils;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.oauth.IdentityOAuthAdminException;
 import org.wso2.carbon.identity.oauth.dto.OAuthConsumerAppDTO;
+import org.opensaml.xml.util.Base64;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -52,7 +58,9 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.rmi.RemoteException;
@@ -64,6 +72,8 @@ import java.util.UUID;
 @Path("/mc")
 public class ServerInitiatedServiceEndpoints {
     private static Log log = LogFactory.getLog(ServerInitiatedServiceEndpoints.class);
+    String authorizeEndpointUrl = "https://localhost:9443/authproxy/oauth2/authorize";
+    String tokenCodeEndpoint = "https://localhost:9443/oauth2/token";
 
 
     //sample request to create signed  jwe
@@ -163,7 +173,6 @@ public class ServerInitiatedServiceEndpoints {
         }
 
         JSONObject payloadObj = new JSONObject(payload.toJSONObject());
-        String authorizeEndpointUrl = "https://localhost:9443/authproxy/oauth2/authorize";
         String loginHint = payloadObj.get(AuthProxyConstants.LOGIN_HINT).toString();
         String scopeName = payloadObj.get(AuthProxyConstants.SCOPE).toString();
         String acrValue = payloadObj.get(AuthProxyConstants.ACR_VALUE).toString();
@@ -181,12 +190,12 @@ public class ServerInitiatedServiceEndpoints {
                     .toString()).build();
         }
 
-
-        if (StringUtils.isEmpty(notificationUrl) || StringUtils.isEmpty(scopeName) || StringUtils.isEmpty(responseType)) {
+        if (StringUtils.isEmpty(notificationUrl) || StringUtils.isEmpty(scopeName) || StringUtils.isEmpty
+                (responseType)) {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST
                     .toString()).build();
         } else {
-            StringBuilder urlBuilder = new StringBuilder();
+            StringBuilder codeUrlBuilder = new StringBuilder();
             BackChannelUserDetails backChannelUserDetails = new BackChannelUserDetails();
 
             //todo : change the endpoint to read correlation ID from the auth call
@@ -206,7 +215,8 @@ public class ServerInitiatedServiceEndpoints {
 
 
             if (!isValidNotificationUrl(clientId, notificationUrl)) {
-                return Response.status(Response.Status.UNAUTHORIZED.getStatusCode()).entity(Response.Status.UNAUTHORIZED.toString())
+                return Response.status(Response.Status.UNAUTHORIZED.getStatusCode()).entity(Response.Status
+                        .UNAUTHORIZED.toString())
                         .build();
             }
 
@@ -216,14 +226,15 @@ public class ServerInitiatedServiceEndpoints {
                 if (StringUtils.isEmpty(redirectUrl)) {
                     throw new AuthenticatorException("Callback Url is empty for Client Id: " + clientId);
                 }
-            } catch (RemoteException | LoginAuthenticationExceptionException | IdentityOAuthAdminException | AuthenticatorException e) {
+            } catch (RemoteException | LoginAuthenticationExceptionException | IdentityOAuthAdminException |
+                    AuthenticatorException e) {
                 log.error("Error while retrieving Callback Url via Admin calls. ", e);
-                return Response.status(Response.Status.UNAUTHORIZED.getStatusCode()).entity(Response.Status.UNAUTHORIZED.toString())
+                return Response.status(Response.Status.UNAUTHORIZED.getStatusCode()).entity(Response.Status
+                        .UNAUTHORIZED.toString())
                         .build();
             }
 
-
-            urlBuilder.append(authorizeEndpointUrl)
+            codeUrlBuilder.append(authorizeEndpointUrl)
                     .append("/operator/").append(operatorName)
                     .append("?response_type=").append(responseType)
                     .append("&scope=").append(scopeName)
@@ -239,21 +250,29 @@ public class ServerInitiatedServiceEndpoints {
 
             // Then there should be a update done in USSD/SMS etc authenticated when the SMS is initiated
 
-            String code = getAuthCode(urlBuilder.toString());
-
-            //todo : implement Token retreval
-            String token = "vvfvfrfvdvdvdvdvdvd";
-            DataBaseConnectUtils.updateCodeAndTokenInBackChannel(correlationId, code, token);
+            String code = getAuthCode(codeUrlBuilder.toString());
+            log.info("code returned: " + code);
 
             if (code == null) {
-                return Response.status(Response.Status.OK.getStatusCode()).entity(Response.Status.OK.toString())
+                //todo:add BC response
+                return Response.status(Response.Status.UNAUTHORIZED.getStatusCode()).entity(Response.Status
+                        .UNAUTHORIZED.toString())
                         .build();
             } else {
+                String clientSecret = DBUtils.getClientSecret(clientId);
+
+                List<NameValuePair> tokenRelatedNameValues = new ArrayList<NameValuePair>();
+                tokenRelatedNameValues.add(new BasicNameValuePair("grant_type", "authorization_code"));
+                tokenRelatedNameValues.add(new BasicNameValuePair("code", code));
+                tokenRelatedNameValues.add(new BasicNameValuePair("redirect_uri", redirectUrl));
+
+                String token = getAccessToken(correlationId, tokenRelatedNameValues, clientId, clientSecret);
+
+                DataBaseConnectUtils.updateCodeAndTokenInBackChannel(correlationId, code, token);
+
                 return Response.status(Response.Status.OK.getStatusCode()).entity(Response.Status.OK.toString())
                         .build();
             }
-
-            //todo: prepare proper error/success response payload.
         }
     }
 
@@ -275,7 +294,8 @@ public class ServerInitiatedServiceEndpoints {
         return true;
     }
 
-    private String getPersistedCallbackUrl(String clientId) throws RemoteException, LoginAuthenticationExceptionException, IdentityOAuthAdminException {
+    private String getPersistedCallbackUrl(String clientId) throws RemoteException,
+            LoginAuthenticationExceptionException, IdentityOAuthAdminException {
         OAuthAdminServiceClient oAuthAdminServiceClient = new OAuthAdminServiceClient();
         OAuthConsumerAppDTO oAuthConsumerAppDTO = oAuthAdminServiceClient.getOAuthApplicationData(clientId);
         return oAuthConsumerAppDTO.getCallbackUrl();
@@ -314,6 +334,60 @@ public class ServerInitiatedServiceEndpoints {
             }
         }
         return null;
+    }
+
+    public String getAccessToken(String correlationId, List<NameValuePair> tokenRelatedNameValues, String
+            consumerKey, String consumerSecret)
+            throws Exception {
+        String tokenCode = null;
+        try {
+
+            HttpClient httpClient = new DefaultHttpClient();
+            HttpPost postRequest = new HttpPost(tokenCodeEndpoint);
+            String encoding = Base64.encodeBytes((consumerKey + ":" + consumerSecret).getBytes());
+            encoding = encoding.substring(0, encoding.length() - 1);
+
+            postRequest.addHeader("Authorization", "Basic " + encoding);
+            postRequest.addHeader("Content-Type", "application/x-www-form-urlencoded");
+            postRequest.setEntity(new UrlEncodedFormEntity(tokenRelatedNameValues));
+            HttpResponse response = httpClient.execute(postRequest);
+
+            BufferedReader br = new BufferedReader(
+                    new InputStreamReader((response.getEntity().getContent())));
+
+            String output;
+            StringBuffer totalOutput = new StringBuffer();
+
+            while ((output = br.readLine()) != null) {
+                totalOutput.append(output);
+            }
+
+            log.info("Response to the Access token request:" + totalOutput.toString());
+            tokenCode = extractValuesFromTokenResponse(totalOutput.toString(), correlationId);
+
+        } catch (IOException ex) {
+            log.error("IO Exception occured while getting Access token for correlation ID:" + correlationId + " " +
+                    ex.getMessage(), ex);
+        } catch (JSONException ex) {
+            log.error("JSONException occured while getting Access token for correlation ID:" + correlationId + " " +
+                    ex.getMessage(), ex);
+        }
+        return tokenCode;
+    }
+
+    private String extractValuesFromTokenResponse(String tokenResponse, String correlationId) throws Exception {
+        JSONObject jObject = new JSONObject(tokenResponse);
+        BackChannelUserDetails backChannelUserDetails = new BackChannelUserDetails();
+        String accessToken = jObject.getString("access_token");
+        backChannelUserDetails.setRefreshToken(jObject.getString("refresh_token"));
+        backChannelUserDetails.setScope(jObject.getString("scope"));
+        backChannelUserDetails.setIdToken(jObject.getString("id_token"));
+        backChannelUserDetails.setTokenType(jObject.getString("token_type"));
+        backChannelUserDetails.setExpiresIn(jObject.getInt("expires_in"));
+
+        DataBaseConnectUtils.updateTokenDetailsInBackChannel(correlationId, backChannelUserDetails);
+
+        return accessToken;
     }
 
     private String getParamValueFromURL(String requiredParamName, String url) throws URISyntaxException {
