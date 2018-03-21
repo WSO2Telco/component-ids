@@ -20,7 +20,7 @@
         <version>1</version>
     </parent>
     <groupId>com.wso2telco.ids</groupId>
-    <artifactId>component-ids-parent</artifactId>
+    <artifactId>component-ids</artifactId>
     <packaging>pom</packaging>
     <version>2.3.0</version>
     <name>WSO2Telco Core - Component</name>
