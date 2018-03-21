@@ -207,9 +207,9 @@ public class DataBaseConnectUtils {
     /**
      * Get user details in Back Channeling Scenario using sessionID
      *
-     * @param correlationId unique userId given by the table
+     * @param sessionId Id of the session
      */
-    public static BackChannelUserDetails getBackChannelUserDetails(String correlationId) throws ConfigurationException,
+    public static BackChannelUserDetails getBackChannelUserDetails(String sessionId) throws ConfigurationException,
             CommonAuthenticatorException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
@@ -217,7 +217,7 @@ public class DataBaseConnectUtils {
         ResultSet resultSet = null;
 
         String getUserDetailsQuery =
-                "select * from backchannel_request_details where correlation_id=?";
+                "select * from backchannel_request_details where session_id=?";
 
         try {
             connection = getConnectDBConnection();
@@ -227,7 +227,7 @@ public class DataBaseConnectUtils {
             }
 
             preparedStatement = connection.prepareStatement(getUserDetailsQuery);
-            preparedStatement.setString(1, correlationId);
+            preparedStatement.setString(1, sessionId);
             resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
@@ -242,7 +242,7 @@ public class DataBaseConnectUtils {
             }
         } catch (SQLException e) {
             handleException(
-                    "Error occurred while getting user related details for : " + correlationId + "in BackChannel " +
+                    "Error occurred while getting user related details for session: " + sessionId + "in BackChannel " +
                             "Scenario.",
                     e);
         } catch (NamingException e) {
@@ -252,6 +252,52 @@ public class DataBaseConnectUtils {
         }
 
         return backChannelUserDetails;
+    }
+
+    /**
+     * Update token details in Back Channeling Scenario : update access_token,refresh_token,scope etc
+     *
+     * @param correlationId          unique ID of the user
+     * @param backChannelUserDetails Access Token
+     */
+    public static void updateTokenDetailsInBackChannel(String correlationId, BackChannelUserDetails
+            backChannelUserDetails) throws
+            ConfigurationException, CommonAuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        String updateUserDetailsQuery = null;
+
+        updateUserDetailsQuery =
+                "update backchannel_request_details set refresh_token=?,scope=?,id_token=?,token_type=?,expires_in=? " +
+                        "where correlation_id=?;";
+
+        try {
+            connection = getConnectDBConnection();
+
+            if (log.isDebugEnabled()) {
+                log.debug("Executing the query " + updateUserDetailsQuery);
+            }
+
+            preparedStatement = connection.prepareStatement(updateUserDetailsQuery);
+            preparedStatement.setString(1, backChannelUserDetails.getRefreshToken());
+            preparedStatement.setString(2, backChannelUserDetails.getScope());
+            preparedStatement.setString(3, backChannelUserDetails.getIdToken());
+            preparedStatement.setString(4, backChannelUserDetails.getTokenType());
+            preparedStatement.setInt(5, backChannelUserDetails.getExpiresIn());
+            preparedStatement.setString(6, correlationId);
+            preparedStatement.executeUpdate();
+
+        } catch (SQLException e) {
+            handleException(
+                    "Error occurred while updating token details for : " + correlationId + "in " +
+                            "BackChannel Scenario.",
+                    e);
+        } catch (NamingException e) {
+            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+        } finally {
+            closeAllConnections(preparedStatement, connection);
+        }
     }
 
     private static void closeAllConnections(PreparedStatement preparedStatement,
