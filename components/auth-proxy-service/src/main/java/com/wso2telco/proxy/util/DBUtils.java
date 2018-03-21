@@ -138,7 +138,8 @@ public class DBUtils {
      * @throws AuthenticatorException the authenticator exception
      */
     private static Connection getWSO2APIMDBConnection() throws SQLException, NamingException {
-        initializeWSO2APIMDatasource();;
+        initializeWSO2APIMDatasource();
+        ;
 
         if (wso2APIMDatasource != null) {
             return wso2APIMDatasource.getConnection();
@@ -401,11 +402,11 @@ public class DBUtils {
 
         String queryToGetOperatorProperty =
                 "select count(*) as record_count from " +
-                    "( select client_id,config_key,config_value " +
+                        "( select client_id,config_key,config_value " +
                         "FROM `sp_configuration` " +
                         "WHERE `client_id`=? AND `config_key`=? AND  `config_value` in (" + params + ") " +
                         "group by client_id,config_key,config_value" +
-                    ") as spscopes";
+                        ") as spscopes";
         boolean isSPAllowedScope = false;
 
         try {
@@ -434,33 +435,71 @@ public class DBUtils {
         return isSPAllowedScope;
     }
 
-    public static List<String> getNotificationUrls(String clientId)   {
-        //todo: complete this method. Need to intriduce a new table to have multiple urls against a consumer key
-        //fill the data in sp on boarding. need to pass client id and get urls here
+    /**
+     * Get a list of notification URLs for a given SP
+     *
+     * @param clientId unique Client_id
+     * @return list of Notification urls
+     * @throws AuthenticatorException on errors
+     * @throws ConfigurationException on errors
+     */
+    public static List<String> getNotificationUrls(String clientId) throws AuthenticatorException,
+            ConfigurationException {
 
-        return Collections.emptyList();
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        List<String> notificationUrls = null;
+
+        String sql =
+                "SELECT notification_url FROM multiple_notificationurls_for_sp WHERE clientId=? ;";
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query to get Notification Urls: " + sql);
+        }
+
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, clientId);
+            resultSet = preparedStatement.executeQuery();
+            notificationUrls = new ArrayList<>();
+
+            while (resultSet.next()) {
+                notificationUrls.add(resultSet.getString("notification_url"));
+            }
+        } catch (SQLException e) {
+            handleException(
+                    "Error occurred while getting Notification Urls for ClientId - " + clientId,
+                    e);
+        } catch (NamingException e) {
+            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+        } finally {
+            closeAllConnections(preparedStatement, connection, resultSet);
+        }
+        return notificationUrls;
     }
-
 
     public static boolean isValidCallback(String redirectURL, String clientId)
             throws ConfigurationException, AuthenticatorException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
-        String queryToGetOperatorProperty ="SELECT callback_url FROM idn_oauth_consumer_apps WHERE consumer_key=?";
+        String queryToGetOperatorProperty = "SELECT callback_url FROM idn_oauth_consumer_apps WHERE consumer_key=?";
         boolean isValidCallback = false;
 
         try {
             connection = getWSO2APIMDBConnection();
             preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
-            preparedStatement.setString(1, clientId);;
+            preparedStatement.setString(1, clientId);
+            ;
             resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 isValidCallback = resultSet.getString("callback_url").equalsIgnoreCase(redirectURL);
             }
         } catch (SQLException e) {
             handleException(
-                    "Error occurred while getting call back infomation for ClientId - " + clientId,e);
+                    "Error occurred while getting call back infomation for ClientId - " + clientId, e);
         } catch (NamingException e) {
             throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
         } finally {
@@ -479,20 +518,21 @@ public class DBUtils {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
-        String queryToGetOperatorProperty ="SELECT CONSUMER_SECRET FROM idn_oauth_consumer_apps WHERE CONSUMER_KEY=?;";
+        String queryToGetOperatorProperty = "SELECT CONSUMER_SECRET FROM idn_oauth_consumer_apps WHERE CONSUMER_KEY=?;";
         String clientSecretValue = null;
 
         try {
             connection = getWSO2APIMDBConnection();
             preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
-            preparedStatement.setString(1, clientId);;
+            preparedStatement.setString(1, clientId);
+            ;
             resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 clientSecretValue = resultSet.getString("CONSUMER_SECRET");
             }
         } catch (SQLException e) {
             handleException(
-                    "Error occurred while getting client Secret for ClientId - " + clientId,e);
+                    "Error occurred while getting client Secret for ClientId - " + clientId, e);
         } catch (NamingException e) {
             throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
         } finally {

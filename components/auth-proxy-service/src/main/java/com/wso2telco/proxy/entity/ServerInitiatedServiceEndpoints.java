@@ -198,8 +198,7 @@ public class ServerInitiatedServiceEndpoints {
             StringBuilder codeUrlBuilder = new StringBuilder();
             BackChannelUserDetails backChannelUserDetails = new BackChannelUserDetails();
 
-            //todo : change the endpoint to read correlation ID from the auth call
-            //if there a correlationId in the request set it instead of creating new one.
+            //todo : if there a correlationId in the request set it instead of creating new one.
             String correlationId = UUID.randomUUID().toString();
 
             backChannelUserDetails.setCorrelationId(correlationId);
@@ -281,7 +280,6 @@ public class ServerInitiatedServiceEndpoints {
         List<String> allowedURLs;
         try {
             allowedURLs = DBUtils.getNotificationUrls(clientId);
-            allowedURLs.add(notificationUrl); //todo:remove this like after fetching url's from db
         } catch (Exception ex) {
             log.error("Error while fetching Notification URL list. ", ex);
             return false;
