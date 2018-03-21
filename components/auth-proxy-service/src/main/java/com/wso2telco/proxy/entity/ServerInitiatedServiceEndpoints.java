@@ -21,6 +21,7 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.wso2telco.adminServiceUtil.client.OAuthAdminServiceClient;
 import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.exception.CommonAuthenticatorException;
 import com.wso2telco.ids.datapublisher.util.DBUtil;
 import com.wso2telco.model.BackChannelUserDetails;
 import com.wso2telco.proxy.model.AuthenticatorException;
@@ -49,6 +50,7 @@ import org.wso2.carbon.identity.oauth.IdentityOAuthAdminException;
 import org.wso2.carbon.identity.oauth.dto.OAuthConsumerAppDTO;
 import org.opensaml.xml.util.Base64;
 
+import javax.naming.ConfigurationException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.POST;
@@ -75,59 +77,58 @@ public class ServerInitiatedServiceEndpoints {
     String authorizeEndpointUrl = "https://localhost:9443/authproxy/oauth2/authorize";
     String tokenCodeEndpoint = "https://localhost:9443/oauth2/token";
 
-
-    //sample request to create signed  jwe
-   /* @POST
-    @Path("/oauth2/sign")
-    public void sign(@Context HttpServletRequest httpServletRequest, @Context
-            HttpServletResponse httpServletResponse, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
-                     @PathParam("operatorName") String operatorName, String jsonBody) throws Exception {
-
-        String sharedKey = "a0a2abd8-6162-41c3-83d6-1cf559b46afc";
-        String jwe = signJson(jsonBody, sharedKey);
-        log.info("JWE: " + jwe);
-    }*/
-
-    /*private String signJson(String message, String sharedKey) throws JOSEException, ParseException {
-        Payload payload = new Payload(message);
-        if (log.isDebugEnabled()) {
-            log.debug("JWS payload message: " + message);
-        }
-
-        // Create JWS header with HS256 algorithm
-        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
-        header.setContentType("text/plain");
-
-        if (log.isDebugEnabled()) {
-            log.debug("JWS header: " + header.toJSONObject());
-        }
-
-        // Create JWS object
-        JWSObject jwsObject = new JWSObject(header, payload);
-
-        if (log.isDebugEnabled()) {
-            log.debug("HMAC key: " + sharedKey);
-        }
-
-
-        JWSSigner signer = new MACSigner(sharedKey.getBytes());
-
-        try {
-            jwsObject.sign(signer);
-        } catch (JOSEException e) {
-            log.error("Couldn't sign JWS object: " + e.getMessage());
-            throw e;
-        }
-
-        // Serialise JWS object to compact format
-        String serializedJWE = jwsObject.serialize();
-
-        if (log.isDebugEnabled()) {
-            log.debug("Serialised JWS object: " + serializedJWE);
-        }
-
-        return serializedJWE;
-    }*/
+//    //sample request to create signed  jwe
+//    @POST
+//    @Path("/oauth2/sign")
+//    public void sign(@Context HttpServletRequest httpServletRequest, @Context
+//            HttpServletResponse httpServletResponse, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
+//                     @PathParam("operatorName") String operatorName, String jsonBody) throws Exception {
+//
+//        String sharedKey = "a0a2abd8-6162-41c3-83d6-1cf559b46afc";
+//        String jwe = signJson(jsonBody, sharedKey);
+//        log.info("JWE: " + jwe);
+//    }
+//
+//    private String signJson(String message, String sharedKey) throws JOSEException, ParseException {
+//        Payload payload = new Payload(message);
+//        if (log.isDebugEnabled()) {
+//            log.debug("JWS payload message: " + message);
+//        }
+//
+//        // Create JWS header with HS256 algorithm
+//        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
+//        header.setContentType("text/plain");
+//
+//        if (log.isDebugEnabled()) {
+//            log.debug("JWS header: " + header.toJSONObject());
+//        }
+//
+//        // Create JWS object
+//        JWSObject jwsObject = new JWSObject(header, payload);
+//
+//        if (log.isDebugEnabled()) {
+//            log.debug("HMAC key: " + sharedKey);
+//        }
+//
+//
+//        JWSSigner signer = new MACSigner(sharedKey.getBytes());
+//
+//        try {
+//            jwsObject.sign(signer);
+//        } catch (JOSEException e) {
+//            log.error("Couldn't sign JWS object: " + e.getMessage());
+//            throw e;
+//        }
+//
+//        // Serialise JWS object to compact format
+//        String serializedJWE = jwsObject.serialize();
+//
+//        if (log.isDebugEnabled()) {
+//            log.debug("Serialised JWS object: " + serializedJWE);
+//        }
+//
+//        return serializedJWE;
+//    }
 
 
     //String url = "http://localhost:9763/oauth2/authorize?login_hint=911111111111&scope=openid&acr_values=500
@@ -146,7 +147,6 @@ public class ServerInitiatedServiceEndpoints {
     // String url="https://localhost:9443/authproxy/oauth2/authorize/operator/spark?response_type=code&scope=openid
     // &redirect_uri=http%3A%2F%2Flocalhost%3A9763%2Fplayground2%2Foauth2client&nonce=nounce1222&state=state22
     // &client_id=96sgoYjKb2fJ7AvaCbql0nZhAL8a&acr_values=500&operator=spark&login_hint=911111111111";
-
 
     @POST
     @Path("/si-authorize/{operatorName}")
@@ -208,10 +208,8 @@ public class ServerInitiatedServiceEndpoints {
 
             DataBaseConnectUtils.addBackChannelUserDetails(backChannelUserDetails);
 
-
             //Currenty it supports only code grant type
             responseType = "code";
-
 
             if (!isValidNotificationUrl(clientId, notificationUrl)) {
                 return Response.status(Response.Status.UNAUTHORIZED.getStatusCode()).entity(Response.Status
@@ -354,7 +352,7 @@ public class ServerInitiatedServiceEndpoints {
                     new InputStreamReader((response.getEntity().getContent())));
 
             String output;
-            StringBuffer totalOutput = new StringBuffer();
+            StringBuilder totalOutput = new StringBuilder();
 
             while ((output = br.readLine()) != null) {
                 totalOutput.append(output);
@@ -373,7 +371,8 @@ public class ServerInitiatedServiceEndpoints {
         return tokenCode;
     }
 
-    private String extractValuesFromTokenResponse(String tokenResponse, String correlationId) throws Exception {
+    private String extractValuesFromTokenResponse(String tokenResponse, String correlationId) throws
+            CommonAuthenticatorException, ConfigurationException {
         JSONObject jObject = new JSONObject(tokenResponse);
         BackChannelUserDetails backChannelUserDetails = new BackChannelUserDetails();
         String accessToken = jObject.getString("access_token");
@@ -429,7 +428,5 @@ public class ServerInitiatedServiceEndpoints {
         log.info("Verified JWS signature! " + verifiedSignature);
         return verifiedSignature;
     }
-
-
 }
 

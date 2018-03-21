@@ -139,7 +139,6 @@ public class DBUtils {
      */
     private static Connection getWSO2APIMDBConnection() throws SQLException, NamingException {
         initializeWSO2APIMDatasource();
-        ;
 
         if (wso2APIMDatasource != null) {
             return wso2APIMDatasource.getConnection();
@@ -492,7 +491,6 @@ public class DBUtils {
             connection = getWSO2APIMDBConnection();
             preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
             preparedStatement.setString(1, clientId);
-            ;
             resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 isValidCallback = resultSet.getString("callback_url").equalsIgnoreCase(redirectURL);
