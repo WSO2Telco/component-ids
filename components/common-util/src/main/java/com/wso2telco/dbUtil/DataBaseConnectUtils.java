@@ -251,7 +251,7 @@ public class DataBaseConnectUtils {
             CommonAuthenticatorException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
-        BackChannelRequestDetails backChannelUserDetails = null;
+        BackChannelRequestDetails backChannelRequestDetails = null;
         ResultSet resultSet = null;
 
         String getUserDetailsQuery =
@@ -269,14 +269,21 @@ public class DataBaseConnectUtils {
             resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
-                backChannelUserDetails = new BackChannelRequestDetails();
-                backChannelUserDetails.setSessionId(resultSet.getString("session_id"));
-                backChannelUserDetails.setNotificationUrl(resultSet.getString("notification_url"));
-                backChannelUserDetails.setNotificationBearerToken(resultSet.getString("notification_bearer_token"));
-                backChannelUserDetails.setAccessToken(resultSet.getString("aceess_token"));
-                backChannelUserDetails.setAuthCode(resultSet.getString("auth_code"));
-                backChannelUserDetails.setMsisdn(resultSet.getString("msisdn"));
-                backChannelUserDetails.setRequestIniticatedTime(resultSet.getString("request_initiated_time"));
+
+                backChannelRequestDetails = new BackChannelRequestDetails();
+                backChannelRequestDetails.setCorrelationId(resultSet.getString("correlation_id"));
+                backChannelRequestDetails.setSessionId(resultSet.getString("session_id"));
+                backChannelRequestDetails.setNotificationUrl(resultSet.getString("notification_url"));
+                backChannelRequestDetails.setNotificationBearerToken(resultSet.getString("notification_bearer_token"));
+                backChannelRequestDetails.setAccessToken(resultSet.getString("access_token"));
+                backChannelRequestDetails.setAuthCode(resultSet.getString("auth_code"));
+                backChannelRequestDetails.setMsisdn(resultSet.getString("msisdn"));
+                backChannelRequestDetails.setRequestIniticatedTime(resultSet.getString("request_initiated_time"));
+                backChannelRequestDetails.setRefreshToken(resultSet.getString("refresh_token"));
+                backChannelRequestDetails.setScope(resultSet.getString("scope"));
+                backChannelRequestDetails.setIdToken(resultSet.getString("id_token"));
+                backChannelRequestDetails.setTokenType(resultSet.getString("token_type"));
+                backChannelRequestDetails.setExpiresIn(resultSet.getInt("expires_in"));
             }
         } catch (SQLException e) {
             handleException(
@@ -289,7 +296,7 @@ public class DataBaseConnectUtils {
             closeAllConnections(preparedStatement, connection, resultSet);
         }
 
-        return backChannelUserDetails;
+        return backChannelRequestDetails;
     }
 
     /**
