@@ -189,7 +189,6 @@ public class ServerInitiatedUSSDAuthenticator extends AbstractApplicationAuthent
             log.debug("ServiceProviderName : " + serviceProviderName);
         }
 
-
         try {
             sendUssd(context, msisdn, serviceProviderName, operator, isUserExists);
             String responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);

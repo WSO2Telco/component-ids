@@ -451,7 +451,7 @@ public class DBUtils {
         List<String> notificationUrls = null;
 
         String sql =
-                "SELECT notification_url FROM multiple_notificationurls_for_sp WHERE clientId=? ;";
+                "SELECT notification_url FROM sp_notification_url WHERE client_id=? ;";
 
         if (log.isDebugEnabled()) {
             log.debug("Executing the query to get Notification Urls: " + sql);

@@ -232,13 +232,19 @@ public class DataBaseConnectUtils {
 
             if (resultSet.next()) {
                 backChannelUserDetails = new BackChannelUserDetails();
+                backChannelUserDetails.setCorrelationId(resultSet.getString("correlation_id"));
                 backChannelUserDetails.setSessionId(resultSet.getString("session_id"));
                 backChannelUserDetails.setNotificationUrl(resultSet.getString("notification_url"));
                 backChannelUserDetails.setNotificationBearerToken(resultSet.getString("notification_bearer_token"));
-                backChannelUserDetails.setAccessToken(resultSet.getString("aceess_token"));
+                backChannelUserDetails.setAccessToken(resultSet.getString("access_token"));
                 backChannelUserDetails.setAuthCode(resultSet.getString("auth_code"));
                 backChannelUserDetails.setMsisdn(resultSet.getString("msisdn"));
                 backChannelUserDetails.setRequestIniticatedTime(resultSet.getString("request_initiated_time"));
+                backChannelUserDetails.setRefreshToken(resultSet.getString("refresh_token"));
+                backChannelUserDetails.setScope(resultSet.getString("scope"));
+                backChannelUserDetails.setIdToken(resultSet.getString("id_token"));
+                backChannelUserDetails.setTokenType(resultSet.getString("token_type"));
+                backChannelUserDetails.setExpiresIn(resultSet.getInt("expires_in"));
             }
         } catch (SQLException e) {
             handleException(
