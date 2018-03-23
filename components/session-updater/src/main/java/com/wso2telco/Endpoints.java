@@ -41,10 +41,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
@@ -68,7 +71,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.rmi.RemoteException;
 import java.security.MessageDigest;
@@ -91,6 +96,8 @@ import java.util.logging.Logger;
  */
 @Path("/endpoint")
 public class Endpoints {
+
+    String tokenCodeEndpoint = "https://localhost:9443/oauth2/token";
 
     private static boolean temp = false;
 
@@ -245,6 +252,8 @@ public class Endpoints {
                 backChannelTokenResponse.setExpiresIn(backChannelUserDetails.getExpiresIn());
                 backChannelTokenResponse.setRefreshToken(backChannelUserDetails.getRefreshToken());
                 backChannelTokenResponse.setCorrelationId(backChannelUserDetails.getCorrelationId());
+
+
             }
             responseString = Response.status(Response.Status.OK).entity(new Gson().toJson(new
                     BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
@@ -322,6 +331,7 @@ public class Endpoints {
     }
 
 
+
     @GET
     @Path("/serverinitiated/sms/response/{id}")
     @Produces("text/plain")
@@ -392,12 +402,30 @@ public class Endpoints {
 
             if (backChannelRequestDetails != null) {
                 //todo:how to get values for auth_req_id
-                backChannelTokenResponse.setAccessToken(backChannelRequestDetails.getAccessToken());
-                backChannelTokenResponse.setTokenType(backChannelRequestDetails.getTokenType());
-                backChannelTokenResponse.setIdToken(backChannelRequestDetails.getIdToken());
-                backChannelTokenResponse.setExpiresIn(backChannelRequestDetails.getExpiresIn());
-                backChannelTokenResponse.setRefreshToken(backChannelRequestDetails.getRefreshToken());
                 backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                try {
+                    String clientSecret = DbUtil.getClientSecret(backChannelRequestDetails.getClientId());
+
+                    List<NameValuePair> tokenRelatedNameValues = new ArrayList<NameValuePair>();
+                    tokenRelatedNameValues.add(new BasicNameValuePair("grant_type", "authorization_code"));
+                    tokenRelatedNameValues.add(new BasicNameValuePair("code", backChannelRequestDetails.getAuthCode()));
+                    tokenRelatedNameValues.add(new BasicNameValuePair("redirect_uri", backChannelRequestDetails.getRedirectUrl()));
+
+                    BackChannelRequestDetails tokenDetails = getAccessTokenDetails(backChannelRequestDetails.getCorrelationId(),tokenRelatedNameValues,backChannelRequestDetails.getClientId(),clientSecret);
+                    backChannelTokenResponse.setAccessToken(tokenDetails.getAccessToken());
+                    backChannelTokenResponse.setTokenType(tokenDetails.getTokenType());
+                    backChannelTokenResponse.setIdToken(tokenDetails.getIdToken());
+                    backChannelTokenResponse.setExpiresIn(tokenDetails.getExpiresIn());
+                    backChannelTokenResponse.setRefreshToken(tokenDetails.getRefreshToken());
+
+                } catch (ConfigurationException | AuthenticatorException | CommonAuthenticatorException e) {
+                    log.error("Error while generating token for Session Id:" + sessionID);
+            //todo: set correct error
+                }
+
+
+
+
             }
             responseString = Response.status(Response.Status.OK).entity(new Gson().toJson(new
                     BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
@@ -433,6 +461,63 @@ public class Endpoints {
 
         postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
     }
+
+
+    public BackChannelRequestDetails getAccessTokenDetails(String correlationId, List<NameValuePair> tokenRelatedNameValues, String
+            consumerKey, String consumerSecret) throws CommonAuthenticatorException, ConfigurationException {
+        String tokenCode = null;
+        BackChannelRequestDetails backChannelRequestDetails = new BackChannelRequestDetails();
+        try {
+
+            HttpClient httpClient = new DefaultHttpClient();
+            HttpPost postRequest = new HttpPost(tokenCodeEndpoint);
+            String encoding = org.opensaml.xml.util.Base64.encodeBytes((consumerKey + ":" + consumerSecret).getBytes());
+            encoding = encoding.substring(0, encoding.length() - 1);
+
+            postRequest.addHeader("Authorization", "Basic " + encoding);
+            postRequest.addHeader("Content-Type", "application/x-www-form-urlencoded");
+            postRequest.setEntity(new UrlEncodedFormEntity(tokenRelatedNameValues));
+            HttpResponse response = httpClient.execute(postRequest);
+
+            BufferedReader br = new BufferedReader(
+                    new InputStreamReader((response.getEntity().getContent())));
+
+            String output;
+            StringBuilder totalOutput = new StringBuilder();
+
+            while ((output = br.readLine()) != null) {
+                totalOutput.append(output);
+            }
+
+            log.info("Response to the Access token request:" + totalOutput.toString());
+            backChannelRequestDetails = extractValuesFromTokenResponse(totalOutput.toString(), correlationId);
+
+        } catch (IOException ex) {
+            log.error("IO Exception occured while getting Access token for correlation ID:" + correlationId + " " +
+                    ex.getMessage(), ex);
+        } catch (JSONException ex) {
+            log.error("JSONException occured while getting Access token for correlation ID:" + correlationId + " " +
+                    ex.getMessage(), ex);
+        }
+        return backChannelRequestDetails;
+    }
+
+    private BackChannelRequestDetails extractValuesFromTokenResponse(String tokenResponse, String correlationId) throws
+            CommonAuthenticatorException, ConfigurationException {
+        JSONObject jObject = new JSONObject(tokenResponse);
+        BackChannelRequestDetails backChannelUserDetails = new BackChannelRequestDetails();
+        String accessToken = jObject.getString("access_token");
+        backChannelUserDetails.setRefreshToken(jObject.getString("refresh_token"));
+        backChannelUserDetails.setScope(jObject.getString("scope"));
+        backChannelUserDetails.setIdToken(jObject.getString("id_token"));
+        backChannelUserDetails.setTokenType(jObject.getString("token_type"));
+        backChannelUserDetails.setExpiresIn(jObject.getInt("expires_in"));
+
+        DataBaseConnectUtils.updateTokenDetailsInBackChannel(correlationId, backChannelUserDetails);
+
+        return backChannelUserDetails;
+    }
+
 
     /**
      * Ussd receive.
