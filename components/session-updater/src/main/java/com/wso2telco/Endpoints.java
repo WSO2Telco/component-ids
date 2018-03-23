@@ -25,11 +25,14 @@ import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.config.util.PinConfigUtil;
 import com.wso2telco.cryptosystem.AESencrp;
+import com.wso2telco.dbUtil.DataBaseConnectUtils;
 import com.wso2telco.entity.*;
 import com.wso2telco.exception.AuthenticatorException;
+import com.wso2telco.exception.CommonAuthenticatorException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
-import com.wso2telco.util.BasicFutureCallback;
+import com.wso2telco.model.BackChannelTokenResponse;
+import com.wso2telco.model.BackChannelUserDetails;
 import com.wso2telco.util.Constants;
 import com.wso2telco.util.DbUtil;
 import org.apache.axis2.AxisFault;
@@ -39,15 +42,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
-import org.apache.http.impl.nio.client.HttpAsyncClients;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
@@ -59,6 +56,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.mgt.stub.UserIdentityManagementAdminServiceIdentityMgtServiceExceptionException;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
+import javax.naming.ConfigurationException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -70,9 +68,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.rmi.RemoteException;
 import java.security.MessageDigest;
@@ -181,18 +177,23 @@ public class Endpoints {
         return response;
     }
 
-
-
     @POST
     @Path("/serverinitiated/login/ussd/")
     @Consumes("application/json")
     @Produces("application/json")
-    public void serverinitiatedLoginUssd(String jsonBody) throws SQLException, JSONException, IOException {
+    public void serverinitiatedLoginUssd(String jsonBody) throws SQLException, JSONException, IOException,
+            CommonAuthenticatorException, ConfigurationException {
         Gson gson = new GsonBuilder().serializeNulls().create();
         org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
         String message = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("inboundUSSDMessage");
         String sessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("clientCorrelator");
-        String msisdn = extractMsisdn(jsonObj);
+        String spTokenEndpoint = "";
+        String spBearerToken = "";
+        String responseString;
+        BackChannelTokenResponse backChannelTokenResponse = new BackChannelTokenResponse();
+        String status = null;
+        String ussdSessionID = null;
+        BackChannelUserDetails backChannelUserDetails = null;
 
         AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
         setStateFromAuthenticationContext(authenticationContext);
@@ -203,12 +204,10 @@ public class Endpoints {
             log.debug("Json Body : " + jsonBody);
         }
 
-        int responseCode = 400;
-        String responseString = null;
+        if (sessionID != null) {
+            backChannelUserDetails = DataBaseConnectUtils.getBackChannelUserDetails(sessionID);
+        }
 
-        String status = null;
-
-        String ussdSessionID = null;
         if (jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID") && !jsonObj.getJSONObject
                 ("inboundUSSDMessageRequest").isNull("sessionID")) {
             ussdSessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("sessionID");
@@ -216,10 +215,12 @@ public class Endpoints {
                 log.debug("UssdSessionID 01 : " + ussdSessionID);
             }
         }
+
         ussdSessionID = ((ussdSessionID != null) ? ussdSessionID : "");
         if (log.isDebugEnabled()) {
             log.debug("UssdSessionID 02 : " + ussdSessionID);
         }
+
         //Accept or Reject response depending on configured values
         String acceptInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig()
                 .getAcceptUserInputs();
@@ -228,56 +229,76 @@ public class Endpoints {
 
         if (validateUserInputs(acceptInputs, message)) {
             status = "Approved";
-            responseCode = Response.Status.CREATED.getStatusCode();
             DatabaseUtils.updateStatus(sessionID, status);
-            if(authenticationContext!=null){
+
+            if (authenticationContext != null) {
                 DataPublisherUtil.updateAndPublishUserStatus(
                         (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_APPROVED, "USSD login push approved");
             }
+
+            if (backChannelUserDetails != null) {
+                //todo:how to get values for auth_req_id
+                backChannelTokenResponse.setAccessToken(backChannelUserDetails.getAccessToken());
+                backChannelTokenResponse.setTokenType(backChannelUserDetails.getTokenType());
+                backChannelTokenResponse.setIdToken(backChannelUserDetails.getIdToken());
+                backChannelTokenResponse.setExpiresIn(backChannelUserDetails.getExpiresIn());
+                backChannelTokenResponse.setRefreshToken(backChannelUserDetails.getRefreshToken());
+                backChannelTokenResponse.setCorrelationId(backChannelUserDetails.getCorrelationId());
+            }
+            responseString = Response.status(Response.Status.OK).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
         } else if (validateUserInputs(rejectInputs, message)) {
             status = "Rejected";
-            responseCode = Response.Status.BAD_REQUEST.getStatusCode();
+            backChannelTokenResponse.setCorrelationId(backChannelUserDetails.getCorrelationId());
+            backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+            backChannelTokenResponse.setErrorDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
             DatabaseUtils.updateStatus(sessionID, status);
-            if(authenticationContext!=null) {
-                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+            if (authenticationContext != null) {
+                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
+                                (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_REJECTED, "USSD login push rejected");
             }
+            responseString = Response.status(Response.Status.BAD_REQUEST).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
         } else {
             status = "Rejected";
-            responseCode = Response.Status.NOT_ACCEPTABLE.getStatusCode();
+            backChannelTokenResponse.setCorrelationId(backChannelUserDetails.getCorrelationId());
             DatabaseUtils.updateStatus(sessionID, status);
-            if(authenticationContext!=null) {
-                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+            backChannelTokenResponse.setError(Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
+            backChannelTokenResponse.setErrorDescription(Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
+            if (authenticationContext != null) {
+                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
+                                (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_FAIL, "USSD login push failed");
             }
+            responseString = Response.status(Response.Status.NOT_ACCEPTABLE).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
         }
 
-        if (responseCode == Response.Status.BAD_REQUEST.getStatusCode() || responseCode == Response.Status
+
+       /* if (responseCode == Response.Status.BAD_REQUEST.getStatusCode() || responseCode == Response.Status
                 .NOT_ACCEPTABLE.getStatusCode()) {
             responseString = "{" + "\"requestError\":" + "{"
                     + "\"serviceException\":" + "{" + "\"messageId\":\"" + "SVC0275" + "\"" + "," + "\"text\":\"" +
                     "Internal server Error" + "\"" + "}"
                     + "}}";
 
-            //TODO:build an error respond
-
         } else {
             responseString = SendUSSD.getUSSDJsonPayload(msisdn, sessionID, 5, "mtfin", ussdSessionID);
+        }*/
 
-//todo : get the token using correlation id and send to notification url
 
+        if (backChannelUserDetails != null) {
+            spTokenEndpoint = backChannelUserDetails.getNotificationUrl();
+            spBearerToken = backChannelUserDetails.getNotificationBearerToken();
         }
 
-        String spTokenEndpoint = ""; //todo : fetch from db
-        String spBearerToken = "";//todo : fetch from db
-
+        log.info("Response String:" + responseString);
 
         postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
 
-
     }
-
 
     //todo: move this to a common util for MIG
     protected void postTokenRequest(String url, String requestStr, String token)
@@ -294,12 +315,124 @@ public class Endpoints {
 
         postRequest.setEntity(input);
 
+        //todo : how to handle request code,400,200 etc
+
         HttpResponse httpResponse = client.execute(postRequest);
         log.info(httpResponse.getStatusLine().getStatusCode());
-
     }
 
 
+    @GET
+    @Path("/serverinitiated/sms/response/{id}")
+    @Produces("text/plain")
+    public void serverInitiatedSmsConfirm(@PathParam("id") String sessionID)
+            throws SQLException, CommonAuthenticatorException, ConfigurationException, IOException {
+        String responseString;
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+        setStateFromAuthenticationContext(authenticationContext);
+        String spTokenEndpoint = "";
+        String spBearerToken = "";
+        BackChannelTokenResponse backChannelTokenResponse = new BackChannelTokenResponse();
+        String status = null;
+        BackChannelUserDetails backChannelUserDetails;
+
+        backChannelUserDetails = DataBaseConnectUtils.getBackChannelUserDetails(sessionID);
+
+        if (backChannelUserDetails != null) {
+            spTokenEndpoint = backChannelUserDetails.getNotificationUrl();
+            spBearerToken = backChannelUserDetails.getNotificationBearerToken();
+        }
+
+        log.info("Processing sms confirmation");
+        if (configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig().getIsShortUrl()) {
+            // If a URL shortening service is enabled, that means, the id query parameter is the encrypted context
+            // identifier. Therefore, to get the actual context identifier, we can decrypt the value of id query param.
+            log.debug("A short URL service is enabled in mobile-connect.xml");
+            try {
+                sessionID = AESencrp.decrypt(sessionID.replaceAll(" ", "+"));
+            } catch (Exception e) {
+                log.error("An error occurred while decrypting session ID", e);
+                backChannelTokenResponse.setCorrelationId(backChannelUserDetails.getCorrelationId());
+                backChannelTokenResponse.setError("Internal Server Error");
+                backChannelTokenResponse.setErrorDescription("An error occurred while decrypting session ID");
+                responseString = Response.status(500).entity(new Gson().toJson(new
+                        BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+                postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
+            }
+        } else {
+            // If a URL shortening service is not enabled, that means, the actual context-identifier was encrypted and
+            // a hash key was generated from the encrypted context identifier and a database entry mapping the hash key
+            // to the context identifier (not encrypted) should have been inserted.
+            // Therefore, to get the context identifier we need to look up the database.
+            log.debug("A short URL service is not enabled in mobile-connect.xml");
+            try {
+                sessionID = DbUtil.getContextIDForHashKey(sessionID);
+                if (sessionID == null) {
+                    log.debug("There is no context identifier corresponding to the hash id: " + sessionID);
+                }
+            } catch (AuthenticatorException | SQLException e) {
+                log.error("An error occurred while retriving context identifier", e);
+                backChannelTokenResponse.setCorrelationId(backChannelUserDetails.getCorrelationId());
+                backChannelTokenResponse.setError("Internal Server Error");
+                backChannelTokenResponse.setErrorDescription("An error occurred while retriving context identifier");
+                responseString = Response.status(500).entity(new Gson().toJson(new
+                        BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+                postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
+            }
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Context Identifier: " + sessionID);
+        }
+
+        String userStatus = DatabaseUtils.getUSerStatus(sessionID);
+        DataPublisherUtil.UserState userState = DataPublisherUtil.UserState.SMS_URL_AUTH_FAIL;
+        if (userStatus.equalsIgnoreCase("PENDING")) {
+            DatabaseUtils.updateStatus(sessionID, "APPROVED");
+            status = "APPROVED";
+
+            if (backChannelUserDetails != null) {
+                //todo:how to get values for auth_req_id
+                backChannelTokenResponse.setAccessToken(backChannelUserDetails.getAccessToken());
+                backChannelTokenResponse.setTokenType(backChannelUserDetails.getTokenType());
+                backChannelTokenResponse.setIdToken(backChannelUserDetails.getIdToken());
+                backChannelTokenResponse.setExpiresIn(backChannelUserDetails.getExpiresIn());
+                backChannelTokenResponse.setRefreshToken(backChannelUserDetails.getRefreshToken());
+                backChannelTokenResponse.setCorrelationId(backChannelUserDetails.getCorrelationId());
+            }
+            responseString = Response.status(Response.Status.OK).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+
+        } else if (userStatus.equalsIgnoreCase("EXPIRED")) {
+            status = "EXPIRED";
+            backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+            backChannelTokenResponse.setErrorDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
+            backChannelTokenResponse.setCorrelationId(backChannelUserDetails.getCorrelationId());
+
+            responseString = Response.status(Response.Status.BAD_REQUEST).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+        } else {
+            status = "EXPIRED";
+            backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+            backChannelTokenResponse.setErrorDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
+            backChannelTokenResponse.setCorrelationId(backChannelUserDetails.getCorrelationId());
+
+            responseString = Response.status(Response.Status.BAD_REQUEST).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+        }
+
+        /*responseString = "{" + "\"status\":\"" + status + "\","
+                + "\"text\":\"" + responseString + "\"" + "}";
+
+        log.info("Sending sms confirmation response" + responseString);
+        if(authenticationContext!=null) {
+            DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants
+            .USER_STATUS_DATA_PUBLISHING_PARAM),
+                    userState, "SMS URL " + status);
+        }
+        return Response.status(200).entity(responseString).build();*/
+
+        postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
+    }
 
     /**
      * Ussd receive.
@@ -357,25 +490,27 @@ public class Endpoints {
             status = "Approved";
             responseCode = Response.Status.CREATED.getStatusCode();
             DatabaseUtils.updateStatus(sessionID, status);
-            if(authenticationContext!=null){
+            if (authenticationContext != null) {
                 DataPublisherUtil.updateAndPublishUserStatus(
-                    (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-                    DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_APPROVED, "USSD login push approved");
+                        (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_APPROVED, "USSD login push approved");
             }
         } else if (validateUserInputs(rejectInputs, message)) {
             status = "Rejected";
             responseCode = Response.Status.BAD_REQUEST.getStatusCode();
             DatabaseUtils.updateStatus(sessionID, status);
-            if(authenticationContext!=null) {
-                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+            if (authenticationContext != null) {
+                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
+                                (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_REJECTED, "USSD login push rejected");
             }
         } else {
             status = "Rejected";
             responseCode = Response.Status.NOT_ACCEPTABLE.getStatusCode();
             DatabaseUtils.updateStatus(sessionID, status);
-            if(authenticationContext!=null) {
-                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+            if (authenticationContext != null) {
+                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
+                                (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_FAIL, "USSD login push failed");
             }
         }
@@ -431,8 +566,9 @@ public class Endpoints {
             status = "Approved";
             responseCode = Response.Status.CREATED.getStatusCode();
             DatabaseUtils.updateRegistrationStatus(sessionID, status);
-            if(authenticationContext!=null) {
-                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+            if (authenticationContext != null) {
+                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
+                                (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_APPROVED, "USSD registration push approved");
             }
         } else {
@@ -442,8 +578,9 @@ public class Endpoints {
             status = "Rejected";
             responseCode = Response.Status.BAD_REQUEST.getStatusCode();
             DatabaseUtils.updateRegistrationStatus(sessionID, status);
-            if(authenticationContext!=null) {
-                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+            if (authenticationContext != null) {
+                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
+                                (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_REJECTED, "USSD registration push rejected");
             }
         }
@@ -494,8 +631,9 @@ public class Endpoints {
             } else {
                 response = getPinMatchedResponse(gson, sessionID, msisdn, ussdSessionId);
                 DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_APPROVED);
-                if(authenticationContext!=null) {
-                    DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                if (authenticationContext != null) {
+                    DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
+                                    (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                             DataPublisherUtil.UserState.RECEIVE_USSD_PIN_APPROVED, "USSD pin approved");
                 }
                 return Response.status(Response.Status.CREATED).entity(response).build();
@@ -681,15 +819,15 @@ public class Endpoints {
     }
 
     private void setStateFromAuthenticationContext(AuthenticationContext authenticationContext) {
-        if(null != authenticationContext) {
+        if (null != authenticationContext) {
             Object state = authenticationContext.getProperty("state");
             Object msisdn = authenticationContext.getProperty(Constants.MSISDN);
 
-            if(null != state) {
+            if (null != state) {
                 org.apache.log4j.MDC.put("REF_ID", state.toString());
             }
 
-            if(null != msisdn) {
+            if (null != msisdn) {
                 org.apache.log4j.MDC.put("MSISDN", msisdn.toString());
             }
         }
@@ -790,8 +928,9 @@ public class Endpoints {
             response = gson.toJson(ussdRequest);
 
             DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
-            if(authenticationContext!=null) {
-                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+            if (authenticationContext != null) {
+                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
+                                (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.RECEIVE_USSD_PIN_REJECTED, "USSD pin rejected");
             }
             pinConfig.setCurrentStep(PinConfig.CurrentStep.PIN_RESET);
@@ -831,8 +970,9 @@ public class Endpoints {
             response = gson.toJson(ussdRequest);
 
             DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
-            if(authenticationContext!=null) {
-                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+            if (authenticationContext != null) {
+                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
+                                (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.RECEIVE_USSD_PIN_REJECTED, "USSD pin rejected");
             }
 
@@ -868,8 +1008,9 @@ public class Endpoints {
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
 
             DbUtil.updateRegistrationStatus(sessionID, Constants.STATUS_REJECTED);
-            if(authenticationContext!=null) {
-                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+            if (authenticationContext != null) {
+                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
+                                (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.RECEIVE_USSD_PIN_REJECTED, "USSD pin rejected");
             }
             if (log.isDebugEnabled()) {
@@ -898,11 +1039,11 @@ public class Endpoints {
 
     private AuthenticationContext getAuthenticationContext(String sessionID) {
         AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(sessionID);
-        AuthenticationContext authenticationContext=null;
-        if(cacheKey!=null){
+        AuthenticationContext authenticationContext = null;
+        if (cacheKey != null) {
             Object cacheEntryObj = AuthenticationContextCache.getInstance().getValueFromCache(cacheKey);
-            if(cacheEntryObj!=null){
-                authenticationContext=((AuthenticationContextCacheEntry) cacheEntryObj).getContext();
+            if (cacheEntryObj != null) {
+                authenticationContext = ((AuthenticationContextCacheEntry) cacheEntryObj).getContext();
             }
         }
         return authenticationContext;
@@ -1404,7 +1545,7 @@ public class Endpoints {
             DatabaseUtils.updateStatus(sessionID, "APPROVED");
             status = "APPROVED";
             responseString = " You are successfully authenticated via mobile-connect";
-            userState=DataPublisherUtil.UserState.SMS_URL_AUTH_SUCCESS;
+            userState = DataPublisherUtil.UserState.SMS_URL_AUTH_SUCCESS;
         } else if (userStatus.equalsIgnoreCase("EXPIRED")) {
             status = "EXPIRED";
             responseString = " Your token is expired";
@@ -1417,88 +1558,13 @@ public class Endpoints {
                 + "\"text\":\"" + responseString + "\"" + "}";
 
         log.info("Sending sms confirmation response" + responseString);
-        if(authenticationContext!=null) {
-            DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+        if (authenticationContext != null) {
+            DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants
+                            .USER_STATUS_DATA_PUBLISHING_PARAM),
                     userState, "SMS URL " + status);
         }
         return Response.status(200).entity(responseString).build();
     }
-
-
-
-    @GET
-    @Path("/serverinitiated/sms/response/{id}")
-    // @Consumes("application/json")
-    @Produces("text/plain")
-    public Response serverInitiatedSmsConfirm(@PathParam("id") String sessionID)
-            throws SQLException {
-        String responseString;
-
-        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
-        setStateFromAuthenticationContext(authenticationContext);
-
-        log.info("Processing sms confirmation");
-        if (configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig().getIsShortUrl()) {
-            // If a URL shortening service is enabled, that means, the id query parameter is the encrypted context
-            // identifier. Therefore, to get the actual context identifier, we can decrypt the value of id query param.
-            log.debug("A short URL service is enabled in mobile-connect.xml");
-            try {
-                sessionID = AESencrp.decrypt(sessionID.replaceAll(" ", "+"));
-            } catch (Exception e) {
-                log.error("An error occurred while decrypting session ID", e);
-                responseString = e.getLocalizedMessage();
-                return Response.status(500).entity(responseString).build();
-            }
-        } else {
-            // If a URL shortening service is not enabled, that means, the actual context-identifier was encrypted and
-            // a hash key was generated from the encrypted context identifier and a database entry mapping the hash key
-            // to the context identifier (not encrypted) should have been inserted.
-            // Therefore, to get the context identifier we need to look up the database.
-            log.debug("A short URL service is not enabled in mobile-connect.xml");
-            try {
-                sessionID = DbUtil.getContextIDForHashKey(sessionID);
-                if (sessionID == null) {
-                    log.debug("There is no context identifier corresponding to the hash id: " + sessionID);
-                }
-            } catch (AuthenticatorException | SQLException e) {
-                log.error("An error occurred while retriving context identifier", e);
-                return Response.status(500).entity("").build();
-            }
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("Context Identifier: " + sessionID);
-        }
-        String status;
-        String userStatus = DatabaseUtils.getUSerStatus(sessionID);
-        DataPublisherUtil.UserState userState = DataPublisherUtil.UserState.SMS_URL_AUTH_FAIL;
-        if (userStatus.equalsIgnoreCase("PENDING")) {
-            DatabaseUtils.updateStatus(sessionID, "APPROVED");
-            status = "APPROVED";
-            responseString = " You are successfully authenticated via mobile-connect";
-            userState=DataPublisherUtil.UserState.SMS_URL_AUTH_SUCCESS;
-        } else if (userStatus.equalsIgnoreCase("EXPIRED")) {
-            status = "EXPIRED";
-            responseString = " Your token is expired";
-        } else {
-            status = "EXPIRED";
-            responseString = " Your token has already approved";
-        }
-
-        responseString = "{" + "\"status\":\"" + status + "\","
-                + "\"text\":\"" + responseString + "\"" + "}";
-
-        log.info("Sending sms confirmation response" + responseString);
-        if(authenticationContext!=null) {
-            DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-                    userState, "SMS URL " + status);
-        }
-        return Response.status(200).entity(responseString).build();
-
-        //todo: change the return type and post the token to the sp endpoint
-
-    }
-
-
 
     /**
      * Mepin confirm.
@@ -1759,31 +1825,36 @@ public class Endpoints {
      * @param jsonBody value of the request input.
      * @return Json string with status.
      */
-    @POST @Path("smsotp/send") @Consumes("application/json") @Produces("application/json") public Response validateSMSOTP(
+    @POST
+    @Path("smsotp/send")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Response validateSMSOTP(
             String jsonBody) {
         String response = null;
-        int statusCode=Response.Status.BAD_REQUEST.getStatusCode();
+        int statusCode = Response.Status.BAD_REQUEST.getStatusCode();
         log.info("Received OTP SMS from client " + jsonBody);
         org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
         String session_id = jsonObj.getString("session_id");
         String otp = jsonObj.getString("otp");
         try {
-            DataPublisherUtil.UserState userState=null;
-            String state="failed";
+            DataPublisherUtil.UserState userState = null;
+            String state = "failed";
             String smsotp = DatabaseUtils.getSMSOTP(session_id);
-            if (smsotp!=null && smsotp.equalsIgnoreCase(otp)) {
+            if (smsotp != null && smsotp.equalsIgnoreCase(otp)) {
                 DatabaseUtils.updateStatus(session_id, "Approved");
-                statusCode=Response.Status.OK.getStatusCode();
-                userState=DataPublisherUtil.UserState.SMS_OTP_AUTH_SUCCESS;
-                state="success";
-            }else{
+                statusCode = Response.Status.OK.getStatusCode();
+                userState = DataPublisherUtil.UserState.SMS_OTP_AUTH_SUCCESS;
+                state = "success";
+            } else {
                 DatabaseUtils.updateStatus(session_id, "Rejected");
-                statusCode=Response.Status.FORBIDDEN.getStatusCode();
-                userState=DataPublisherUtil.UserState.SMS_OTP_AUTH_FAIL;
+                statusCode = Response.Status.FORBIDDEN.getStatusCode();
+                userState = DataPublisherUtil.UserState.SMS_OTP_AUTH_FAIL;
             }
             AuthenticationContext authenticationContext = getAuthenticationContext(session_id);
-            if(authenticationContext!=null){
-                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),userState, "SMS OTP "+state);
+            if (authenticationContext != null) {
+                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
+                        (Constants.USER_STATUS_DATA_PUBLISHING_PARAM), userState, "SMS OTP " + state);
             }
         } catch (SQLException e) {
             log.error("Error occurred while updating sms otp status", e);
