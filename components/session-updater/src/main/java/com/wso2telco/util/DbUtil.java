@@ -23,6 +23,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
+import javax.naming.ConfigurationException;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -40,6 +41,11 @@ public class DbUtil {
      * The m connect datasource.
      */
     private static volatile DataSource mConnectDatasource = null;
+
+    /**
+     * The WSO2 APIM datasource
+     */
+    private static volatile DataSource wso2APIMDatasource = null;
 
     private static final Log log = LogFactory.getLog(DbUtil.class);
 
@@ -60,6 +66,39 @@ public class DbUtil {
             mConnectDatasource = (DataSource) ctx.lookup(dataSourceName);
         } catch (NamingException e) {
             handleException("Error while looking up the data source: " + dataSourceName, e);
+        }
+    }
+
+
+    /**
+     * Gets the WSO2 API Manager db connection.
+     *
+     * @return the WSO2 API Manager db connection
+     * @throws SQLException           the SQL exception
+     * @throws AuthenticatorException the authenticator exception
+     */
+    private static Connection getWSO2APIMDBConnection() throws SQLException, NamingException {
+        initializeWSO2APIMDatasource();
+
+        if (wso2APIMDatasource != null) {
+            return wso2APIMDatasource.getConnection();
+        }
+        throw new SQLException("Connect Datasource not initialized properly");
+    }
+
+    private static void initializeWSO2APIMDatasource() throws NamingException {
+        if (wso2APIMDatasource != null) {
+            return;
+        }
+
+        String dataSourceName = null;
+        try {
+            Context ctx = new InitialContext();
+            ConfigurationService configurationService = new ConfigurationServiceImpl();
+            dataSourceName = configurationService.getDataHolder().getMobileConnectConfig().getWso2APIMDataSourceName();
+            wso2APIMDatasource = (DataSource) ctx.lookup(dataSourceName);
+        } catch (NamingException e) {
+            throw new NamingException("Error while looking up the data source : " + dataSourceName);
         }
     }
 
@@ -229,6 +268,39 @@ public class DbUtil {
             IdentityDatabaseUtil.closeAllConnections(connection, rs, ps);
         }
         return sessionDataKey;
+    }
+
+    /**
+     * get client Secret value for the given Client ID
+     *
+     * @param clientId unique client ID
+     */
+    public static String getClientSecret(String clientId)
+            throws ConfigurationException, AuthenticatorException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        String queryToGetOperatorProperty = "SELECT CONSUMER_SECRET FROM idn_oauth_consumer_apps WHERE CONSUMER_KEY=?;";
+        String clientSecretValue = null;
+
+        try {
+            connection = getWSO2APIMDBConnection();
+            preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
+            preparedStatement.setString(1, clientId);
+            ;
+            resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                clientSecretValue = resultSet.getString("CONSUMER_SECRET");
+            }
+        } catch (SQLException e) {
+            handleException(
+                    "Error occurred while getting client Secret for ClientId - " + clientId, e);
+        } catch (NamingException e) {
+            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
+        }
+        return clientSecretValue;
     }
 
     /**

@@ -19,7 +19,7 @@ package com.wso2telco.model;
 /**
  * This class is using to keep user details in BackChannel Scenario.
  */
-public class BackChannelUserDetails {
+public class BackChannelRequestDetails {
     private String correlationId;
     private String sessionId;
     private String msisdn;
@@ -34,6 +34,8 @@ public class BackChannelUserDetails {
     private String tokenType;
     private int expiresIn;
     private String authRequestId;
+    private String clientId;
+    private String redirectUrl;
 
     public String getSessionId() {
         return sessionId;
@@ -146,4 +148,22 @@ public class BackChannelUserDetails {
     public void setExpiresIn(int expiresIn) {
         this.expiresIn = expiresIn;
     }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getRedirectUrl() {
+        return redirectUrl;
+    }
+
+    public void setRedirectUrl(String redirectUrl) {
+        this.redirectUrl = redirectUrl;
+    }
 }
+
+

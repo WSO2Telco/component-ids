@@ -75,4 +75,5 @@ public class AuthProxyConstants {
     public static final String IS_BACKCHANNEL_ALLOWED = "is_backChannel_allowed";
     public static final String CORRELATION_ID = "correlation_id";
     public static final String REDIRECT_URL = "redirect_uri";
+    public static final String CODE = "code";
 }
