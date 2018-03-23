@@ -451,7 +451,7 @@ public class DBUtils {
         List<String> notificationUrls = null;
 
         String sql =
-                "SELECT notification_url FROM multiple_notificationurls_for_sp WHERE clientId=? ;";
+                "SELECT notification_url FROM multiple_notificationurls_for_sp WHERE client_id=? ;";
 
         if (log.isDebugEnabled()) {
             log.debug("Executing the query to get Notification Urls: " + sql);
@@ -506,38 +506,7 @@ public class DBUtils {
         return isValidCallback;
     }
 
-    /**
-     * get client Secret value for the given Client ID
-     *
-     * @param clientId unique client ID
-     */
-    public static String getClientSecret(String clientId)
-            throws ConfigurationException, AuthenticatorException {
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        String queryToGetOperatorProperty = "SELECT CONSUMER_SECRET FROM idn_oauth_consumer_apps WHERE CONSUMER_KEY=?;";
-        String clientSecretValue = null;
 
-        try {
-            connection = getWSO2APIMDBConnection();
-            preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
-            preparedStatement.setString(1, clientId);
-            ;
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                clientSecretValue = resultSet.getString("CONSUMER_SECRET");
-            }
-        } catch (SQLException e) {
-            handleException(
-                    "Error occurred while getting client Secret for ClientId - " + clientId, e);
-        } catch (NamingException e) {
-            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
-        } finally {
-            closeAllConnections(preparedStatement, connection, resultSet);
-        }
-        return clientSecretValue;
-    }
 
     private static void closeAllConnections(PreparedStatement preparedStatement,
                                             Connection connection, ResultSet resultSet) {

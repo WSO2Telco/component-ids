@@ -109,7 +109,12 @@
 		<groupId>org.apache.httpcomponents</groupId>
 		<artifactId>httpasyncclient</artifactId>
 	</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>com.wso2telco.ids</groupId>
+            <artifactId>common-util</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 	<build>
 		<!--finalName>SessionUpdater</finalName-->
 		<plugins>
