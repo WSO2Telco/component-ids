@@ -94,7 +94,8 @@ public class DataBaseConnectUtils {
 
         String addUserDetailsQuery =
                 "insert into backchannel_request_details(correlation_id,msisdn,notification_bearer_token," +
-                        "notification_url,request_initiated_time,client_id,redirect_url) values(?,?,?,?,NOW(),?,?);";
+                        "notification_url,request_initiated_time,client_id,redirect_url,auth_requested_id) values(?," +
+                        "?,?,?,NOW(),?,?,?);";
 
         try {
             connection = getConnectDBConnection();
@@ -110,6 +111,7 @@ public class DataBaseConnectUtils {
             preparedStatement.setString(4, backChannelUserDetails.getNotificationUrl());
             preparedStatement.setString(5, backChannelUserDetails.getClientId());
             preparedStatement.setString(6, backChannelUserDetails.getRedirectUrl());
+            preparedStatement.setString(7, backChannelUserDetails.getAuthRequestId());
 
             preparedStatement.execute();
 
@@ -206,43 +208,6 @@ public class DataBaseConnectUtils {
     }
 
     /**
-     * Update user details in Back Channeling Scenario : update oauth code
-     *
-     * @param correlationId unique ID of the request
-     * @param token         access token
-     */
-    public static void updateTokenInBackChannel(String correlationId, String token) throws
-            ConfigurationException, CommonAuthenticatorException {
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        String updateUserDetailsQuery = "update backchannel_request_details set access_token=? where correlation_id=?";
-
-        try {
-            connection = getConnectDBConnection();
-
-            if (log.isDebugEnabled()) {
-                log.debug("Executing the query " + updateUserDetailsQuery);
-            }
-
-            preparedStatement = connection.prepareStatement(updateUserDetailsQuery);
-            preparedStatement.setString(1, token);
-            preparedStatement.setString(2, correlationId);
-            preparedStatement.executeUpdate();
-
-        } catch (SQLException e) {
-            handleException(
-                    "Error occurred while updating user details for : " + correlationId + "in " +
-                            "BackChannel Scenario.",
-                    e);
-        } catch (NamingException e) {
-            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
-        } finally {
-            closeAllConnections(preparedStatement, connection);
-        }
-    }
-
-    /**
      * Get user details in Back Channeling Scenario using sessionID
      *
      * @param sessionId Id of the session
@@ -275,15 +240,12 @@ public class DataBaseConnectUtils {
                 backChannelRequestDetails.setSessionId(resultSet.getString("session_id"));
                 backChannelRequestDetails.setNotificationUrl(resultSet.getString("notification_url"));
                 backChannelRequestDetails.setNotificationBearerToken(resultSet.getString("notification_bearer_token"));
-                backChannelRequestDetails.setAccessToken(resultSet.getString("access_token"));
                 backChannelRequestDetails.setAuthCode(resultSet.getString("auth_code"));
                 backChannelRequestDetails.setMsisdn(resultSet.getString("msisdn"));
                 backChannelRequestDetails.setRequestIniticatedTime(resultSet.getString("request_initiated_time"));
-                backChannelRequestDetails.setRefreshToken(resultSet.getString("refresh_token"));
-                backChannelRequestDetails.setScope(resultSet.getString("scope"));
-                backChannelRequestDetails.setIdToken(resultSet.getString("id_token"));
-                backChannelRequestDetails.setTokenType(resultSet.getString("token_type"));
-                backChannelRequestDetails.setExpiresIn(resultSet.getInt("expires_in"));
+                backChannelRequestDetails.setAuthRequestId(resultSet.getString("auth_requested_id"));
+                backChannelRequestDetails.setClientId(resultSet.getString("client_id"));
+                backChannelRequestDetails.setRedirectUrl(resultSet.getString("redirect_url"));
             }
         } catch (SQLException e) {
             handleException(
@@ -297,157 +259,6 @@ public class DataBaseConnectUtils {
         }
 
         return backChannelRequestDetails;
-    }
-
-    /**
-     * Get SP related configurations
-     *
-     * @param correlationId
-     * @return
-     * @throws ConfigurationException
-     * @throws CommonAuthenticatorException
-     */
-    public static BackChannelRequestDetails getRequestDetailsById(String correlationId) throws ConfigurationException,
-            CommonAuthenticatorException {
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        BackChannelRequestDetails backchannelRequestDetails = null;
-        ResultSet resultSet = null;
-
-        String getUserDetailsQuery = "select * FROM backchannel_request_details where correlation_id=?";
-
-        try {
-            connection = getConnectDBConnection();
-
-            if (log.isDebugEnabled()) {
-                log.debug("Executing the query " + getUserDetailsQuery);
-            }
-
-            preparedStatement = connection.prepareStatement(getUserDetailsQuery);
-            preparedStatement.setString(1, correlationId);
-            resultSet = preparedStatement.executeQuery();
-
-            if (resultSet.next()) {
-                backchannelRequestDetails = new BackChannelRequestDetails();
-                backchannelRequestDetails.setSessionId(resultSet.getString("session_id"));
-                backchannelRequestDetails.setAuthCode(resultSet.getString("auth_code"));
-                backchannelRequestDetails.setCorrelationId(resultSet.getString("correlation_id"));
-                backchannelRequestDetails.setMsisdn(resultSet.getString("msisdn"));
-                backchannelRequestDetails.setNotificationBearerToken(resultSet.getString("notification_bearer_token"));
-                backchannelRequestDetails.setNotificationUrl(resultSet.getString("notification_url"));
-                backchannelRequestDetails.setClientId(resultSet.getString("client_id"));
-            }
-        } catch (SQLException e) {
-            handleException(
-                    "Error occurred while fetching SP related data for the Correlation Id: " + correlationId,
-                    e);
-        } catch (NamingException e) {
-            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
-        } finally {
-            closeAllConnections(preparedStatement, connection, resultSet);
-        }
-
-        return backchannelRequestDetails;
-    }
-
-
-    /**
-     * Get SP related configurations
-     *
-     * @param sessionId
-     * @return
-     * @throws ConfigurationException
-     * @throws CommonAuthenticatorException
-     */
-    public static BackChannelRequestDetails getRequestDetailsBySessionId(String sessionId) throws ConfigurationException,
-            CommonAuthenticatorException {
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        BackChannelRequestDetails backchannelRequestDetails = null;
-        ResultSet resultSet = null;
-
-        String getUserDetailsQuery = "select * FROM backchannel_request_details where session_id=?";
-
-        try {
-            connection = getConnectDBConnection();
-
-            if (log.isDebugEnabled()) {
-                log.debug("Executing the query " + getUserDetailsQuery);
-            }
-
-            preparedStatement = connection.prepareStatement(getUserDetailsQuery);
-            preparedStatement.setString(1, sessionId);
-            resultSet = preparedStatement.executeQuery();
-
-            if (resultSet.next()) {
-                backchannelRequestDetails = new BackChannelRequestDetails();
-                backchannelRequestDetails.setSessionId(resultSet.getString("session_id"));
-                backchannelRequestDetails.setAuthCode(resultSet.getString("auth_code"));
-                backchannelRequestDetails.setCorrelationId(resultSet.getString("correlation_id"));
-                backchannelRequestDetails.setMsisdn(resultSet.getString("msisdn"));
-                backchannelRequestDetails.setNotificationBearerToken(resultSet.getString("notification_bearer_token"));
-                backchannelRequestDetails.setNotificationUrl(resultSet.getString("notification_url"));
-                backchannelRequestDetails.setClientId(resultSet.getString("client_id"));
-            }
-        } catch (SQLException e) {
-            handleException(
-                    "Error occurred while fetching SP related data for the Session Id: " + sessionId,
-                    e);
-        } catch (NamingException e) {
-            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
-        } finally {
-            closeAllConnections(preparedStatement, connection, resultSet);
-        }
-
-        return backchannelRequestDetails;
-    }
-
-
-
-    /**
-     * Update token details in Back Channeling Scenario : update access_token,refresh_token,scope etc
-     *
-     * @param correlationId          unique ID of the user
-     * @param backChannelUserDetails Access Token
-     */
-    public static void updateTokenDetailsInBackChannel(String correlationId, BackChannelRequestDetails
-            backChannelUserDetails) throws
-            ConfigurationException, CommonAuthenticatorException {
-
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        String updateUserDetailsQuery = null;
-
-        updateUserDetailsQuery =
-                "update backchannel_request_details set refresh_token=?,scope=?,id_token=?,token_type=?,expires_in=? " +
-                        "where correlation_id=?;";
-
-        try {
-            connection = getConnectDBConnection();
-
-            if (log.isDebugEnabled()) {
-                log.debug("Executing the query " + updateUserDetailsQuery);
-            }
-
-            preparedStatement = connection.prepareStatement(updateUserDetailsQuery);
-            preparedStatement.setString(1, backChannelUserDetails.getRefreshToken());
-            preparedStatement.setString(2, backChannelUserDetails.getScope());
-            preparedStatement.setString(3, backChannelUserDetails.getIdToken());
-            preparedStatement.setString(4, backChannelUserDetails.getTokenType());
-            preparedStatement.setInt(5, backChannelUserDetails.getExpiresIn());
-            preparedStatement.setString(6, correlationId);
-            preparedStatement.executeUpdate();
-
-        } catch (SQLException e) {
-            handleException(
-                    "Error occurred while updating token details for : " + correlationId + "in " +
-                            "BackChannel Scenario.",
-                    e);
-        } catch (NamingException e) {
-            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
-        } finally {
-            closeAllConnections(preparedStatement, connection);
-        }
     }
 
     private static void closeAllConnections(PreparedStatement preparedStatement,
