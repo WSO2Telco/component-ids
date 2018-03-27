@@ -158,6 +158,7 @@ public class ServerInitiatedServiceEndpoints {
         }
 
         JSONObject payloadObj = new JSONObject(payload.toJSONObject());
+        String authRequestId = payloadObj.get(AuthProxyConstants.AUTH_REQ_ID).toString();
         String loginHint = payloadObj.get(AuthProxyConstants.LOGIN_HINT).toString();
         String scopeName = payloadObj.get(AuthProxyConstants.SCOPE).toString();
         String acrValue = payloadObj.get(AuthProxyConstants.ACR_VALUE).toString();
@@ -201,6 +202,7 @@ public class ServerInitiatedServiceEndpoints {
             //todo : if there a correlationId in the request set it instead of creating new one.
             String correlationId = UUID.randomUUID().toString();
 
+            backChannelRequestDetails.setAuthRequestId(authRequestId);
             backChannelRequestDetails.setCorrelationId(correlationId);
             backChannelRequestDetails.setMsisdn(loginHint);
             backChannelRequestDetails.setNotificationBearerToken(clientNotificationToken);

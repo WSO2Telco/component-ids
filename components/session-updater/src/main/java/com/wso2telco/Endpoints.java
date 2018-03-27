@@ -198,9 +198,9 @@ public class Endpoints {
         String spBearerToken = "";
         String responseString;
         BackChannelTokenResponse backChannelTokenResponse = new BackChannelTokenResponse();
-        String status = null;
+        String status;
         String ussdSessionID = null;
-        BackChannelRequestDetails backChannelUserDetails = null;
+        BackChannelRequestDetails backChannelRequestDetails = null;
 
         AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
         setStateFromAuthenticationContext(authenticationContext);
@@ -212,7 +212,7 @@ public class Endpoints {
         }
 
         if (sessionID != null) {
-            backChannelUserDetails = DataBaseConnectUtils.getBackChannelUserDetails(sessionID);
+            backChannelRequestDetails = DataBaseConnectUtils.getBackChannelUserDetails(sessionID);
         }
 
         if (jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID") && !jsonObj.getJSONObject
@@ -244,25 +244,47 @@ public class Endpoints {
                         DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_APPROVED, "USSD login push approved");
             }
 
-            if (backChannelUserDetails != null) {
-                //todo:how to get values for auth_req_id
-                backChannelTokenResponse.setAccessToken(backChannelUserDetails.getAccessToken());
-                backChannelTokenResponse.setTokenType(backChannelUserDetails.getTokenType());
-                backChannelTokenResponse.setIdToken(backChannelUserDetails.getIdToken());
-                backChannelTokenResponse.setExpiresIn(backChannelUserDetails.getExpiresIn());
-                backChannelTokenResponse.setRefreshToken(backChannelUserDetails.getRefreshToken());
-                backChannelTokenResponse.setCorrelationId(backChannelUserDetails.getCorrelationId());
+            if (backChannelRequestDetails != null) {
 
+                try {
+                    String clientSecret = DbUtil.getClientSecret(backChannelRequestDetails.getClientId());
 
+                    List<NameValuePair> tokenRelatedNameValues = new ArrayList<NameValuePair>();
+                    tokenRelatedNameValues.add(new BasicNameValuePair("grant_type", "authorization_code"));
+                    tokenRelatedNameValues.add(new BasicNameValuePair("code", backChannelRequestDetails.getAuthCode()));
+                    tokenRelatedNameValues.add(new BasicNameValuePair("redirect_uri", backChannelRequestDetails
+                            .getRedirectUrl()));
+
+                    backChannelTokenResponse = getAccessTokenDetails(backChannelRequestDetails.getCorrelationId(),
+                            tokenRelatedNameValues, backChannelRequestDetails.getClientId(), clientSecret);
+                    backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                    backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
+
+                } catch (ConfigurationException | AuthenticatorException | CommonAuthenticatorException e) {
+                    backChannelTokenResponse = new BackChannelTokenResponse();
+                    log.error("Error while generating token for Session Id:" + sessionID);
+                    backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                    backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
+                    backChannelTokenResponse.setError("Internal Server Error");
+                    backChannelTokenResponse.setErrorDescription("An error occurred while generating Token Response");
+                    responseString = Response.status(500).entity(new Gson().toJson(new
+                            BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+                    postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
+                }
             }
             responseString = Response.status(Response.Status.OK).entity(new Gson().toJson(new
                     BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
         } else if (validateUserInputs(rejectInputs, message)) {
             status = "Rejected";
-            backChannelTokenResponse.setCorrelationId(backChannelUserDetails.getCorrelationId());
-            backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
-            backChannelTokenResponse.setErrorDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
-            DatabaseUtils.updateStatus(sessionID, status);
+
+            if (backChannelRequestDetails != null) {
+                backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
+                backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+                backChannelTokenResponse.setErrorDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
+                DatabaseUtils.updateStatus(sessionID, status);
+            }
+
             if (authenticationContext != null) {
                 DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
                                 (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
@@ -272,10 +294,15 @@ public class Endpoints {
                     BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
         } else {
             status = "Rejected";
-            backChannelTokenResponse.setCorrelationId(backChannelUserDetails.getCorrelationId());
-            DatabaseUtils.updateStatus(sessionID, status);
-            backChannelTokenResponse.setError(Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
-            backChannelTokenResponse.setErrorDescription(Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
+
+            if (backChannelRequestDetails != null) {
+                backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
+                DatabaseUtils.updateStatus(sessionID, status);
+                backChannelTokenResponse.setError(Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
+                backChannelTokenResponse.setErrorDescription(Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
+            }
+
             if (authenticationContext != null) {
                 DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
                                 (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
@@ -285,28 +312,12 @@ public class Endpoints {
                     BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
         }
 
-
-       /* if (responseCode == Response.Status.BAD_REQUEST.getStatusCode() || responseCode == Response.Status
-                .NOT_ACCEPTABLE.getStatusCode()) {
-            responseString = "{" + "\"requestError\":" + "{"
-                    + "\"serviceException\":" + "{" + "\"messageId\":\"" + "SVC0275" + "\"" + "," + "\"text\":\"" +
-                    "Internal server Error" + "\"" + "}"
-                    + "}}";
-
-        } else {
-            responseString = SendUSSD.getUSSDJsonPayload(msisdn, sessionID, 5, "mtfin", ussdSessionID);
-        }*/
-
-
-        if (backChannelUserDetails != null) {
-            spTokenEndpoint = backChannelUserDetails.getNotificationUrl();
-            spBearerToken = backChannelUserDetails.getNotificationBearerToken();
+        if (backChannelRequestDetails != null) {
+            spTokenEndpoint = backChannelRequestDetails.getNotificationUrl();
+            spBearerToken = backChannelRequestDetails.getNotificationBearerToken();
         }
 
-        log.info("Response String:" + responseString);
-
         postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
-
     }
 
     //todo: move this to a common util for MIG
@@ -324,12 +335,9 @@ public class Endpoints {
 
         postRequest.setEntity(input);
 
-        //todo : how to handle request code,400,200 etc
-
         HttpResponse httpResponse = client.execute(postRequest);
         log.info(httpResponse.getStatusLine().getStatusCode());
     }
-
 
 
     @GET
@@ -342,7 +350,7 @@ public class Endpoints {
         setStateFromAuthenticationContext(authenticationContext);
         String spTokenEndpoint = "";
         String spBearerToken = "";
-        BackChannelTokenResponse backChannelTokenResponse = new BackChannelTokenResponse();
+        BackChannelTokenResponse backChannelTokenResponse = null;
         String status = null;
         BackChannelRequestDetails backChannelRequestDetails;
 
@@ -361,8 +369,10 @@ public class Endpoints {
             try {
                 sessionID = AESencrp.decrypt(sessionID.replaceAll(" ", "+"));
             } catch (Exception e) {
+                backChannelTokenResponse = new BackChannelTokenResponse();
                 log.error("An error occurred while decrypting session ID", e);
                 backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
                 backChannelTokenResponse.setError("Internal Server Error");
                 backChannelTokenResponse.setErrorDescription("An error occurred while decrypting session ID");
                 responseString = Response.status(500).entity(new Gson().toJson(new
@@ -381,8 +391,10 @@ public class Endpoints {
                     log.debug("There is no context identifier corresponding to the hash id: " + sessionID);
                 }
             } catch (AuthenticatorException | SQLException e) {
+                backChannelTokenResponse = new BackChannelTokenResponse();
                 log.error("An error occurred while retriving context identifier", e);
                 backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
                 backChannelTokenResponse.setError("Internal Server Error");
                 backChannelTokenResponse.setErrorDescription("An error occurred while retriving context identifier");
                 responseString = Response.status(500).entity(new Gson().toJson(new
@@ -401,31 +413,31 @@ public class Endpoints {
             status = "APPROVED";
 
             if (backChannelRequestDetails != null) {
-                //todo:how to get values for auth_req_id
-                backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
                 try {
                     String clientSecret = DbUtil.getClientSecret(backChannelRequestDetails.getClientId());
 
                     List<NameValuePair> tokenRelatedNameValues = new ArrayList<NameValuePair>();
                     tokenRelatedNameValues.add(new BasicNameValuePair("grant_type", "authorization_code"));
                     tokenRelatedNameValues.add(new BasicNameValuePair("code", backChannelRequestDetails.getAuthCode()));
-                    tokenRelatedNameValues.add(new BasicNameValuePair("redirect_uri", backChannelRequestDetails.getRedirectUrl()));
+                    tokenRelatedNameValues.add(new BasicNameValuePair("redirect_uri", backChannelRequestDetails
+                            .getRedirectUrl()));
 
-                    BackChannelRequestDetails tokenDetails = getAccessTokenDetails(backChannelRequestDetails.getCorrelationId(),tokenRelatedNameValues,backChannelRequestDetails.getClientId(),clientSecret);
-                    backChannelTokenResponse.setAccessToken(tokenDetails.getAccessToken());
-                    backChannelTokenResponse.setTokenType(tokenDetails.getTokenType());
-                    backChannelTokenResponse.setIdToken(tokenDetails.getIdToken());
-                    backChannelTokenResponse.setExpiresIn(tokenDetails.getExpiresIn());
-                    backChannelTokenResponse.setRefreshToken(tokenDetails.getRefreshToken());
+                    backChannelTokenResponse = getAccessTokenDetails(backChannelRequestDetails.getCorrelationId(),
+                            tokenRelatedNameValues, backChannelRequestDetails.getClientId(), clientSecret);
+                    backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                    backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
 
                 } catch (ConfigurationException | AuthenticatorException | CommonAuthenticatorException e) {
+                    backChannelTokenResponse = new BackChannelTokenResponse();
                     log.error("Error while generating token for Session Id:" + sessionID);
-            //todo: set correct error
+                    backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                    backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
+                    backChannelTokenResponse.setError("Internal Server Error");
+                    backChannelTokenResponse.setErrorDescription("An error occurred while generating Token Response");
+                    responseString = Response.status(500).entity(new Gson().toJson(new
+                            BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+                    postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
                 }
-
-
-
-
             }
             responseString = Response.status(Response.Status.OK).entity(new Gson().toJson(new
                     BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
@@ -448,25 +460,15 @@ public class Endpoints {
                     BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
         }
 
-        /*responseString = "{" + "\"status\":\"" + status + "\","
-                + "\"text\":\"" + responseString + "\"" + "}";
-
-        log.info("Sending sms confirmation response" + responseString);
-        if(authenticationContext!=null) {
-            DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants
-            .USER_STATUS_DATA_PUBLISHING_PARAM),
-                    userState, "SMS URL " + status);
-        }
-        return Response.status(200).entity(responseString).build();*/
-
         postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
     }
 
 
-    public BackChannelRequestDetails getAccessTokenDetails(String correlationId, List<NameValuePair> tokenRelatedNameValues, String
-            consumerKey, String consumerSecret) throws CommonAuthenticatorException, ConfigurationException {
-        String tokenCode = null;
-        BackChannelRequestDetails backChannelRequestDetails = new BackChannelRequestDetails();
+    public BackChannelTokenResponse getAccessTokenDetails(String correlationId, List<NameValuePair>
+            tokenRelatedNameValues, String
+                                                                  consumerKey, String consumerSecret) throws
+            CommonAuthenticatorException, ConfigurationException {
+        BackChannelTokenResponse backChannelTokenResponse = null;
         try {
 
             HttpClient httpClient = new DefaultHttpClient();
@@ -490,7 +492,7 @@ public class Endpoints {
             }
 
             log.info("Response to the Access token request:" + totalOutput.toString());
-            backChannelRequestDetails = extractValuesFromTokenResponse(totalOutput.toString(), correlationId);
+            backChannelTokenResponse = extractValuesFromTokenResponse(totalOutput.toString());
 
         } catch (IOException ex) {
             log.error("IO Exception occured while getting Access token for correlation ID:" + correlationId + " " +
@@ -499,23 +501,20 @@ public class Endpoints {
             log.error("JSONException occured while getting Access token for correlation ID:" + correlationId + " " +
                     ex.getMessage(), ex);
         }
-        return backChannelRequestDetails;
+        return backChannelTokenResponse;
     }
 
-    private BackChannelRequestDetails extractValuesFromTokenResponse(String tokenResponse, String correlationId) throws
+    private BackChannelTokenResponse extractValuesFromTokenResponse(String tokenResponse) throws
             CommonAuthenticatorException, ConfigurationException {
         JSONObject jObject = new JSONObject(tokenResponse);
-        BackChannelRequestDetails backChannelUserDetails = new BackChannelRequestDetails();
-        String accessToken = jObject.getString("access_token");
-        backChannelUserDetails.setRefreshToken(jObject.getString("refresh_token"));
-        backChannelUserDetails.setScope(jObject.getString("scope"));
-        backChannelUserDetails.setIdToken(jObject.getString("id_token"));
-        backChannelUserDetails.setTokenType(jObject.getString("token_type"));
-        backChannelUserDetails.setExpiresIn(jObject.getInt("expires_in"));
+        BackChannelTokenResponse backChannelTokenResponse = new BackChannelTokenResponse();
+        backChannelTokenResponse.setAccessToken(jObject.getString("access_token"));
+        backChannelTokenResponse.setRefreshToken(jObject.getString("refresh_token"));
+        backChannelTokenResponse.setIdToken(jObject.getString("id_token"));
+        backChannelTokenResponse.setTokenType(jObject.getString("token_type"));
+        backChannelTokenResponse.setExpiresIn(jObject.getInt("expires_in"));
 
-        DataBaseConnectUtils.updateTokenDetailsInBackChannel(correlationId, backChannelUserDetails);
-
-        return backChannelUserDetails;
+        return backChannelTokenResponse;
     }
 
 
