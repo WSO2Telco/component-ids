@@ -94,7 +94,8 @@ public class DataBaseConnectUtils {
 
         String addUserDetailsQuery =
                 "insert into backchannel_request_details(correlation_id,msisdn,notification_bearer_token," +
-                        "notification_url,request_initiated_time,client_id,redirect_url) values(?,?,?,?,NOW(),?,?);";
+                        "notification_url,request_initiated_time,client_id,redirect_url,auth_requested_id) values(?," +
+                        "?,?,?,NOW(),?,?,?);";
 
         try {
             connection = getConnectDBConnection();
@@ -110,6 +111,7 @@ public class DataBaseConnectUtils {
             preparedStatement.setString(4, backChannelUserDetails.getNotificationUrl());
             preparedStatement.setString(5, backChannelUserDetails.getClientId());
             preparedStatement.setString(6, backChannelUserDetails.getRedirectUrl());
+            preparedStatement.setString(7, backChannelUserDetails.getAuthRequestId());
 
             preparedStatement.execute();
 
@@ -251,7 +253,7 @@ public class DataBaseConnectUtils {
             CommonAuthenticatorException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
-        BackChannelRequestDetails backChannelUserDetails = null;
+        BackChannelRequestDetails backChannelRequestDetails = null;
         ResultSet resultSet = null;
 
         String getUserDetailsQuery =
@@ -269,19 +271,18 @@ public class DataBaseConnectUtils {
             resultSet = preparedStatement.executeQuery();
 
             if (resultSet.next()) {
-                backChannelUserDetails = new BackChannelRequestDetails();
-                backChannelUserDetails.setSessionId(resultSet.getString("session_id"));
-                backChannelUserDetails.setNotificationUrl(resultSet.getString("notification_url"));
-                backChannelUserDetails.setNotificationBearerToken(resultSet.getString("notification_bearer_token"));
-                backChannelUserDetails.setAccessToken(resultSet.getString("access_token"));
-                backChannelUserDetails.setAuthCode(resultSet.getString("auth_code"));
-                backChannelUserDetails.setMsisdn(resultSet.getString("msisdn"));
-                backChannelUserDetails.setRequestIniticatedTime(resultSet.getString("request_initiated_time"));
-                backChannelUserDetails.setRefreshToken(resultSet.getString("refresh_token"));
-                backChannelUserDetails.setScope(resultSet.getString("scope"));
-                backChannelUserDetails.setIdToken(resultSet.getString("id_token"));
-                backChannelUserDetails.setTokenType(resultSet.getString("token_type"));
-                backChannelUserDetails.setExpiresIn(resultSet.getInt("expires_in"));
+
+                backChannelRequestDetails = new BackChannelRequestDetails();
+                backChannelRequestDetails.setCorrelationId(resultSet.getString("correlation_id"));
+                backChannelRequestDetails.setSessionId(resultSet.getString("session_id"));
+                backChannelRequestDetails.setNotificationUrl(resultSet.getString("notification_url"));
+                backChannelRequestDetails.setNotificationBearerToken(resultSet.getString("notification_bearer_token"));
+                backChannelRequestDetails.setAuthCode(resultSet.getString("auth_code"));
+                backChannelRequestDetails.setMsisdn(resultSet.getString("msisdn"));
+                backChannelRequestDetails.setRequestIniticatedTime(resultSet.getString("request_initiated_time"));
+                backChannelRequestDetails.setAuthRequestId(resultSet.getString("auth_requested_id"));
+                backChannelRequestDetails.setClientId(resultSet.getString("client_id"));
+                backChannelRequestDetails.setRedirectUrl(resultSet.getString("redirect_url"));
             }
         } catch (SQLException e) {
             handleException(
@@ -294,7 +295,7 @@ public class DataBaseConnectUtils {
             closeAllConnections(preparedStatement, connection, resultSet);
         }
 
-        return backChannelUserDetails;
+        return backChannelRequestDetails;
     }
 
     /**
