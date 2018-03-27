@@ -276,11 +276,15 @@ public class Endpoints {
                     BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
         } else if (validateUserInputs(rejectInputs, message)) {
             status = "Rejected";
-            backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
-            backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
-            backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
-            backChannelTokenResponse.setErrorDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
-            DatabaseUtils.updateStatus(sessionID, status);
+
+            if (backChannelRequestDetails != null) {
+                backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
+                backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+                backChannelTokenResponse.setErrorDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
+                DatabaseUtils.updateStatus(sessionID, status);
+            }
+
             if (authenticationContext != null) {
                 DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
                                 (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
@@ -290,11 +294,15 @@ public class Endpoints {
                     BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
         } else {
             status = "Rejected";
-            backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
-            backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
-            DatabaseUtils.updateStatus(sessionID, status);
-            backChannelTokenResponse.setError(Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
-            backChannelTokenResponse.setErrorDescription(Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
+
+            if (backChannelRequestDetails != null) {
+                backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
+                DatabaseUtils.updateStatus(sessionID, status);
+                backChannelTokenResponse.setError(Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
+                backChannelTokenResponse.setErrorDescription(Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
+            }
+
             if (authenticationContext != null) {
                 DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
                                 (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
