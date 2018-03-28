@@ -450,8 +450,7 @@ public class DBUtils {
         ResultSet resultSet = null;
         List<String> notificationUrls = null;
 
-        String sql =
-                "SELECT notification_url FROM sp_notification_url WHERE client_id=? ;";
+        String sql = "SELECT notification_url FROM sp_notification_url WHERE client_id=? ;";
 
         if (log.isDebugEnabled()) {
             log.debug("Executing the query to get Notification Urls: " + sql);
@@ -507,36 +506,47 @@ public class DBUtils {
     }
 
     /**
-     * get client Secret value for the given Client ID
+     * Get request encrypted key for a given SP
      *
-     * @param clientId unique client ID
+     * @param clientId unique Client_id
+     * @return shared private key
+     * @throws AuthenticatorException on errors
+     * @throws ConfigurationException on errors
      */
-    public static String getClientSecret(String clientId)
-            throws ConfigurationException, AuthenticatorException {
+    public static String getSpRequestEncryptedKey(String clientId) throws AuthenticatorException,
+            ConfigurationException {
+
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
-        String queryToGetOperatorProperty = "SELECT CONSUMER_SECRET FROM idn_oauth_consumer_apps WHERE CONSUMER_KEY=?;";
-        String clientSecretValue = null;
+        String sharedKey = null;
+
+        String sql = "SELECT config_value FROM sp_configuration WHERE client_id=? and config_key='" +
+                AuthProxyConstants.SP_REQUEST_ENCRYPTED_PUBLIC_KEY + "';";
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query to get Shared request Encrypted Key: " + sql);
+        }
 
         try {
-            connection = getWSO2APIMDBConnection();
-            preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, clientId);
-            ;
             resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                clientSecretValue = resultSet.getString("CONSUMER_SECRET");
+
+            while (resultSet.next()) {
+                sharedKey = resultSet.getString("config_value");
             }
         } catch (SQLException e) {
             handleException(
-                    "Error occurred while getting client Secret for ClientId - " + clientId, e);
+                    "Error occurred while getting Shared Encrypted Key for ClientId - " + clientId,
+                    e);
         } catch (NamingException e) {
             throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
         } finally {
             closeAllConnections(preparedStatement, connection, resultSet);
         }
-        return clientSecretValue;
+        return sharedKey;
     }
 
     private static void closeAllConnections(PreparedStatement preparedStatement,

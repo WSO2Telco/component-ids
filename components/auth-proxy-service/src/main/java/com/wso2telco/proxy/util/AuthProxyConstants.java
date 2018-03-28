@@ -77,4 +77,5 @@ public class AuthProxyConstants {
     public static final String REDIRECT_URL = "redirect_uri";
     public static final String CODE = "code";
     public static final String AUTH_REQ_ID = "auth_req_id";
+    public static final String SP_REQUEST_ENCRYPTED_PUBLIC_KEY = "bcRequestEncryptedPublicKey";
 }
