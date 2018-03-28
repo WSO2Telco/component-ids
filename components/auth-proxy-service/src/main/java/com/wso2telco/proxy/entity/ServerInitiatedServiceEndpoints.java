@@ -40,6 +40,7 @@ import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.oauth.IdentityOAuthAdminException;
 import org.wso2.carbon.identity.oauth.dto.OAuthConsumerAppDTO;
 
+import javax.naming.ConfigurationException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.POST;
@@ -321,9 +322,10 @@ public class ServerInitiatedServiceEndpoints {
         return null;
     }
 
-    private String getSharedKey(String clientId) {
-        //todo retrieve from sp configurations
-        return "a0a2abd8-6162-41c3-83d6-1cf559b46afc";
+    private String getSharedKey(String clientId) throws AuthenticatorException, ConfigurationException {
+
+        String sharedKey = DBUtils.getSpRequestEncryptedKey(clientId);
+        return sharedKey;
     }
 
     private JWSObject processJWE(String message) throws ParseException {
@@ -344,7 +346,12 @@ public class ServerInitiatedServiceEndpoints {
         JWSVerifier verifier = new MACVerifier(sharedKey.getBytes());
         boolean verifiedSignature;
         try {
-            verifiedSignature = jwsObject.verify(verifier);
+            if (sharedKey != null)
+                verifiedSignature = jwsObject.verify(verifier);
+            else {
+                log.error("Shared Key is null: " + jwsObject);
+                return false;
+            }
         } catch (JOSEException e) {
             log.error("Couldn't verify signature: " + jwsObject);
             return false;
