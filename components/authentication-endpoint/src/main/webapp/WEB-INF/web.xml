@@ -362,6 +362,11 @@
     </servlet-mapping>
 
     <servlet-mapping>
+        <servlet-name>user_consent.do</servlet-name>
+        <url-pattern>/user_consent.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
         <servlet-name>passivests_login.do</servlet-name>
         <url-pattern>/passivests_login.do</url-pattern>
     </servlet-mapping>
