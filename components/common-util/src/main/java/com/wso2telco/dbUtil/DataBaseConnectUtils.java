@@ -489,7 +489,7 @@ public class DataBaseConnectUtils {
                 isBackChannelAllowed = resultSet.getBoolean("is_backchannel_allowed");
 
                 if (!isBackChannelAllowed) {
-                    return false;
+                    isBackChannelAllowed = false;
                 }
             }
 
