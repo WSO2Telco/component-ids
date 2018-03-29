@@ -297,7 +297,7 @@ public class DataBaseConnectUtils {
 
         return backChannelRequestDetails;
     }
-
+    
     /**
      * Get SP related configurations
      *
@@ -447,6 +447,62 @@ public class DataBaseConnectUtils {
         } finally {
             closeAllConnections(preparedStatement, connection);
         }
+    }
+
+    /**
+     * Check the scope is backChannel allowed
+     *
+     * @param scope scope value
+     * @return allowed or not allowed
+     * @throws ConfigurationException on errors
+     */
+    public static boolean isBackChannelAllowedScope(String scope) throws
+            ConfigurationException, CommonAuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        boolean isBackChannelAllowed = false;
+
+        String[] scopeValues = scope.split("\\s+|\\+");
+        StringBuilder params = new StringBuilder("?");
+        for (int i = 1; i < scopeValues.length; i++) {
+            params.append(",?");
+        }
+
+        String sql = "SELECT is_backchannel_allowed FROM scope_parameter WHERE scope in (" + params + ") ;";
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query to check the scope is backChannel allowed: " + sql);
+        }
+
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(sql);
+            for (int i = 0; i < scopeValues.length; i++) {
+                preparedStatement.setString(i + 1, scopeValues[i]);
+            }
+
+            resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                isBackChannelAllowed = resultSet.getBoolean("is_backchannel_allowed");
+
+                if (!isBackChannelAllowed) {
+                    return false;
+                }
+            }
+
+        } catch (SQLException e) {
+            handleException(
+                    "Error occurred while checking the scope is back channel allowed - " + scope,
+                    e);
+        } catch (NamingException e) {
+            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+        } finally {
+            closeAllConnections(preparedStatement, connection, resultSet);
+        }
+        return isBackChannelAllowed;
     }
 
     private static void closeAllConnections(PreparedStatement preparedStatement,

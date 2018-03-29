@@ -41,6 +41,9 @@ import org.json.JSONObject;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.oauth.IdentityOAuthAdminException;
 import org.wso2.carbon.identity.oauth.dto.OAuthConsumerAppDTO;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminService;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceStub;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceUserRegistrationException;
 
 import javax.naming.ConfigurationException;
 import javax.servlet.http.HttpServletRequest;
@@ -65,58 +68,58 @@ public class ServerInitiatedServiceEndpoints {
     private static Log log = LogFactory.getLog(ServerInitiatedServiceEndpoints.class);
     String authorizeEndpointUrl = "https://localhost:9443/authproxy/oauth2/authorize";
 
-//    //sample request to create signed  jwe
-//    @POST
-//    @Path("/oauth2/sign")
-//    public void sign(@Context HttpServletRequest httpServletRequest, @Context
-//            HttpServletResponse httpServletResponse, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
-//                     @PathParam("operatorName") String operatorName, String jsonBody) throws Exception {
-//
-//        String sharedKey = "a0a2abd8-6162-41c3-83d6-1cf559b46afc";
-//        String jwe = signJson(jsonBody, sharedKey);
-//        log.info("JWE: " + jwe);
-//    }
-//
-//    private String signJson(String message, String sharedKey) throws JOSEException, ParseException {
-//        Payload payload = new Payload(message);
-//        if (log.isDebugEnabled()) {
-//            log.debug("JWS payload message: " + message);
-//        }
-//
-//        // Create JWS header with HS256 algorithm
-//        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
-//        header.setContentType("text/plain");
-//
-//        if (log.isDebugEnabled()) {
-//            log.debug("JWS header: " + header.toJSONObject());
-//        }
-//
-//        // Create JWS object
-//        JWSObject jwsObject = new JWSObject(header, payload);
-//
-//        if (log.isDebugEnabled()) {
-//            log.debug("HMAC key: " + sharedKey);
-//        }
-//
-//
-//        JWSSigner signer = new MACSigner(sharedKey.getBytes());
-//
-//        try {
-//            jwsObject.sign(signer);
-//        } catch (JOSEException e) {
-//            log.error("Couldn't sign JWS object: " + e.getMessage());
-//            throw e;
-//        }
-//
-//        // Serialise JWS object to compact format
-//        String serializedJWE = jwsObject.serialize();
-//
-//        if (log.isDebugEnabled()) {
-//            log.debug("Serialised JWS object: " + serializedJWE);
-//        }
-//
-//        return serializedJWE;
-//    }
+    //sample request to create signed  jwe
+   /* @POST
+    @Path("/oauth2/sign")
+    public void sign(@Context HttpServletRequest httpServletRequest, @Context
+            HttpServletResponse httpServletResponse, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
+                     @PathParam("operatorName") String operatorName, String jsonBody) throws Exception {
+
+        String sharedKey = "a0a2abd8-6162-41c3-83d6-1cf559b46afc";
+        String jwe = signJson(jsonBody, sharedKey);
+        log.info("JWE: " + jwe);
+    }
+
+    private String signJson(String message, String sharedKey) throws JOSEException, ParseException {
+        Payload payload = new Payload(message);
+        if (log.isDebugEnabled()) {
+            log.debug("JWS payload message: " + message);
+        }
+
+        // Create JWS header with HS256 algorithm
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
+        header.setContentType("text/plain");
+
+        if (log.isDebugEnabled()) {
+            log.debug("JWS header: " + header.toJSONObject());
+        }
+
+        // Create JWS object
+        JWSObject jwsObject = new JWSObject(header, payload);
+
+        if (log.isDebugEnabled()) {
+            log.debug("HMAC key: " + sharedKey);
+        }
+
+
+        JWSSigner signer = new MACSigner(sharedKey.getBytes());
+
+        try {
+            jwsObject.sign(signer);
+        } catch (JOSEException e) {
+            log.error("Couldn't sign JWS object: " + e.getMessage());
+            throw e;
+        }
+
+        // Serialise JWS object to compact format
+        String serializedJWE = jwsObject.serialize();
+
+        if (log.isDebugEnabled()) {
+            log.debug("Serialised JWS object: " + serializedJWE);
+        }
+
+        return serializedJWE;
+    }*/
 
 
     //String url = "http://localhost:9763/oauth2/authorize?login_hint=911111111111&scope=openid&acr_values=500
@@ -161,6 +164,9 @@ public class ServerInitiatedServiceEndpoints {
         }
 
         JSONObject payloadObj = new JSONObject(payload.toJSONObject());
+        String iss = payloadObj.get(AuthProxyConstants.ISS).toString();
+        String aud = payloadObj.get(AuthProxyConstants.AUD).toString();
+        String version = payloadObj.get(AuthProxyConstants.VERSION).toString();
         String authRequestId = payloadObj.get(AuthProxyConstants.AUTH_REQ_ID).toString();
         String loginHint = payloadObj.get(AuthProxyConstants.LOGIN_HINT).toString();
         String scopeName = payloadObj.get(AuthProxyConstants.SCOPE).toString();
@@ -179,7 +185,23 @@ public class ServerInitiatedServiceEndpoints {
                     .toString()).build();
         }
 
-        if (StringUtils.isEmpty(notificationUrl) || StringUtils.isEmpty(scopeName) || StringUtils.isEmpty
+        if (!responseType.equalsIgnoreCase("mc_si_async_code")) {
+            log.error("Response type should be mc_si_async_code");
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST
+                    .toString()).build();
+        } else if (!iss.equals(clientId)) {
+            log.error("Issuer ID should be equals to the client ID");
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST
+                    .toString()).build();
+        } else if (!isUserExists(loginHint)) {
+            log.error("User is not registered in IDGW");
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST
+                    .toString()).build();
+        } else if (!DataBaseConnectUtils.isBackChannelAllowedScope(scopeName)) {
+            log.error("Requested scope should be Back Channel support");
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST
+                    .toString()).build();
+        } else if (StringUtils.isEmpty(notificationUrl) || StringUtils.isEmpty(scopeName) || StringUtils.isEmpty
                 (responseType)) {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST
                     .toString()).build();
@@ -248,6 +270,7 @@ public class ServerInitiatedServiceEndpoints {
                         .UNAUTHORIZED.toString())
                         .build();
             } else {
+                //proper response load
                 DataBaseConnectUtils.updateCodeInBackChannel(correlationId, code);
                 return Response.status(Response.Status.OK.getStatusCode()).entity(Response.Status.OK.toString())
                         .build();
@@ -255,6 +278,12 @@ public class ServerInitiatedServiceEndpoints {
         }
     }
 
+    private boolean isUserExists(String userName) throws RemoteException,
+            UserRegistrationAdminServiceUserRegistrationException {
+        UserRegistrationAdminService userRegistrationAdminService = new UserRegistrationAdminServiceStub();
+        boolean isUserExists = userRegistrationAdminService.isUserExist(userName);
+        return isUserExists;
+    }
 
     private boolean isValidNotificationUrl(String clientId, String notificationUrl) {
         List<String> allowedURLs;
