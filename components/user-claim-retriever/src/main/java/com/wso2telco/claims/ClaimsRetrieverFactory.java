@@ -16,7 +16,7 @@
 package com.wso2telco.claims;
 
 
-import com.wso2telco.util.ClaimsRetrieverType;
+import com.wso2telco.ids.utils.ClaimsRetrieverType;
 
 public class ClaimsRetrieverFactory {
 

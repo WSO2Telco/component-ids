@@ -24,7 +24,7 @@ import org.wso2.carbon.identity.oauth.user.UserInfoClaimRetriever;
 import org.wso2.carbon.identity.oauth.user.UserInfoRequestValidator;
 import org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder;
 
-import com.wso2telco.util.EndpointUtil;
+import com.wso2telco.ids.utils.EndpointUtil;
 
 
 // TODO: Auto-generated Javadoc
