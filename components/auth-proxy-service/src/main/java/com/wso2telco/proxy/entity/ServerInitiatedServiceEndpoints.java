@@ -279,24 +279,25 @@ public class ServerInitiatedServiceEndpoints {
     private boolean isUserExists(String userName) throws RemoteException,
             UserRegistrationAdminServiceUserRegistrationException {
         UserRegistrationAdminService userRegistrationAdminService = new UserRegistrationAdminServiceStub();
-        boolean isUserExists = userRegistrationAdminService.isUserExist(userName);
-        return isUserExists;
+        return userRegistrationAdminService.isUserExist(userName);
+
     }
 
     private boolean isValidNotificationUrl(String clientId, String notificationUrl) {
-        List<String> allowedURLs;
+        List<String> allowedURLs = null;
+        boolean validity = true;
         try {
             allowedURLs = DBUtils.getNotificationUrls(clientId);
         } catch (Exception ex) {
             log.error("Error while fetching Notification URL list. ", ex);
-            return false;
+            validity = false;
         }
 
         if (!allowedURLs.contains(notificationUrl)) {
             log.error("Invalid Notification URL : " + notificationUrl);
-            return false;
+            validity = false;
         }
-        return true;
+        return validity;
     }
 
     private String getPersistedCallbackUrl(String clientId) throws RemoteException,
