@@ -139,7 +139,6 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         String attrShareScopeType = request.getParameter(Constants.ATTRSHARE_SCOPE_TYPE);
         boolean isShowTnc = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
         String redirectUrl =  request.getParameter(Constants.REDIRECT_URL);
-        String userId = request.getParameter(Constants.USER_ID);
         boolean isBackChannelAllowed = false;
 
 
@@ -175,8 +174,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.AUTHENTICATED_USER, false);
         context.setProperty(Constants.TRUSTED_STATUS, trustedStatus);
         context.setProperty(Constants.ATTRSHARE_SCOPE_TYPE, attrShareScopeType);
-        context.setProperty(Constants.USER_ID,userId);
-        
+
         if (null != request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED) && (isBackChannelAllowed = Boolean
                 .parseBoolean(request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED)))) {
 

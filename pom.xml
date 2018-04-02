@@ -134,6 +134,7 @@
         <module>components/user-claim-retriever</module>
         <module>components/authenticate-selector</module>
         <module>components/openid-token-builder</module>
+        <module>components/common-util</module>
         <module>components/gsma-authenticators</module>
         <module>components/auth-proxy-service</module>
         <module>components/sign</module>

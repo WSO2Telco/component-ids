@@ -409,7 +409,7 @@ public class DataBaseConnectUtils {
      * @param correlationId          unique ID of the user
      * @param backChannelUserDetails Access Token
      */
-    public static void updateTokenDetailsInBackChannel(String correlationId, BackChannelRequestDetails
+    /*public static void updateTokenDetailsInBackChannel(String correlationId, BackChannelRequestDetails
             backChannelUserDetails) throws
             ConfigurationException, CommonAuthenticatorException {
 
@@ -447,7 +447,7 @@ public class DataBaseConnectUtils {
         } finally {
             closeAllConnections(preparedStatement, connection);
         }
-    }
+    }*/
 
     /**
      * Check the scope is backChannel allowed
