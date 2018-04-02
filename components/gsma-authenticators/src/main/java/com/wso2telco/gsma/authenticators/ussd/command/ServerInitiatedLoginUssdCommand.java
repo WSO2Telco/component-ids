@@ -44,6 +44,12 @@ public class ServerInitiatedLoginUssdCommand extends UssdCommand {
      */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
 
+    private static MobileConnectConfig mobileConnectConfigs = null;
+
+    static {
+        mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
+    }
+
 
     @Override
     protected String getUrl(String msisdn) {
@@ -67,6 +73,7 @@ public class ServerInitiatedLoginUssdCommand extends UssdCommand {
                                          String client_id) {
         MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig()
                 .getUssdConfig();
+        String ussdNotifyUrl = mobileConnectConfigs.getBackChannelConfig().getUssdNotifyUrl();
 
         USSDRequest ussdRequest = new USSDRequest();
 
@@ -89,7 +96,7 @@ public class ServerInitiatedLoginUssdCommand extends UssdCommand {
 
         ResponseRequest responseRequest = new ResponseRequest();
         //responseRequest.setNotifyURL(configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig().getLoginNotifyUrl());
-        responseRequest.setNotifyURL("http://localhost:9763/sessionupdater/tnspoints/endpoint/serverinitiated/login/ussd"); //todo: get this from config
+        responseRequest.setNotifyURL(ussdNotifyUrl); //todo: get this from config
         responseRequest.setCallbackData("");
 
         outboundUSSDMessageRequest.setResponseRequest(responseRequest);
