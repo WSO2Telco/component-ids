@@ -94,8 +94,8 @@ public class DataBaseConnectUtils {
 
         String addUserDetailsQuery =
                 "insert into backchannel_request_details(correlation_id,msisdn,notification_bearer_token," +
-                        "notification_url,request_initiated_time,client_id,redirect_url,auth_requested_id) values(?," +
-                        "?,?,?,NOW(),?,?,?);";
+                        "notification_url,request_initiated_time,client_id,redirect_url) values(?," +
+                        "?,?,?,NOW(),?,?);";
 
         try {
             connection = getConnectDBConnection();
@@ -111,7 +111,6 @@ public class DataBaseConnectUtils {
             preparedStatement.setString(4, backChannelUserDetails.getNotificationUrl());
             preparedStatement.setString(5, backChannelUserDetails.getClientId());
             preparedStatement.setString(6, backChannelUserDetails.getRedirectUrl());
-            preparedStatement.setString(7, backChannelUserDetails.getAuthRequestId());
 
             preparedStatement.execute();
 
@@ -280,7 +279,6 @@ public class DataBaseConnectUtils {
                 backChannelRequestDetails.setAuthCode(resultSet.getString("auth_code"));
                 backChannelRequestDetails.setMsisdn(resultSet.getString("msisdn"));
                 backChannelRequestDetails.setRequestIniticatedTime(resultSet.getString("request_initiated_time"));
-                backChannelRequestDetails.setAuthRequestId(resultSet.getString("auth_requested_id"));
                 backChannelRequestDetails.setClientId(resultSet.getString("client_id"));
                 backChannelRequestDetails.setRedirectUrl(resultSet.getString("redirect_url"));
             }
