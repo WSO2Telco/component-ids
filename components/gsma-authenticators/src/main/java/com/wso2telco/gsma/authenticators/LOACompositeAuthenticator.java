@@ -129,6 +129,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         String telcoScope = request.getParameter(Constants.TELCO_SCOPE);
         String attrShareScopeType = request.getParameter(Constants.ATTRSHARE_SCOPE_TYPE);
         boolean isShowTnc = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
+        Boolean isShowConsent = Boolean.valueOf(request.getParameter(Constants.IS_SHOW_CONSENT));
 
         if (log.isDebugEnabled()) {
             log.debug("mobileNetworkOperator : " + mobileNetworkOperator);
@@ -165,7 +166,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.TRUSTED_STATUS, trustedStatus);
         context.setProperty(Constants.ATTRSHARE_SCOPE_TYPE, attrShareScopeType);
 
-        context.setProperty(Constants.IS_SHOW_CONSENT, isSHowConsent);
+        context.setProperty(Constants.IS_SHOW_CONSENT, isShowConsent);
         context.setProperty(Constants.CLIENT_ID, serviceProvider);
         context.setProperty(Constants.TELCO_SCOPE, telcoscope);
         if(scope_types!=null && !scope_types.isEmpty()) {

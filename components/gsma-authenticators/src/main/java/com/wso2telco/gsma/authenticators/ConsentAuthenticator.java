@@ -237,7 +237,10 @@ public class ConsentAuthenticator extends AbstractApplicationAuthenticator
                     context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
                     if(approval.equalsIgnoreCase(Constants.STATUS_APPROVEALL)||approval.equalsIgnoreCase(Constants.STATUS_APPROVE)) {
                         if (isRegistering) {
-                            new UserProfileManager().createUserProfileLoa2(msisdn, operator, Constants.SCOPE_MNV);
+							boolean isAttributeScope = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+							String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
+							String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
+                            new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope, spType, attrShareType);;
                             MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
                             if (!smsConfig.getWelcomeMessageDisabled()) {
                                 UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
