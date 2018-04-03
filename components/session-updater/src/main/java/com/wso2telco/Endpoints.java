@@ -97,7 +97,7 @@ import java.util.logging.Logger;
 @Path("/endpoint")
 public class Endpoints {
 
-    String tokenCodeEndpoint = "https://localhost:9443/oauth2/token";
+    private static MobileConnectConfig mobileConnectConfigs = null;
 
     private static boolean temp = false;
 
@@ -153,7 +153,10 @@ public class Endpoints {
      */
     public Endpoints() {
 
+    }
 
+    static {
+        mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
     }
 
     @POST
@@ -345,7 +348,6 @@ public class Endpoints {
     }
 
 
-
     @GET
     @Path("/serverinitiated/sms/response/{id}")
     @Produces("text/plain")
@@ -446,8 +448,6 @@ public class Endpoints {
                 }
 
 
-
-
             }
             responseString = Response.status(Response.Status.OK).entity(new Gson().toJson(new
                     BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
@@ -494,7 +494,7 @@ public class Endpoints {
             CommonAuthenticatorException, ConfigurationException {
         BackChannelTokenResponse backChannelTokenResponse = null;
         try {
-
+            String tokenCodeEndpoint = mobileConnectConfigs.getBackChannelConfig().getTokenEndpoint();
             HttpClient httpClient = new DefaultHttpClient();
             HttpPost postRequest = new HttpPost(tokenCodeEndpoint);
             String encoding = org.opensaml.xml.util.Base64.encodeBytes((consumerKey + ":" + consumerSecret).getBytes());

@@ -366,9 +366,9 @@ public class Endpoints {
             httpServletResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid Request");
         } else {
             log.info(String.format("Redirecting to : %s", redirectURL));
-            httpServletResponse.sendRedirect(redirectURL);
+            String encodedUrl = URLEncoder.encode(redirectURL, "UTF-8");
+            httpServletResponse.sendRedirect(encodedUrl);
         }
-
 
     }
 
