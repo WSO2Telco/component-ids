@@ -101,6 +101,8 @@ public class CustomAuthenticatorServiceComponent {
                 new FederatedAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new VoiceCallAuthenticator(), null);
+        ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
+                new ConsentAuthenticator(), null);
 
         if (log.isDebugEnabled()) {
             log.debug("Custom Application Authenticator bundle is activated");
