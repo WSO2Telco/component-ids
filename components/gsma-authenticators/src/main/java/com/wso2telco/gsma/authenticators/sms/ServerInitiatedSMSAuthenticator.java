@@ -85,6 +85,12 @@ public class ServerInitiatedSMSAuthenticator extends AbstractApplicationAuthenti
 
     private static final String AUTH_FAILED_DETAILED = "SMS Authentication failed while trying to authenticate";
 
+    private static MobileConnectConfig mobileConnectConfigs = null;
+
+    static {
+        mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
+    }
+
     /**
      * The Enum UserResponse.
      */
@@ -292,8 +298,7 @@ public class ServerInitiatedSMSAuthenticator extends AbstractApplicationAuthenti
 
             String encryptedContextIdentifier = AESencrp.encrypt(context.getContextIdentifier());
             //String messageURL = connectConfig.getSmsConfig().getAuthUrl() + Constants.AUTH_URL_ID_PREFIX;
-            String messageURL =  "" +
-                    "/sessionupdater/tnspoints/endpoint/serverinitiated/sms/response"+ Constants.AUTH_URL_ID_PREFIX; //todo: add to config
+            String messageURL =  mobileConnectConfigs.getBackChannelConfig().getSmsCallbackUrl() + Constants.AUTH_URL_ID_PREFIX; //todo: add to config
 
 
             Map<String, String> paramMap = Util.createQueryParamMap(queryParams);

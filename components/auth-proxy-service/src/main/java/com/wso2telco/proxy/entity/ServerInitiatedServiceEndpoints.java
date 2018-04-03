@@ -22,6 +22,9 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.wso2telco.adminServiceUtil.client.OAuthAdminServiceClient;
 import com.wso2telco.model.BackChannelOauthResponse;
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.model.BackChannelRequestDetails;
 import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.util.AuthProxyConstants;
@@ -69,7 +72,14 @@ import java.util.UUID;
 @Path("/mc")
 public class ServerInitiatedServiceEndpoints {
     private static Log log = LogFactory.getLog(ServerInitiatedServiceEndpoints.class);
-    String authorizeEndpointUrl = "https://localhost:9443/authproxy/oauth2/authorize";
+
+    private static MobileConnectConfig mobileConnectConfigs = null;
+
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
+    static {
+        mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
+    }
 
     @POST
     @Path("/si-authorize/{operatorName}")
@@ -94,6 +104,7 @@ public class ServerInitiatedServiceEndpoints {
         String clientNotificationToken;
         String redirectUrl;
         BackChannelOauthResponse backChannelOauthResponse = new BackChannelOauthResponse();
+        String authorizeEndpointUrl = mobileConnectConfigs.getBackChannelConfig().getAuthorizeEndpoint();
 
         try {
             jwsObject = processJWE(jsonBody);
