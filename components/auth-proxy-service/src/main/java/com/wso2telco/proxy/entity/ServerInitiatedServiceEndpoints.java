@@ -16,10 +16,12 @@
 
 package com.wso2telco.proxy.entity;
 
+import com.google.gson.Gson;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.wso2telco.adminServiceUtil.client.OAuthAdminServiceClient;
+import com.wso2telco.model.BackChannelOauthResponse;
 import com.wso2telco.model.BackChannelRequestDetails;
 import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.util.AuthProxyConstants;
@@ -37,6 +39,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.oauth.IdentityOAuthAdminException;
@@ -147,134 +150,182 @@ public class ServerInitiatedServiceEndpoints {
         operatorName = operatorName.toLowerCase();
         JWSObject jwsObject;
         boolean isBackChannelAllowed = true;
+        String iss = null;
+        String aud = null;
+        String version = null;
+        String correlationId;
+        String loginHint;
+        String scopeName;
+        String acrValue;
+        String responseType;
+        String notificationUrl;
+        String state;
+        String nonce;
+        String clientId;
+        String clientNotificationToken;
+        String redirectUrl;
+        BackChannelOauthResponse backChannelOauthResponse = new BackChannelOauthResponse();
 
         try {
             jwsObject = processJWE(jsonBody);
-        } catch (ParseException e) {
-            throw new AuthenticatorException(e.getMessage());
-        }
 
-        if (jwsObject == null) {
-            throw new AuthenticatorException("Payload is null or invalid");
-        }
-
-        Payload payload = jwsObject.getPayload();
-        if (log.isDebugEnabled()) {
-            log.debug("Recovered payload message: " + payload);
-        }
-
-        JSONObject payloadObj = new JSONObject(payload.toJSONObject());
-        String iss = payloadObj.get(AuthProxyConstants.ISS).toString();
-        String aud = payloadObj.get(AuthProxyConstants.AUD).toString();
-        String version = payloadObj.get(AuthProxyConstants.VERSION).toString();
-        String authRequestId = payloadObj.get(AuthProxyConstants.AUTH_REQ_ID).toString();
-        String loginHint = payloadObj.get(AuthProxyConstants.LOGIN_HINT).toString();
-        String scopeName = payloadObj.get(AuthProxyConstants.SCOPE).toString();
-        String acrValue = payloadObj.get(AuthProxyConstants.ACR_VALUE).toString();
-        String responseType = payloadObj.get(AuthProxyConstants.RESPONSE_TYPE).toString();
-        String notificationUrl = payloadObj.get(AuthProxyConstants.NOTIFICATION_URI).toString();
-        String state = payloadObj.get(AuthProxyConstants.STATE).toString();
-        String nonce = payloadObj.get(AuthProxyConstants.NONCE).toString();
-        String clientId = payloadObj.get(AuthProxyConstants.CLIENT_ID).toString();
-        String clientNotificationToken = payloadObj.get(AuthProxyConstants.CLIENT_NOTIFICATION_TOKEN).toString();
-
-        String sharedKey = getSharedKey(clientId);
-        if (!isVerifiedSignature(jwsObject, sharedKey)) {
-            log.error("Couldn't verify signature: " + jwsObject);
-            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST
-                    .toString()).build();
-        }
-
-        if (!responseType.equalsIgnoreCase("mc_si_async_code")) {
-            log.error("Response type should be mc_si_async_code");
-            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST
-                    .toString()).build();
-        } else if (!iss.equals(clientId)) {
-            log.error("Issuer ID should be equals to the client ID");
-            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST
-                    .toString()).build();
-        } else if (!isUserExists(loginHint)) {
-            log.error("User is not registered in IDGW");
-            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST
-                    .toString()).build();
-        } else if (!DataBaseConnectUtils.isBackChannelAllowedScope(scopeName)) {
-            log.error("Requested scope should be Back Channel support");
-            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST
-                    .toString()).build();
-        } else if (StringUtils.isEmpty(notificationUrl) || StringUtils.isEmpty(scopeName) || StringUtils.isEmpty
-                (responseType)) {
-            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(Response.Status.BAD_REQUEST
-                    .toString()).build();
-        } else {
-
-            String redirectUrl;
-            try {
-                redirectUrl = getPersistedCallbackUrl(clientId);
-                if (StringUtils.isEmpty(redirectUrl)) {
-                    throw new AuthenticatorException("Callback Url is empty for Client Id: " + clientId);
-                }
-            } catch (RemoteException | LoginAuthenticationExceptionException | IdentityOAuthAdminException |
-                    AuthenticatorException e) {
-                log.error("Error while retrieving Callback Url via Admin calls. ", e);
-                return Response.status(Response.Status.UNAUTHORIZED.getStatusCode()).entity(Response.Status
-                        .UNAUTHORIZED.toString())
-                        .build();
+            if (jwsObject == null) {
+                backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+                backChannelOauthResponse.setErrorDescription("Payload is null or invalid");
+                return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
+                        (backChannelOauthResponse)).build();
             }
 
-            StringBuilder codeUrlBuilder = new StringBuilder();
-            BackChannelRequestDetails backChannelRequestDetails = new BackChannelRequestDetails();
-
-            //todo : if there a correlationId in the request set it instead of creating new one.
-            String correlationId = UUID.randomUUID().toString();
-
-            backChannelRequestDetails.setAuthRequestId(authRequestId);
-            backChannelRequestDetails.setCorrelationId(correlationId);
-            backChannelRequestDetails.setMsisdn(loginHint);
-            backChannelRequestDetails.setNotificationBearerToken(clientNotificationToken);
-            backChannelRequestDetails.setNotificationUrl(notificationUrl);
-            backChannelRequestDetails.setClientId(clientId);
-            backChannelRequestDetails.setRedirectUrl(redirectUrl);
-
-            DataBaseConnectUtils.addBackChannelRequestDetails(backChannelRequestDetails);
-
-            //Currenty it supports only code grant type
-            responseType = AuthProxyConstants.CODE;
-
-            if (!isValidNotificationUrl(clientId, notificationUrl)) {
-                return Response.status(Response.Status.UNAUTHORIZED.getStatusCode()).entity(Response.Status
-                        .UNAUTHORIZED.toString())
-                        .build();
+            Payload payload = jwsObject.getPayload();
+            if (log.isDebugEnabled()) {
+                log.debug("Recovered payload message: " + payload);
             }
 
-            codeUrlBuilder.append(authorizeEndpointUrl)
-                    .append("/operator/").append(operatorName)
-                    .append("?response_type=").append(responseType)
-                    .append("&scope=").append(scopeName)
-                    .append("&redirect_uri=").append(redirectUrl)
-                    .append("&nonce=").append(nonce)
-                    .append("&state=").append(state)
-                    .append("&client_id=").append(clientId)
-                    .append("&acr_values=").append(acrValue)
-                    .append("&operator=").append(operatorName)
-                    .append("&login_hint=").append(loginHint)
-                    .append("&correlation_id=").append(correlationId)
-                    .append("&is_backChannel_allowed=").append(isBackChannelAllowed);
+            JSONObject payloadObj = new JSONObject(payload.toJSONObject());
+            iss = payloadObj.get(AuthProxyConstants.ISS).toString();
+            aud = payloadObj.get(AuthProxyConstants.AUD).toString();
+            version = payloadObj.get(AuthProxyConstants.VERSION).toString();
+            loginHint = payloadObj.get(AuthProxyConstants.LOGIN_HINT).toString();
+            scopeName = payloadObj.get(AuthProxyConstants.SCOPE).toString();
+            acrValue = payloadObj.get(AuthProxyConstants.ACR_VALUE).toString();
+            responseType = payloadObj.get(AuthProxyConstants.RESPONSE_TYPE).toString();
+            notificationUrl = payloadObj.get(AuthProxyConstants.NOTIFICATION_URI).toString();
+            state = payloadObj.get(AuthProxyConstants.STATE).toString();
+            nonce = payloadObj.get(AuthProxyConstants.NONCE).toString();
+            clientId = payloadObj.get(AuthProxyConstants.CLIENT_ID).toString();
+            clientNotificationToken = payloadObj.get(AuthProxyConstants.CLIENT_NOTIFICATION_TOKEN).toString();
 
-            // Then there should be a update done in USSD/SMS etc authenticated when the SMS is initiated
-
-            String code = getAuthCode(codeUrlBuilder.toString());
-            log.info("code returned: " + code);
-
-            if (code == null) {
-                return Response.status(Response.Status.UNAUTHORIZED.getStatusCode()).entity(Response.Status
-                        .UNAUTHORIZED.toString())
-                        .build();
+            if (!payloadObj.has(AuthProxyConstants.CORRELATION_ID)) {
+                correlationId = UUID.randomUUID().toString();
             } else {
-                //proper response load
-                DataBaseConnectUtils.updateCodeInBackChannel(correlationId, code);
-                return Response.status(Response.Status.OK.getStatusCode()).entity(Response.Status.OK.toString())
-                        .build();
+                correlationId = payloadObj.get(AuthProxyConstants.CORRELATION_ID).toString();
             }
+
+            String sharedKey = getSharedKey(clientId);
+            if (!isVerifiedSignature(jwsObject, sharedKey)) {
+                log.error("Couldn't verify signature: " + jwsObject);
+                backChannelOauthResponse.setCorrelationId(correlationId);
+                backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+                backChannelOauthResponse.setErrorDescription("Signed Object is not verified");
+                return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
+                        (backChannelOauthResponse)).build();
+            } else if (!responseType.equalsIgnoreCase("mc_si_async_code")) {
+                log.error("Response type should be mc_si_async_code");
+                backChannelOauthResponse.setCorrelationId(correlationId);
+                backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+                backChannelOauthResponse.setErrorDescription("Invalid Request");
+                return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
+                        (backChannelOauthResponse)).build();
+            } else if (!iss.equals(clientId)) {
+                log.error("Issuer ID should be equals to the client ID");
+                backChannelOauthResponse.setCorrelationId(correlationId);
+                backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+                backChannelOauthResponse.setErrorDescription("Invalid Request");
+                return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
+                        (backChannelOauthResponse)).build();
+            } else if (!isUserExists(loginHint)) {
+                log.error("User is not registered in IDGW");
+                backChannelOauthResponse.setCorrelationId(correlationId);
+                backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+                backChannelOauthResponse.setErrorDescription("User is not a registered user");
+                return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
+                        (backChannelOauthResponse)).build();
+            } else if (!DataBaseConnectUtils.isBackChannelAllowedScope(scopeName)) {
+                log.error("Requested scope should be Back Channel support");
+                backChannelOauthResponse.setCorrelationId(correlationId);
+                backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+                backChannelOauthResponse.setErrorDescription("Requested scope/s is/are invalid");
+                return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
+                        (backChannelOauthResponse)).build();
+            } else if (StringUtils.isEmpty(notificationUrl) || StringUtils.isEmpty(scopeName) || StringUtils.isEmpty
+                    (responseType)) {
+                backChannelOauthResponse.setCorrelationId(correlationId);
+                backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+                backChannelOauthResponse.setErrorDescription("Bad Request");
+                return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
+                        (backChannelOauthResponse)).build();
+            } else {
+                redirectUrl = getPersistedCallbackUrl(clientId);
+                StringBuilder codeUrlBuilder = new StringBuilder();
+                BackChannelRequestDetails backChannelRequestDetails = new BackChannelRequestDetails();
+
+                if (StringUtils.isEmpty(redirectUrl)) {
+                    backChannelOauthResponse.setCorrelationId(correlationId);
+                    backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+                    backChannelOauthResponse.setErrorDescription("Callback is not a registered callback URL");
+                    return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
+                            (backChannelOauthResponse)).build();
+                }
+
+                backChannelRequestDetails.setCorrelationId(correlationId);
+                backChannelRequestDetails.setMsisdn(loginHint);
+                backChannelRequestDetails.setNotificationBearerToken(clientNotificationToken);
+                backChannelRequestDetails.setNotificationUrl(notificationUrl);
+                backChannelRequestDetails.setClientId(clientId);
+                backChannelRequestDetails.setRedirectUrl(redirectUrl);
+
+                DataBaseConnectUtils.addBackChannelRequestDetails(backChannelRequestDetails);
+
+                //Currenty it supports only code grant type
+                responseType = AuthProxyConstants.CODE;
+
+                if (!isValidNotificationUrl(clientId, notificationUrl)) {
+                    backChannelOauthResponse.setCorrelationId(correlationId);
+                    backChannelOauthResponse.setError(Response.Status.UNAUTHORIZED.getReasonPhrase());
+                    backChannelOauthResponse.setErrorDescription("Notification URL is not a valid URL");
+                    return Response.status(Response.Status.UNAUTHORIZED.getStatusCode()).entity(new Gson().toJson
+                            (backChannelOauthResponse)).build();
+                }
+
+                codeUrlBuilder.append(authorizeEndpointUrl)
+                        .append("/operator/").append(operatorName)
+                        .append("?response_type=").append(responseType)
+                        .append("&scope=").append(scopeName)
+                        .append("&redirect_uri=").append(redirectUrl)
+                        .append("&nonce=").append(nonce)
+                        .append("&state=").append(state)
+                        .append("&client_id=").append(clientId)
+                        .append("&acr_values=").append(acrValue)
+                        .append("&operator=").append(operatorName)
+                        .append("&login_hint=").append(loginHint)
+                        .append("&correlation_id=").append(correlationId)
+                        .append("&is_backChannel_allowed=").append(isBackChannelAllowed);
+
+                String code = getAuthCode(codeUrlBuilder.toString());
+                log.info("code returned for BackChannel Request: " + code);
+
+                if (code == null) {
+                    backChannelOauthResponse.setCorrelationId(correlationId);
+                    backChannelOauthResponse.setError(Response.Status.UNAUTHORIZED.getReasonPhrase());
+                    backChannelOauthResponse.setErrorDescription("Unauthorized request");
+                    return Response.status(Response.Status.UNAUTHORIZED.getStatusCode()).entity(new Gson().toJson
+                            (backChannelOauthResponse)).build();
+                } else {
+                    backChannelOauthResponse.setCorrelationId(correlationId);
+                    backChannelOauthResponse.setAuthReqId(code);
+                    DataBaseConnectUtils.updateCodeInBackChannel(correlationId, code);
+                    return Response.status(Response.Status.OK.getStatusCode()).entity(new Gson().toJson
+                            (backChannelOauthResponse))
+                            .build();
+                }
+            }
+        } catch (ParseException e) {
+            backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+            backChannelOauthResponse.setErrorDescription("Missing required parameters");
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
+                    (backChannelOauthResponse)).build();
+        } catch (JSONException e) {
+            backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+            backChannelOauthResponse.setErrorDescription("Missing required parameters");
+            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
+                    (backChannelOauthResponse)).build();
+        } catch (RemoteException | LoginAuthenticationExceptionException | IdentityOAuthAdminException |
+                AuthenticatorException | UserRegistrationAdminServiceUserRegistrationException e) {
+            log.error("Error while retrieving Callback Url via Admin calls. ", e);
+            backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+            backChannelOauthResponse.setErrorDescription("IDGW rejected the request");
+            return Response.status(Response.Status.FORBIDDEN.getStatusCode()).entity(new Gson().toJson
+                    (backChannelOauthResponse)).build();
         }
     }
 
