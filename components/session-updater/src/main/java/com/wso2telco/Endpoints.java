@@ -159,8 +159,6 @@ public class Endpoints {
         mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
     }
 
-    private String tokenCodeEndpoint = mobileConnectConfigs.getBackChannelConfig().getTokenEndpoint();
-
     @POST
     @Path("/update/saa/status")
     @Consumes("application/json")
@@ -496,7 +494,7 @@ public class Endpoints {
             CommonAuthenticatorException, ConfigurationException {
         BackChannelTokenResponse backChannelTokenResponse = null;
         try {
-
+            String tokenCodeEndpoint = mobileConnectConfigs.getBackChannelConfig().getTokenEndpoint();
             HttpClient httpClient = new DefaultHttpClient();
             HttpPost postRequest = new HttpPost(tokenCodeEndpoint);
             String encoding = org.opensaml.xml.util.Base64.encodeBytes((consumerKey + ":" + consumerSecret).getBytes());
