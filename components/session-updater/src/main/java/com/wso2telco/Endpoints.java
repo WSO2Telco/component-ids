@@ -258,7 +258,7 @@ public class Endpoints {
                     backChannelTokenResponse = getAccessTokenDetails(backChannelRequestDetails.getCorrelationId(),
                             tokenRelatedNameValues, backChannelRequestDetails.getClientId(), clientSecret);
                     backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
-                    backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
+                    backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
 
                 } catch (ConfigurationException | AuthenticatorException | CommonAuthenticatorException e) {
                     backChannelTokenResponse = new BackChannelTokenResponse();
@@ -378,7 +378,7 @@ public class Endpoints {
                 backChannelTokenResponse = new BackChannelTokenResponse();
                 log.error("An error occurred while decrypting session ID", e);
                 backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
-                backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
+                backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
                 backChannelTokenResponse.setError("Internal Server Error");
                 backChannelTokenResponse.setErrorDescription("An error occurred while decrypting session ID");
                 responseString = Response.status(500).entity(new Gson().toJson(new
@@ -400,7 +400,7 @@ public class Endpoints {
                 backChannelTokenResponse = new BackChannelTokenResponse();
                 log.error("An error occurred while retriving context identifier", e);
                 backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
-                backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
+                backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
                 backChannelTokenResponse.setError("Internal Server Error");
                 backChannelTokenResponse.setErrorDescription("An error occurred while retriving context identifier");
                 responseString = Response.status(500).entity(new Gson().toJson(new
@@ -431,13 +431,13 @@ public class Endpoints {
                     backChannelTokenResponse = getAccessTokenDetails(backChannelRequestDetails.getCorrelationId(),
                             tokenRelatedNameValues, backChannelRequestDetails.getClientId(), clientSecret);
                     backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
-                    backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
+                    backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
 
                 } catch (ConfigurationException | AuthenticatorException | CommonAuthenticatorException e) {
                     backChannelTokenResponse = new BackChannelTokenResponse();
                     log.error("Error while generating token for Session Id:" + sessionID);
                     backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
-                    backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
+                    backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
                     backChannelTokenResponse.setError("Internal Server Error");
                     backChannelTokenResponse.setErrorDescription("An error occurred while generating Token Response");
                     responseString = Response.status(500).entity(new Gson().toJson(new
@@ -454,6 +454,8 @@ public class Endpoints {
 
         } else if (userStatus.equalsIgnoreCase("EXPIRED")) {
             status = "EXPIRED";
+            backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+            backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
             backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
             backChannelTokenResponse.setErrorDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
             backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
@@ -462,6 +464,8 @@ public class Endpoints {
                     BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
         } else {
             status = "EXPIRED";
+            backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+            backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
             backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
             backChannelTokenResponse.setErrorDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
             backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
@@ -483,7 +487,6 @@ public class Endpoints {
 
         postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
     }
-
 
     public BackChannelTokenResponse getAccessTokenDetails(String correlationId, List<NameValuePair>
             tokenRelatedNameValues, String
