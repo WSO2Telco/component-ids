@@ -97,7 +97,7 @@ import java.util.logging.Logger;
 @Path("/endpoint")
 public class Endpoints {
 
-    String tokenCodeEndpoint = "https://localhost:9443/oauth2/token";
+    private static MobileConnectConfig mobileConnectConfigs = null;
 
     private static boolean temp = false;
 
@@ -153,8 +153,13 @@ public class Endpoints {
      */
     public Endpoints() {
 
-
     }
+
+    static {
+        mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
+    }
+
+    private String tokenCodeEndpoint = mobileConnectConfigs.getBackChannelConfig().getTokenEndpoint();
 
     @POST
     @Path("/update/saa/status")
@@ -345,7 +350,6 @@ public class Endpoints {
     }
 
 
-
     @GET
     @Path("/serverinitiated/sms/response/{id}")
     @Produces("text/plain")
@@ -444,8 +448,6 @@ public class Endpoints {
                             BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
                     postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
                 }
-
-
 
 
             }
