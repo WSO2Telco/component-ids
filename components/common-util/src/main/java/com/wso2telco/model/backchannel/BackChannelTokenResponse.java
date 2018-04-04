@@ -14,7 +14,7 @@
  * limitations under the License.
  ******************************************************************************/
 
-package com.wso2telco.model;
+package com.wso2telco.model.backchannel;
 
 /**
  * This class is using to keep token response details in BackChannel Scenario.

@@ -100,6 +100,27 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <!--<version>3.5.0</version>-->
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
+                        <Bundle-Name>${project.artifactId}</Bundle-Name>
+                        <Export-Package>!com.wso2telco.core,com.wso2telco.exception,
+                            com.wso2telco.dbUtil,
+                            com.wso2telco.adminServiceUtil.client,
+                            com.wso2telco.model.backchannel
+                        </Export-Package>
+                        <Import-Package>
+                            org.osgi.framework,
+                            *;resolution:=optional
+                        </Import-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
                 <artifactId>maven-scr-plugin</artifactId>
                 <version>1.9.0</version>
                 <executions>
