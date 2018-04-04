@@ -112,6 +112,8 @@ curl -X POST \
         String token = body.getString("access_token");
         jsonObject.put("access_token", token);
 
+        log.info("Response in spTokenEndpoint:"+jsonObject.toString());
+
         return Response.status(Response.Status.OK.getStatusCode()).entity(jsonObject.toString()).build();
     }
 }

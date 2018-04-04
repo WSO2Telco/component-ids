@@ -147,6 +147,7 @@ public class Endpoints {
         String redirectURL = null;
         String scopeName = null;
         String responseType = null;
+        boolean isBackChannelAllowed = false;
 
         org.apache.log4j.MDC.put("REF_ID", state);
         log.info("Request processing started from proxy");
@@ -205,7 +206,6 @@ public class Endpoints {
                 String ipAddress = null;
                 String msisdn = null;
                 String queryString = "";
-                boolean isBackChannelAllowed;
                 String correlationId = null;
                 String redirectUrl = null;
 
@@ -366,10 +366,14 @@ public class Endpoints {
             httpServletResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid Request");
         } else {
             log.info(String.format("Redirecting to : %s", redirectURL));
-            String encodedUrl = URLEncoder.encode(redirectURL, "UTF-8");
-            httpServletResponse.sendRedirect(encodedUrl);
-        }
 
+            if (isBackChannelAllowed) {
+                String encodedUrl = URLEncoder.encode(redirectURL, "UTF-8");
+                httpServletResponse.sendRedirect(encodedUrl);
+            } else {
+                httpServletResponse.sendRedirect(redirectURL);
+            }
+        }
     }
 
 
