@@ -18,7 +18,6 @@ package com.wso2telco.proxy.entity;
 
 import com.google.gson.Gson;
 import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.wso2telco.adminServiceUtil.client.OAuthAdminServiceClient;
 import com.wso2telco.model.BackChannelOauthResponse;
@@ -29,7 +28,6 @@ import com.wso2telco.model.BackChannelRequestDetails;
 import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.util.AuthProxyConstants;
 import com.wso2telco.proxy.util.DBUtils;
-import org.apache.axis2.AxisFault;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -54,13 +52,8 @@ import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServ
 import javax.naming.ConfigurationException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -83,13 +76,18 @@ public class ServerInitiatedServiceEndpoints {
 
     @POST
     @Path("/si-authorize/{operatorName}")
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response siEndpoint(@Context HttpServletRequest httpServletRequest, @Context
             HttpServletResponse httpServletResponse, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
-                               @PathParam("operatorName") String operatorName, String jsonBody) throws Exception {
+                               @PathParam("operatorName") String operatorName, @FormParam("client_id") String
+                                       formParamClientId, @FormParam("response_type") String
+                                       formParamResponseType, @FormParam("scope") String formParamScopeList,
+                               @FormParam("request") String request) throws Exception {
+
         operatorName = operatorName.toLowerCase();
         JWSObject jwsObject;
         boolean isBackChannelAllowed = true;
-        String iss = null;
+        String iss;
         String aud = null;
         String version = null;
         String correlationId;
@@ -107,7 +105,7 @@ public class ServerInitiatedServiceEndpoints {
         String authorizeEndpointUrl = mobileConnectConfigs.getBackChannelConfig().getAuthorizeEndpoint();
 
         try {
-            jwsObject = processJWE(jsonBody);
+            jwsObject = processJWE(request);
 
             if (jwsObject == null) {
                 backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
@@ -142,7 +140,15 @@ public class ServerInitiatedServiceEndpoints {
             }
 
             String sharedKey = getSharedKey(clientId);
-            if (!isVerifiedSignature(jwsObject, sharedKey)) {
+
+            if (!(formParamClientId.equals(clientId)) && !(formParamResponseType.equals(responseType)) && !
+                    (formParamScopeList.equals(scopeName))) {
+                backChannelOauthResponse.setCorrelationId(correlationId);
+                backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+                backChannelOauthResponse.setErrorDescription("Missing required parameters");
+                return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
+                        (backChannelOauthResponse)).build();
+            } else if (!isVerifiedSignature(jwsObject, sharedKey)) {
                 log.error("Couldn't verify signature: " + jwsObject);
                 backChannelOauthResponse.setCorrelationId(correlationId);
                 backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
