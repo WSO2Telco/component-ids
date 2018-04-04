@@ -17,7 +17,7 @@ package com.wso2telco.dbUtil;
 
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.model.BackChannelRequestDetails;
+import com.wso2telco.model.backchannel.BackChannelRequestDetails;
 import com.wso2telco.exception.CommonAuthenticatorException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
