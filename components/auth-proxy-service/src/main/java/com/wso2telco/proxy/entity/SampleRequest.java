@@ -101,19 +101,22 @@ curl -X POST \
 
     @POST
     @Path("/sp/token-endpoint")
-    public Response spTokenEndpoint(@Context HttpServletRequest httpServletRequest, @Context
+    public void spTokenEndpoint(@Context HttpServletRequest httpServletRequest, @Context
             HttpServletResponse httpServletResponse, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
-                                     String jsonBody) throws Exception {
+                                String jsonBody) throws Exception {
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("sp_auth_header", httpHeaders.getRequestHeader("Authorization"));
 
         JSONObject body = new JSONObject(jsonBody);
-        String token = body.getString("access_token");
+        String token = "";
+        if (body.has("access_token")) {
+            token = body.getString("access_token");
+        }
         jsonObject.put("access_token", token);
 
-        log.info("Response in spTokenEndpoint:"+jsonObject.toString());
+        log.info("Response in spTokenEndpoint:" + jsonObject.toString());
 
-        return Response.status(Response.Status.OK.getStatusCode()).entity(jsonObject.toString()).build();
+        //return Response.status(Response.Status.OK.getStatusCode()).entity(jsonObject.toString()).build();
     }
 }

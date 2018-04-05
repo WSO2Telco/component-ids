@@ -205,6 +205,9 @@ public class Endpoints {
         String status;
         String ussdSessionID = null;
         BackChannelRequestDetails backChannelRequestDetails = null;
+        String originalSessionId = sessionID;
+        log.debug("Requested session Id: " + originalSessionId);
+
 
         AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
         setStateFromAuthenticationContext(authenticationContext);
@@ -277,8 +280,10 @@ public class Endpoints {
                     responseString = new Gson().toJson(new
                             BackChannelTokenResponse(status, backChannelTokenResponse)).toString();
                     responseStatus = Response.Status.INTERNAL_SERVER_ERROR;
-                    log.info("Response String:" + responseString);
-                    log.info("Response Status:" + responseStatus);
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("ussdSessionID: " + ussdSessionID + ", Response String: " + responseString + ", Response Status: " + responseStatus);
+                    }
                     postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
                 }
             }
@@ -289,6 +294,7 @@ public class Endpoints {
             status = "Rejected";
 
             if (backChannelRequestDetails != null) {
+                backChannelTokenResponse = new BackChannelTokenResponse();
                 backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
                 backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
                 backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
@@ -308,6 +314,7 @@ public class Endpoints {
             status = "Rejected";
 
             if (backChannelRequestDetails != null) {
+                backChannelTokenResponse = new BackChannelTokenResponse();
                 backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
                 backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
                 DatabaseUtils.updateStatus(sessionID, status);
@@ -328,6 +335,9 @@ public class Endpoints {
         if (backChannelRequestDetails != null) {
             spTokenEndpoint = backChannelRequestDetails.getNotificationUrl();
             spBearerToken = backChannelRequestDetails.getNotificationBearerToken();
+        } else {
+            log.error("Invalid session:" + originalSessionId);
+            return;
         }
 
         responseString = new Gson().toJson(new
@@ -367,20 +377,17 @@ public class Endpoints {
     public void serverInitiatedSmsConfirm(@PathParam("id") String sessionID)
             throws SQLException, CommonAuthenticatorException, ConfigurationException, IOException {
         String responseString;
+        Response.Status responseStatus;
         AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
         setStateFromAuthenticationContext(authenticationContext);
         String spTokenEndpoint = "";
         String spBearerToken = "";
         BackChannelTokenResponse backChannelTokenResponse = null;
         String status = null;
-        BackChannelRequestDetails backChannelRequestDetails;
+        BackChannelRequestDetails backChannelRequestDetails = new BackChannelRequestDetails();
 
-        backChannelRequestDetails = DataBaseConnectUtils.getBackChannelUserDetails(sessionID);
-
-        if (backChannelRequestDetails != null) {
-            spTokenEndpoint = backChannelRequestDetails.getNotificationUrl();
-            spBearerToken = backChannelRequestDetails.getNotificationBearerToken();
-        }
+        String originalSessionId = sessionID;
+        log.debug("Requested session Id: " + originalSessionId);
 
         log.info("Processing sms confirmation");
         if (configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig().getIsShortUrl()) {
@@ -396,8 +403,16 @@ public class Endpoints {
                 backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
                 backChannelTokenResponse.setError("Internal Server Error");
                 backChannelTokenResponse.setErrorDescription("An error occurred while decrypting session ID");
-                responseString = Response.status(500).entity(new Gson().toJson(new
-                        BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+                /*responseString = Response.status(500).entity(new Gson().toJson(new
+                        BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+
+                responseString = new Gson().toJson(new
+                        BackChannelTokenResponse(status, backChannelTokenResponse));
+                responseStatus = Response.Status.INTERNAL_SERVER_ERROR;
+
+                if (log.isDebugEnabled()) {
+                    log.debug("ussdSessionID: " + sessionID + ", Response String: " + responseString + ", Response Status: " + responseStatus);
+                }
                 postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
             }
         } else {
@@ -418,8 +433,16 @@ public class Endpoints {
                 backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
                 backChannelTokenResponse.setError("Internal Server Error");
                 backChannelTokenResponse.setErrorDescription("An error occurred while retriving context identifier");
-                responseString = Response.status(500).entity(new Gson().toJson(new
-                        BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+                /*responseString = Response.status(500).entity(new Gson().toJson(new
+                        BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+
+                responseString = new Gson().toJson(new
+                        BackChannelTokenResponse(status, backChannelTokenResponse));
+                responseStatus = Response.Status.INTERNAL_SERVER_ERROR;
+
+                if (log.isDebugEnabled()) {
+                    log.debug("ussdSessionID: " + sessionID + ", Response String: " + responseString + ", Response Status: " + responseStatus);
+                }
                 postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
             }
         }
@@ -429,6 +452,17 @@ public class Endpoints {
 
         String userStatus = DatabaseUtils.getUSerStatus(sessionID);
         DataPublisherUtil.UserState userState = DataPublisherUtil.UserState.SMS_URL_AUTH_FAIL;
+
+        backChannelRequestDetails = DataBaseConnectUtils.getBackChannelUserDetails(sessionID);
+
+        if (backChannelRequestDetails != null) {
+            spTokenEndpoint = backChannelRequestDetails.getNotificationUrl();
+            spBearerToken = backChannelRequestDetails.getNotificationBearerToken();
+        } else {
+            log.error("Invalid session:" + originalSessionId);
+            return;
+        }
+
         if (userStatus.equalsIgnoreCase("PENDING")) {
             DatabaseUtils.updateStatus(sessionID, "APPROVED");
             status = "APPROVED";
@@ -455,48 +489,60 @@ public class Endpoints {
                     backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
                     backChannelTokenResponse.setError("Internal Server Error");
                     backChannelTokenResponse.setErrorDescription("An error occurred while generating Token Response");
-                    responseString = Response.status(500).entity(new Gson().toJson(new
-                            BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+
+                    /*responseString = Response.status(500).entity(new Gson().toJson(new
+                            BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+
+                    responseString = new Gson().toJson(new
+                            BackChannelTokenResponse(status, backChannelTokenResponse));
+                    responseStatus = Response.Status.INTERNAL_SERVER_ERROR;
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("ussdSessionID: " + sessionID + ", Response String: " + responseString + ", Response Status: " + responseStatus);
+                    }
+
                     postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
                 }
 
 
             }
-            responseString = Response.status(Response.Status.OK).entity(new Gson().toJson(new
-                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+           /* responseString = Response.status(Response.Status.OK).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+            responseStatus = Response.Status.OK;
 
         } else if (userStatus.equalsIgnoreCase("EXPIRED")) {
             status = "EXPIRED";
+            backChannelTokenResponse = new BackChannelTokenResponse();
             backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
             backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
             backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
             backChannelTokenResponse.setErrorDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
             backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
 
-            responseString = Response.status(Response.Status.BAD_REQUEST).entity(new Gson().toJson(new
-                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+           /* responseString = Response.status(Response.Status.BAD_REQUEST).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+            responseStatus = Response.Status.BAD_REQUEST;
         } else {
             status = "EXPIRED";
+            backChannelTokenResponse = new BackChannelTokenResponse();
             backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
             backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
             backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
             backChannelTokenResponse.setErrorDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
             backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
 
-            responseString = Response.status(Response.Status.BAD_REQUEST).entity(new Gson().toJson(new
-                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+            /*responseString = Response.status(Response.Status.BAD_REQUEST).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+            responseStatus = Response.Status.BAD_REQUEST;
         }
 
-        /*responseString = "{" + "\"status\":\"" + status + "\","
-                + "\"text\":\"" + responseString + "\"" + "}";
 
-        log.info("Sending sms confirmation response" + responseString);
-        if(authenticationContext!=null) {
-            DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants
-            .USER_STATUS_DATA_PUBLISHING_PARAM),
-                    userState, "SMS URL " + status);
+        responseString = new Gson().toJson(new
+                BackChannelTokenResponse(status, backChannelTokenResponse));
+
+        if (log.isDebugEnabled()) {
+            log.debug("ussdSessionID: " + sessionID + ", Response String: " + responseString + ", Response Status: " + responseStatus);
         }
-        return Response.status(200).entity(responseString).build();*/
 
         postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
     }

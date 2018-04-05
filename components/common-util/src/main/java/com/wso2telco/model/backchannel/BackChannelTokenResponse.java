@@ -16,6 +16,8 @@
 
 package com.wso2telco.model.backchannel;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * This class is using to keep token response details in BackChannel Scenario.
  */
@@ -36,7 +38,7 @@ public class BackChannelTokenResponse {
 
     public BackChannelTokenResponse(String status, BackChannelTokenResponse backChannelTokenResponse) {
 
-        if (status.equalsIgnoreCase("APPROVED")) {
+        if (StringUtils.isNotEmpty(status) && status.equalsIgnoreCase("APPROVED")) {
             this.auth_req_id = backChannelTokenResponse.getAuthReqId();
             this.access_token = backChannelTokenResponse.getAccessToken();
             this.token_type = backChannelTokenResponse.getTokenType();
