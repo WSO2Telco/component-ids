@@ -333,8 +333,9 @@ public class Endpoints {
         responseString = new Gson().toJson(new
                 BackChannelTokenResponse(status, backChannelTokenResponse)).toString();
 
-        log.info("Response String:" + responseString);
-        log.info("Response Status:" + responseStatus);
+        if (log.isDebugEnabled()) {
+            log.debug("ussdSessionID: " + ussdSessionID + ", Response String: " + responseString + ", Response Status: " + responseStatus);
+        }
 
         postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
 
