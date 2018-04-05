@@ -336,7 +336,7 @@ public class Endpoints {
                         redirectUrlInfo.setAttributeSharingScopeType(attShareDetails.get(AuthProxyConstants
                                 .ATTR_SHARE_SCOPE_TYPE));
 
-                        redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
+                        redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus, isBackChannelAllowed);
 
                         DataPublisherUtil.updateAndPublishUserStatus(
                                 userStatus, DataPublisherUtil.UserState.PROXY_REQUEST_FORWARDED_TO_IS, "Redirect URL : "
@@ -366,13 +366,7 @@ public class Endpoints {
             httpServletResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid Request");
         } else {
             log.info(String.format("Redirecting to : %s", redirectURL));
-
-            if (isBackChannelAllowed) {
-                String encodedUrl = URLEncoder.encode(redirectURL, "UTF-8");
-                httpServletResponse.sendRedirect(encodedUrl);
-            } else {
-                httpServletResponse.sendRedirect(redirectURL);
-            }
+            httpServletResponse.sendRedirect(redirectURL);
         }
     }
 
@@ -777,7 +771,7 @@ public class Endpoints {
         return remoteIpAddress;
     }
 
-    private String constructRedirectUrl(RedirectUrlInfo redirectUrlInfo, UserStatus userStatus) throws
+    private String constructRedirectUrl(RedirectUrlInfo redirectUrlInfo, UserStatus userStatus, boolean isBackChannelAllowed) throws
             ConfigurationException {
         String redirectURL = null;
         String authorizeUrl = redirectUrlInfo.getAuthorizeUrl();
@@ -831,7 +825,7 @@ public class Endpoints {
                         "=" + prompt;
             }
 
-            if (StringUtils.isNotEmpty(validationRegex)) {
+            if (StringUtils.isNotEmpty(validationRegex) && !isBackChannelAllowed) {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.MSISDN_VALIDATION_REGEX +
                         "=" + validationRegex;
             }

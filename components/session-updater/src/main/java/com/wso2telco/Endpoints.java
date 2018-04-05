@@ -200,6 +200,7 @@ public class Endpoints {
         String spTokenEndpoint = "";
         String spBearerToken = "";
         String responseString;
+        Response.Status responseStatus;
         BackChannelTokenResponse backChannelTokenResponse = new BackChannelTokenResponse();
         String status;
         String ussdSessionID = null;
@@ -270,13 +271,20 @@ public class Endpoints {
                     backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
                     backChannelTokenResponse.setError("Internal Server Error");
                     backChannelTokenResponse.setErrorDescription("An error occurred while generating Token Response");
-                    responseString = Response.status(500).entity(new Gson().toJson(new
-                            BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+                    /*responseString = Response.status(500).entity(new Gson().toJson(new
+                            BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+
+                    responseString = new Gson().toJson(new
+                            BackChannelTokenResponse(status, backChannelTokenResponse)).toString();
+                    responseStatus = Response.Status.INTERNAL_SERVER_ERROR;
+                    log.info("Response String:" + responseString);
+                    log.info("Response Status:" + responseStatus);
                     postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
                 }
             }
-            responseString = Response.status(Response.Status.OK).entity(new Gson().toJson(new
-                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+            responseStatus = Response.Status.OK;
+            /*responseString = Response.status(Response.Status.OK).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
         } else if (validateUserInputs(rejectInputs, message)) {
             status = "Rejected";
 
@@ -293,8 +301,9 @@ public class Endpoints {
                                 (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_REJECTED, "USSD login push rejected");
             }
-            responseString = Response.status(Response.Status.BAD_REQUEST).entity(new Gson().toJson(new
-                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+            /*responseString = Response.status(Response.Status.BAD_REQUEST).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+            responseStatus = Response.Status.BAD_REQUEST;
         } else {
             status = "Rejected";
 
@@ -311,8 +320,9 @@ public class Endpoints {
                                 (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                         DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_FAIL, "USSD login push failed");
             }
-            responseString = Response.status(Response.Status.NOT_ACCEPTABLE).entity(new Gson().toJson(new
-                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();
+            /*responseString = Response.status(Response.Status.NOT_ACCEPTABLE).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+            responseStatus = Response.Status.NOT_ACCEPTABLE;
         }
 
         if (backChannelRequestDetails != null) {
@@ -320,7 +330,11 @@ public class Endpoints {
             spBearerToken = backChannelRequestDetails.getNotificationBearerToken();
         }
 
+        responseString = new Gson().toJson(new
+                BackChannelTokenResponse(status, backChannelTokenResponse)).toString();
+
         log.info("Response String:" + responseString);
+        log.info("Response Status:" + responseStatus);
 
         postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
 
@@ -340,8 +354,6 @@ public class Endpoints {
         input.setContentType("application/json");
 
         postRequest.setEntity(input);
-
-        //todo : how to handle request code,400,200 etc
 
         HttpResponse httpResponse = client.execute(postRequest);
         log.info(httpResponse.getStatusLine().getStatusCode());

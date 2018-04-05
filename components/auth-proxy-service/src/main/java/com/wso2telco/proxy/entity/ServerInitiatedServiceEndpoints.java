@@ -76,7 +76,6 @@ public class ServerInitiatedServiceEndpoints {
 
     @POST
     @Path("/si-authorize/{operatorName}")
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Response siEndpoint(@Context HttpServletRequest httpServletRequest, @Context
             HttpServletResponse httpServletResponse, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
                                @PathParam("operatorName") String operatorName, @FormParam("client_id") String
