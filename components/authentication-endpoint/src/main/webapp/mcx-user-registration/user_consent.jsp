@@ -100,11 +100,10 @@
                 spLogo = authnContext.getProperty("logo").toString();
             }
         }
-        log.info( "logoPath :"+spLogo );
         String imgPath = null;
         String termsConditionsPath = null;
         if (operator!=null && !operator.isEmpty()) {
-            imgPath = "mcx-user-registration/images/branding/" + operator + "_logo.svg";
+            imgPath = "images/branding/" + operator + "_logo.png";
             termsConditionsPath = "html/terms-conditions/" + operator + "-terms-conditions.html";
     %>
     <link href="css/branding/<%=operator%>-style.css" rel="stylesheet">
@@ -131,9 +130,14 @@
 
         <main class="site__main site__wrap section v-distribute v-grow">
                 <div class="grid">
-                     <div class="grid__item one-quarter">
-                         <img src='<%=spLogo%>' alt="App logo" width="100">
-                     </div>
+                    <%
+                    if(!(spLogo == null || "".equals(spLogo))){
+                    %>
+                         <div class="grid__item one-quarter">
+                             <img src='<%=spLogo%>' alt="App logo" width="100">
+                         </div>
+                   <% }
+                   %>
                      <div class="grid__item three-quarters">
                         <h2 class="page__heading"><%=spName%></h2>
                         <p>You are granting <b><%=spName%></b> the rights to access the following</p>
