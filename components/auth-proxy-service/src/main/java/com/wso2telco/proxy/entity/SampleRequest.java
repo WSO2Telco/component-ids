@@ -1,11 +1,10 @@
 package com.wso2telco.proxy.entity;
 
 import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.RSASSASigner;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONObject;
-import org.json.JSONString;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,7 +15,16 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.text.ParseException;
+import java.util.Base64;
 
 @Path("/sample")
 public class SampleRequest {
@@ -33,7 +41,7 @@ curl -X POST \
 "login_hint":"911111111110",
 "client_notification_token":"ybyy",
 "notification_uri":"https://localhost:9443/playground2/oauth2.jsp",
-"acr_value":"500",
+"acr_value":"11",
 "state":"state123",
 "nonce":"nonce123",
 "client_id":"8DtnWHOza4SY2cSkqUi7QxGlQkIa",
@@ -50,21 +58,21 @@ curl -X POST \
             HttpServletResponse httpServletResponse, @Context HttpHeaders httpHeaders, @Context UriInfo uriInfo,
                          @PathParam("operatorName") String operatorName, String jsonBody) throws Exception {
 
-        String sharedKey = "a0a2abd8-6162-41c3-83d6-1cf559b46afc";
+        String sharedKey = readSignatureFile("./repository/conf/keys/jwsSigningPrivateKey.pem");
         String jwe = signJson(jsonBody, sharedKey);
         log.info("JWE: " + jwe);
         return Response.status(Response.Status.OK.getStatusCode()).entity("JWE: " + jwe).build();
     }
 
-
-    private String signJson(String message, String sharedKey) throws JOSEException, ParseException {
+    private String signJson(String message, String sharedKey) throws JOSEException, ParseException,
+            GeneralSecurityException, IOException {
         Payload payload = new Payload(message);
         if (log.isDebugEnabled()) {
             log.debug("JWS payload message: " + message);
         }
 
-        // Create JWS header with HS256 algorithm
-        JWSHeader header = new JWSHeader(JWSAlgorithm.HS256);
+        // Create JWS header with RS256 algorithm
+        JWSHeader header = new JWSHeader(JWSAlgorithm.RS256);
         header.setContentType("text/plain");
 
         if (log.isDebugEnabled()) {
@@ -78,8 +86,8 @@ curl -X POST \
             log.debug("HMAC key: " + sharedKey);
         }
 
-
-        JWSSigner signer = new MACSigner(sharedKey.getBytes());
+        RSAPrivateKey loadPrivateKey = loadPrivateKey(sharedKey);
+        JWSSigner signer = new RSASSASigner(loadPrivateKey);
 
         try {
             jwsObject.sign(signer);
@@ -98,7 +106,34 @@ curl -X POST \
         return serializedJWE;
     }
 
+    //read JWS key file
+    private String readSignatureFile(String fileName) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(fileName));
+        try {
+            StringBuilder sb = new StringBuilder();
+            String line = br.readLine();
 
+            while (line != null) {
+                sb.append(line);
+                sb.append("\n");
+                line = br.readLine();
+            }
+            return sb.toString();
+        } finally {
+            br.close();
+        }
+    }
+
+    //Generate RSAPrivateKey private key
+    public static RSAPrivateKey loadPrivateKey(String privateKeyContent) throws GeneralSecurityException, IOException {
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        privateKeyContent = privateKeyContent.substring(0, privateKeyContent.length() - 1);
+        PKCS8EncodedKeySpec keySpecPKCS8 = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKeyContent));
+        PrivateKey key = kf.generatePrivate(keySpecPKCS8);
+        return (RSAPrivateKey) key;
+    }
+
+    //Sample notification endpoint.For testing purposes only
     @POST
     @Path("/sp/token-endpoint")
     public void spTokenEndpoint(@Context HttpServletRequest httpServletRequest, @Context

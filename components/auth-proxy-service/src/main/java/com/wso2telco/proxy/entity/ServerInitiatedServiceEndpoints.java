@@ -18,7 +18,7 @@ package com.wso2telco.proxy.entity;
 
 import com.google.gson.Gson;
 import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.wso2telco.adminServiceUtil.client.OAuthAdminServiceClient;
 import com.wso2telco.model.backchannel.BackChannelOauthResponse;
 import com.wso2telco.core.config.model.MobileConnectConfig;
@@ -58,7 +58,12 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.rmi.RemoteException;
+import java.security.GeneralSecurityException;
+import java.security.KeyFactory;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.X509EncodedKeySpec;
 import java.text.ParseException;
+import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
@@ -370,8 +375,11 @@ public class ServerInitiatedServiceEndpoints {
         return jwsObject;
     }
 
-    private boolean isVerifiedSignature(JWSObject jwsObject, String sharedKey) throws JOSEException, ParseException {
-        JWSVerifier verifier = new MACVerifier(sharedKey.getBytes());
+    private boolean isVerifiedSignature(JWSObject jwsObject, String sharedKey) throws JOSEException, ParseException,
+            GeneralSecurityException, IOException {
+
+        RSAPublicKey publicKey = loadPublicKey(sharedKey);
+        JWSVerifier verifier = new RSASSAVerifier(publicKey);
         boolean verifiedSignature;
         try {
             if (sharedKey != null)
@@ -386,6 +394,15 @@ public class ServerInitiatedServiceEndpoints {
         }
         log.info("Verified JWS signature! " + verifiedSignature);
         return verifiedSignature;
+    }
+
+    //Generate RSAPublicKey public key
+    private RSAPublicKey loadPublicKey(String publicKeyContent) throws GeneralSecurityException, IOException {
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        X509EncodedKeySpec pubSpec = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKeyContent));
+        RSAPublicKey publicKey = (RSAPublicKey) kf.generatePublic(pubSpec);
+        System.out.println("Public Key" + publicKey.toString());
+        return (RSAPublicKey) publicKey;
     }
 }
 
