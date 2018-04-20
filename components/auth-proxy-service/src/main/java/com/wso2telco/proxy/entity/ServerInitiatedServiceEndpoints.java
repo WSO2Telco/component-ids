@@ -400,8 +400,7 @@ public class ServerInitiatedServiceEndpoints {
     private RSAPublicKey loadPublicKey(String publicKeyContent) throws GeneralSecurityException {
         KeyFactory kf = KeyFactory.getInstance("RSA");
         X509EncodedKeySpec pubSpec = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKeyContent));
-        RSAPublicKey publicKey = (RSAPublicKey) kf.generatePublic(pubSpec);
-        return publicKey;
+        return  (RSAPublicKey) kf.generatePublic(pubSpec);
     }
 }
 

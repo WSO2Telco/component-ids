@@ -65,7 +65,7 @@ curl -X POST \
     }
 
     private String signJson(String message, String sharedKey) throws JOSEException,
-            GeneralSecurityException, IOException {
+            GeneralSecurityException {
         Payload payload = new Payload(message);
         if (log.isDebugEnabled()) {
             log.debug("JWS payload message: " + message);
