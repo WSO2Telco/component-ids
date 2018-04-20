@@ -64,7 +64,7 @@ curl -X POST \
         return Response.status(Response.Status.OK.getStatusCode()).entity("JWE: " + jwe).build();
     }
 
-    private String signJson(String message, String sharedKey) throws JOSEException, ParseException,
+    private String signJson(String message, String sharedKey) throws JOSEException,
             GeneralSecurityException, IOException {
         Payload payload = new Payload(message);
         if (log.isDebugEnabled()) {
@@ -125,7 +125,7 @@ curl -X POST \
     }
 
     //Generate RSAPrivateKey private key
-    public static RSAPrivateKey loadPrivateKey(String privateKeyContent) throws GeneralSecurityException, IOException {
+    public static RSAPrivateKey loadPrivateKey(String privateKeyContent) throws GeneralSecurityException {
         KeyFactory kf = KeyFactory.getInstance("RSA");
         privateKeyContent = privateKeyContent.substring(0, privateKeyContent.length() - 1);
         PKCS8EncodedKeySpec keySpecPKCS8 = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKeyContent));

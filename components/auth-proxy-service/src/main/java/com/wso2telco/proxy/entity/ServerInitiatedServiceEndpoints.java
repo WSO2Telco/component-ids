@@ -397,12 +397,11 @@ public class ServerInitiatedServiceEndpoints {
     }
 
     //Generate RSAPublicKey public key
-    private RSAPublicKey loadPublicKey(String publicKeyContent) throws GeneralSecurityException, IOException {
+    private RSAPublicKey loadPublicKey(String publicKeyContent) throws GeneralSecurityException {
         KeyFactory kf = KeyFactory.getInstance("RSA");
         X509EncodedKeySpec pubSpec = new X509EncodedKeySpec(Base64.getDecoder().decode(publicKeyContent));
         RSAPublicKey publicKey = (RSAPublicKey) kf.generatePublic(pubSpec);
-        System.out.println("Public Key" + publicKey.toString());
-        return (RSAPublicKey) publicKey;
+        return publicKey;
     }
 }
 
