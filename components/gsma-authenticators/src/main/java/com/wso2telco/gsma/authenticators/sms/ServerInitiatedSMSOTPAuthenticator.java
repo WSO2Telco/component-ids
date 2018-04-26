@@ -156,7 +156,7 @@ public class ServerInitiatedSMSOTPAuthenticator extends AbstractApplicationAuthe
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         SMSMessage smsMessage = getRedirectInitAuthentication(response, context, userStatus);
 
-        if (smsMessage != null && smsMessage.getRedirectURL() != null && !smsMessage.getRedirectURL().isEmpty()) {
+        if (smsMessage != null) {
             try {
                 MobileConnectConfig connectConfig = configurationService.getDataHolder().getMobileConnectConfig();
                 MobileConnectConfig.SMSConfig smsConfig = connectConfig.getSmsConfig();
