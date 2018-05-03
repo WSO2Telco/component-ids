@@ -116,7 +116,7 @@ public class ServerInitiatedSMSOTPAuthenticator extends AbstractApplicationAuthe
     @Override
     protected void processAuthenticationResponse(HttpServletRequest request, HttpServletResponse response, AuthenticationContext context) throws AuthenticationFailedException {
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
-        String sessionDataKey = request.getParameter("sessionDataKey");
+        String sessionDataKey = context.getContextIdentifier();
         String msisdn = (String) context.getProperty("msisdn");
         String status = null;
 
