@@ -48,6 +48,8 @@ import java.net.URLEncoder;
  */
 public class CustomRequestCoordinator implements RequestCoordinator {
 
+    private static final String TENENTDOMAIN = "carbon.super";
+
     private static final Log log = LogFactory.getLog(org.wso2.carbon.identity.application.authentication.framework
             .handler.request.impl.DefaultRequestCoordinator.class);
     private static volatile org.wso2.carbon.identity.application.authentication.framework.handler.request.impl
@@ -137,7 +139,6 @@ public class CustomRequestCoordinator implements RequestCoordinator {
                     context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
                 }
 
-
                 if (!context.isLogoutRequest()) {
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, response,
                             context);
@@ -223,6 +224,12 @@ public class CustomRequestCoordinator implements RequestCoordinator {
         context.setCallerPath(callerPath);
         context.setRequestType(requestType);
         context.setRelyingParty(relyingParty);
+
+        //if tenent domain is not passing with the request set tenent domain as the relying party
+        if (("samlsso".equals(requestType)) && (null == tenantDomain)){
+            tenantDomain = TENENTDOMAIN;
+        }
+
         context.setTenantDomain(tenantDomain);
 
         // generate a new key to hold the context data object
@@ -242,6 +249,15 @@ public class CustomRequestCoordinator implements RequestCoordinator {
             }
 
             context.setLogoutRequest(true);
+
+            if ("samlsso".equals(context.getRequestType())) {
+
+                Cookie cookie = FrameworkUtils.getAuthCookie(request);
+
+                if (cookie != null) {
+                    context.setSessionIdentifier(cookie.getValue());
+                }
+            }
 
             if (context.getRelyingParty() == null || context.getRelyingParty().trim().length() == 0) {
 

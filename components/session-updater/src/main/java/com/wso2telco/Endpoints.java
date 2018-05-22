@@ -642,7 +642,7 @@ public class Endpoints {
                 .getMobileConnectConfig().getUssdConfig().getPinMismatchAttempts()) - 1) {
 
             String ussdMessage = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig()
-                    .getPinMismatchMessage();
+                    .getPinResetFlowMessage();
             ussdRequest = getUssdRequest(msisdn, sessionID, ussdSessionId, Constants.MTFIN, ussdMessage);
             response = gson.toJson(ussdRequest);
 

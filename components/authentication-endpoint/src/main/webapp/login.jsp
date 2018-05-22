@@ -218,7 +218,7 @@
 								response.setHeader("Location", site);
 							}
 						} else {
-							errorMessage = "You are not a registered user. Please register and try again";
+							errorMessage = "Login failed.Please recheck the username and password and try again";
 						}
 					}
 				}
@@ -242,34 +242,13 @@
 		}
 	%>
 	<input type="hidden" id="msisdn" value='<%=msisdn%>'>
-	<header class="site-header">
-		   <div class="site-header__inner site__wrap">
-    <h1 class="visuallyhidden">Mobile Connect</h1>
-    <div align="center">
-    <table class="site-header-brand-table" style="margin-bottom:0px;">
-    <tbody><tr>
-    <td width="30%">
-    <a class="brand">
-    <img src="images/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo">
-    </a>
-    </td>
-    <td width="70%">
-	<% if (!operator.isEmpty()) {
-				String imgPath = "images/branding/" + operator + "_logo.png";
-			%>
-    <img src='<%=imgPath%>' alt="Operator" class="brandLogo" style="float:right;">
-	<% } %>
-    </td>
-    </tr>
-    </tbody></table>
-    </div>
-    </div>
-	</header>
+
 	<form action="../../commonauth" method="post" id="loginForm" class="form-horizontal" data-parsley-validate
 		  novalidate>
 		<%if (localAuthenticatorNames.contains("BasicAuthenticator")) { %>
 		<div id="local_auth_div">
-					<%} %>
+
+					<%}%>
 
 					<% if ("true".equals(loginFailed)) { %>
 			<div class="parsley-errors-list filled" style="text-align: center">
@@ -280,20 +259,7 @@
 				<%
 
 					if (localAuthenticatorNames.size() > 0) {
-						if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains("OpenIDAuthenticator")) {
-							hasLocalLoginOptions = true;
-				%>
-
-				<div class="row">
-					<div class="span12">
-
-						<%@ include file="openid.jsp" %>
-
-					</div>
-				</div>
-
-				<%
-				} else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains("BasicAuthenticator")) {
+						if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains("BasicAuthenticator")) {
 					hasLocalLoginOptions = true;
 					if (TenantDataManager.isTenantListEnabled() && "true".equals(request.getParameter("isSaaSApp"))) {
 				%>
@@ -322,6 +288,46 @@
 				<%
 					}
 				%>
+
+				<%
+				} else { %>
+						<header class="site-header">
+		   <div class="site-header__inner site__wrap">
+    <h1 class="visuallyhidden">Mobile Connect</h1>
+    <div align="center">
+    <table class="site-header-brand-table" style="margin-bottom:0px;">
+    <tbody><tr>
+    <td width="30%">
+    <a class="brand">
+    <img src="images/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150" class="site-header__logo">
+    </a>
+    </td>
+    <td width="70%">
+	<% if (!operator.isEmpty()) {
+				String imgPath = "images/branding/" + operator + "_logo.png";
+			%>
+    <img src='<%=imgPath%>' alt="Operator" class="brandLogo" style="float:right;">
+	<% } %>
+    </td>
+    </tr>
+    </tbody></table>
+    </div>
+    </div>
+	</header>
+
+
+				<% if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains("OpenIDAuthenticator")) {
+
+							hasLocalLoginOptions = true;
+				%>
+
+				<div class="row">
+					<div class="span12">
+
+						<%@ include file="openid.jsp" %>
+
+					</div>
+				</div>
 
 				<%
 				} else if (localAuthenticatorNames.size() > 0 && localAuthenticatorNames.contains("PinAuthenticator")) {
@@ -488,6 +494,8 @@
                 <%
                         }
 					}
+				}
+
 
 					if ((hasLocalLoginOptions && localAuthenticatorNames.size() > 1) || (!hasLocalLoginOptions)
 							|| (hasLocalLoginOptions && idpAuthenticatorMapping.size() > 1)) {
