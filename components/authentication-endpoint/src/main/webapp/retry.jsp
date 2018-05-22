@@ -73,25 +73,46 @@
     </header>
 
     <!-- page content -->
-    <div class="row">
-        <div class="col-md-12">
-            <!-- content -->
-            <div class="container col-xs-7 col-sm-5 col-md-4 col-lg-3 col-centered wr-content wr-login col-centered">
-                <div>
-                    <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none"><%=Encode.forHtmlContent(stat)%> </h2>
-                </div>
+        <div class="row" id="accLock" style="display:none">
+            <div class="col-md-12">
+                <!-- content -->
+                <div class="container col-xs-7 col-sm-5 col-md-4 col-lg-3 col-centered wr-content wr-login col-centered">
+                    <div>
+                        <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">Login Failed</h2>
+                    </div>
 
-                <div class="boarder-all col-lg-12 padding-top-double padding-bottom-double error-alert  ">
-                    <div class="font-medium"><strong><fmt:message key='common-error-propmt'/></strong> </div>
-                    <div class="padding-bottom-double">
-                        <%=Encode.forHtmlContent(statusMessage)%>
+                    <div class="boarder-all col-lg-12 padding-top-double padding-bottom-double error-alert  ">
+                        <div class="font-medium"><strong>Attention:</strong> </div>
+                        <div class="padding-bottom-double">Your account has been locked.Try again in 15 minutes.
+                        </div>
                     </div>
                 </div>
-            </div>
-            <!-- /content -->
+                <!-- /content -->
 
+            </div>
         </div>
-    </div>
+
+
+     <!-- page content -->
+        <div class="row" id="accUnlock" style="display:none">
+            <div class="col-md-12">
+                <!-- content -->
+                <div class="container col-xs-7 col-sm-5 col-md-4 col-lg-3 col-centered wr-content wr-login col-centered">
+                    <div>
+                        <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none"><%=Encode.forHtmlContent(stat)%> </h2>
+                    </div>
+
+                    <div class="boarder-all col-lg-12 padding-top-double padding-bottom-double error-alert  ">
+                        <div class="font-medium"><strong>Attention:</strong> </div>
+                        <div class="padding-bottom-double">
+                            <%=Encode.forHtmlContent(statusMessage)%>
+                        </div>
+                    </div>
+                </div>
+                <!-- /content -->
+
+            </div>
+        </div>
 
     <!-- footer -->
     <footer class="footer">
@@ -107,7 +128,16 @@
     <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
 
     <script>
+        $.urlParam = function(name){
+    	var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+    	return results[1] || 0;
+        }
 
+        if( $.urlParam('errorCode') == '17003'){
+        document.getElementById("accLock").style = "";
+        }else{
+        document.getElementById("accUnlock").style= "";
+        }
 
         $('#popover').popover({
             html: true,

@@ -39,4 +39,8 @@ $(document).ready(function(){
 	$('#denyLink').click(function(){
 			$('#denyForm').submit();
 	});
+
+	setTimeout(function() {
+        $('.errorDiv').fadeOut('fast');
+    }, 3000); // <-- time in milliseconds
 });

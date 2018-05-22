@@ -147,7 +147,7 @@
 
     <servlet>
         <servlet-name>auth_registration_saa_waiting</servlet-name>
-        <jsp-file>/mcx-user-registration/saa_waiting.jsp</jsp-file>
+        <jsp-file>/mcx-user-registration/waiting.jsp</jsp-file>
     </servlet>
 
     <servlet>

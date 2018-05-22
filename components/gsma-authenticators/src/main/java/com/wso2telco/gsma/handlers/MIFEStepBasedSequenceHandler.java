@@ -204,7 +204,7 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
         writeLogHistory(request, context);
 
         boolean dataPublisherEnabled = DataHolder.getInstance().getMobileConnectConfig().getDataPublisher().isEnabled();
-        if (dataPublisherEnabled) {
+        if (dataPublisherEnabled && !("samlsso".equals(context.getRequestType()))) {
             publishAuthEndpointData(request, context);
             if (context.isRequestAuthenticated()) {
                 DataPublisherUtil.updateAndPublishUserStatus(
