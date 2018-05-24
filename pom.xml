@@ -146,6 +146,7 @@
         <module>components/premium-info</module>
         <module>components/openid-extension</module>
         <module>components/token-introspection</module>
+        <module>components/sample-request</module>
         <module>features</module>
     </modules>
 
