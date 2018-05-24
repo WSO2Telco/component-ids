@@ -107,6 +107,7 @@ public class ServerInitiatedServiceEndpoints {
         String redirectUrl;
         BackChannelOauthResponse backChannelOauthResponse = new BackChannelOauthResponse();
         String authorizeEndpointUrl = mobileConnectConfigs.getBackChannelConfig().getAuthorizeEndpoint();
+        String backChanelAcrValue = "11";
 
         try {
             jwsObject = processJWE(request);
@@ -129,7 +130,7 @@ public class ServerInitiatedServiceEndpoints {
             version = payloadObj.get(AuthProxyConstants.VERSION).toString();
             loginHint = payloadObj.get(AuthProxyConstants.LOGIN_HINT).toString();
             scopeName = payloadObj.get(AuthProxyConstants.SCOPE).toString();
-            acrValue = payloadObj.get(AuthProxyConstants.ACR_VALUE).toString();
+            acrValue = payloadObj.get(AuthProxyConstants.ACR_VALUE).toString() == "2" ? backChanelAcrValue : payloadObj.get(AuthProxyConstants.ACR_VALUE).toString();
             responseType = payloadObj.get(AuthProxyConstants.RESPONSE_TYPE).toString();
             notificationUrl = payloadObj.get(AuthProxyConstants.NOTIFICATION_URI).toString();
             state = payloadObj.get(AuthProxyConstants.STATE).toString();
