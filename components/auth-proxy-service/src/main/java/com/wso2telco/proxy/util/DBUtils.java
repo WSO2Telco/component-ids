@@ -35,10 +35,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This class is used to read operator, msisdn and login hint properties.
@@ -141,7 +138,7 @@ public class DBUtils {
      * @throws AuthenticatorException the authenticator exception
      */
     private static Connection getWSO2APIMDBConnection() throws SQLException, NamingException {
-        initializeWSO2APIMDatasource();;
+        initializeWSO2APIMDatasource();
 
         if (wso2APIMDatasource != null) {
             return wso2APIMDatasource.getConnection();
@@ -303,7 +300,11 @@ public class DBUtils {
             Boolean mainScopeFound = false;
             List<String> scopeValuesFromDatabase = new ArrayList<>();
 
+            ScopeParam parameters = new ScopeParam();
+            EnumSet<ScopeParam.scopeTypes> scopetypes=EnumSet.noneOf(ScopeParam.scopeTypes.class);
+            boolean is_consent_page=false;
             while (results.next()) {
+                is_consent_page=results.getBoolean("is_consent_page");
                 Boolean isMultiscope = results.getBoolean("is_multiscope");
                 scopeValuesFromDatabase.add(results.getString("scope"));
 
@@ -312,27 +313,37 @@ public class DBUtils {
                     if (mainScopeFound) {
                         throw new ConfigurationException("Multiple main scopes found");
                     }
-
                     //mark as main scope found
                     mainScopeFound = true;
-
-
                     scopeParamsMap.put("scope", results.getString("scope"));
 
-                    ScopeParam parameters = new ScopeParam();
                     parameters.setScope(results.getString("scope"));
                     parameters.setLoginHintMandatory(results.getBoolean("is_login_hint_mandatory"));
                     parameters.setHeaderMsisdnMandatory(results.getBoolean("is_header_msisdn_mandatory"));
+
                     parameters.setMsisdnMismatchResult(ScopeParam.MsisdnMismatchResultTypes.valueOf(results.getString(
                             "msisdn_mismatch_result")));
                     parameters.setHeFailureResult(ScopeParam.HeFailureResults.valueOf(results.getString(
                             "he_failure_result")));
+
                     parameters.setTncVisible(results.getBoolean("is_tnc_visible"));
                     parameters.setLoginHintFormat(getLoginHintFormatTypeDetails(results.getInt("param_id"), conn));
+                }
 
-                    scopeParamsMap.put("params", parameters);
+                String scope_type=results.getString("scope_type");
+                ScopeParam.scopeTypes scopeTypeFromDB=null;
+                //// TODO: 8/31/17 add the scopetype retrival to a common method
+                if(scope_type.equalsIgnoreCase(ScopeParam.scopeTypes.MAIN.name())){
+                    scopeTypeFromDB=ScopeParam.scopeTypes.MAIN;
+                }else if(scope_type.equalsIgnoreCase(ScopeParam.scopeTypes.APICONSENT.name())){
+                    scopeTypeFromDB=ScopeParam.scopeTypes.APICONSENT;
+                }
+                if(scopeTypeFromDB!=null){
+                    scopetypes.add(scopeTypeFromDB);
                 }
             }
+            parameters.setScopeTypesList(scopetypes);
+            parameters.setConsentPage(is_consent_page);
 
             //validate all scopes and compare with scopes fetched from database
             for (String scopeToValidate : scopeValues) {
@@ -340,6 +351,7 @@ public class DBUtils {
                     throw new ConfigurationException("One or more scopes are not valid");
                 }
             }
+            scopeParamsMap.put("params", parameters);
         } catch (SQLException e) {
             handleException("Error occurred while getting scope parameters from the database", e);
         } catch (ConfigurationException e) {
@@ -404,11 +416,11 @@ public class DBUtils {
 
         String queryToGetOperatorProperty =
                 "select count(*) as record_count from " +
-                    "( select client_id,config_key,config_value " +
+                        "( select client_id,config_key,config_value " +
                         "FROM `sp_configuration` " +
                         "WHERE `client_id`=? AND `config_key`=? AND  `config_value` in (" + params + ") " +
                         "group by client_id,config_key,config_value" +
-                    ") as spscopes";
+                        ") as spscopes";
         boolean isSPAllowedScope = false;
 
         try {
@@ -437,26 +449,69 @@ public class DBUtils {
         return isSPAllowedScope;
     }
 
+    /**
+     * Get a list of notification URLs for a given SP
+     *
+     * @param clientId unique Client_id
+     * @return list of Notification urls
+     * @throws AuthenticatorException on errors
+     * @throws ConfigurationException on errors
+     */
+    public static List<String> getNotificationUrls(String clientId) throws AuthenticatorException,
+            ConfigurationException {
+
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        List<String> notificationUrls = null;
+
+        String sql = "SELECT notification_url FROM sp_notification_url WHERE client_id=? ;";
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query to get Notification Urls: " + sql);
+        }
+
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, clientId);
+            resultSet = preparedStatement.executeQuery();
+            notificationUrls = new ArrayList<>();
+
+            while (resultSet.next()) {
+                notificationUrls.add(resultSet.getString("notification_url"));
+            }
+        } catch (SQLException e) {
+            handleException(
+                    "Error occurred while getting Notification Urls for ClientId - " + clientId,
+                    e);
+        } catch (NamingException e) {
+            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+        } finally {
+            closeAllConnections(preparedStatement, connection, resultSet);
+        }
+        return notificationUrls;
+    }
 
     public static boolean isValidCallback(String redirectURL, String clientId)
             throws ConfigurationException, AuthenticatorException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
-        String queryToGetOperatorProperty ="SELECT callback_url FROM idn_oauth_consumer_apps WHERE consumer_key=?";
+        String queryToGetOperatorProperty = "SELECT callback_url FROM idn_oauth_consumer_apps WHERE consumer_key=?";
         boolean isValidCallback = false;
 
         try {
             connection = getWSO2APIMDBConnection();
             preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
-            preparedStatement.setString(1, clientId);;
+            preparedStatement.setString(1, clientId);
             resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 isValidCallback = resultSet.getString("callback_url").equalsIgnoreCase(redirectURL);
             }
         } catch (SQLException e) {
             handleException(
-                    "Error occurred while getting call back infomation for ClientId - " + clientId,e);
+                    "Error occurred while getting call back infomation for ClientId - " + clientId, e);
         } catch (NamingException e) {
             throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
         } finally {
@@ -465,6 +520,49 @@ public class DBUtils {
         return isValidCallback;
     }
 
+    /**
+     * Get request encrypted key for a given SP
+     *
+     * @param clientId unique Client_id
+     * @return shared private key
+     * @throws AuthenticatorException on errors
+     * @throws ConfigurationException on errors
+     */
+    public static String getSpRequestEncryptedKey(String clientId) throws AuthenticatorException,
+            ConfigurationException {
+
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        String sharedKey = null;
+
+        String sql = "SELECT config_value FROM sp_configuration WHERE client_id=? and config_key='" +
+                AuthProxyConstants.SP_REQUEST_ENCRYPTED_PUBLIC_KEY + "';";
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query to get Shared request Encrypted Key: " + sql);
+        }
+
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, clientId);
+            resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                sharedKey = resultSet.getString("config_value");
+            }
+        } catch (SQLException e) {
+            handleException(
+                    "Error occurred while getting Shared Encrypted Key for ClientId - " + clientId,
+                    e);
+        } catch (NamingException e) {
+            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+        } finally {
+            closeAllConnections(preparedStatement, connection, resultSet);
+        }
+        return sharedKey;
+    }
 
     private static void closeAllConnections(PreparedStatement preparedStatement,
                                             Connection connection, ResultSet resultSet) {

@@ -327,9 +327,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             validateOperator(request, context, msisdn, operator, userStatus);
         } catch (AuthenticationFailedException e) {
             // take action based on scope properties
-            DataPublisherUtil
-                    .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL,
-                            e.getMessage());
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.HE_AUTH_PROCESSING_FAIL,e.getMessage());
             actionBasedOnHEFailureResult(context);
             throw e;
         }
@@ -451,7 +449,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             boolean isStatusUpdate = (boolean) context.getProperty(Constants.IS_STATUS_TO_CHANGE);
             String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
             String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
-
+            boolean isShowConcent = (boolean) context.getProperty(Constants.IS_SHOW_CONSENT);
 
             validateOperator(request, context, msisdn, operator, userStatus);
 
@@ -463,6 +461,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 if (isRegistering || isStatusUpdate) {
                     // authenticators from step map
                     try {
+                        if(!isShowConcent) {
                         new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope,
                                 spType, attrShareType);
 
@@ -470,6 +469,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                                 .getMobileConnectConfig().getSmsConfig();
                         if (!smsConfig.getWelcomeMessageDisabled()) {
                             WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
+                        }
+
                         }
                         if (isAttributeScope) {
                             handleAttributeShareResponse(context);
@@ -488,6 +489,10 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 }
             }
             context.setProperty(Constants.IS_PIN_RESET, false);
+
+            if(!isShowConcent) {
+                context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+            }
             // explicitly remove all other authenticators and mark as a success
             context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
 
@@ -508,9 +513,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         }
 
         log.info("Authentication success");
-
-        DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.HE_AUTH_SUCCESS,
-                "Header Enrichment Authentication success");
+        DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.HE_AUTH_SUCCESS,"Header Enrichment Authentication success");
     }
 
     /**

@@ -959,4 +959,162 @@ public class DBUtils {
         return userResponse;
     }
 
+
+
+    public static String getSPConfigValue(String operator, String clientID, String key) throws AuthenticatorException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        String queryToGetConsent = "SELECT config_value FROM sp_configuration WHERE client_id=? AND operator=? AND config_key=?";
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(queryToGetConsent);
+            preparedStatement.setString(1,clientID);
+            preparedStatement.setString(2,operator);
+            preparedStatement.setString(3, key);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                return resultSet.getString("config_value");
+            }
+        } catch (SQLException e) {
+            handleException("Error occurred while retrieving config_value for client_id : " + clientID,e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet,preparedStatement);
+        }
+        return null;
+    }
+
+    public static boolean getUserConsentScopeApproval(String msisdn, String scope, String clientID, String operator)
+            throws AuthenticatorException {
+        boolean approved = false;
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT consent_given_user_lifetime.approve ");
+        sql.append("FROM consent_given_user_lifetime ");
+        sql.append("INNER JOIN (");
+        sql.append(     "SELECT consent_configuration.consent_id ");
+        sql.append(     "FROM consent_configuration ");
+        sql.append(     "INNER JOIN scope_parameter ON scope_parameter.param_id=consent_configuration.scope_id ");
+        sql.append(     "INNER JOIN operators ON operators.ID=consent_configuration.operator_id ");
+        sql.append(     "WHERE scope_parameter.scope=? AND consent_configuration.client_id=? AND operators.operatorname=? ");
+        sql.append( ") as consentinfo on consentinfo.consent_id=consent_given_user_lifetime.consent_id ");
+        sql.append("WHERE consent_given_user_lifetime.msisdn=?");
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(sql.toString());
+            preparedStatement.setString(1, scope);
+            preparedStatement.setString(2, clientID);
+            preparedStatement.setString(3, operator);
+            preparedStatement.setString(4, msisdn);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                approved=resultSet.getBoolean("approve");
+            }
+        } catch (SQLException e) {
+            handleException("Error occurred while retrieving user consent details for msisdn :- " + msisdn  + scope, e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet,preparedStatement);
+        }
+        return approved;
+    }
+
+
+
+    public static String[] getConsentStatus(String scope, String clientID, String operator)
+            throws AuthenticatorException {
+        String[] consent = null;
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT consent_configuration.approve_status,scope_parameter.description ");
+        sql.append("FROM consent_configuration ");
+        sql.append("INNER JOIN scope_parameter ON scope_parameter.param_id=consent_configuration.scope_id ");
+        sql.append("INNER JOIN operators ON operators.ID=consent_configuration.operator_id ");
+        sql.append("where scope_parameter.scope=? AND consent_configuration.client_id=? AND operators.operatorname=?");
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(sql.toString());
+            preparedStatement.setString(1, scope);
+            preparedStatement.setString(2, clientID);
+            preparedStatement.setString(3, operator);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                consent=new String[2];
+                consent[0]=resultSet.getString("approve_status");
+                consent[1]=resultSet.getString("description");
+            }
+        } catch (SQLException e) {
+            handleException("Error occurred while retrieving consent details for client_id : " + clientID,e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet,preparedStatement);
+        }
+        return consent;
+    }
+
+
+
+
+    public static void insertUserConsentDetails(String msisdn, String scope, String clientID, String operator, boolean consentGiven)
+            throws  AuthenticatorException {
+            Connection connection = null;
+            PreparedStatement preparedStatement = null;
+            ResultSet resultSet = null;
+            StringBuilder sql = new StringBuilder();
+            sql.append("INSERT INTO consent_given_user_lifetime (msisdn, consent_id, approve) ");
+            sql.append("SELECT ?,");
+            sql.append("(SELECT consent_configuration.consent_id ");
+            sql.append(     "FROM consent_configuration ");
+            sql.append(     "INNER JOIN scope_parameter ON scope_parameter.param_id=consent_configuration.scope_id ");
+            sql.append(     "INNER JOIN operators ON operators.ID=consent_configuration.operator_id ");
+            sql.append(     "where scope_parameter.scope=? AND consent_configuration.client_id=? AND operators.operatorname=?),");
+            sql.append("?");
+            try {
+                connection = getConnectDBConnection();
+                preparedStatement = connection.prepareStatement(sql.toString());
+                preparedStatement.setString(1, msisdn);
+                preparedStatement.setString(2, scope);
+                preparedStatement.setString(3, clientID);
+                preparedStatement.setString(4, operator);
+                preparedStatement.setBoolean(5, consentGiven);
+                preparedStatement.execute();
+            }catch (SQLException e) {
+                handleException("Error occurred while inserting user consent details for msisdn :- " + msisdn,e);
+            }  finally {
+                IdentityDatabaseUtil.closeAllConnections(connection, resultSet,preparedStatement);
+            }
+    }
+
+    public static void insertConsentHistoryDetails(String msisdn, String scope, String clientID, String operator,String status)
+            throws AuthenticatorException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        StringBuilder sql = new StringBuilder();
+        sql.append("INSERT INTO consent_user_history (msisdn, consent_id, approve_status,consent_date) ");
+        sql.append("SELECT ?,");
+        sql.append("(SELECT consent_configuration.consent_id FROM consent_configuration ");
+        sql.append(     "INNER JOIN scope_parameter ON scope_parameter.param_id=consent_configuration.scope_id ");
+        sql.append(     "INNER JOIN operators ON operators.ID=consent_configuration.operator_id ");
+        sql.append(     "where scope_parameter.scope=? AND consent_configuration.client_id=? AND operators.operatorname=?),");
+        sql.append("?,?");
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(sql.toString());
+            preparedStatement.setString(1, msisdn);
+            preparedStatement.setString(2, scope);
+            preparedStatement.setString(3, clientID);
+            preparedStatement.setString(4, operator);
+            preparedStatement.setString(5, status);
+            preparedStatement.setTimestamp(6, new java.sql.Timestamp(new java.util.Date().getTime()));
+            preparedStatement.execute();
+        } catch (SQLException e) {
+            handleException("Error occurred while inserting consent history details for msisdn :- " + msisdn,e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet,preparedStatement);
+        }
+    }
 }
+

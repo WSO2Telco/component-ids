@@ -10,13 +10,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.dao;
+package com.wso2telco.ids.dao;
 
 
 import com.wso2telco.core.dbutils.DbUtils;
 import com.wso2telco.exception.EmptyResultSetException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

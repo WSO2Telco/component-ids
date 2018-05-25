@@ -108,10 +108,24 @@ public final class Constants {
      */
     public static final String USSD_AUTHENTICATOR_NAME = "USSDAuthenticator";
 
+    public static final String SERVER_INITIATED_USSD_AUTHENTICATOR_NAME = "ServerInitiatedUSSDAuthenticator";
+
     /**
      * The Constant USSD_AUTHENTICATOR_FRIENDLY_NAME.
      */
     public static final String USSD_AUTHENTICATOR_FRIENDLY_NAME = "ussd";
+
+    public static final String SERVER_INITIATED_USSD_AUTHENTICATOR_FRIENDLY_NAME = "ussd";
+
+    /**
+     * The Constant CONSENT_AUTHENTICATOR_NAME.
+     */
+    public static final String CONSENT_AUTHENTICATOR_NAME = "ConsentAuthenticator";
+
+    /**
+     * The Constant CONSENT_AUTHENTICATOR_FRIENDLY_NAME.
+     */
+    public static final String CONSENT_AUTHENTICATOR_FRIENDLY_NAME = "consent";
 
     /**
      * The Constant USSD_AUTHENTICATOR_STATUS.
@@ -138,20 +152,28 @@ public final class Constants {
      */
     public static final String SMS_AUTHENTICATOR_NAME = "SMSAuthenticator";
 
+    public static final String SERVER_INITIATED_SMS_AUTHENTICATOR_NAME = "ServerInitiatedSMSAuthenticator";
+
     /**
      * The Constant SMSOTP_AUTHENTICATOR_NAME.
      */
     public static final String SMSOTP_AUTHENTICATOR_NAME = "SMSOTPAuthenticator";
+
+    public static final String SERVER_INITIATED_SMSOTP_AUTHENTICATOR_NAME = "ServerInitiatedSMSOTPAuthenticator";
 
     /**
      * The Constant SMS_AUTHENTICATOR_FRIENDLY_NAME.
      */
     public static final String SMS_AUTHENTICATOR_FRIENDLY_NAME = "sms";
 
+    public static final String SERVER_INITIATED_SMS_AUTHENTICATOR_FRIENDLY_NAME = "sms";
+
     /**
      * The Constant SMSOTP_AUTHENTICATOR_FRIENDLY_NAME.
      */
     public static final String SMSOTP_AUTHENTICATOR_FRIENDLY_NAME = "smsotp";
+
+    public static final String SERVER_INITIATED_SMSOTP_AUTHENTICATOR_FRIENDLY_NAME = "smsotp";
 
     /**
      * The Constant SMS_AUTHENTICATOR_STATUS.
@@ -251,6 +273,8 @@ public final class Constants {
 
     public static final String PIN_REGISTRATION_JSP = "/mcx-user-registration/auth_pin_registration";
 
+    public static final String SAA_WAITING_JSP = "/mcx-user-registration/auth_registration_saa_waiting";
+
     public static final String REDIRECT_URI = "redirectURI";
 
     public static final String COMMON_AUTH_HANDLED = "commonAuthHandled";
@@ -330,6 +354,20 @@ public final class Constants {
     public static final String SAA_ENPOINT = "Endpoint";
 
     public static final String TRANSACTION_ID = "transactionId";
+
+    public static final String IS_SHOW_CONSENT = "isShowConsent";
+
+    public static final String APPROVED_SCOPES = "approved_scopes";
+
+    public static final String APPROVE_NEEDED_SCOPES = "approve_needed_scopes";
+
+    public static final String APPROVE_ALL_ENABLE = "approve_all_enable";
+
+    public static final String STATUS_APPROVE = "approve";
+
+    public static final String STATUS_APPROVEALL = "approveall";
+
+    public static final String STATUS_DENY = "deny";
 
     public static final String USER_STATUS_STREAM_NAME = "com.wso2telco.userstatus";
 
@@ -425,7 +463,11 @@ public final class Constants {
 
     public static final String SCOPE = "scope";
 
+    public static final String SP_LOGO = "logo";
+
     public static final String PROMPT = "telco_prompt";
+
+    public static final String SCOPE_TYPES = "scope_types";
 
     public static final String OPERATOR_ID = "operatorID";
 
@@ -471,4 +513,10 @@ public final class Constants {
     public static final String TRUE = "true";
 
     public static final String FALSE = "false";
+
+    public static final String IS_BACKCHANNEL_ALLOWED = "is_backChannel_allowed";
+
+    public static final String CORRELATION_ID = "correlation_id";
+
+    public static final String REDIRECT_URL = "redirectUrl";
 }

@@ -54,8 +54,12 @@ public class AuthProxyConstants {
     public static final String SCOPE_MNV = "mnv";
     public static final String SCOPE_OPENID = "openid";
     public static final String TELCO_SCOPE = "telco_scope";
+    public static final String PARENT_SCOPE = "parent_scope";
+    public static final String API_SCOPES = "api_scope";
+    public static final String SCOPE_TYPES = "scope_types";
     public static final String UTF_ENCODER = "UTF-8";
     public static final String SHOW_TNC = "isShowTnc";
+    public static final String SHOW_CONSENT = "isShowConsent";
     public static final String LOGIN_HINT_MANDATORY = "isLoginhintMandatory";
     public static final String HEADER_MISMATCH_RESULT = "headerMismatchResult";
     public static final String HE_FAILURE_RESULT = "heFailureResult";
@@ -67,5 +71,18 @@ public class AuthProxyConstants {
     public static final String ATTR_SHARE_SCOPE = "isAttrScope";
     public static final String TRUSTED_STATUS = "trustedstatus";
     public static final String ATTR_SHARE_SCOPE_TYPE = "attrShareType";
-
+    public static final String STATE =  "state";
+    public static final String NONCE =  "nonce";
+    public static final String NOTIFICATION_URI =  "notification_uri";
+    public static final String ACR_VALUE = "acr_value";
+    public static final String CLIENT_NOTIFICATION_TOKEN = "client_notification_token";
+    public static final String IS_BACKCHANNEL_ALLOWED = "is_backChannel_allowed";
+    public static final String CORRELATION_ID = "correlation_id";
+    public static final String REDIRECT_URL = "redirect_uri";
+    public static final String CODE = "code";
+    public static final String AUTH_REQ_ID = "auth_req_id";
+    public static final String ISS = "iss";
+    public static final String AUD = "aud";
+    public static final String VERSION = "version";
+    public static final String SP_REQUEST_ENCRYPTED_PUBLIC_KEY = "bcRequestEncryptedPublicKey";
 }

@@ -45,15 +45,15 @@
         </repository>
     </distributionManagement>
 
-    <scm>
-        <url>https://github.com/WSO2Telco/component-ids.git</url>
-        <developerConnection>scm:git:https://github.com/WSO2Telco/component-ids.git</developerConnection>
-        <connection>scm:git:https://github.com/WSO2Telco/component-ids.git</connection>
-        <tag>v2_3_0-rc6</tag>
-    </scm>
+	<scm>
+                <url>https://github.com/WSO2Telco/component-ids.git</url>
+                <developerConnection>scm:git:https://github.com/WSO2Telco/component-ids.git</developerConnection>
+                <connection>scm:git:https://github.com/WSO2Telco/component-ids.git</connection>
+                <tag>HEAD</tag>
+        </scm>
 
 
-    <repositories>
+	<repositories>
 
         <repository>
             <id>wso2telco-nexus</id>
@@ -842,6 +842,11 @@
             </dependency>
 
             <dependency>
+		<groupId>com.wso2telco.ids</groupId>
+		<artifactId>common-util</artifactId>
+		<version>${com.wso2telco.ids.version}</version>
+	    </dependency>
+            <dependency>
                 <groupId>com.wso2telco.ids</groupId>
                 <artifactId>user-claim-retriever</artifactId>
                 <version>${com.wso2telco.ids.version}</version>
@@ -901,6 +906,7 @@
                 <version>${com.sun.jersey.version}</version>
             </dependency>
 
+		
 
             <dependency>
                 <groupId>com.sun.jersey</groupId>

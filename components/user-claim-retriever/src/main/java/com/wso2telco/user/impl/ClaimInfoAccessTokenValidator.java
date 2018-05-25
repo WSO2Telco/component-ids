@@ -21,7 +21,7 @@ import org.wso2.carbon.identity.oauth.user.UserInfoEndpointException;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationRequestDTO;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
 
-import com.wso2telco.util.EndpointUtil;
+import com.wso2telco.ids.utils.EndpointUtil;
 
 // TODO: Auto-generated Javadoc
 

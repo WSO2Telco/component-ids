@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.wso2telco.dao;
+package com.wso2telco.ids.dao;
 
 public class ScopeDetails {
     private String accessToken;

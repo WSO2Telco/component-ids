@@ -320,11 +320,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             if (rememberMe != null && "eon".equals(rememberMe)) {
                 context.setRememberMe(true);
             }
-
-            DataPublisherUtil
-                    .updateAndPublishUserStatus(
-                            (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
-                            DataPublisherUtil.UserState.MSISDN_AUTH_SUCCESS, "MSISDN Authentication success");
         } catch (Exception ex) {
             DataPublisherUtil
                     .updateAndPublishUserStatus(
@@ -344,6 +339,22 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         throw new AuthenticationFailedException("Moving to get consent or profile upgrade");
     }
 
+
+    private boolean isUserExist(String msisdn) throws AuthenticationFailedException{
+    	boolean isUserExists = false;
+    	try{
+            if (AdminServiceUtil.isUserExists(msisdn)) {
+                String status=AdminServiceUtil.getUserStatus(msisdn);
+                if (status!=null && status.equalsIgnoreCase("ACTIVE")) {
+                    isUserExists = true;
+                }
+            }
+    	}catch(Exception e){
+    		throw new AuthenticationFailedException("Authenicator failed", e); 
+    	}
+
+        return isUserExists;
+    }
 
     public AuthenticatorFlowStatus processRequest(HttpServletRequest request, HttpServletResponse response,
                                                   AuthenticationContext context) throws
