@@ -159,6 +159,8 @@ public final class Constants {
      */
     public static final String SMSOTP_AUTHENTICATOR_NAME = "SMSOTPAuthenticator";
 
+    public static final String SERVER_INITIATED_SMSOTP_AUTHENTICATOR_NAME = "ServerInitiatedSMSOTPAuthenticator";
+
     /**
      * The Constant SMS_AUTHENTICATOR_FRIENDLY_NAME.
      */
@@ -170,6 +172,8 @@ public final class Constants {
      * The Constant SMSOTP_AUTHENTICATOR_FRIENDLY_NAME.
      */
     public static final String SMSOTP_AUTHENTICATOR_FRIENDLY_NAME = "smsotp";
+
+    public static final String SERVER_INITIATED_SMSOTP_AUTHENTICATOR_FRIENDLY_NAME = "smsotp";
 
     /**
      * The Constant SMS_AUTHENTICATOR_STATUS.

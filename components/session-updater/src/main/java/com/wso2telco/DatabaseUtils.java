@@ -693,4 +693,33 @@ public class DatabaseUtils {
         return otp;
     }
 
+    public static String getBackchannelSessionIDForCorrelationID (String correlationID) {
+        String sessionID = null;
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        String sql = "select session_id from backchannel_request_details where correlation_id = ?";
+
+        try {
+            connection = getConnectDBConnection();
+            ps = connection.prepareStatement(sql);
+            ps.setString(1, correlationID);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                sessionID = rs.getString(1);
+            }
+
+        } catch (NamingException ex) {
+            log.error("Error while connecting to DB", ex);
+        } catch (SQLException e) {
+            log.error("Error in querying DB", e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, rs, ps);
+        }
+
+        return sessionID;
+    }
+
 }
