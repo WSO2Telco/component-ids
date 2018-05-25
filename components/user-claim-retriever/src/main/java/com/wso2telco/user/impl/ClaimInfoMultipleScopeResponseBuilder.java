@@ -16,17 +16,26 @@
 package com.wso2telco.user.impl;
 
 import com.google.gson.Gson;
+import com.wso2telco.claims.ClaimsRetrieverFactory;
 import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.model.ScopeDetailsConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.dbutils.DbService;
 import com.wso2telco.core.dbutils.model.FederatedIdpMappingDTO;
+
+import com.wso2telco.dao.DBConnection;
+import com.wso2telco.dao.ScopeDetails;
+import com.wso2telco.util.ClaimUtil;
+import com.wso2telco.util.ClaimsRetrieverType;
+
 import com.wso2telco.claims.ClaimsRetrieverFactory;
 import com.wso2telco.core.config.model.ScopeDetailsConfig;
 import com.wso2telco.ids.dao.DBConnection;
 import com.wso2telco.ids.dao.ScopeDetails;
 import com.wso2telco.ids.utils.ClaimUtil;
 import com.wso2telco.ids.utils.ClaimsRetrieverType;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.http.HttpResponse;
@@ -38,6 +47,7 @@ import org.apache.oltu.oauth2.common.exception.OAuthSystemException;
 import org.wso2.carbon.identity.oauth.user.UserInfoEndpointException;
 import org.wso2.carbon.identity.oauth.user.UserInfoResponseBuilder;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2TokenValidationResponseDTO;
+import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -90,7 +100,11 @@ public class ClaimInfoMultipleScopeResponseBuilder implements UserInfoResponseBu
         String tokenValue = tokenResponse.getAuthorizationContextToken()
                 .getTokenString();
 
+        String username = tokenResponse.getAuthorizedUser();
+        String msisdn = MultitenantUtils.getTenantAwareUsername(username);
+
         org.apache.log4j.MDC.put("REF_ID", tokenValue);
+        org.apache.log4j.MDC.put("MSISDN", msisdn);
 
         log.info("Start Generating User Claim Info for Access token : " + tokenValue);
         List<ScopeDetailsConfig.Scope> scopes;

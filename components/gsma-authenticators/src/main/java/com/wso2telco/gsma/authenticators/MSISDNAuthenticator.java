@@ -39,14 +39,14 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.L
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.identity.application.common.model.User;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
-import org.wso2.carbon.user.api.UserStoreException;
 
 import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.SQLException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 // TODO: Auto-generated Javadoc
 
@@ -152,8 +152,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 retryParam = "&authFailure=true&authFailureMsg=login.fail.message";
             }
 
-            log.info("Redirecting to MSISDN enter page");
-
             DataPublisherUtil
                     .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
                             .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
@@ -231,6 +229,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     protected void processAuthenticationResponse(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
+        org.apache.log4j.MDC.remove("MSISDN");
         log.info("Processing authentication response");
 
         String msisdn;
@@ -241,6 +240,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     !request.getParameter(Constants.MSISDN).isEmpty())) {
                 msisdn = request.getParameter(Constants.MSISDN);
                 context.setProperty(Constants.MSISDN, msisdn);
+                org.apache.log4j.MDC.put("MSISDN", msisdn);
                 boolean isUserExists = false;
                 boolean isConvertToActive = false;
 
@@ -274,6 +274,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
             } else {
                 msisdn = context.getProperty(Constants.MSISDN).toString();
+                org.apache.log4j.MDC.put("MSISDN", msisdn);
 
                 if (log.isDebugEnabled()) {
                     log.debug("Detected MSISDN : " + msisdn);
@@ -284,7 +285,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     // Change behaviour depending on user action
                     switch (userAction) {
                         case Constants.USER_ACTION_REG_CONSENT:
-
+                            log.info("User approved the consent");
                             DataPublisherUtil
                                     .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
                                             .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
@@ -297,12 +298,14 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                             break;
                         case Constants.USER_ACTION_REG_REJECTED:
                             //User rejected to registration consent
+                            log.info("User rejected the consent");
                             terminateAuthentication(context);
                             break;
                     }
                 } else {
                     boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
                     if (isRegistering && isShowTnc) {
+                        log.info("Redirecting user to consent page");
                         retryAuthenticatorForConsent(context);
                     }
                 }
@@ -332,7 +335,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
                         .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
                         .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
-        log.info("Redirecting to consent or profile upgrade page");
+        log.info("Retrying authenticator to redirect to consent page");
         throw new AuthenticationFailedException("Moving to get consent or profile upgrade");
     }
 
@@ -556,20 +559,23 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
 
             if (isShowTnC && isRegistering) {
-
                 if (explicitScope) {
+                    log.info("Redirecting user to user attribute consent page");
                     loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
                             Constants.ATTRIBUTE_CONSENT_JSP;
                 } else {
+                    log.info("Redirecting user to consent page");
                     loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
                             Constants.CONSENT_JSP;
                 }
 
             } else {
+                log.info("Redirecting to MSISDN enter page");
                 loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
             }
 
         } else {
+            log.info("Redirecting to MSISDN enter page");
             loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         }
 

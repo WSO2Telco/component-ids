@@ -59,8 +59,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.rmi.RemoteException;
-import java.sql.SQLException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 // TODO: Auto-generated Javadoc
 
@@ -304,6 +306,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         String msisdn = context.getProperty(Constants.MSISDN).toString();
 
         org.apache.log4j.MDC.put("MSISDN", msisdn);
+
         log.info("Initiating authentication request");
 
         AuthenticationContextCache.getInstance().addToCache(new AuthenticationContextCacheKey(context
@@ -366,6 +369,9 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 getConsentFromUser(request, response, context, attributeSet);
             } else {
                 String loginPage = getAuthEndpointUrl(showTnc, isRegistering, isExplicitScope);
+                if (isRegistering && showTnc) {
+                    log.info("Redirecting user to consent page");
+                }
                 response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams))
                         + "&redirect_uri=" + request.getParameter("redirect_uri")
                         + "&authenticators=" + getName() + ":" + "LOCAL");
@@ -394,7 +400,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
 
-
         String msisdn = context.getProperty(Constants.MSISDN).toString();
         String operator = context.getProperty(Constants.OPERATOR).toString();
 
@@ -413,7 +418,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             switch (userAction) {
                 case Constants.USER_ACTION_REG_CONSENT:
                     //User agreed to registration consent
-
+                    log.info("User approved the consent");
                     DataPublisherUtil
                             .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
                                     .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
@@ -421,6 +426,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
                     break;
                 case Constants.USER_ACTION_REG_REJECTED:
+                    log.info("User rejected the consent");
                     //User rejected to registration consent
                     terminateAuthentication(context);
                     break;
