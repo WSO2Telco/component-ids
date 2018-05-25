@@ -547,6 +547,118 @@ public class Endpoints {
         postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
     }
 
+    @GET
+    @Path("/serverinitiated/smsotp/response/{correlationId}/{smsOtp}")
+    @Produces("text/plain")
+    public void serverInitiatedSmsOtpConfirm (@PathParam("correlationId") String correlationID, @PathParam("smsOtp") String smsOtp) throws SQLException, CommonAuthenticatorException, ConfigurationException, IOException, AuthenticationFailedException {
+        String sessionID = DatabaseUtils.getBackchannelSessionIDForCorrelationID(correlationID);
+        if (sessionID == null) {
+            log.error("Invalid correlation id:" + correlationID);
+            return;
+        }
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+        setStateFromAuthenticationContext(authenticationContext);
+        BackChannelRequestDetails backChannelRequestDetails = new BackChannelRequestDetails();
+        String spTokenEndpoint = "";
+        String spBearerToken = "";
+        BackChannelTokenResponse backChannelTokenResponse = null;
+        String status = null;
+        String responseString = null;
+        log.info("Received OTP SMS from client Session ID : " +sessionID + " sms otp : " + smsOtp);
+        String userStatus = DatabaseUtils.getUSerStatus(sessionID);
+        String smsOtpShaValue = generateSHA256Hash(smsOtp);
+
+        backChannelRequestDetails = DataBaseConnectUtils.getBackChannelUserDetails(sessionID);
+
+        if (backChannelRequestDetails != null) {
+            spTokenEndpoint = backChannelRequestDetails.getNotificationUrl();
+            spBearerToken = backChannelRequestDetails.getNotificationBearerToken();
+        } else {
+            log.error("Invalid session:" + sessionID);
+            return;
+        }
+
+        String smsotp = DatabaseUtils.getSMSOTP(sessionID);
+
+        if (smsotp == null || smsotp.equals("")) {
+            log.error("sms otp is empty for session id :" + sessionID);
+        }
+
+
+        if (userStatus.equalsIgnoreCase("PENDING") && smsOtpShaValue.equals(smsotp)) {
+            DatabaseUtils.updateStatus(sessionID, "APPROVED");
+            status = "APPROVED";
+
+            if (backChannelRequestDetails != null) {
+                try {
+                    String clientSecret = DbUtil.getClientSecret(backChannelRequestDetails.getClientId());
+
+                    List<NameValuePair> tokenRelatedNameValues = new ArrayList<NameValuePair>();
+                    tokenRelatedNameValues.add(new BasicNameValuePair("grant_type", "authorization_code"));
+                    tokenRelatedNameValues.add(new BasicNameValuePair("code", backChannelRequestDetails.getAuthCode()));
+                    tokenRelatedNameValues.add(new BasicNameValuePair("redirect_uri", backChannelRequestDetails
+                            .getRedirectUrl()));
+
+                    backChannelTokenResponse = getAccessTokenDetails(backChannelRequestDetails.getCorrelationId(),
+                            tokenRelatedNameValues, backChannelRequestDetails.getClientId(), clientSecret);
+                    backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                    backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
+
+                } catch (ConfigurationException | AuthenticatorException | CommonAuthenticatorException e) {
+                    backChannelTokenResponse = new BackChannelTokenResponse();
+                    log.error("Error while generating token for Session Id:" + sessionID);
+                    backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                    backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
+                    backChannelTokenResponse.setError("Internal Server Error");
+                    backChannelTokenResponse.setErrorDescription("An error occurred while generating Token Response");
+
+                    /*responseString = Response.status(500).entity(new Gson().toJson(new
+                            BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+
+                    responseString = new Gson().toJson(new
+                            BackChannelTokenResponse(status, backChannelTokenResponse));
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("ussdSessionID: " + sessionID + ", Response String: " + responseString);
+                    }
+
+                    postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
+                }
+
+
+            }
+
+        } else if (userStatus.equalsIgnoreCase("EXPIRED")) {
+            status = "EXPIRED";
+            backChannelTokenResponse = new BackChannelTokenResponse();
+            backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+            backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
+            backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+            backChannelTokenResponse.setErrorDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
+            backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+
+        } else {
+            status = "EXPIRED";
+            backChannelTokenResponse = new BackChannelTokenResponse();
+            backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+            backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
+            backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+            backChannelTokenResponse.setErrorDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
+            backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+
+        }
+
+        responseString = new Gson().toJson(new
+                BackChannelTokenResponse(status, backChannelTokenResponse));
+
+        if (log.isDebugEnabled()) {
+            log.debug("SessionID: " + sessionID + ", Response String: " + responseString);
+        }
+
+        postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
+
+    }
+
     public BackChannelTokenResponse getAccessTokenDetails(String correlationId, List<NameValuePair>
             tokenRelatedNameValues, String
                                                                   consumerKey, String consumerSecret) throws
@@ -2029,5 +2141,23 @@ public class Endpoints {
             log.error("Error occurred while updating sms otp status", e);
         }
         return Response.status(statusCode).entity(response).build();
+    }
+
+    public static String generateSHA256Hash(String input) throws AuthenticationFailedException {
+        String returnValue=null;
+        try{
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(input.getBytes());
+            byte byteData[] = md.digest();
+            //convert the byte to hex format
+            StringBuffer sb = new StringBuffer();
+            for (int i = 0; i < byteData.length; i++) {
+                sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
+            }
+            returnValue=sb.toString();
+        }catch (Exception e){
+            throw new AuthenticationFailedException("Failure while hashing the input value",e);
+        }
+        return returnValue;
     }
 }

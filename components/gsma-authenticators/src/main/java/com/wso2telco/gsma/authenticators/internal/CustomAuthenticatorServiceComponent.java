@@ -23,6 +23,7 @@ import com.wso2telco.gsma.authenticators.saa.SmartPhoneAppAuthenticator;
 import com.wso2telco.gsma.authenticators.sms.SMSAuthenticator;
 import com.wso2telco.gsma.authenticators.sms.SMSOTPAuthenticator;
 import com.wso2telco.gsma.authenticators.sms.ServerInitiatedSMSAuthenticator;
+import com.wso2telco.gsma.authenticators.sms.ServerInitiatedSMSOTPAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.ServerInitiatedUSSDAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDAuthenticator;
 import com.wso2telco.gsma.authenticators.ussd.USSDPinAuthenticator;
@@ -110,8 +111,10 @@ public class CustomAuthenticatorServiceComponent {
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new ServerInitiatedSMSAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
-                      new ConsentAuthenticator(), null);
- 
+                new ServerInitiatedSMSOTPAuthenticator(), null);
+        ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
+               new ConsentAuthenticator(), null);
+  
 
         if (log.isDebugEnabled()) {
             log.debug("Custom Application Authenticator bundle is activated");
