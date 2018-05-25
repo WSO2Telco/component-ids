@@ -24,13 +24,6 @@ import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.dbutils.DbService;
 import com.wso2telco.core.dbutils.model.FederatedIdpMappingDTO;
 
-import com.wso2telco.dao.DBConnection;
-import com.wso2telco.dao.ScopeDetails;
-import com.wso2telco.util.ClaimUtil;
-import com.wso2telco.util.ClaimsRetrieverType;
-
-import com.wso2telco.claims.ClaimsRetrieverFactory;
-import com.wso2telco.core.config.model.ScopeDetailsConfig;
 import com.wso2telco.ids.dao.DBConnection;
 import com.wso2telco.ids.dao.ScopeDetails;
 import com.wso2telco.ids.utils.ClaimUtil;
