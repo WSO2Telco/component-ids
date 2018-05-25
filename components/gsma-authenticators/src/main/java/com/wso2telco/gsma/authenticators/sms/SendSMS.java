@@ -129,7 +129,7 @@ public class SendSMS {
         returnString = gson.toJson(req);
 
         postRequest(smsConfig.getEndpoint(), returnString, operator, futureCallback);
-
+        LOG.info("Request: " + returnString);
         return returnString;
     }
 

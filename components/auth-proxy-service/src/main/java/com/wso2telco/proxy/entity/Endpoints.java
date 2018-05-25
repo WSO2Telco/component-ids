@@ -147,6 +147,7 @@ public class Endpoints {
         String redirectURL = null;
         String scopeName = null;
         String responseType = null;
+        boolean isBackChannelAllowed = false;
 
         org.apache.log4j.MDC.put("REF_ID", state);
         log.info("Request processing started from proxy");
@@ -205,8 +206,11 @@ public class Endpoints {
                 String ipAddress = null;
                 String msisdn = null;
                 String queryString = "";
+                String correlationId = null;
+                String redirectUrl = null;
 
                 try {
+
                     msisdn = decryptMSISDN(httpHeaders, operatorName);
 
                     List<String> loginHintParameter = queryParams.get(AuthProxyConstants.LOGIN_HINT);
@@ -226,12 +230,23 @@ public class Endpoints {
                         String errMsg = "mobile-connect.xml could not be found";
                         DataPublisherUtil.updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState
                                 .CONFIGURATION_ERROR, errMsg);
+
                         throw new FileNotFoundException(errMsg);
                     }
 
                     RedirectUrlInfo redirectUrlInfo = new RedirectUrlInfo();
                     redirectUrlInfo.setAuthorizeUrl(authorizeUrlProperty);
                     redirectUrlInfo.setOperatorName(operatorName);
+
+                    if (null != (queryParams.get(AuthProxyConstants.IS_BACKCHANNEL_ALLOWED)) &&
+                            (isBackChannelAllowed = Boolean.parseBoolean(queryParams.get(AuthProxyConstants
+                                    .IS_BACKCHANNEL_ALLOWED).get(0).toString()))) {
+                        correlationId = queryParams.get(AuthProxyConstants.CORRELATION_ID).get(0);
+                        redirectUrl = queryParams.get(AuthProxyConstants.REDIRECT_URL).get(0);
+                        redirectUrlInfo.setBackChannelAllowed(isBackChannelAllowed);
+                        redirectUrlInfo.setCorrelationId(correlationId);
+                        redirectUrlInfo.setRedirectUrl(redirectUrl);
+                    }
 
                     if (httpHeaders != null) {
                         if (log.isDebugEnabled()) {
@@ -286,7 +301,6 @@ public class Endpoints {
                         // Encrypt MSISDN
                         msisdn = EncryptAES.encrypt(msisdn);
 
-
                         // Encrypt login-hint msisdn
                         loginhint_msisdn = EncryptAES.encrypt(loginhint_msisdn);
 
@@ -296,6 +310,7 @@ public class Endpoints {
                         } else {
                             msisdn = "";
                         }
+
                         // URL encode login hint msisdn
                         if (loginhint_msisdn != null) {
                             loginhint_msisdn = URLEncoder.encode(loginhint_msisdn, AuthProxyConstants.UTF_ENCODER);
@@ -323,11 +338,13 @@ public class Endpoints {
                         redirectUrlInfo.setAttributeSharingScopeType(attShareDetails.get(AuthProxyConstants
                                 .ATTR_SHARE_SCOPE_TYPE));
 
+
                         if(scopeParam.isConsentPage()){
                             redirectUrlInfo.setShowConsent(true);
                         }
                         redirectUrlInfo.setScopeTypesList(scopeParam.getScopeTypesList());
-                        redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus);
+                       redirectURL = constructRedirectUrl(redirectUrlInfo, userStatus, isBackChannelAllowed);
+ 
 
                         DataPublisherUtil.updateAndPublishUserStatus(
                                 userStatus, DataPublisherUtil.UserState.PROXY_REQUEST_FORWARDED_TO_IS, "Redirect URL : "
@@ -343,7 +360,13 @@ public class Endpoints {
                             e.getMessage());
                 }
 
+ 
+                if (log.isDebugEnabled()) {
+                    log.debug("redirectURL : " + redirectURL);
+                }
+ 
             }
+
         }
 
         if (invalid) {
@@ -357,6 +380,7 @@ public class Endpoints {
         }
     }
 
+
     /**
      * Check if the Scope is allowed for SP
      *
@@ -364,7 +388,6 @@ public class Endpoints {
      * @param clientId
      * @return true if scope is allowed, else false
      */
-
     private boolean isValidScope(String scopeName, String clientId)
             throws AuthenticatorException, ConfigurationException {
         return DBUtils.isSPAllowedScope(scopeName, clientId);
@@ -571,6 +594,7 @@ public class Endpoints {
                             throw new AuthenticationFailedException("Given pcr in the login hint cannot be accepted:"
                                     + e);
                         }
+
                     }
                     break;
                 default:
@@ -686,9 +710,11 @@ public class Endpoints {
      */
     private boolean validateMsisdnFormat(String msisdn) {
         if (StringUtils.isNotEmpty(msisdn)) {
-            String plaintextMsisdnRegex =
-                    configurationService.getDataHolder().getMobileConnectConfig().getMsisdn().getValidationRegex();
-            return msisdn.matches(plaintextMsisdnRegex);
+            String regex = configurationService.getDataHolder().getMobileConnectConfig().getMsisdn()
+                    .getValidationRegex();
+            if (StringUtils.isNotEmpty(regex)) {
+                return msisdn.matches(regex);
+            }
         }
         return true;
     }
@@ -755,7 +781,7 @@ public class Endpoints {
         return remoteIpAddress;
     }
 
-    private String constructRedirectUrl(RedirectUrlInfo redirectUrlInfo, UserStatus userStatus) throws
+    private String constructRedirectUrl(RedirectUrlInfo redirectUrlInfo, UserStatus userStatus, boolean isBackChannelAllowed) throws
             ConfigurationException {
         String redirectURL = null;
         String authorizeUrl = redirectUrlInfo.getAuthorizeUrl();
@@ -815,7 +841,7 @@ public class Endpoints {
                         "=" + prompt;
             }
 
-            if (StringUtils.isNotEmpty(validationRegex)) {
+            if (StringUtils.isNotEmpty(validationRegex) && !isBackChannelAllowed) {
                 redirectURL = redirectURL + "&" + AuthProxyConstants.MSISDN_VALIDATION_REGEX +
                         "=" + validationRegex;
             }

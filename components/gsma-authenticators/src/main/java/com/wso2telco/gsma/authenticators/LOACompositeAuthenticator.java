@@ -24,8 +24,10 @@ import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.gsma.authenticators.model.PromptData;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.DecryptionAES;
+import com.wso2telco.exception.CommonAuthenticatorException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import com.wso2telco.dbUtil.DataBaseConnectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,6 +48,7 @@ import org.wso2.carbon.identity.oauth.cache.SessionDataCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.SessionDataCacheKey;
 import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 
+import javax.naming.ConfigurationException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.*;
@@ -69,15 +72,14 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
      * The log.
      */
     private static Log log = LogFactory.getLog(LOACompositeAuthenticator.class);
-
-    public LOACompositeAuthenticator() {
-        //Use this credentials to login to IS.
-    }
-
     /**
      * The Configuration service
      */
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+
+    public LOACompositeAuthenticator() {
+        //Use this credentials to login to IS.
+    }
 
     /* (non-Javadoc)
      * @see org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator#canHandle(javax
@@ -129,7 +131,13 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         String telcoScope = request.getParameter(Constants.TELCO_SCOPE);
         String attrShareScopeType = request.getParameter(Constants.ATTRSHARE_SCOPE_TYPE);
         boolean isShowTnc = Boolean.parseBoolean(request.getParameter(Constants.IS_SHOW_TNC));
+ 
+        String redirectUrl =  request.getParameter(Constants.REDIRECT_URL);
+        boolean isBackChannelAllowed = false;
+
+ 
         Boolean isShowConsent = Boolean.valueOf(request.getParameter(Constants.IS_SHOW_CONSENT));
+ 
 
         if (log.isDebugEnabled()) {
             log.debug("mobileNetworkOperator : " + mobileNetworkOperator);
@@ -166,12 +174,34 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.TRUSTED_STATUS, trustedStatus);
         context.setProperty(Constants.ATTRSHARE_SCOPE_TYPE, attrShareScopeType);
 
-        context.setProperty(Constants.IS_SHOW_CONSENT, isShowConsent);
+       context.setProperty(Constants.IS_SHOW_CONSENT, isShowConsent);
         context.setProperty(Constants.CLIENT_ID, serviceProvider);
         context.setProperty(Constants.TELCO_SCOPE, telcoscope);
         if(scope_types!=null && !scope_types.isEmpty()) {
             context.setProperty(Constants.SCOPE_TYPES, scope_types);
         }
+
+        if (null != request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED) && (isBackChannelAllowed = Boolean
+                .parseBoolean(request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED)))) {
+
+            try {
+                String correlationId = request.getParameter(Constants.CORRELATION_ID);
+                String sessionID = context.getContextIdentifier();
+                context.setProperty(Constants.REDIRECT_URL, redirectUrl);
+                context.setProperty(Constants.CORRELATION_ID, correlationId);
+                context.setProperty(Constants.IS_BACKCHANNEL_ALLOWED, isBackChannelAllowed);
+
+                DataBaseConnectUtils.updateSessionIdInBackChannel(correlationId, sessionID);
+            } catch (CommonAuthenticatorException e) {
+                throw new AuthenticationFailedException(e.getMessage(), e);
+            } catch (ConfigurationException e) {
+                throw new AuthenticationFailedException(e.getMessage(), e);
+            }
+        }
+
+
+       
+ 
         // set prompt variable default to false
         Boolean isFrorceOffnetDueToPromptParameter = false;
         PromptData promptData = null;

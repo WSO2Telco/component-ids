@@ -41,8 +41,14 @@ public class RedirectUrlInfo {
     private boolean attributeSharingScope;
     private String trustedStatus;
     private String attributeSharingScopeType;
+ 
+    private String correlationId;
+    private String redirectUrl;
+    private boolean isBackChannelAllowed;
+ 
     private boolean showConsent;
     private EnumSet<ScopeParam.scopeTypes> scopeTypesList;
+ 
 
     public void setPrompt(String prompt) {
         this.prompt = prompt;
@@ -171,7 +177,31 @@ public class RedirectUrlInfo {
     public void setAttributeSharingScopeType(String attributeSharingScopeType) {
         this.attributeSharingScopeType = attributeSharingScopeType;
     }
+ 
+    public String getRedirectUrl() {
+        return redirectUrl;
+    }
 
+    public void setRedirectUrl(String redirectUrl) {
+        this.redirectUrl = redirectUrl;
+    }
+
+    public boolean isBackChannelAllowed() {
+        return isBackChannelAllowed;
+    }
+
+    public void setBackChannelAllowed(boolean backChannelAllowed) {
+        isBackChannelAllowed = backChannelAllowed;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
+    }
+ 
     public boolean isShowConsent() {
         return showConsent;
     }
@@ -183,4 +213,5 @@ public class RedirectUrlInfo {
     public EnumSet<ScopeParam.scopeTypes> getScopeTypesList() { return scopeTypesList;  }
 
     public void setScopeTypesList(EnumSet<ScopeParam.scopeTypes> scopeTypesList) { this.scopeTypesList = scopeTypesList; }
+ 
 }
