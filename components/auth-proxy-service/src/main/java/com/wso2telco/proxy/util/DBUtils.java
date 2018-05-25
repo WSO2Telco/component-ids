@@ -300,7 +300,11 @@ public class DBUtils {
             Boolean mainScopeFound = false;
             List<String> scopeValuesFromDatabase = new ArrayList<>();
 
+            ScopeParam parameters = new ScopeParam();
+            EnumSet<ScopeParam.scopeTypes> scopetypes=EnumSet.noneOf(ScopeParam.scopeTypes.class);
+            boolean is_consent_page=false;
             while (results.next()) {
+                is_consent_page=results.getBoolean("is_consent_page");
                 Boolean isMultiscope = results.getBoolean("is_multiscope");
                 scopeValuesFromDatabase.add(results.getString("scope"));
 
@@ -309,27 +313,37 @@ public class DBUtils {
                     if (mainScopeFound) {
                         throw new ConfigurationException("Multiple main scopes found");
                     }
-
                     //mark as main scope found
                     mainScopeFound = true;
-
-
                     scopeParamsMap.put("scope", results.getString("scope"));
 
-                    ScopeParam parameters = new ScopeParam();
                     parameters.setScope(results.getString("scope"));
                     parameters.setLoginHintMandatory(results.getBoolean("is_login_hint_mandatory"));
                     parameters.setHeaderMsisdnMandatory(results.getBoolean("is_header_msisdn_mandatory"));
+
                     parameters.setMsisdnMismatchResult(ScopeParam.MsisdnMismatchResultTypes.valueOf(results.getString(
                             "msisdn_mismatch_result")));
                     parameters.setHeFailureResult(ScopeParam.HeFailureResults.valueOf(results.getString(
                             "he_failure_result")));
+
                     parameters.setTncVisible(results.getBoolean("is_tnc_visible"));
                     parameters.setLoginHintFormat(getLoginHintFormatTypeDetails(results.getInt("param_id"), conn));
+                }
 
-                    scopeParamsMap.put("params", parameters);
+                String scope_type=results.getString("scope_type");
+                ScopeParam.scopeTypes scopeTypeFromDB=null;
+                //// TODO: 8/31/17 add the scopetype retrival to a common method
+                if(scope_type.equalsIgnoreCase(ScopeParam.scopeTypes.MAIN.name())){
+                    scopeTypeFromDB=ScopeParam.scopeTypes.MAIN;
+                }else if(scope_type.equalsIgnoreCase(ScopeParam.scopeTypes.APICONSENT.name())){
+                    scopeTypeFromDB=ScopeParam.scopeTypes.APICONSENT;
+                }
+                if(scopeTypeFromDB!=null){
+                    scopetypes.add(scopeTypeFromDB);
                 }
             }
+            parameters.setScopeTypesList(scopetypes);
+            parameters.setConsentPage(is_consent_page);
 
             //validate all scopes and compare with scopes fetched from database
             for (String scopeToValidate : scopeValues) {
@@ -337,6 +351,7 @@ public class DBUtils {
                     throw new ConfigurationException("One or more scopes are not valid");
                 }
             }
+            scopeParamsMap.put("params", parameters);
         } catch (SQLException e) {
             handleException("Error occurred while getting scope parameters from the database", e);
         } catch (ConfigurationException e) {

@@ -95,8 +95,11 @@ public class Activator implements BundleActivator {
                 new SelfAuthenticator(), null);
         bundleContext.registerService(ApplicationAuthenticator.class.getName(),
                 new FederatedAuthenticator(), null);
-        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(), 
                 new BasicAuthenticator(), null);
+        bundleContext.registerService(ApplicationAuthenticator.class.getName(),
+                new ConsentAuthenticator(), null);
+ 
 
 
         if (log.isDebugEnabled()) {

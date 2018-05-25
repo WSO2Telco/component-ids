@@ -35,7 +35,7 @@
     <script src="js/public/js/jquery.min.js" type="text/javascript"></script>
     <script src="js/public/js/main.js" type="text/javascript"></script>
     <script src="js/public/js/modal.js" type="text/javascript"></script>
-    <script src="mcresources/js/vendor/parsley.min.js" type="text/javascript"></script>
+    <script src="js/parsley.min.js" type="text/javascript"></script>
     <link rel="stylesheet" href="mcresources/css/style.css">
 
 
