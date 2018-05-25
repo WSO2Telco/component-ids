@@ -17,6 +17,9 @@ package com.wso2telco.proxy.model;
 
 import com.wso2telco.core.config.model.ScopeParam;
 
+import java.util.EnumSet;
+import java.util.List;
+
 /**
  * RedirectUrlInfo is using to construct redirect url.
  */
@@ -30,6 +33,7 @@ public class RedirectUrlInfo {
     private String telcoScope;
     private boolean isLoginhintMandatory;
     private boolean showTnc;
+
     private ScopeParam.MsisdnMismatchResultTypes headerMismatchResult;
     private ScopeParam.HeFailureResults heFailureResult;
     private String transactionId;
@@ -37,9 +41,14 @@ public class RedirectUrlInfo {
     private boolean attributeSharingScope;
     private String trustedStatus;
     private String attributeSharingScopeType;
+ 
     private String correlationId;
     private String redirectUrl;
     private boolean isBackChannelAllowed;
+ 
+    private boolean showConsent;
+    private EnumSet<ScopeParam.scopeTypes> scopeTypesList;
+ 
 
     public void setPrompt(String prompt) {
         this.prompt = prompt;
@@ -65,7 +74,7 @@ public class RedirectUrlInfo {
         this.telcoScope = telcoScope;
     }
 
-    public String getIpAddress() {
+	public String getIpAddress() {
         return ipAddress;
     }
 
@@ -168,7 +177,7 @@ public class RedirectUrlInfo {
     public void setAttributeSharingScopeType(String attributeSharingScopeType) {
         this.attributeSharingScopeType = attributeSharingScopeType;
     }
-
+ 
     public String getRedirectUrl() {
         return redirectUrl;
     }
@@ -192,4 +201,17 @@ public class RedirectUrlInfo {
     public void setCorrelationId(String correlationId) {
         this.correlationId = correlationId;
     }
+ 
+    public boolean isShowConsent() {
+        return showConsent;
+    }
+
+    public void setShowConsent(boolean showConsent) {
+        this.showConsent = showConsent;
+    }
+
+    public EnumSet<ScopeParam.scopeTypes> getScopeTypesList() { return scopeTypesList;  }
+
+    public void setScopeTypesList(EnumSet<ScopeParam.scopeTypes> scopeTypesList) { this.scopeTypesList = scopeTypesList; }
+ 
 }

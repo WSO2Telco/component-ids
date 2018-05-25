@@ -95,7 +95,7 @@ public class TransactionDAO {
         try {
             conn = DbUtil.getConnectDBConnection();
             String query = "INSERT INTO scope_log ( access_token,sub) VALUES " +
-                    "(? ,?);";
+                    "(?,?);";
             ps = conn.prepareStatement(query);
             ps.setString(1, token);
             ps.setString(2, sub);

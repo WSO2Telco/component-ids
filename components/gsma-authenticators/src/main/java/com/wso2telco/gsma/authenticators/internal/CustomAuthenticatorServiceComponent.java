@@ -109,7 +109,9 @@ public class CustomAuthenticatorServiceComponent {
                 new ServerInitiatedUSSDAuthenticator(), null);
         ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                 new ServerInitiatedSMSAuthenticator(), null);
-
+        ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
+                      new ConsentAuthenticator(), null);
+ 
 
         if (log.isDebugEnabled()) {
             log.debug("Custom Application Authenticator bundle is activated");

@@ -16,7 +16,11 @@
 package com.wso2telco.gsma.authenticators.util;
 
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
+import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceStub;
+import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
@@ -27,6 +31,8 @@ import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import java.rmi.RemoteException;
 
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
+
+import java.rmi.RemoteException;
 
 
 public class AdminServiceUtil {
@@ -43,7 +49,7 @@ public class AdminServiceUtil {
             throw new AuthenticationFailedException("Cannot find the user realm for the given tenant: " + tenantId);
         }
     }
-
+    
     public static String getUserStatus(String username) throws IdentityException, UserStoreException,
             RemoteException, LoginAuthenticationExceptionException,
             RemoteUserStoreManagerServiceUserStoreExceptionException {
