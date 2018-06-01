@@ -26,7 +26,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 
-@Path("/sample")
+@Path("/serverinitiated")
 public class ServerInitiatedSampleRequest {
     private static Log log = LogFactory.getLog(ServerInitiatedSampleRequest.class);
 
