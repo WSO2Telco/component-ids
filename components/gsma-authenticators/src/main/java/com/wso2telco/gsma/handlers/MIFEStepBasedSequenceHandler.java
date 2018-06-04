@@ -80,7 +80,7 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
                 context.setCurrentStep(curStep);
                 continue;
             }
-            stepConfig.setAuthenticatedUser(context.getSubject());
+
             // if the current step is completed
             if (stepConfig.isCompleted()) {
                 stepConfig.setCompleted(false);
@@ -169,9 +169,7 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
         String ipAddress = retrieveIPAddress(request);
         String authenticatedUser = "";
         String authenticators = "";
-
         if (context.isRequestAuthenticated()) {
-
             // authenticators
             Object amrValue = context.getProperty("amr");
             if (null != amrValue && amrValue instanceof ArrayList<?>) {
@@ -180,7 +178,6 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
                 authenticators = amr.toString();
             }
             authenticatedUser = context.getSequenceConfig().getAuthenticatedUser().getUserName();
-
         } else {
             // authenticators
             Object amrValue = context.getProperty("failedamr");
@@ -189,9 +186,7 @@ public class MIFEStepBasedSequenceHandler extends DefaultStepBasedSequenceHandle
                 List<String> amr = (ArrayList<String>) amrValue;
                 authenticators = amr.toString();
             }
-
             authenticatedUser = (String) context.getProperty("faileduser");
-
         }
         try {
             DbTracelog.LogHistory(context.getRequestType(), context.isRequestAuthenticated(),
