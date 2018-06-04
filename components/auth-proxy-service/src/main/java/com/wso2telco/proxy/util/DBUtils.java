@@ -31,10 +31,7 @@ import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 
 /**
@@ -401,6 +398,35 @@ public class DBUtils {
         return loginHintFormatDetails;
     }
 
+    public static long getAccountUnlockTime(String userName)
+            throws ConfigurationException, AuthenticatorException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        long remainingTime = 0;
+        String getAccountUnlockTimeQuery = "SELECT DATA_VALUE FROM idn_identity_user_data WHERE TENANT_ID=? AND " +
+                "USER_NAME=? AND DATA_KEY='http://wso2.org/claims/identity/unlockTime'";
+
+        try {
+            connection = getWSO2APIMDBConnection();
+            preparedStatement = connection.prepareStatement(getAccountUnlockTimeQuery);
+            preparedStatement.setString(1, "-1234");
+            preparedStatement.setString(2, userName);
+            resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                remainingTime = Long.parseLong(resultSet.getString("DATA_VALUE"));
+            }
+        } catch (SQLException e) {
+            handleException(
+                    "Error occurred while getting account unlock time for UserName - " + userName, e);
+        } catch (NamingException e) {
+            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+        } finally {
+            closeAllConnections(preparedStatement, connection, resultSet);
+        }
+
+        return remainingTime;
+    }
 
     public static boolean isSPAllowedScope(String scopeName, String clientId)
             throws ConfigurationException, AuthenticatorException {

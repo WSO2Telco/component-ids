@@ -83,7 +83,8 @@
 
                     <div class="boarder-all col-lg-12 padding-top-double padding-bottom-double error-alert  ">
                         <div class="font-medium"><strong>Attention:</strong> </div>
-                        <div class="padding-bottom-double">Your account has been locked.Try again in 15 minutes.
+                        <div class="padding-bottom-double">
+                            Your account has been locked.Try again in <label class="basicAuth-label" id="remainingTime"></label> minutes.
                         </div>
                     </div>
                 </div>
@@ -134,6 +135,19 @@
         }
 
         if( $.urlParam('errorCode') == '17003'){
+
+            var userName = $.urlParam('failedUsername');
+            var xhttp = new XMLHttpRequest();
+            var apiUrl = window.location.protocol+'//'+window.location.hostname+(location.port ? ':'+location.port: '')+"/authproxy/accountLockRemainingTime/"+userName;
+            xhttp.onreadystatechange = function() {
+                if (this.status == 200) {
+                    document.getElementById("remainingTime").innerHTML =
+                    this.responseText;
+                    }
+            };
+            xhttp.open("GET", apiUrl, true);
+            xhttp.send();
+
         document.getElementById("accLock").style = "";
         }else{
         document.getElementById("accUnlock").style= "";

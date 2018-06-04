@@ -23,7 +23,7 @@
 	 <div class="login-container">
         <div class="login-wrapper">
             <div class="logo-container_login">
-                <img class="image_login" alt="store_logo" src="images/logo-white.png">
+                <img class="image-login" alt="store_logo" src="images/logo-white.png">
             </div>
             <div class="form-container">
                 <div class="header-login">Sign in to your account</div>

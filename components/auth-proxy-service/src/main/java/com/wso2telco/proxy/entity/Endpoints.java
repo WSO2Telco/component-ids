@@ -65,6 +65,7 @@ import java.rmi.RemoteException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
+import java.time.Instant;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -380,6 +381,29 @@ public class Endpoints {
         }
     }
 
+
+    /**
+     * Check the remaining account locked time
+     *
+     * @param userName
+     * @return true if scope is allowed, else false
+     */
+    @GET
+    @Path("/accountLockRemainingTime/{userName}")
+    public String getRemainingTime(@Context HttpServletRequest httpServletRequest, @Context
+            HttpServletResponse httpServletResponse, @PathParam("userName") String userName) throws
+            Exception {
+
+        String remainingTimeInMins = "";
+        long accountUnlockTime = DBUtils.getAccountUnlockTime(userName);
+
+        if (0 != accountUnlockTime) {
+            Instant instant = Instant.now();
+            long timeStampSeconds = instant.toEpochMilli();
+            remainingTimeInMins = Integer.toString((int)Math.ceil((accountUnlockTime - timeStampSeconds) / 60000));
+        }
+        return remainingTimeInMins;
+    }
 
     /**
      * Check if the Scope is allowed for SP

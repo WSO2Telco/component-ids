@@ -2578,7 +2578,7 @@ body {
 }
 
 .login-wrapper {
-  width: 40%;
+  width: 35%;
   position: relative;
   margin-top: -150px;
 }
@@ -2658,7 +2658,7 @@ body {
     font-family:inhert;
 }
 
-.image_login{
+.image-login{
     display: block;
     margin-left: auto;
     margin-right: auto;
