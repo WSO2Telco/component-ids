@@ -324,50 +324,54 @@ public class CustomRequestCoordinator implements RequestCoordinator {
 
         SequenceConfig sequenceConfig = ConfigurationFacade.getInstance().getSequenceConfig(context.getRequestType(),
                 request.getParameter(FrameworkConstants.RequestParams.ISSUER), context.getTenantDomain());
-        Cookie cookie = FrameworkUtils.getAuthCookie(request);
-        if (cookie != null) {
-            if (log.isDebugEnabled()) {
-                log.debug("commonAuthId cookie is available with the value: " + cookie.getValue());
-            }
 
-            SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(cookie.getValue());
-            if (sessionContext != null) {
-                context.setSessionIdentifier(cookie.getValue());
-                String appName = sequenceConfig.getApplicationConfig().getApplicationName();
+        if ("samlsso".equals(context.getRequestType())) {
+            Cookie cookie = FrameworkUtils.getAuthCookie(request);
+            if (cookie != null) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Service Provider is: " + appName);
+                    log.debug("commonAuthId cookie is available with the value: " + cookie.getValue());
                 }
 
-                SequenceConfig previousAuthenticatedSeq = (SequenceConfig) sessionContext.getAuthenticatedSequences()
-                        .get(appName);
-                if (previousAuthenticatedSeq != null) {
+                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(cookie.getValue());
+                if (sessionContext != null) {
+                    context.setSessionIdentifier(cookie.getValue());
+                    String appName = sequenceConfig.getApplicationConfig().getApplicationName();
                     if (log.isDebugEnabled()) {
-                        log.debug("A previously authenticated sequence found for the SP: " + appName);
+                        log.debug("Service Provider is: " + appName);
                     }
 
-                    context.setPreviousSessionFound(true);
-                    sequenceConfig = previousAuthenticatedSeq.cloneObject();
-                    AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
-                    String authenticatedUserTenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
-                    if (authenticatedUser != null) {
-                        context.setSubject(authenticatedUser);
+                    SequenceConfig previousAuthenticatedSeq = (SequenceConfig) sessionContext
+                            .getAuthenticatedSequences()
+                            .get(appName);
+                    if (previousAuthenticatedSeq != null) {
                         if (log.isDebugEnabled()) {
-                            log.debug("Already authenticated by username: " + authenticatedUser
-                                    .getAuthenticatedSubjectIdentifier());
+                            log.debug("A previously authenticated sequence found for the SP: " + appName);
                         }
 
-                        if (authenticatedUserTenantDomain != null) {
-                            context.setProperty("user-tenant-domain", authenticatedUserTenantDomain);
+                        context.setPreviousSessionFound(true);
+                        sequenceConfig = previousAuthenticatedSeq.cloneObject();
+                        AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
+                        String authenticatedUserTenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
+                        if (authenticatedUser != null) {
+                            context.setSubject(authenticatedUser);
                             if (log.isDebugEnabled()) {
-                                log.debug("Authenticated user tenant domain: " + authenticatedUserTenantDomain);
+                                log.debug("Already authenticated by username: " + authenticatedUser
+                                        .getAuthenticatedSubjectIdentifier());
+                            }
+
+                            if (authenticatedUserTenantDomain != null) {
+                                context.setProperty("user-tenant-domain", authenticatedUserTenantDomain);
+                                if (log.isDebugEnabled()) {
+                                    log.debug("Authenticated user tenant domain: " + authenticatedUserTenantDomain);
+                                }
                             }
                         }
                     }
-                }
 
-                context.setPreviousAuthenticatedIdPs(sessionContext.getAuthenticatedIdPs());
-            } else if (log.isDebugEnabled()) {
-                log.debug("Failed to find the SessionContext from the cache. Possible cache timeout.");
+                    context.setPreviousAuthenticatedIdPs(sessionContext.getAuthenticatedIdPs());
+                } else if (log.isDebugEnabled()) {
+                    log.debug("Failed to find the SessionContext from the cache. Possible cache timeout.");
+                }
             }
         }
 
