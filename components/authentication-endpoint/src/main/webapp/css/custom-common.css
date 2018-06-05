@@ -160,3 +160,10 @@ img.idp-image {
     content:" *";
     color:red;
 }
+
+.basicAuth-label{
+    display: inline-block;
+    max-width: 100%;
+    margin-bottom: 5px;
+    font-weight: 100;
+}

@@ -26,15 +26,16 @@ import org.wso2.carbon.identity.application.authentication.framework.cache.Authe
 import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.SequenceConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.context.SessionContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.FrameworkException;
 import org.wso2.carbon.identity.application.authentication.framework.handler.request.RequestCoordinator;
+import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
 import org.wso2.carbon.registry.core.utils.UUIDGenerator;
 import org.wso2.carbon.user.api.Tenant;
 import org.wso2.carbon.user.api.UserStoreException;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -47,6 +48,8 @@ import java.net.URLEncoder;
  * Request Coordinator
  */
 public class CustomRequestCoordinator implements RequestCoordinator {
+
+    private static final String TENENTDOMAIN = "carbon.super";
 
     private static final Log log = LogFactory.getLog(org.wso2.carbon.identity.application.authentication.framework
             .handler.request.impl.DefaultRequestCoordinator.class);
@@ -137,7 +140,6 @@ public class CustomRequestCoordinator implements RequestCoordinator {
                     context.setAuthenticationRequest(authRequest.getAuthenticationRequest());
                 }
 
-
                 if (!context.isLogoutRequest()) {
                     FrameworkUtils.getAuthenticationRequestHandler().handle(request, response,
                             context);
@@ -223,6 +225,12 @@ public class CustomRequestCoordinator implements RequestCoordinator {
         context.setCallerPath(callerPath);
         context.setRequestType(requestType);
         context.setRelyingParty(relyingParty);
+
+        //if tenent domain is not passing with the request set tenent domain as the relying party
+        if (("samlsso".equals(requestType)) && (null == tenantDomain)){
+            tenantDomain = TENENTDOMAIN;
+        }
+
         context.setTenantDomain(tenantDomain);
 
         // generate a new key to hold the context data object
@@ -242,6 +250,15 @@ public class CustomRequestCoordinator implements RequestCoordinator {
             }
 
             context.setLogoutRequest(true);
+
+            if ("samlsso".equals(context.getRequestType())) {
+
+                Cookie cookie = FrameworkUtils.getAuthCookie(request);
+
+                if (cookie != null) {
+                    context.setSessionIdentifier(cookie.getValue());
+                }
+            }
 
             if (context.getRelyingParty() == null || context.getRelyingParty().trim().length() == 0) {
 
@@ -304,14 +321,61 @@ public class CustomRequestCoordinator implements RequestCoordinator {
         if (log.isDebugEnabled()) {
             log.debug("Setting sequence config");
         }
-        SequenceConfig sequenceConfig = ConfigurationFacade.getInstance().getSequenceConfig(
-                context.getRequestType(),
-                request.getParameter(FrameworkConstants.RequestParams.ISSUER),
-                context.getTenantDomain());
+
+        SequenceConfig sequenceConfig = ConfigurationFacade.getInstance().getSequenceConfig(context.getRequestType(),
+                request.getParameter(FrameworkConstants.RequestParams.ISSUER), context.getTenantDomain());
+
+        if ("samlsso".equals(context.getRequestType())) {
+            Cookie cookie = FrameworkUtils.getAuthCookie(request);
+            if (cookie != null) {
+                if (log.isDebugEnabled()) {
+                    log.debug("commonAuthId cookie is available with the value: " + cookie.getValue());
+                }
+
+                SessionContext sessionContext = FrameworkUtils.getSessionContextFromCache(cookie.getValue());
+                if (sessionContext != null) {
+                    context.setSessionIdentifier(cookie.getValue());
+                    String appName = sequenceConfig.getApplicationConfig().getApplicationName();
+                    if (log.isDebugEnabled()) {
+                        log.debug("Service Provider is: " + appName);
+                    }
+
+                    SequenceConfig previousAuthenticatedSeq = (SequenceConfig) sessionContext
+                            .getAuthenticatedSequences()
+                            .get(appName);
+                    if (previousAuthenticatedSeq != null) {
+                        if (log.isDebugEnabled()) {
+                            log.debug("A previously authenticated sequence found for the SP: " + appName);
+                        }
+
+                        context.setPreviousSessionFound(true);
+                        sequenceConfig = previousAuthenticatedSeq.cloneObject();
+                        AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
+                        String authenticatedUserTenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
+                        if (authenticatedUser != null) {
+                            context.setSubject(authenticatedUser);
+                            if (log.isDebugEnabled()) {
+                                log.debug("Already authenticated by username: " + authenticatedUser
+                                        .getAuthenticatedSubjectIdentifier());
+                            }
+
+                            if (authenticatedUserTenantDomain != null) {
+                                context.setProperty("user-tenant-domain", authenticatedUserTenantDomain);
+                                if (log.isDebugEnabled()) {
+                                    log.debug("Authenticated user tenant domain: " + authenticatedUserTenantDomain);
+                                }
+                            }
+                        }
+                    }
+
+                    context.setPreviousAuthenticatedIdPs(sessionContext.getAuthenticatedIdPs());
+                } else if (log.isDebugEnabled()) {
+                    log.debug("Failed to find the SessionContext from the cache. Possible cache timeout.");
+                }
+            }
+        }
 
         context.setServiceProviderName(sequenceConfig.getApplicationConfig().getApplicationName());
-
-        // set the sequence for the current authentication/logout flow
         context.setSequenceConfig(sequenceConfig);
     }
 

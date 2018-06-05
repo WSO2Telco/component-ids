@@ -19,45 +19,37 @@
 <%@ page import="org.owasp.encoder.Encode" %>
 
 <form action="../commonauth" method="post" id="loginForm">
-
-    <% if (Boolean.parseBoolean(loginFailed)) { %>
-    <div class="alert alert-danger" id="error-msg"><%= Encode.forHtml(errorMessage) %></div>
-    <%}else if((Boolean.TRUE.toString()).equals(request.getParameter("authz_failure"))){%>
-    <div class="alert alert-danger" id="error-msg">You are not authorized to login
-    </div>
-    <%}%>
-
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-        <input id="username" name="username" type="text" class="form-control" tabindex="0"
-               placeholder="Username">
-    </div>
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-        <input id="password" name="password" type="password" class="form-control"
-               placeholder="Password" autocomplete="off">
-    </div>
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-        <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
+    <script>document.title = "Login";</script>
+	 <div class="login-container">
+        <div class="login-wrapper">
+            <div class="logo-container_login">
+                <img class="image-login" alt="store_logo" src="images/logo-white.png">
+            </div>
+            <div class="form-container">
+                <div class="header-login">Sign in to your account</div>
+                <form>
+                    <div class="col-xs-12 col-sm-12 form-group">
+						  <input id="username" name="username" type="text" class="form-control" tabindex="0" placeholder="Username" style="width:100%">
+                    </div>
+                    <div class="col-xs-12 col-sm-12 form-group">
+                        <input id="password" name="password" type="password" class="form-control" placeholder="Password" autocomplete="off" style="width:100%">
+                    </div>
+					 <input type="hidden" name="sessionDataKey" value='<%=Encode.forHtmlAttribute
             (request.getParameter("sessionDataKey"))%>'/>
-    </div>
+                    <div class="col-xs-12 col-sm-12 form-group">
+                        <button id="signin" name="signin" class="btn-saml" type="submit">
+                            Sign in
+                        </button>
+                    </div>
 
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" id="chkRemember" name="chkRemember"> Remember me on this computer
-            </label>
-        </div>
-        <br>
+                    <div class="col-sm-12 acc-actions">
+                        <div class="stay-sign-in">
+                            <label class="chk-rememberme-lbl" for="chkRemember">
+                                <input type="checkbox" name="chkRemember"> Remember me on this computer</label>
+                        </div>
+                    </div>
 
-        <div class="form-actions">
-            <button
-                    class="wr-btn grey-bg col-xs-12 col-md-12 col-lg-12 uppercase font-extra-large"
-                    type="submit">Sign in
-            </button>
-        </div>
-    </div>
-
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12 form-group">
-
+					 <div class="col-sm-12 acc-actions">
         <%if(request.getParameter("relyingParty").equals("wso2.my.dashboard")) { %>
         <a id="registerLink" href="create-account.jsp?sessionDataKey=<%=Encode.forHtmlAttribute
             (request.getParameter("sessionDataKey"))%>" class="font-large">Create an
@@ -65,6 +57,21 @@
         <%} %>
     </div>
     <div class="clearfix"></div>
-</form>
+                </form>
+            </div>
+			<% if (Boolean.parseBoolean(loginFailed)) { %>
+<div class="form-container errorDiv">
+<div class="col-xs-12 col-sm-12 form-group" style="height:10px;text-align: center;">
 
+<div class="alert alert-danger" id="error-msg"><%= Encode.forHtml(errorMessage) %></div>
+</div><%}else if((Boolean.TRUE.toString()).equals(request.getParameter("authz_failure"))){%>
+<div class="form-container errorDiv">
+<div class="col-xs-12 col-sm-12 form-group" style="height:10px;text-align: center;">
+
+<div class="alert alert-danger" id="error-msg">You are not authorized to login
+</div>
+</div><%}%>
+        </div>
+    </div>
+</form>
 

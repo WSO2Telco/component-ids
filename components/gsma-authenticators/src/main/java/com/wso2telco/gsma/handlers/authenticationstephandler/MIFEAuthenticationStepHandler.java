@@ -79,6 +79,11 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
         String redirectURL = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
         String fidp = request.getParameter(FrameworkConstants.RequestParams.FEDERATED_IDP);
 
+        if("samlsso".equals(context.getRequestType())){
+            super.handle(request, response, context);
+            return;
+        }
+
         AuthenticationRequest authRequest = context.getAuthenticationRequest();
         Map<String, String[]> paramMap = authRequest.getRequestQueryParams();
 
@@ -298,6 +303,11 @@ public class MIFEAuthenticationStepHandler extends DefaultStepHandler {
             throws FrameworkException {
 
         log.info("Do authentication");
+
+        if("samlsso".equals(context.getRequestType())){
+            super.doAuthentication(request, response, context, authenticatorConfig);
+            return;
+        }
 
         SequenceConfig sequenceConfig = context.getSequenceConfig();
         int currentStep = context.getCurrentStep();

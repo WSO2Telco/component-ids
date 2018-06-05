@@ -1473,8 +1473,11 @@ textarea.parsley-error:focus,
     margin-top: .7rem
 }
 .parsley-errors-list.filled {
-    opacity: 1
+    opacity: 1;
 }
+#local_auth_div > div.parsley-errors-list.filled{
+	display: none;
+ }
 .one-whole {
     width: 100%
 }
@@ -2555,4 +2558,125 @@ body {
         border-bottom: 1px solid #f4f4f4
     }
 }
+
+.login-container {
+  min-height: 100vh;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  background-color: #f3f3f7;
+}
+
+.logo-container{
+    margin-bottom: 25px;
+}
+
+.login-wrapper {
+  width: 35%;
+  position: relative;
+  margin-top: -150px;
+}
+
+.form-container {
+	margin-top:5%;
+  padding: 0px 40px 60px 40px;
+  border-radius: 5px;
+  min-height: 325px;
+  background: #fff;
+  box-shadow: 0 5px 10px 0px rgba(0, 0, 0, 0.1);
+  width:100%;
+}
+
+.login-wrapper .form-control {
+  border-radius: 0px;
+  height: 40px;
+  margin-bottom: 10px;
+  width:90%;
+  font-weight:normal;
+}
+
+.login-wrapper .btn {
+  border-radius: 0px;
+  width: 100%;
+  color:white;
+  background-color: #3978B4;
+  border-color: #3978B4;
+  margin-top:4%;
+}
+
+.header {
+  text-align: center;
+  font-size: 2em;
+  padding: 20px;
+  color: gray;
+}
+
+.acc-actions {
+  margin-top: 10px;
+}
+
+.acc-actions .stay-sign-in {
+  font-size: 0.9em;
+  color: gray;
+  margin-bottom: 20px;
+}
+
+.chk-rememberme-lbl {
+  font-weight: 400;
+}
+
+body {
+  margin: 0px;
+  padding: 0px;
+}
+
+.form-container.errorDiv {
+    background: #F2DEDE;
+    min-height: 95px;
+    color: #a94442;
+    padding-top: 6%;
+    overflow: hidden;
+    margin-top: 4%;
+    clear: both;
+}
+
+.logo-container_login{
+    margin-bottom: 1%;
+}
+
+.header-login {
+    text-align: center;
+    font-size: 2em;
+    padding: 20px;
+    color: black;
+    font-family:inhert;
+}
+
+.image-login{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+    max-width: 100%;
+}
+
+.btn-saml{
+    color:white;
+    background-color:#F27B21;
+    border: 1px solid #F27B21;
+    transition-property: color, background-color, border-color;
+    transition-duration: .2s;
+    font-weight: 400;
+    width : 100%;
+    margin-top: 4%;
+    padding: 1%;
+    font-size: 150%;
+}
+
 /*# sourceMappingURL=style.css.map */

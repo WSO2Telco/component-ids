@@ -217,7 +217,7 @@
 								response.setHeader("Location", site);
 							}
 						} else {
-							errorMessage = "You are not a registered user. Please register and try again";
+							errorMessage = "Login failed.Please recheck the username and password and try again";
 						}
 					}
 				}

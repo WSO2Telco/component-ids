@@ -73,25 +73,47 @@
     </header>
 
     <!-- page content -->
-    <div class="row">
-        <div class="col-md-12">
-            <!-- content -->
-            <div class="container col-xs-7 col-sm-5 col-md-4 col-lg-3 col-centered wr-content wr-login col-centered">
-                <div>
-                    <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none"><%=Encode.forHtmlContent(stat)%> </h2>
-                </div>
+        <div class="row" id="accLock" style="display:none">
+            <div class="col-md-12">
+                <!-- content -->
+                <div class="container col-xs-7 col-sm-5 col-md-4 col-lg-3 col-centered wr-content wr-login col-centered">
+                    <div>
+                        <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none">Login Failed</h2>
+                    </div>
 
-                <div class="boarder-all col-lg-12 padding-top-double padding-bottom-double error-alert  ">
-                    <div class="font-medium"><strong><fmt:message key='common-error-propmt'/></strong> </div>
-                    <div class="padding-bottom-double">
-                        <%=Encode.forHtmlContent(statusMessage)%>
+                    <div class="boarder-all col-lg-12 padding-top-double padding-bottom-double error-alert  ">
+                        <div class="font-medium"><strong>Attention:</strong> </div>
+                        <div class="padding-bottom-double">
+                            Your account has been locked.Try again in <label class="basicAuth-label" id="remainingTime"></label>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <!-- /content -->
+                <!-- /content -->
 
+            </div>
         </div>
-    </div>
+
+
+     <!-- page content -->
+        <div class="row" id="accUnlock" style="display:none">
+            <div class="col-md-12">
+                <!-- content -->
+                <div class="container col-xs-7 col-sm-5 col-md-4 col-lg-3 col-centered wr-content wr-login col-centered">
+                    <div>
+                        <h2 class="wr-title uppercase blue-bg padding-double white boarder-bottom-blue margin-none"><%=Encode.forHtmlContent(stat)%> </h2>
+                    </div>
+
+                    <div class="boarder-all col-lg-12 padding-top-double padding-bottom-double error-alert  ">
+                        <div class="font-medium"><strong>Attention:</strong> </div>
+                        <div class="padding-bottom-double">
+                            <%=Encode.forHtmlContent(statusMessage)%>
+                        </div>
+                    </div>
+                </div>
+                <!-- /content -->
+
+            </div>
+        </div>
 
     <!-- footer -->
     <footer class="footer">
@@ -107,7 +129,54 @@
     <script src="libs/bootstrap_3.3.5/js/bootstrap.min.js"></script>
 
     <script>
+        $.urlParam = function(name){
+    	var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+    	return results[1] || 0;
+        }
 
+        if( $.urlParam('errorCode') == '17003'){
+
+            var userName = $.urlParam('failedUsername');
+            var xhttp = new XMLHttpRequest();
+            var apiUrl = window.location.protocol+'//'+window.location.hostname+(location.port ? ':'+location.port: '')+"/authproxy/accountLockRemainingTime/"+userName;
+            xhttp.onreadystatechange = function() {
+                if (this.status == 200) {
+
+                    if(parseInt(this.responseText) <= 0){
+
+                        document.getElementById("remainingTime").innerHTML =
+                                            "1 minute.";
+
+                        var relayState = $.urlParam('RelayState');
+                        var ssoAuthSessionId = $.urlParam('SSOAuthSessionID');
+                        var commonAuthCallerPath = $.urlParam('commonAuthCallerPath');
+                        var forceAuth = $.urlParam('forceAuth');
+                        var passiveAuth = $.urlParam('passiveAuth');
+                        var tenantDomain = $.urlParam('tenantDomain');
+                        var sessionDataKey = $.urlParam('sessionDataKey');
+                        var relyingParty = $.urlParam('relyingParty');
+                        var type = $.urlParam('type');
+                        var sp = $.urlParam('sp');
+                        var isSaaSApp = $.urlParam('isSaaSApp');
+                        var loginUrl = window.location.protocol+'//'+window.location.hostname+(location.port ? ':'+location.port: '')+"/authenticationendpoint/login.do?RelayState="+relayState+"&SSOAuthSessionID="+ssoAuthSessionId+"&commonAuthCallerPath="+commonAuthCallerPath+"&forceAuth="+forceAuth+"&passiveAuth="+passiveAuth+"&tenantDomain="+tenantDomain+"&sessionDataKey="+sessionDataKey+"&relyingParty="+relyingParty+"&type="+type+"&sp="+sp+"&isSaaSApp="+isSaaSApp+"&authenticators=BasicAuthenticator:LOCAL";
+
+                        window.location.replace(loginUrl);
+                    }else if(parseInt(this.responseText) == 1){
+                        document.getElementById("remainingTime").innerHTML =
+                        this.responseText+" minute.";
+                     } else{
+                         document.getElementById("remainingTime").innerHTML =
+                                                 this.responseText+" minutes.";
+                     }
+                    }
+            };
+            xhttp.open("GET", apiUrl, true);
+            xhttp.send();
+
+        document.getElementById("accLock").style = "";
+        }else{
+        document.getElementById("accUnlock").style= "";
+        }
 
         $('#popover').popover({
             html: true,
