@@ -110,10 +110,10 @@
                                     org.wso2.carbon:org.wso2.carbon.authenticator.stub:${carbon.kernel.version}
                                 </bundleDef>
                                 <bundleDef>
-                                    org.wso2.carbon.identity:org.wso2.carbon.identity.mgt.stub:${identity.framework.version}
+                                    org.wso2.carbon.identity.framework:org.wso2.carbon.identity.mgt.stub:${identity.framework.version}
                                 </bundleDef>
                                 <bundleDef>
-                                    org.wso2.carbon.identity:org.wso2.carbon.um.ws.api.stub:${identity.user.ws.version}
+                                    org.wso2.carbon.identity.user.ws:org.wso2.carbon.um.ws.api.stub:${identity.user.ws.version}
                                 </bundleDef>
                                 <bundleDef>
                                     commons-codec.wso2:commons-codec:${commons-codec.version}

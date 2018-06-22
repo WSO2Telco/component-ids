@@ -31,7 +31,7 @@
 	<dependencies>
 
 		<dependency>
-			<groupId>org.wso2.carbon.identity</groupId>
+			<groupId>org.wso2.carbon.identity.framework</groupId>
 			<artifactId>org.wso2.carbon.identity.application.common</artifactId>
 		</dependency>
 		<dependency>
@@ -39,7 +39,7 @@
 			<artifactId>org.wso2.carbon.utils</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.wso2.carbon.identity</groupId>
+			<groupId>org.wso2.carbon.identity.framework</groupId>
 			<artifactId>org.wso2.carbon.identity.core</artifactId>
 		</dependency>
 		<dependency>

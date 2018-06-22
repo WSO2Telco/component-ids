@@ -11,7 +11,7 @@
   Unless required by applicable law or agreed to in writing, software
   distributed under the License is distributed on an "AS IS" BASIS,
   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
+  See the License for org.wso2.carbon.identity.application.authentication.frameworkthe specific language governing permissions and
   limitations under the License.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -30,15 +30,15 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.wso2.carbon.identity</groupId>
+			<groupId>org.wso2.carbon.identity.inbound.auth.oauth2</groupId>
 			<artifactId>org.wso2.carbon.identity.oauth</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.wso2.carbon.identity</groupId>
+			<groupId>org.wso2.carbon.identity.framework</groupId>
 			<artifactId>org.wso2.carbon.identity.application.common</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.wso2.carbon.identity</groupId>
+			<groupId>org.wso2.carbon.identity.framework</groupId>
 			<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
 		</dependency>
 		<dependency>
@@ -96,18 +96,18 @@
 			<artifactId>commons-logging</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.wso2.carbon.identity</groupId>
+			<groupId>org.wso2.carbon.identity.user.ws</groupId>
 			<artifactId>org.wso2.carbon.um.ws.api.stub</artifactId>
 			<type>jar</type>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.wso2.carbon.identity</groupId>
+			<groupId>org.wso2.carbon.identity.framework</groupId>
 			<artifactId>org.wso2.carbon.identity.application.authentication.endpoint.util</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.wso2.carbon.identity</groupId>
+			<groupId>org.wso2.carbon.identity.user.ws</groupId>
 			<artifactId>org.wso2.carbon.um.ws.api.stub</artifactId>
 			<type>jar</type>
 			<scope>provided</scope>
@@ -135,11 +135,6 @@
 			<groupId>com.wso2telco.core</groupId>
 			<artifactId>dbutils</artifactId>
 		</dependency>
-        <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
-            <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
-            <version>5.2.2</version>
-        </dependency>
     </dependencies>
 	<build>
 		<plugins>

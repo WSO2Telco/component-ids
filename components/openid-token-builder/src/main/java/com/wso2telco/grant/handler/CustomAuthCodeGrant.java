@@ -27,6 +27,7 @@ import org.wso2.carbon.identity.oauth.cache.AuthorizationGrantCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.AuthorizationGrantCacheKey;
 import org.wso2.carbon.identity.oauth.cache.OAuthCacheKey;
 import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
+import org.wso2.carbon.identity.oauth2.dao.TokenMgtDAO;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2AccessTokenRespDTO;
 import org.wso2.carbon.identity.oauth2.model.AccessTokenDO;
 import org.wso2.carbon.identity.oauth2.token.OAuthTokenReqMessageContext;
@@ -275,8 +276,8 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
     }
 
     private void invalidateAuthCode(String authCode, String tokenId) throws IdentityOAuth2Exception {
-
-        this.tokenMgtDAO.deactivateAuthorizationCode(authCode, tokenId);
+        TokenMgtDAO tokenMgtDAO = new TokenMgtDAO();
+        tokenMgtDAO.deactivateAuthorizationCode(authCode, tokenId);
 
         if (isdebug) {
             log.debug(" Successfully deactivated the authcode used to generate access token, authCode : " + authCode);

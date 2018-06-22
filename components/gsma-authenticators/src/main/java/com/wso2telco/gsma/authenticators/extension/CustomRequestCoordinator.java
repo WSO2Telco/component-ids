@@ -349,7 +349,12 @@ public class CustomRequestCoordinator implements RequestCoordinator {
                         }
 
                         context.setPreviousSessionFound(true);
-                        sequenceConfig = previousAuthenticatedSeq.cloneObject();
+                        try {
+                            sequenceConfig = (SequenceConfig) previousAuthenticatedSeq.clone();
+                        } catch (CloneNotSupportedException e) {
+                            throw new FrameworkException("Error while cloning object: ", e);
+                        }
+
                         AuthenticatedUser authenticatedUser = sequenceConfig.getAuthenticatedUser();
                         String authenticatedUserTenantDomain = sequenceConfig.getAuthenticatedUser().getTenantDomain();
                         if (authenticatedUser != null) {
