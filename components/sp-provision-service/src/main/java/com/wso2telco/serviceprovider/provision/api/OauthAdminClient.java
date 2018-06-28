@@ -15,6 +15,9 @@
  ***************************************************************************** */
 package com.wso2telco.serviceprovider.provision.api;
 
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.serviceprovider.provision.exceptions.SpProvisionServiceException;
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.client.Options;
@@ -30,35 +33,23 @@ import java.util.Properties;
 
 
 public class OauthAdminClient {
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+    private static MobileConnectConfig mobileConnectConfigs;
 
     private String adminServiceHostUrl, userName, password;
     private OAuthAdminServiceStub oAuthAdminServiceStub = null;
     private ServiceClient client = null;
-    private Properties popertiesFromPropertyFile;
     static final Logger logInstance = Logger.getLogger(OauthAdminClient.class);
+
+    static {
+        mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
+    }
+
     public OauthAdminClient(String environment) {
-        String host;
-        //PropertyFileHandler propertyFileHandler = new PropertyFileHandler();
-
-        //try {
-            //popertiesFromPropertyFile = propertyFileHandler.popertiesFromPropertyFile();
-            if (environment.equalsIgnoreCase("preprod")) {
-                host = ""; //popertiesFromPropertyFile.getProperty("host_preprod_IS");
-                userName = ""; //popertiesFromPropertyFile.getProperty("preprod_IS_Username");
-                password = ""; //popertiesFromPropertyFile.getProperty("preprod_IS_password");
-
-            } else {
-                host = ""; //popertiesFromPropertyFile.getProperty("host_prod_IS");
-                userName = ""; //popertiesFromPropertyFile.getProperty("prod_IS_Username");
-                password = ""; //popertiesFromPropertyFile.getProperty("prod_IS_password");
-            }
-
-            adminServiceHostUrl = host + "/services/OAuthAdminService";
-
-        //} catch (IOException ex) {
-        //    logInstance.error("IOException occured in reading Property files" + ex.toString(), ex);
-        //}
-
+        String host = mobileConnectConfigs.getSpProvisionConfig().getApiManagerUrl(); //popertiesFromPropertyFile.getProperty("host_preprod_IS");
+        userName = mobileConnectConfigs.getSpProvisionConfig().getMigUserName(); //popertiesFromPropertyFile.getProperty("preprod_IS_Username");
+        password = mobileConnectConfigs.getSpProvisionConfig().getMigUserPassword(); //popertiesFromPropertyFile.getProperty("preprod_IS_password");
+        adminServiceHostUrl = host + "/services/OAuthAdminService";
 
         createAndAuthenticateStub();
     }

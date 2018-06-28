@@ -38,7 +38,7 @@ import java.util.List;
 public class AmApiCalls {
     static final Logger logInstance = Logger.getLogger(AmApiCalls.class);
     private static ConfigurationService configurationService = new ConfigurationServiceImpl();
-    private static MobileConnectConfig mobileConnectConfigs = null;
+    private static MobileConnectConfig mobileConnectConfigs;
 
     private String amUserCreationAPI, amLoginAPI, amAppCreationAPI, addSubscriptionAPI, password, appName, tokenUrlAm;
     private List<Cookie> cookies;
@@ -49,26 +49,15 @@ public class AmApiCalls {
         mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
     }
 
-    public AmApiCalls(String environment) {
-        //this.mobileConnectConfigs = mobileConnectConfig;
-        String host = "https://localhost:9444";
-
-        //popertiesFromPropertyFile = propertyFileHandler.popertiesFromPropertyFile();
-        if (environment.equalsIgnoreCase("preprod")) {
-            //host = popertiesFromPropertyFile.getProperty("host_preprod_AM");
-            tokenUrlAm = "https://localhost:9444/token";
-                    //popertiesFromPropertyFile.getProperty("token_url_am_preprod");
-        } else {
-            //host = popertiesFromPropertyFile.getProperty("host_prod_AM");
-            //tokenUrlAm = popertiesFromPropertyFile.getProperty("token_url_am_prod");
-        }
+    public AmApiCalls() {
+        String host = mobileConnectConfigs.getSpProvisionConfig().getApiManagerUrl();
+        tokenUrlAm = mobileConnectConfigs.getSpProvisionConfig().getAmTokenUrl();
 
         amUserCreationAPI = host + "/store/site/blocks/user/sign-up/ajax/user-add.jag";
         amLoginAPI = host + "/store/site/blocks/user/login/ajax/login.jag";
         amAppCreationAPI = host + "/store/site/blocks/application/application-add/ajax/application-add.jag";
         addSubscriptionAPI = host + "/store/site/blocks/subscription/subscription-add/ajax/subscription-add.jag";
-        password = "admin";
-                //popertiesFromPropertyFile.getProperty("default_password");
+        password = mobileConnectConfigs.getSpProvisionConfig().getDefaultUserPassword();
     }
 
     /*

@@ -15,6 +15,9 @@
  ***************************************************************************** */
 package com.wso2telco.serviceprovider.provision.api;
 
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.serviceprovider.provision.exceptions.SpProvisionServiceException;
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.client.Options;
@@ -27,45 +30,33 @@ import org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManageme
 import org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceStub;
 
 import java.rmi.RemoteException;
-import java.util.Properties;
 
 public class ApplicationManagementClient {
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+    private static MobileConnectConfig mobileConnectConfigs;
 
     private IdentityApplicationManagementServiceStub stub = null;
     private ServiceClient client = null;
-    private String applicationManagmentHostUrl, userName, password;
-    private Properties popertiesFromPropertyFile;
+    private String applicationManagementHostUrl, userName, password;
     static final Logger logInstance = Logger.getLogger(ApplicationManagementClient.class);
-    public ApplicationManagementClient(String environment) {
 
-        String host;
-        //PropertyFileHandler propertyFileHandler = new PropertyFileHandler();
+    static {
+        mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
+    }
 
-        //try {
-            //popertiesFromPropertyFile = propertyFileHandler.popertiesFromPropertyFile();
-            if (environment.equalsIgnoreCase("preprod")) {
-                host = ""; //popertiesFromPropertyFile.getProperty("host_preprod_IS");
-                userName = ""; //popertiesFromPropertyFile.getProperty("preprod_IS_Username");
-                password = ""; //popertiesFromPropertyFile.getProperty("preprod_IS_password");
+    public ApplicationManagementClient() {
+        String host = mobileConnectConfigs.getSpProvisionConfig().getApiManagerUrl();
+        userName = mobileConnectConfigs.getSpProvisionConfig().getMigUserName();
+        password = mobileConnectConfigs.getSpProvisionConfig().getMigUserPassword();
 
-            } else {
-                host = ""; //popertiesFromPropertyFile.getProperty("host_prod_IS");
-                userName = ""; //popertiesFromPropertyFile.getProperty("prod_IS_Username");
-                password = ""; //popertiesFromPropertyFile.getProperty("prod_IS_password");
-            }
-
-            applicationManagmentHostUrl = host + "/services/IdentityApplicationManagementService";
-
-        //} catch (IOException ex) {
-              //logInstance.error("Error occured in reading Property files" + ex.toString(), ex);
-        //}
+        applicationManagementHostUrl = host + "/services/IdentityApplicationManagementService";
 
         createAndAuthenticateStub();
     }
 
     private void createAndAuthenticateStub() {
         try {
-            stub = new IdentityApplicationManagementServiceStub(null, applicationManagmentHostUrl);
+            stub = new IdentityApplicationManagementServiceStub(null, applicationManagementHostUrl);
             client = stub._getServiceClient();
         } catch (AxisFault axisFault) {
             logInstance.error("axisFault" + axisFault.getMessage());
