@@ -15,34 +15,32 @@
  ***************************************************************************** */
 package com.wso2telco.serviceprovider.provision.api;
 
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.serviceprovider.provision.exceptions.SpProvisionServiceException;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.identity.application.common.model.xsd.*;
 import org.wso2.carbon.identity.oauth.stub.dto.OAuthConsumerAppDTO;
 
-import java.util.Properties;
-
 public class IsApiCalls {
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+    private static MobileConnectConfig mobileConnectConfigs;
 
     private static ApplicationManagementClient applicationManagmenetClient;
     private static OauthAdminClient oauthAdminClient;
-    private Properties popertiesFromPropertyFile;
-    //private PropertyFileHandler propertyFileHandler = new PropertyFileHandler();
     private String oAuthVersion, grantType;
     static final Logger logInstance = Logger.getLogger(IsApiCalls.class);
 
+    static {
+        mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
+    }
+
     public IsApiCalls(String environment) {
-
-        //try {
-            applicationManagmenetClient = new ApplicationManagementClient(environment);
-            oauthAdminClient = new OauthAdminClient(environment);
-            //popertiesFromPropertyFile = propertyFileHandler.popertiesFromPropertyFile();
-            oAuthVersion = "";//popertiesFromPropertyFile.getProperty("oAuth_version");
-            grantType = "";//popertiesFromPropertyFile.getProperty("grant_types");
-
-        //} catch (IOException ex) {
-            //logInstance.error("IOException occured while reading property file:" + ex.getMessage(), ex);
-        //}
+        applicationManagmenetClient = new ApplicationManagementClient();
+        oauthAdminClient = new OauthAdminClient(environment);
+        oAuthVersion = mobileConnectConfigs.getSpProvisionConfig().getOauthVersion();
+        grantType = mobileConnectConfigs.getSpProvisionConfig().getGrantTypes();
     }
 
     @SuppressWarnings("empty-statement")

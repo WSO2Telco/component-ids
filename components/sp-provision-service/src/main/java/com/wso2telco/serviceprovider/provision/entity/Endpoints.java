@@ -24,7 +24,7 @@ public class Endpoints {
         System.out.println(s);
 
 
-        AmApiCalls amApiCalls = new AmApiCalls(environment);
+        AmApiCalls amApiCalls = new AmApiCalls();
         String resp = amApiCalls.createNewUserInAm("test1pp", "Willy", "Wonka", "willy@chocfactory.com");
         System.out.println(resp);
         httpServletResponse.setContentLength(s.getBytes().length);
