@@ -17,6 +17,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.security.KeyStore;
 import org.apache.log4j.Logger;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class SpProvisionUtils {
     private static final Logger log = Logger.getLogger(SpProvisionUtils.class);
@@ -54,5 +56,9 @@ public class SpProvisionUtils {
             requestBody += line;
         }
         return requestBody;
+    }
+
+    public static JSONObject stringToJsonObject(String jsonStr) throws JSONException {
+        return new JSONObject(jsonStr);
     }
 }

@@ -1,7 +1,5 @@
 package com.wso2telco.serviceprovider.provision.model;
 
-import java.util.List;
-
 public class RequestParamInfo {
     private String userName;
     private String applicationName;
@@ -12,8 +10,8 @@ public class RequestParamInfo {
     private String applicationTier;
     private String newConsumerKey;
     private String newConsumerSecret;
-    private List<String> api;
-    private List<String> scopes;
+    private String api;
+    private String scopes;
     private boolean trustedServiceProvider;
 
     public String getUserName() {
@@ -88,19 +86,19 @@ public class RequestParamInfo {
         this.newConsumerSecret = newConsumerSecret;
     }
 
-    public List<String> getApi() {
+    public String getApi() {
         return api;
     }
 
-    public void setApi(List<String> api) {
+    public void setApi(String api) {
         this.api = api;
     }
 
-    public List<String> getScopes() {
+    public String getScopes() {
         return scopes;
     }
 
-    public void setScopes(List<String> scopes) {
+    public void setScopes(String scopes) {
         this.scopes = scopes;
     }
 
@@ -110,5 +108,33 @@ public class RequestParamInfo {
 
     public void setTrustedServiceProvider(boolean trustedServiceProvider) {
         this.trustedServiceProvider = trustedServiceProvider;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("RequestParamInfo [userName: %s\n" +
+                "applicationName: %s\n" +
+                "firstName: %s\n" +
+                "lastName: %s\n" +
+                "developerEmail: %s\n" +
+                "callbackUrl: %s\n" +
+                "applicationTier: %s\n" +
+                "newConsumerKey: %s\n" +
+                "newConsumerSecret: %s\n" +
+                "api: %s\n" +
+                "scopes: %s\n" +
+                "trustedServiceProvider: %s]\n",
+                userName,
+                applicationName,
+                firstName,
+                lastName,
+                developerEmail,
+                callbackUrl,
+                applicationTier,
+                newConsumerKey,
+                newConsumerSecret,
+                api,
+                scopes,
+                trustedServiceProvider);
     }
 }

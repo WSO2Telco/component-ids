@@ -45,7 +45,7 @@ public class OauthAdminClient {
         mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
     }
 
-    public OauthAdminClient(String environment) {
+    public OauthAdminClient() {
         String host = mobileConnectConfigs.getSpProvisionConfig().getApiManagerUrl(); //popertiesFromPropertyFile.getProperty("host_preprod_IS");
         userName = mobileConnectConfigs.getSpProvisionConfig().getMigUserName(); //popertiesFromPropertyFile.getProperty("preprod_IS_Username");
         password = mobileConnectConfigs.getSpProvisionConfig().getMigUserPassword(); //popertiesFromPropertyFile.getProperty("preprod_IS_password");
