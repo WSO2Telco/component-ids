@@ -36,9 +36,9 @@ public class IsApiCalls {
         mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
     }
 
-    public IsApiCalls(String environment) {
+    public IsApiCalls() {
         applicationManagmenetClient = new ApplicationManagementClient();
-        oauthAdminClient = new OauthAdminClient(environment);
+        oauthAdminClient = new OauthAdminClient();
         oAuthVersion = mobileConnectConfigs.getSpProvisionConfig().getOauthVersion();
         grantType = mobileConnectConfigs.getSpProvisionConfig().getGrantTypes();
     }
