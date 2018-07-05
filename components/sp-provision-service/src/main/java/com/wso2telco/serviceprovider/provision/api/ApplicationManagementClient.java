@@ -28,6 +28,7 @@ import org.wso2.carbon.identity.application.common.model.xsd.ApplicationBasicInf
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceIdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceStub;
+//import org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceStub;
 
 import java.rmi.RemoteException;
 
@@ -45,7 +46,7 @@ public class ApplicationManagementClient {
     }
 
     public ApplicationManagementClient() {
-        String host = mobileConnectConfigs.getSpProvisionConfig().getApiManagerUrl();
+        String host = "https://localhost:9444";//mobileConnectConfigs.getSpProvisionConfig().getApiManagerUrl();
         userName = mobileConnectConfigs.getSpProvisionConfig().getMigUserName();
         password = mobileConnectConfigs.getSpProvisionConfig().getMigUserPassword();
 
@@ -151,11 +152,11 @@ public class ApplicationManagementClient {
     public void createSpApplication(ServiceProvider serviceProviderDto) throws SpProvisionServiceException {
 
         authenticate(client);
-
         if (serviceProviderDto != null) {
             try {
                 stub.createApplication(serviceProviderDto);
             } catch (RemoteException e) {
+                e.printStackTrace();
                 throw new SpProvisionServiceException(e.getMessage());
             } catch (IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
                 throw new SpProvisionServiceException(e.getMessage());
@@ -175,6 +176,9 @@ public class ApplicationManagementClient {
         auth.setUsername(userName);
         auth.setPassword(password);
         auth.setPreemptiveAuthentication(true);
+//        option.setProperty(HTTPConstants.CHUNKED,Constants.VALUE_TRUE);
+//        option.setProperty(Constants.Configuration.MESSAGE_TYPE,HTTPConstants.MEDIA_TYPE_APPLICATION_ECHO_XML);
+//        option.setProperty(Constants.Configuration.DISABLE_SOAP_ACTION,Boolean.TRUE);
         option.setProperty(org.apache.axis2.transport.http.HTTPConstants.AUTHENTICATE, auth);
         option.setManageSession(true);
     }

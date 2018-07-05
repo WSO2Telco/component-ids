@@ -105,7 +105,7 @@ public class IsApiCalls {
             if (applicationManagmenetClient.getSpApplicationData(appName) == null) {
                 applicationManagmenetClient.createSpApplication(serviceProviderApp);
             } else {
-                responseMessage[0] = "failure.App is already available in SP Database";
+                responseMessage[0] = "Failure. App is already available in SP Database";
                 return responseMessage;
             }
 
@@ -132,7 +132,7 @@ public class IsApiCalls {
                 } else {
                     String[] keys = getClientSecret(appName);
 
-                    responseMessage[0] = "failure.Error in update SP Application";
+                    responseMessage[0] = "Failure. Error in update SP Application";
                     responseMessage[1] = keys[0];
                     responseMessage[2] = keys[1];
                 }
@@ -140,6 +140,7 @@ public class IsApiCalls {
 
         } catch (SpProvisionServiceException ex) {
             logInstance.error("SpProvisionServiceException occured:" + ex.getMessage(), ex);
+            ex.printStackTrace();
             responseMessage[0] = "failure";
         }
         return responseMessage;

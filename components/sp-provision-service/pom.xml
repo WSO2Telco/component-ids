@@ -21,124 +21,6 @@
 <name>Service Provider Provisioning Service</name>
 
 <dependencies>
-    <!--<dependency>-->
-        <!--<groupId>junit</groupId>-->
-        <!--<artifactId>junit</artifactId>-->
-        <!--<scope>test</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>org.apache.httpcomponents</groupId>-->
-        <!--<artifactId>httpclient</artifactId>-->
-        <!--<scope>provided</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>javax.servlet</groupId>-->
-        <!--<artifactId>servlet-api</artifactId>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>com.google.gdata.wso2</groupId>-->
-        <!--<artifactId>gdata-core</artifactId>-->
-        <!--<scope>provided</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>commons-fileupload.wso2</groupId>-->
-        <!--<artifactId>commons-fileupload</artifactId>-->
-        <!--<scope>provided</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>com.sun.jersey</groupId>-->
-        <!--<artifactId>jersey-server</artifactId>-->
-        <!--<version>1.17.1</version>-->
-        <!--<scope>provided</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>com.sun.jersey</groupId>-->
-        <!--<artifactId>jersey-core</artifactId>-->
-        <!--<version>1.17.1</version>-->
-        <!--<scope>provided</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>com.sun.jersey</groupId>-->
-        <!--<artifactId>jersey-servlet</artifactId>-->
-        <!--<version>1.17.1</version>-->
-        <!--<scope>provided</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>org.wso2.carbon.identity</groupId>-->
-        <!--<artifactId>org.wso2.carbon.identity.user.registration.stub</artifactId>-->
-        <!--<scope>provided</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>org.wso2.carbon</groupId>-->
-        <!--<artifactId>org.wso2.carbon.utils</artifactId>-->
-        <!--<scope>provided</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>com.wso2telco.ids</groupId>-->
-        <!--<artifactId>openid-extension</artifactId>-->
-        <!--<version>2.4.0-SNAPSHOT</version>-->
-        <!--<scope>provided</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>com.wso2telco.ids</groupId>-->
-        <!--<artifactId> openid-token-builder</artifactId>-->
-        <!--<version>2.4.0-SNAPSHOT</version>-->
-        <!--<scope>provided</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>com.wso2telco.core</groupId>-->
-        <!--<artifactId>config-util</artifactId>-->
-        <!--<scope>provided</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>com.wso2telco.core</groupId>-->
-        <!--<artifactId>dbutils</artifactId>-->
-        <!--<scope>provided</scope>-->
-    <!--</dependency>-->
-    <!--&lt;!&ndash;<dependency>&ndash;&gt;-->
-        <!--&lt;!&ndash;<groupId>com.wso2telco.core</groupId>&ndash;&gt;-->
-        <!--&lt;!&ndash;<artifactId>dbutils</artifactId>&ndash;&gt;-->
-        <!--&lt;!&ndash;<version>2.0.4-SNAPSHOT</version>&ndash;&gt;-->
-    <!--&lt;!&ndash;</dependency>&ndash;&gt;-->
-    <!--<dependency>-->
-        <!--<groupId>org.wso2.carbon.identity</groupId>-->
-        <!--<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>-->
-        <!--<scope>provided</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>com.wso2telco.ids</groupId>-->
-        <!--<artifactId>ids-data-publisher</artifactId>-->
-        <!--<version>2.4.0-SNAPSHOT</version>-->
-        <!--<scope>provided</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>com.wso2telco.ids</groupId>-->
-        <!--<artifactId>common-util</artifactId>-->
-        <!--<version>2.4.0-SNAPSHOT</version>-->
-        <!--<scope>provided</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>org.apache.httpcomponents</groupId>-->
-        <!--<artifactId>httpasyncclient</artifactId>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>net.iharder</groupId>-->
-        <!--<artifactId>base64</artifactId>-->
-        <!--<version>RELEASE</version>-->
-        <!--<scope>compile</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>org.wso2.carbon</groupId>-->
-        <!--<artifactId>org.wso2.carbon.identity.application.mgt.stub</artifactId>-->
-        <!--<version>RELEASE</version>-->
-        <!--<scope>compile</scope>-->
-    <!--</dependency>-->
-    <!--<dependency>-->
-        <!--<groupId>org.wso2.carbon</groupId>-->
-        <!--<artifactId>org.wso2.carbon.identity.application.mgt.stub</artifactId>-->
-        <!--<version>RELEASE</version>-->
-        <!--<scope>compile</scope>-->
-    <!--</dependency>-->
     <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
@@ -208,11 +90,11 @@
         <artifactId>org.wso2.carbon.identity.application.mgt.stub</artifactId>
         <version>4.2.0</version>
     </dependency>
-    <dependency>
-        <groupId>org.wso2.carbon</groupId>
-        <artifactId>org.wso2.carbon.user.mgt.stub</artifactId>
-        <version>4.2.0</version>
-    </dependency>
+    <!--<dependency>-->
+        <!--<groupId>org.wso2.carbon</groupId>-->
+        <!--<artifactId>org.wso2.carbon.user.mgt.stub</artifactId>-->
+        <!--<version>4.2.0</version>-->
+    <!--</dependency>-->
     <dependency>
         <groupId>log4j</groupId>
         <artifactId>log4j</artifactId>
@@ -221,6 +103,10 @@
     <dependency>
         <groupId>com.wso2telco.core</groupId>
         <artifactId>config-util</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.wso2.carbon.identity</groupId>
+        <artifactId>org.wso2.carbon.identity.application.mgt.stub</artifactId>
     </dependency>
 </dependencies>
 
@@ -251,8 +137,8 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
             <configuration>
-                <source>8</source>
-                <target>8</target>
+                <source>7</source>
+                <target>7</target>
             </configuration>
         </plugin>
     </plugins>

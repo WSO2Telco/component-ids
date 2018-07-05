@@ -1,5 +1,8 @@
 package com.wso2telco.serviceprovider.provision.entity;
 
+import com.wso2telco.core.config.model.MobileConnectConfig;
+import com.wso2telco.core.config.service.ConfigurationService;
+import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.serviceprovider.provision.api.AmApiCalls;
 import com.wso2telco.serviceprovider.provision.api.IsApiCalls;
 import com.wso2telco.serviceprovider.provision.util.DbUtils;
@@ -16,7 +19,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * The following tasks should be performed when this API is called (in exact order)
@@ -37,7 +42,12 @@ import java.sql.SQLException;
 @Path("/")
 public class Endpoints {
     private static final Log log = LogFactory.getLog(Endpoints.class);
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+    private static MobileConnectConfig mobileConnectConfigs;
 
+    static {
+        mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
+    }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -47,12 +57,13 @@ public class Endpoints {
                                              @Context HttpServletResponse httpServletResponse,
                                              @PathParam("operatorName") String operatorName,
                                              @PathParam("environment") String environment,
-                                             String requestParamInfo) throws Exception {
+                                             String requestParamInfo) /*throws Exception*/ {
 
-        System.out.println("Service provision API called with operatorName: " + operatorName + ", Environment: " + environment);
+        log.info("Service provision API called with operatorName: " + operatorName + ", Environment: " + environment);
 
         try {
             JSONObject requestBody = stringToJsonObject(requestParamInfo);
+            String userName = requestBody.getString("userName");
             String appName = requestBody.getString("applicationName");
             String appDescription = appName; //add this as a request body parameter
             String firstName = requestBody.getString("firstName");
@@ -61,62 +72,106 @@ public class Endpoints {
             String applicationTier = requestBody.getString("applicationTier");
             String newConsumerKey = requestBody.getString("newConsumerKey");
             String newConsumerSecret = requestBody.getString("newConsumerSecret");
+            String apis = requestBody.getString("api");
             String callbackUrl = requestBody.getString("callbackUrl");
             String scopes = requestBody.getString("scopes");
             boolean trustedServiceProvider = requestBody.getBoolean("trustedServiceProvider");
 
+            //create a user in AM
             AmApiCalls amApiCalls = new AmApiCalls();
-            String respCreateUserCall = amApiCalls.createNewUserInAm(appName, firstName, lastName, devMail);
-            if (checkAmResponseErrors(respCreateUserCall)) {
+            String respCreateUserCall = removeHttpCode(amApiCalls.createNewUserInAm(appName, firstName, lastName,
+                    devMail));
+            if (checkResponseErrors(respCreateUserCall)) {
+                log.error("SP Provision API: Failed to create new AM user. - " + respCreateUserCall);
                 return Response.status(500).entity(respCreateUserCall).build();
             }
+            System.out.println("1.1 AM User Created - " + respCreateUserCall);
 
-            String respLoginCall = amApiCalls.loginToAm(appName);
-            if (checkAmResponseErrors(respLoginCall)) {
+            //Login to AM
+            String respLoginCall = removeHttpCode(amApiCalls.loginToAm(appName));
+            if (checkResponseErrors(respLoginCall)) {
+                log.error("SP Provision API: AM user login failed. - " + respLoginCall);
                 return Response.status(500).entity(respLoginCall).build();
             }
+            System.out.println("1.2 Logged into AM - " + respLoginCall);
 
-            String respCreateApp = amApiCalls.createApplication(appName,
-                    appDescription, callbackUrl, applicationTier);
-            if (checkAmResponseErrors(respCreateApp)) {
+            //Create application in AM
+            String respCreateApp = removeHttpCode(amApiCalls.createApplication(appName,
+                    appDescription, callbackUrl, applicationTier));
+            if (checkResponseErrors(respCreateApp)) {
+                log.error("SP Provision API: Failed to create AM application. - " + respCreateApp);
                 return Response.status(500).entity(respCreateApp).build();
             }
+            System.out.println("2. App created - " + respCreateApp);
 
+            //Activate AM application
             String respActivateApp = DbUtils.activateApplication(ApimgtConnectionUtil.getConnection(), appName);
-            if (checkAmResponseErrors(respActivateApp)) {
+            if (checkResponseErrors(respActivateApp)) {
+                log.error("SP Provision API: Failed to activate AM application. - " + respActivateApp);
                 return Response.status(500).entity(respActivateApp).build();
             }
+            System.out.println("3. App activated - " + respActivateApp);
 
+            //Update AM application
             String respApproveApp = DbUtils.updateApplication(ApimgtConnectionUtil.getConnection(), appName);
-            System.out.println(respApproveApp);
-            if (checkAmResponseErrors(respApproveApp)) {
+            if (checkResponseErrors(respApproveApp)) {
+                log.error("SP Provision API: Failed update AM application. - " + respApproveApp);
                 return Response.status(500).entity(respApproveApp).build();
             }
+            System.out.println("4. App updated - " + respApproveApp);
 
-            //to-do: subscribe to apis, call here
+            //Subscribing to APIs
+            List<MobileConnectConfig.Api> apiList = mobileConnectConfigs.getSpProvisionConfig()
+                    .getApiConfigs().getApiList();
+            String[] requestedApis = apis.split(",");
+            for (MobileConnectConfig.Api api: apiList) {
+                for (String requestedApi: requestedApis) {
+                    if (api.getApiName().equalsIgnoreCase(requestedApi)) {
+                        String respSubscribeCall = removeHttpCode(subscribeToApi(api, userName, appName, amApiCalls));
+                        if (checkResponseErrors(respSubscribeCall)) {
+                            log.error("SP Provision API: Failed to create API subscription " +
+                                    "[" + requestedApi + "] - " + respSubscribeCall);
+                            return Response.status(500).entity(respSubscribeCall).build();
+                        }
+                        System.out.println("5. Subscribed ["+ api +"]- " + respSubscribeCall);
+                    }
+                }
+            }
 
+            //Update subscriptions
             String respUpdateSubscriptions = DbUtils.updateSubscriptions(ApimgtConnectionUtil.getConnection());
-            if (checkAmResponseErrors(respUpdateSubscriptions)) {
+            if (checkResponseErrors(respUpdateSubscriptions)) {
+                log.error("SP Provision API: Failed to update subscriptions. - " + respUpdateSubscriptions);
                 return Response.status(500).entity(respUpdateSubscriptions).build();
             }
+            System.out.println("6. Subscriptions updated - " + respUpdateSubscriptions);
 
-
+            //Populate subscription validator
             String respPopulateSubscriptionValidator = DbUtils.populateSubscriptionValidator(
                     ApimgtConnectionUtil.getConnection());
-            if (checkAmResponseErrors(respPopulateSubscriptionValidator)) {
+            if (checkResponseErrors(respPopulateSubscriptionValidator)) {
+                log.error("SP Provision API: Failed to populate subscription validator. - " + respPopulateSubscriptionValidator);
                 return Response.status(500).entity(respPopulateSubscriptionValidator).build();
             }
+            System.out.println("6. Subscriptions validator populated - " + respPopulateSubscriptionValidator);
 
-            //IS Calls Start from Here
+            System.out.println("IS Calls Start");
+
+            //IS Calls
             IsApiCalls isApiCalls = new IsApiCalls();
             String[] status = isApiCalls.createServiceProvider(appName, callbackUrl, appDescription);
+            System.out.println(status.length);
+            for (String s: status) {
+                System.out.println(s);
+            }
 
             //Access token Generation
             String accessToken = null;
             if (status[0].equals("success")) {
                 accessToken = amApiCalls.getAccessToken(status[1], status[2]);
-                System.out.println("Access token:" + accessToken);
             }
+            System.out.println("Access Token: " + accessToken);
+
             //insert values to AM databases
             if (null != accessToken) {
                 DbUtils.insertValuesToAmDatabases(appName, status[1], status[2], accessToken);
@@ -134,40 +189,67 @@ public class Endpoints {
                         newConsumerKey);
             }
 
-//            String oAuthRequestCurl = auth_url
-//                    + "?client_id=" + consumerKeyValue + "&response_type=code&scope=openid"
-//                    + "&redirect_uri=" + callbackUrl + "&acr_values=2&state=state_33945636-d3b7-4b12-b7b6-288e5a9683a7"
-//                    + "&nonce=nonce_a75674c9-2007-4e36-afee-ccf7c865a25d";
-//
-//            String tokenRequestCurl = "curl -v -X POST --user " + consumerKeyValue + ":" + consumerSecretValue + " "
-//                    + "-H \"Content-Type: application/x-www-form-urlencoded;charset=UTF-8\" -k -d "
-//                    + "\"grant_type=authorization_code&code=d3ce9ee75a5de3ca955b1798b39bf2&"
-//                    + "redirect_uri=" + callbackUrl + "\" " + token_url;
-//
-//            String userInfoCurl = "curl -i " + user_info_url + "?schema=openid -H \"Authorization: Bearer 9d55e77b3f823d84ae5fdff1d7135fcd\"";
+            String oAuthRequestCurl = mobileConnectConfigs.getSpProvisionConfig().getAuthUrl()
+                    + "?client_id=" + newConsumerKey + "&response_type=code&scope=openid"
+                    + "&redirect_uri=" + callbackUrl + "&acr_values=2&state=state_33945636-d3b7-4b12-b7b6-288e5a9683a7"
+                    + "&nonce=nonce_a75674c9-2007-4e36-afee-ccf7c865a25d";
+
+            String tokenRequestCurl = "curl -v -X POST --user " + newConsumerKey + ":" + newConsumerSecret + " "
+                    + "-H \"Content-Type: application/x-www-form-urlencoded;charset=UTF-8\" -k -d "
+                    + "\"grant_type=authorization_code&code=d3ce9ee75a5de3ca955b1798b39bf2&"
+                    + "redirect_uri=" + callbackUrl + "\" " + mobileConnectConfigs.getSpProvisionConfig().getTokenUrl();
+
+            String userInfoCurl = "curl -i " + mobileConnectConfigs.getSpProvisionConfig().getUserInfoUrl() +
+                    "?schema=openid -H \"Authorization: Bearer 9d55e77b3f823d84ae5fdff1d7135fcd\"";
 
 
-        } catch (JSONException je) {
-            je.printStackTrace();
-            return Response.status(500).entity("{error: true, message: '" + je.getMessage() + "'}").build();
-        } catch (SQLException se) {
-            se.printStackTrace();
-            return Response.status(500).entity("{error: true, message: '" + se.getMessage() + "'}").build();
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return Response.status(500).entity("{error: true, message: '" + e.getMessage() + "'}").build();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return Response.status(500).entity("{error: true, message: '" + e.getMessage() + "'}").build();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Response.status(500).entity("{error: true, message: '" + e.getMessage() + "'}").build();
         }
 
         return Response.ok("{error: false, message: 'success'}", MediaType.APPLICATION_JSON).build();
     }
 
+    private String subscribeToApi(MobileConnectConfig.Api api, String userName, String appName, AmApiCalls amApiCalls) {
+        String apiName = api.getApiName();
+        String version = api.getApiVersion();
+        String provider = api.getApiprovider();
+        String tier = api.getApiTier();
+        String respSubscribeToApi = amApiCalls.addSubscritions(userName, appName, apiName,
+                version, provider, tier);
+        return respSubscribeToApi;
+    }
+
     /**
      * Checks AM API responses for errors
-     * @param response AM API call response
+     * @param response Response string in JSON format ex: {'error': true, 'message': 'error message'}
      * @return false if there were no errors, true otherwise
      * @throws JSONException if parsing failed
      */
-    private boolean checkAmResponseErrors(String response) throws JSONException {
+    private boolean checkResponseErrors(String response) throws JSONException {
         JSONObject jsonObject = new JSONObject(response);
-        JSONObject outputObject = jsonObject.getJSONObject("output");
-        return outputObject.getBoolean("error");
+        if (jsonObject.has("error")) {
+            return jsonObject.getBoolean("error");
+        }
+        return false;
+    }
+
+    private String removeHttpCode(String response) throws JSONException {
+        System.out.println("Removing httpCode from: " + response);
+        JSONObject jsonObject = new JSONObject(response);
+        if (jsonObject.has("output")) {
+            return jsonObject.getJSONObject("output").toString();
+        }
+        return response;
     }
 
     /**
