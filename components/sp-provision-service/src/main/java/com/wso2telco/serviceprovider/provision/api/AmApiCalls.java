@@ -43,7 +43,6 @@ public class AmApiCalls {
     private String amUserCreationAPI, amLoginAPI, amAppCreationAPI, addSubscriptionAPI, password, appName, tokenUrlAm;
     private List<Cookie> cookies;
     private CookieStore cookieStore;
-    //private Properties popertiesFromPropertyFile;
 
     static {
         mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
@@ -66,8 +65,6 @@ public class AmApiCalls {
     public String createNewUserInAm(String appName, String firstName, String lastName, String devEmail) throws IOException {
 
         String url = amUserCreationAPI + "?allFieldsValues=" + firstName + "%7C" + lastName + "%7C" + devEmail + "&username=" + appName + "&password=" + password + "&action=addUser";
-        System.out.println("Creating AM User");
-        System.out.println("API: " + url);
         HttpClient httpClient = SpProvisionUtils.getNewHttpClient();
         String response = postToURLjson(url, httpClient);
         httpClient.getConnectionManager().shutdown();
@@ -80,8 +77,6 @@ public class AmApiCalls {
     public String loginToAm(String appName) throws IOException {
         cookieStore = null;
         String url = amLoginAPI + "?username=" + appName + "&password=" + password + "&action=login";
-        System.out.println("Logging in AM User");
-        System.out.println("API: " + url);
         DefaultHttpClient httpClient = SpProvisionUtils.getNewHttpClient();
         String response = postToURLjson(url, httpClient);
         httpClient.getConnectionManager().shutdown();

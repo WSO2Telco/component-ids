@@ -37,13 +37,14 @@ public class DbUtils {
             callablestatement.setString(1, appName);
             callablestatement.registerOutParameter(2, java.sql.Types.INTEGER);
             callablestatement.execute();
-            System.out.println(callablestatement);
             appId = callablestatement.getInt(2);
-            message = "Success";
+            message = "{error: false, message: 'success'}";
 
         } catch (SQLException e) {
-            message = "Failure:" + e.toString();
-
+            Logger.getLogger(DbUtils.class.getName()).log(Level.SEVERE,
+                    "SQL Exception occurred when activating the application:" + e.getMessage(), e);
+            message = "{error: true, message: \"Failed to call activate application procedure - " +
+                    e.getMessage() + "\"}";
         } finally {
             conn.close();
         }
@@ -65,11 +66,10 @@ public class DbUtils {
             }
             callablestatement.setInt(1, appId);
             callablestatement.execute();
-            System.out.println(callablestatement);
-            message = "Success";
+            message = "{error: false, message: 'success'}";
 
         } catch (SQLException e) {
-            message = "Failure:" + e.toString();
+            message = "{error: true, message: \"Failed to update application - " + e.getMessage() + "\"}";
 
         } finally {
             conn.close();
@@ -87,11 +87,10 @@ public class DbUtils {
             callablestatement = conn.prepareCall(SQL);
             callablestatement.setInt(1, appId);
             callablestatement.execute();
-            System.out.println(callablestatement);
-            message = "Success";
+            message = "{error: false, message: 'success'}";
 
         } catch (SQLException e) {
-            message = "Failure:" + e.toString();
+            message = "{error: true, message: \"Failed to update subscriptions - " + e.getMessage() + "\"}";
 
         } finally {
             conn.close();
@@ -109,11 +108,10 @@ public class DbUtils {
             callablestatement = conn.prepareCall(SQL);
             callablestatement.setInt(1, appId);
             callablestatement.execute();
-            System.out.println(callablestatement);
-            message = "Success";
+            message = "{error: false, message: 'success'}";
 
         } catch (SQLException e) {
-            message = "Failure:" + e.toString();
+            message = "{error: true, message: \"Failed to populate subscription validator - " + e.getMessage() + "\"}";
 
         } finally {
             conn.close();
@@ -133,7 +131,6 @@ public class DbUtils {
                 callablestatement.setString(1, consumerKey);
                 callablestatement.setString(2, scopeList[i]);
                 callablestatement.execute();
-                System.out.println(callablestatement);
                 message = "Success";
             }
 
@@ -156,7 +153,6 @@ public class DbUtils {
             callablestatement = conn.prepareCall(SQL);
             callablestatement.setString(1, consumerKey);
             callablestatement.execute();
-            System.out.println(callablestatement);
             message = "Success";
 
         } catch (SQLException e) {
@@ -243,7 +239,6 @@ public class DbUtils {
             statement = conn.prepareStatement(sqlQuery);
             statement.setString(1, consumerKey);
             resultSet = statement.executeQuery();
-            System.out.println(statement);
 
             if (resultSet.wasNull()) {
                 outputValue = null;
@@ -285,7 +280,6 @@ public class DbUtils {
             statement.setString(1, consumerKeyOld);
             statement.setString(2, secretKeyOld);
             resultSet = statement.executeQuery();
-            System.out.println(statement);
 
             while (resultSet.next()) {
                 tempValue = resultSet.getString("INBOUND_AUTH_KEY");
@@ -300,8 +294,6 @@ public class DbUtils {
                 statement.setString(3, consumerKeyOld);
                 statement.setString(4, secretKeyOld);
                 status = statement.executeUpdate();
-                System.out.println(statement);
-                System.out.println("update_SP_INBOUND_AUTH_table:" + status);
 
                 conn.commit();
 
@@ -343,7 +335,6 @@ public class DbUtils {
             statement = conn.prepareStatement(sqlQuery);
             statement.setString(1, consumerKeyOld);
             resultSet = statement.executeQuery();
-            System.out.println(statement);
 
             if (resultSet.next()) {
 
@@ -352,8 +343,6 @@ public class DbUtils {
                 statement.setString(1, consumerKeyNew);
                 statement.setString(2, consumerKeyOld);
                 status = statement.executeUpdate();
-                System.out.println(statement);
-                System.out.println("update_AM_APPLICATION_KEY_MAPPING_table:" + status);
                 conn.commit();
             }
 
@@ -393,7 +382,6 @@ public class DbUtils {
             statement = conn.prepareStatement(sqlQuery);
             statement.setString(1, consumerKeyOld);
             resultSet = statement.executeQuery();
-            System.out.println(statement);
 
             if (resultSet.next()) {
 
@@ -401,8 +389,6 @@ public class DbUtils {
                 statement = conn.prepareStatement(sqlQuery);
                 statement.setString(1, consumerKeyOld);
                 status = statement.executeUpdate();
-                System.out.println(statement);
-                System.out.println("update_AM_APP_KEY_DOMAIN_MAPPING_table:" + status);
                 conn.commit();
             }
 
@@ -442,7 +428,6 @@ public class DbUtils {
             statement = conn.prepareStatement(sqlQuery);
             statement.setString(1, consumerKeyOld);
             resultSet = statement.executeQuery();
-            System.out.println(statement);
 
             if (resultSet.next()) {
 
@@ -450,8 +435,6 @@ public class DbUtils {
                 statement = conn.prepareStatement(sqlQuery);
                 statement.setString(1, consumerKeyOld);
                 status = statement.executeUpdate();
-                System.out.println(statement);
-                System.out.println("update_IDN_OAUTH2_ACCESS_TOKEN_table:" + status);
                 conn.commit();
             }
 
@@ -492,7 +475,6 @@ public class DbUtils {
             statement = conn.prepareStatement(sqlQuery);
             statement.setString(1, consumerKeyOld);
             resultSet = statement.executeQuery();
-            System.out.println(statement);
 
             if (resultSet.next()) {
 
@@ -500,8 +482,6 @@ public class DbUtils {
                 statement = conn.prepareStatement(sqlQuery);
                 statement.setString(1, consumerKeyOld);
                 status = statement.executeUpdate();
-                System.out.println(statement);
-                System.out.println("update_IDN_OAUTH2_AUTHORIZATION_CODE_table:" + status);
                 conn.commit();
             }
 
@@ -541,7 +521,6 @@ public class DbUtils {
             statement = conn.prepareStatement(sqlQuery);
             statement.setString(1, consumerKeyOld);
             resultSet = statement.executeQuery();
-            System.out.println(statement);
 
             if (resultSet.next()) {
 
@@ -551,8 +530,6 @@ public class DbUtils {
                 statement.setString(2, consumerSecretNew);
                 statement.setString(3, consumerKeyOld);
                 status = statement.executeUpdate();
-                System.out.println(statement);
-                System.out.println("update_IDN_OAUTH_CONSUMER_APPS_table:" + status);
                 conn.commit();
             }
 
@@ -591,7 +568,6 @@ public class DbUtils {
             sqlQuery = "select * from AM_APP_KEY_DOMAIN_MAPPING where AM_APP_KEY_DOMAIN_MAPPING.CONSUMER_KEY='tempConsumerKey'";
             statement = conn.prepareStatement(sqlQuery);
             resultSet = statement.executeQuery();
-            System.out.println(statement);
 
             if (resultSet.next()) {
 
@@ -599,8 +575,6 @@ public class DbUtils {
                 statement = conn.prepareStatement(sqlQuery);
                 statement.setString(1, consumerKeyNew);
                 status = statement.executeUpdate();
-                System.out.println(statement);
-                System.out.println("update_tempkey_in_AM_APP_KEY_DOMAIN_MAPPING_table:" + status);
                 conn.commit();
             }
 
@@ -639,7 +613,6 @@ public class DbUtils {
             sqlQuery = "select * from IDN_OAUTH2_ACCESS_TOKEN where IDN_OAUTH2_ACCESS_TOKEN.CONSUMER_KEY='tempConsumerKey'";
             statement = conn.prepareStatement(sqlQuery);
             resultSet = statement.executeQuery();
-            System.out.println(statement);
 
             if (resultSet.next()) {
 
@@ -647,8 +620,6 @@ public class DbUtils {
                 statement = conn.prepareStatement(sqlQuery);
                 statement.setString(1, consumerKeyNew);
                 status = statement.executeUpdate();
-                System.out.println(statement);
-                System.out.println("update_tempkey_in_IDN_OAUTH2_ACCESS_TOKEN_table:" + status);
                 conn.commit();
             }
 
@@ -688,7 +659,6 @@ public class DbUtils {
 
             statement = conn.prepareStatement(sqlQuery);
             resultSet = statement.executeQuery();
-            System.out.println(statement);
 
             if (resultSet.next()) {
 
@@ -696,8 +666,6 @@ public class DbUtils {
                 statement = conn.prepareStatement(sqlQuery);
                 statement.setString(1, consumerKeyNew);
                 status = statement.executeUpdate();
-                System.out.println(statement);
-                System.out.println("update_tempkey_in_IDN_OAUTH2_AUTHORIZATION_CODE_table:" + status);
                 conn.commit();
             }
 
@@ -737,7 +705,6 @@ public class DbUtils {
             statement = conn.prepareStatement(sqlQuery);
             statement.setString(1, consumerKeyOld);
             resultSet = statement.executeQuery();
-            System.out.println(statement);
 
             if (resultSet.next()) {
 
@@ -746,8 +713,6 @@ public class DbUtils {
                 statement.setString(1, consumerKeyNew);
                 statement.setString(2, consumerKeyOld);
                 status = statement.executeUpdate();
-                System.out.println(statement);
-                System.out.println("update_sp_token_table:" + status);
                 conn.commit();
             }
         } catch (SQLException ex) {
@@ -787,7 +752,6 @@ public class DbUtils {
             statement = conn.prepareStatement(sqlQuery);
             statement.setString(1, consumerKeyOld);
             resultSet = statement.executeQuery();
-            System.out.println(statement);
 
             if (resultSet.next()) {
 
@@ -796,8 +760,6 @@ public class DbUtils {
                 statement.setString(1, consumerKeyNew);
                 statement.setString(2, consumerKeyOld);
                 status = statement.executeUpdate();
-                System.out.println(statement);
-                System.out.println("update_sp_configuration_table:" + status);
                 conn.commit();
             }
 
@@ -836,7 +798,6 @@ public class DbUtils {
             statement = conn.prepareStatement(sqlQuery);
             statement.setString(1, appName);
             resultSet = statement.executeQuery();
-            System.out.println(statement);
 
             if (resultSet.next()) {
                 appId = resultSet.getInt("APPLICATION_ID");
@@ -863,7 +824,6 @@ public class DbUtils {
 
     public static void insertValuesToAmDatabases(String appName, String consumerKey, String secretKey, String accessToken) {
         try {
-            System.out.println(consumerKey+":"+accessToken);
             insert_AM_APPLICATION_KEY_MAPPING_table(appName, consumerKey);
             insert_AM_APP_KEY_DOMAIN_MAPPING_table(consumerKey);
             insert_sp_token_table(accessToken, consumerKey);
@@ -888,7 +848,6 @@ public class DbUtils {
             statement = conn.prepareStatement(sqlQuery);
             statement.setString(1, consumerKey);
             resultSet = statement.executeQuery();
-            System.out.println(statement);
 
             if (!resultSet.next()) {
                 appId = getAppIdfromAmDatabase(appName);
@@ -897,8 +856,6 @@ public class DbUtils {
                 statement.setInt(1, appId);
                 statement.setString(2, consumerKey);
                 status = statement.executeUpdate();
-                System.out.println(statement);
-                System.out.println("insert_AM_APPLICATION_KEY_MAPPING_table:" + status);
                 conn.commit();
             }
 
@@ -938,7 +895,6 @@ public class DbUtils {
             statement = conn.prepareStatement(sqlQuery);
             statement.setString(1, consumerKey);
             resultSet = statement.executeQuery();
-            System.out.println(statement);
 
             if (!resultSet.next()) {
 
@@ -946,8 +902,6 @@ public class DbUtils {
                 statement = conn.prepareStatement(sqlQuery);
                 statement.setString(1, consumerKey);
                 status = statement.executeUpdate();
-                System.out.println(statement);
-                System.out.println("insert_AM_APP_KEY_DOMAIN_MAPPING_table:" + status);
                 conn.commit();
             }
 
@@ -987,7 +941,6 @@ public class DbUtils {
             statement = conn.prepareStatement(sqlQuery);
             statement.setString(1, consumerKey);
             resultSet = statement.executeQuery();
-            System.out.println(statement);
 
             if (!resultSet.next()) {
 
@@ -996,8 +949,6 @@ public class DbUtils {
                 statement.setString(1, consumerKey);
                 statement.setString(2, accessToken);
                 status = statement.executeUpdate();
-                System.out.println(statement);
-                System.out.println("insert_sp_token_table:" + status);
                 conn.commit();
             }
 
