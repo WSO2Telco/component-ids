@@ -1,5 +1,5 @@
 /** *****************************************************************************
- * Copyright  (c) 2015-2017, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
+ * Copyright  (c) 2015-2018, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
  *
  * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,35 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ***************************************************************************** */
-package com.wso2telco.serviceprovider.provision.api;
+package com.wso2telco.spprovisionapp.api;
 
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.serviceprovider.provision.exceptions.SpProvisionServiceException;
+import com.wso2telco.spprovisionapp.exception.SpProvisionServiceException;
 import org.apache.log4j.Logger;
 import org.wso2.carbon.identity.application.common.model.xsd.*;
 import org.wso2.carbon.identity.oauth.stub.dto.OAuthConsumerAppDTO;
 
-public class IsApiCalls {
-    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
-    private static MobileConnectConfig mobileConnectConfigs;
+public class ApiCallsInIS {
 
     private static ApplicationManagementClient applicationManagmenetClient;
     private static OauthAdminClient oauthAdminClient;
     private String oAuthVersion, grantType;
-    static final Logger logInstance = Logger.getLogger(IsApiCalls.class);
+    static final Logger logInstance = Logger.getLogger(ApiCallsInIS.class);
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+    private static MobileConnectConfig mobileConnectConfigs;
 
     static {
         mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
     }
 
-    public IsApiCalls() {
+
+    public ApiCallsInIS() {
+
         applicationManagmenetClient = new ApplicationManagementClient();
         oauthAdminClient = new OauthAdminClient();
         oAuthVersion = mobileConnectConfigs.getSpProvisionConfig().getOauthVersion();
         grantType = mobileConnectConfigs.getSpProvisionConfig().getGrantTypes();
     }
+
 
     @SuppressWarnings("empty-statement")
     public String[] getClientSecret(String appName) {
@@ -52,7 +55,8 @@ public class IsApiCalls {
 
             if (serviceProvider != null) {
                 InboundProvisioningConfig inboundProvisioningConfig = serviceProvider.getInboundProvisioningConfig();
-                InboundAuthenticationRequestConfig[] x = serviceProvider.getInboundAuthenticationConfig().getInboundAuthenticationRequestConfigs();
+                InboundAuthenticationRequestConfig[] x = serviceProvider.getInboundAuthenticationConfig()
+                        .getInboundAuthenticationRequestConfigs();
 
                 for (int i = 0; i < x.length; i++) {
                     if (x[i].getInboundAuthType().equals("oauth2")) {
@@ -65,7 +69,7 @@ public class IsApiCalls {
             }
 
         } catch (SpProvisionServiceException ex) {
-            logInstance.error("SpProvisionServiceException occred:" + ex.getMessage(), ex);
+            logInstance.error("SpProvisionServiceException occurred:" + ex.getMessage(), ex);
         }
 
         String[] clientAndSecret_ = {consumerKey, secretKey};
@@ -105,7 +109,7 @@ public class IsApiCalls {
             if (applicationManagmenetClient.getSpApplicationData(appName) == null) {
                 applicationManagmenetClient.createSpApplication(serviceProviderApp);
             } else {
-                responseMessage[0] = "Failure. App is already available in SP Database";
+                responseMessage[0] = "failure.App is already available in SP Database";
                 return responseMessage;
             }
 
@@ -115,7 +119,8 @@ public class IsApiCalls {
                 serviceProviderApp.setSaasApp(false);
 
                 serviceProviderApp = setClaimConfigObject(serviceProviderApp);
-                serviceProviderApp = setInboundAuthenticationConfigObject(serviceProviderApp, consumerKey, consumerSecret);
+                serviceProviderApp = setInboundAuthenticationConfigObject(serviceProviderApp, consumerKey,
+                        consumerSecret);
                 serviceProviderApp = setInboundProvisioningConfigObject(serviceProviderApp);
                 serviceProviderApp = setPermissionsAndRoleConfigObject(serviceProviderApp);
                 serviceProviderApp = setLocalAndOutboundAuthenticationConfigObject(serviceProviderApp);
@@ -132,7 +137,7 @@ public class IsApiCalls {
                 } else {
                     String[] keys = getClientSecret(appName);
 
-                    responseMessage[0] = "Failure. Error in update SP Application";
+                    responseMessage[0] = "failure.Error in update SP Application";
                     responseMessage[1] = keys[0];
                     responseMessage[2] = keys[1];
                 }
@@ -140,7 +145,6 @@ public class IsApiCalls {
 
         } catch (SpProvisionServiceException ex) {
             logInstance.error("SpProvisionServiceException occured:" + ex.getMessage(), ex);
-            ex.printStackTrace();
             responseMessage[0] = "failure";
         }
         return responseMessage;
@@ -181,7 +185,8 @@ public class IsApiCalls {
     /*
      * Set ServiceProviderDto details to a InboundAuthenticationConfig object
      */
-    private ServiceProvider setInboundAuthenticationConfigObject(ServiceProvider serviceProviderObject, String consumerKey, String consumerSecret) {
+    private ServiceProvider setInboundAuthenticationConfigObject(ServiceProvider serviceProviderObject,
+                                                                 String consumerKey, String consumerSecret) {
 
         InboundAuthenticationRequestConfig[] inboundAuthenticationRequestConfig
                 = setInboundAuthenticationRequestConfigObject(serviceProviderObject, consumerKey, consumerSecret);
@@ -210,10 +215,15 @@ public class IsApiCalls {
      * Set ServiceProviderDto details to a PermissionsAndRoleConfig object
      */
     private ServiceProvider setPermissionsAndRoleConfigObject(ServiceProvider serviceProviderObject) {
-        PermissionsAndRoleConfig permissionsAndRoleConfig1 = new PermissionsAndRoleConfig();
+
+    	 PermissionsAndRoleConfig permissionsAndRoleConfig1 = new PermissionsAndRoleConfig();
+         serviceProviderObject.setPermissionAndRoleConfig(permissionsAndRoleConfig1);
+         return serviceProviderObject;
+
+        /*PermissionsAndRoleConfig permissionsAndRoleConfig1 = new PermissionsAndRoleConfig();
         permissionsAndRoleConfig1.setIdpRoles(null);
         serviceProviderObject.setPermissionAndRoleConfig(null);
-        return serviceProviderObject;
+        return serviceProviderObject;*/
     }
 
     /*
@@ -222,7 +232,8 @@ public class IsApiCalls {
     private ServiceProvider setLocalAndOutboundAuthenticationConfigObject(ServiceProvider serviceProviderObject) {
         AuthenticationStep[] authenticationStep = setAuthenticationStepObject();
 
-        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig1 = new LocalAndOutboundAuthenticationConfig();
+        LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig1 =
+                new LocalAndOutboundAuthenticationConfig();
         localAndOutboundAuthenticationConfig1.setAuthenticationType("flow");
         localAndOutboundAuthenticationConfig1.setAuthenticationSteps(authenticationStep);
         serviceProviderObject.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig1);

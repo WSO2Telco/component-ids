@@ -1,5 +1,5 @@
 /** *****************************************************************************
- * Copyright  (c) 2015-2017, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
+ * Copyright  (c) 2015-2018, WSO2.Telco Inc. (http://www.wso2telco.com) All Rights Reserved.
  *
  * WSO2.Telco Inc. licences this file to you under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,51 +13,51 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ***************************************************************************** */
-package com.wso2telco.serviceprovider.provision.api;
+package com.wso2telco.spprovisionapp.api;
 
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.serviceprovider.provision.exceptions.SpProvisionServiceException;
+import com.wso2telco.spprovisionapp.exception.SpProvisionServiceException;
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
 import org.apache.axis2.transport.http.HttpTransportProperties;
-import org.apache.log4j.Logger;
 import org.wso2.carbon.identity.application.common.model.xsd.ApplicationBasicInfo;
 import org.wso2.carbon.identity.application.common.model.xsd.ServiceProvider;
 import org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceIdentityApplicationManagementException;
 import org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceStub;
-//import org.wso2.carbon.identity.application.mgt.stub.IdentityApplicationManagementServiceStub;
-
 import java.rmi.RemoteException;
+import org.apache.log4j.Logger;
 
 public class ApplicationManagementClient {
-    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
-    private static MobileConnectConfig mobileConnectConfigs;
 
     private IdentityApplicationManagementServiceStub stub = null;
     private ServiceClient client = null;
-    private String applicationManagementHostUrl, userName, password;
-    static final Logger logInstance = Logger.getLogger(ApplicationManagementClient.class);
+    private String applicationManagmentHostUrl, userName, password;
+    private static final Logger logInstance = Logger.getLogger(ApplicationManagementClient.class);
+    private static ConfigurationService configurationService = new ConfigurationServiceImpl();
+    private static MobileConnectConfig mobileConnectConfigs;
 
     static {
         mobileConnectConfigs = configurationService.getDataHolder().getMobileConnectConfig();
     }
 
+
     public ApplicationManagementClient() {
-        String host = "https://localhost:9444";//mobileConnectConfigs.getSpProvisionConfig().getApiManagerUrl();
+
+        String host;
+        host = mobileConnectConfigs.getSpProvisionConfig().getMigUrl();
         userName = mobileConnectConfigs.getSpProvisionConfig().getMigUserName();
         password = mobileConnectConfigs.getSpProvisionConfig().getMigUserPassword();
-
-        applicationManagementHostUrl = host + "/services/IdentityApplicationManagementService";
+        applicationManagmentHostUrl = host + "/services/IdentityApplicationManagementService";
 
         createAndAuthenticateStub();
     }
 
     private void createAndAuthenticateStub() {
         try {
-            stub = new IdentityApplicationManagementServiceStub(null, applicationManagementHostUrl);
+            stub = new IdentityApplicationManagementServiceStub(null, applicationManagmentHostUrl);
             client = stub._getServiceClient();
         } catch (AxisFault axisFault) {
             logInstance.error("axisFault" + axisFault.getMessage());
@@ -110,7 +110,8 @@ public class ApplicationManagementClient {
             logInstance.error("RemoteException occurred when getting all Sp Application data" + e.toString(), e);
             throw new SpProvisionServiceException(e.getMessage());
         } catch (IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
-            logInstance.error("IdentityApplicationManagementServiceIdentityApplicationManagementException occurred when getting all Sp Application data" + e.toString(), e);
+            logInstance.error("IdentityApplicationManagementServiceIdentityApplicationManagementException " +
+                    "occurred when getting all Sp Application data" + e.toString(), e);
             throw new SpProvisionServiceException(e.getMessage());
         }
         return applicationBasicInfo;
@@ -130,13 +131,16 @@ public class ApplicationManagementClient {
                 stub.updateApplication(serviceProvider);
                 status = "Success";
             } catch (RemoteException e) {
-                logInstance.error("RemoteException occurred when updating Sp Application:" + serviceProvider.getApplicationName() + e.toString(), e);
+                logInstance.error("RemoteException occurred when updating Sp Application:"
+                        + serviceProvider.getApplicationName() + e.toString(), e);
                 status = "Success";
             } catch (IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
-                logInstance.error("IdentityApplicationManagementServiceIdentityApplicationManagementException occurred when updating Sp Application:" + serviceProvider.getApplicationName() + e.toString(), e);
+                logInstance.error("IdentityApplicationManagementServiceIdentityApplicationManagementException " +
+                        "occurred when updating Sp Application:" + serviceProvider.getApplicationName() + e.toString(), e);
                 throw new SpProvisionServiceException(e.getMessage());
             } catch (Exception e) {
-                logInstance.error("Exception occurred when updating Sp Application:" + serviceProvider.getApplicationName() + e.toString(), e);
+                logInstance.error("Exception occurred when updating Sp Application:"
+                        + serviceProvider.getApplicationName() + e.toString(), e);
                 throw new SpProvisionServiceException(e.getMessage());
             }
         } else {
@@ -152,11 +156,11 @@ public class ApplicationManagementClient {
     public void createSpApplication(ServiceProvider serviceProviderDto) throws SpProvisionServiceException {
 
         authenticate(client);
+
         if (serviceProviderDto != null) {
             try {
                 stub.createApplication(serviceProviderDto);
             } catch (RemoteException e) {
-                e.printStackTrace();
                 throw new SpProvisionServiceException(e.getMessage());
             } catch (IdentityApplicationManagementServiceIdentityApplicationManagementException e) {
                 throw new SpProvisionServiceException(e.getMessage());
@@ -176,9 +180,6 @@ public class ApplicationManagementClient {
         auth.setUsername(userName);
         auth.setPassword(password);
         auth.setPreemptiveAuthentication(true);
-//        option.setProperty(HTTPConstants.CHUNKED,Constants.VALUE_TRUE);
-//        option.setProperty(Constants.Configuration.MESSAGE_TYPE,HTTPConstants.MEDIA_TYPE_APPLICATION_ECHO_XML);
-//        option.setProperty(Constants.Configuration.DISABLE_SOAP_ACTION,Boolean.TRUE);
         option.setProperty(org.apache.axis2.transport.http.HTTPConstants.AUTHENTICATE, auth);
         option.setManageSession(true);
     }

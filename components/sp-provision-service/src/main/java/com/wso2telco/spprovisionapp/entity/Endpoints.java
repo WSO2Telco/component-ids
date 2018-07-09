@@ -1,13 +1,13 @@
-package com.wso2telco.serviceprovider.provision.entity;
+package com.wso2telco.spprovisionapp.entity;
 
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.serviceprovider.provision.api.AmApiCalls;
-import com.wso2telco.serviceprovider.provision.api.IsApiCalls;
-import com.wso2telco.serviceprovider.provision.util.DbUtils;
-import com.wso2telco.serviceprovider.provision.util.conn.ApimgtConnectionUtil;
-import com.wso2telco.serviceprovider.provision.util.conn.ConnectdbConnectionUtil;
+import com.wso2telco.spprovisionapp.api.ApiCallsInAM;
+import com.wso2telco.spprovisionapp.api.ApiCallsInIS;
+import com.wso2telco.spprovisionapp.conn.ApimgtConnectionUtil;
+import com.wso2telco.spprovisionapp.conn.ConnectdbConnectionUtil;
+import com.wso2telco.spprovisionapp.utils.DataBaseFunction;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.JSONException;
@@ -61,6 +61,7 @@ public class Endpoints {
 
         log.info("Service provision API called with operatorName: " + operatorName + ", Environment: " + environment);
 
+        String accessToken = null;
         try {
             JSONObject requestBody = stringToJsonObject(requestParamInfo);
             String userName = requestBody.getString("userName");
@@ -78,47 +79,68 @@ public class Endpoints {
             boolean trustedServiceProvider = requestBody.getBoolean("trustedServiceProvider");
 
             //create a user in AM
-            AmApiCalls amApiCalls = new AmApiCalls();
+            ApiCallsInAM amApiCalls = new ApiCallsInAM();
             String respCreateUserCall = removeHttpCode(amApiCalls.createNewUserInAm(appName, firstName, lastName,
                     devMail));
+            if (log.isDebugEnabled()) {
+                log.debug("SPProvisionAPI: AM user [username: " + userName + "] create response - "
+                        + respCreateUserCall);
+            }
             if (checkResponseErrors(respCreateUserCall)) {
                 log.error("SP Provision API: Failed to create new AM user. - " + respCreateUserCall);
                 return Response.status(500).entity(respCreateUserCall).build();
+            } else {
+                log.info("SPProvisionAPI: AM User created." );
             }
-            System.out.println("1.1 AM User Created - " + respCreateUserCall);
 
             //Login to AM
             String respLoginCall = removeHttpCode(amApiCalls.loginToAm(appName));
+            if (log.isDebugEnabled()) {
+                log.debug("SPProvisionAPI: AM user login response - " + respLoginCall);
+            }
             if (checkResponseErrors(respLoginCall)) {
                 log.error("SP Provision API: AM user login failed. - " + respLoginCall);
                 return Response.status(500).entity(respLoginCall).build();
+            } else {
+                log.info("SPProvisionAPI: Logged into AM successfully");
             }
-            System.out.println("1.2 Logged into AM - " + respLoginCall);
 
             //Create application in AM
             String respCreateApp = removeHttpCode(amApiCalls.createApplication(appName,
                     appDescription, callbackUrl, applicationTier));
+            if (log.isDebugEnabled()) {
+                log.debug("SPProvisionAPI: Create application response - " + respCreateApp);
+            }
             if (checkResponseErrors(respCreateApp)) {
                 log.error("SP Provision API: Failed to create AM application. - " + respCreateApp);
                 return Response.status(500).entity(respCreateApp).build();
+            } else {
+                log.info("SPProvisionAPI: AM application created successfully");
             }
-            System.out.println("2. App created - " + respCreateApp);
 
             //Activate AM application
-            String respActivateApp = DbUtils.activateApplication(ApimgtConnectionUtil.getConnection(), appName);
-            if (checkResponseErrors(respActivateApp)) {
-                log.error("SP Provision API: Failed to activate AM application. - " + respActivateApp);
-                return Response.status(500).entity(respActivateApp).build();
+            String respActivateApp = DataBaseFunction.activateApplication(ApimgtConnectionUtil.getConnection(), appName);
+            if (log.isDebugEnabled()) {
+                log.debug("SPProvisionAPI: Activate AM application response - " + respActivateApp);
             }
-            System.out.println("3. App activated - " + respActivateApp);
+            if (checkResponseErrors(respActivateApp)) {
+                log.error("SPProvisionAPI: Failed to activate AM application. - " + respActivateApp);
+                return Response.status(500).entity(respActivateApp).build();
+            } else {
+                log.info("SPProvisionAPI: AM application activated successfully");
+            }
 
             //Update AM application
-            String respApproveApp = DbUtils.updateApplication(ApimgtConnectionUtil.getConnection(), appName);
+            String respApproveApp = DataBaseFunction.updateApplication(appName, ApimgtConnectionUtil.getConnection());
+            if (log.isDebugEnabled()) {
+                log.debug("SPProvisionAPI: AM application update response - " + respApproveApp);
+            }
             if (checkResponseErrors(respApproveApp)) {
                 log.error("SP Provision API: Failed update AM application. - " + respApproveApp);
                 return Response.status(500).entity(respApproveApp).build();
+            } else {
+                log.info("SPProvisionAPI: AM application updated successfully");
             }
-            System.out.println("4. App updated - " + respApproveApp);
 
             //Subscribing to APIs
             List<MobileConnectConfig.Api> apiList = mobileConnectConfigs.getSpProvisionConfig()
@@ -128,65 +150,118 @@ public class Endpoints {
                 for (String requestedApi: requestedApis) {
                     if (api.getApiName().equalsIgnoreCase(requestedApi)) {
                         String respSubscribeCall = removeHttpCode(subscribeToApi(api, userName, appName, amApiCalls));
+
+                        if (log.isDebugEnabled()) {
+                            log.debug("SPProvisionAPI: Subscribe to API [" + api.getApiName() + "] response - "
+                                    + respSubscribeCall);
+                        }
+
                         if (checkResponseErrors(respSubscribeCall)) {
                             log.error("SP Provision API: Failed to create API subscription " +
                                     "[" + requestedApi + "] - " + respSubscribeCall);
                             return Response.status(500).entity(respSubscribeCall).build();
+                        } else {
+                            log.info("SPProvisionAPI: Subscribed to API [" + api.getApiName() + "] successfully");
                         }
-                        System.out.println("5. Subscribed ["+ api +"]- " + respSubscribeCall);
                     }
                 }
             }
 
             //Update subscriptions
-            String respUpdateSubscriptions = DbUtils.updateSubscriptions(ApimgtConnectionUtil.getConnection());
+            String respUpdateSubscriptions = DataBaseFunction.updateSubscriptions(ApimgtConnectionUtil.getConnection());
+            if (log.isDebugEnabled()) {
+                log.debug("SPProvisionAPI: Update subscriptions response - " + respUpdateSubscriptions);
+            }
             if (checkResponseErrors(respUpdateSubscriptions)) {
                 log.error("SP Provision API: Failed to update subscriptions. - " + respUpdateSubscriptions);
                 return Response.status(500).entity(respUpdateSubscriptions).build();
+            } else {
+                log.info("APProvisionAPI: Subscriptions updated successfully");
             }
-            System.out.println("6. Subscriptions updated - " + respUpdateSubscriptions);
 
             //Populate subscription validator
-            String respPopulateSubscriptionValidator = DbUtils.populateSubscriptionValidator(
+            String respPopulateSubscriptionValidator = DataBaseFunction.populateSubscriptionValidator(
                     ApimgtConnectionUtil.getConnection());
-            if (checkResponseErrors(respPopulateSubscriptionValidator)) {
-                log.error("SP Provision API: Failed to populate subscription validator. - " + respPopulateSubscriptionValidator);
-                return Response.status(500).entity(respPopulateSubscriptionValidator).build();
+            if (log.isDebugEnabled()) {
+                log.debug("SPProvisionAPI: Populate subscription validator response - " +
+                        respPopulateSubscriptionValidator);
             }
-            System.out.println("6. Subscriptions validator populated - " + respPopulateSubscriptionValidator);
+            if (checkResponseErrors(respPopulateSubscriptionValidator)) {
+                log.error("SP Provision API: Failed to populate subscription validator. - "
+                        + respPopulateSubscriptionValidator);
+                return Response.status(500).entity(respPopulateSubscriptionValidator).build();
+            } else {
+                log.info("SPProvisionAPI: Subscription validator populated successfully");
+            }
 
-            System.out.println("IS Calls Start");
 
             //IS Calls
-            IsApiCalls isApiCalls = new IsApiCalls();
+            ApiCallsInIS isApiCalls = new ApiCallsInIS();
             String[] status = isApiCalls.createServiceProvider(appName, callbackUrl, appDescription);
-            System.out.println(status.length);
-            for (String s: status) {
-                System.out.println(s);
-            }
 
             //Access token Generation
-            String accessToken = null;
+            String generatedConsumerKey = null;
+            String generatedConsumerSecret = null;
             if (status[0].equals("success")) {
-                accessToken = amApiCalls.getAccessToken(status[1], status[2]);
+                generatedConsumerKey = status[1];
+                generatedConsumerSecret = status[2];
+                accessToken = amApiCalls.getAccessToken(generatedConsumerKey, generatedConsumerSecret);
+
+                if (log.isDebugEnabled()) {
+                    log.debug("SPProvisionAPI: Generated Client Key: " +  generatedConsumerKey);
+                    log.debug("SPProvisionAPI: Generated Client Secret: " + generatedConsumerSecret);
+                    log.debug("SPProvisionAPI: Access Token: " + accessToken);
+                }
             }
-            System.out.println("Access Token: " + accessToken);
 
             //insert values to AM databases
             if (null != accessToken) {
-                DbUtils.insertValuesToAmDatabases(appName, status[1], status[2], accessToken);
+                DataBaseFunction.insertValuesToAmDatabases(appName, generatedConsumerKey, generatedConsumerSecret,
+                        accessToken);
+                log.info("SPProvisionAPI: AM database values inserted successfully");
             } else {
+                log.error("SPProvisionAPI: Failed to insert values into AM database [Access token is null]");
                 return Response.status(500).entity("{error: true, message: 'Access Token generation failed'}").build();
             }
 
             //scope configuration
             String[] scopeList = scopes.split(",");
-            String scopeConfigRet = DbUtils.scopeConfiguration(ConnectdbConnectionUtil.getConnection(),
-                    newConsumerKey, scopeList);
+            String scopeConfigRet = DataBaseFunction.scopeConfiguration(ConnectdbConnectionUtil.getConnection(),
+                    newConsumerKey);
+            if (log.isDebugEnabled()) {
+                log.debug("SPProvisionAPI: Scope configuration response - " + scopeConfigRet);
+            }
+            if (checkResponseErrors(scopeConfigRet)) {
+                log.error("SPProvisionAPI: Scope configuration failed");
+                return Response.status(500).entity(scopeConfigRet).build();
+            }
 
             if (trustedServiceProvider) {
-                scopeConfigRet = DbUtils.trustedStatusCofiguration(ConnectdbConnectionUtil.getConnection(),
+                String trustedStatusRet = DataBaseFunction.trustedStatusConfiguration(ConnectdbConnectionUtil.getConnection(),
                         newConsumerKey);
+
+                if (checkResponseErrors(trustedStatusRet)) {
+                    log.error("SPProvisionAPI: Error occurred while configuring trusted status - " + trustedStatusRet);
+                } else {
+                    log.info("SPProvisionAPI: Trusted service provider enabled");
+                }
+            }
+
+            //Update new with keys
+            String updateKeys = DataBaseFunction.updateClientAndSecretKeys(generatedConsumerKey, newConsumerKey,
+                    generatedConsumerSecret, newConsumerSecret, accessToken);
+            if (log.isDebugEnabled()) {
+                log.debug("SPProvisionAPI: Client key update response - " + updateKeys);
+            }
+            if (checkResponseErrors(updateKeys)) {
+                log.error("SPProvisionAPI: Client key update failed");
+                return Response.status(500).entity(updateKeys).build();
+            }
+
+            //Testing updated keys
+            String newKeys[] = isApiCalls.getClientSecret(appName);
+            if (newConsumerKey.equals(newKeys[0]) && newConsumerSecret.equals(newKeys[1])) {
+                log.info("SPProvisionAPI: Client keys updated successfully");
             }
 
             String oAuthRequestCurl = mobileConnectConfigs.getSpProvisionConfig().getAuthUrl()
@@ -202,24 +277,23 @@ public class Endpoints {
             String userInfoCurl = "curl -i " + mobileConnectConfigs.getSpProvisionConfig().getUserInfoUrl() +
                     "?schema=openid -H \"Authorization: Bearer 9d55e77b3f823d84ae5fdff1d7135fcd\"";
 
+            return Response.ok("{error: false, message: 'success', accessToken: '" + accessToken + "'}",
+                    MediaType.APPLICATION_JSON).build();
 
         } catch (JSONException e) {
-            e.printStackTrace();
+            log.error("Error occurred while parsing one of API responses", e);
             return Response.status(500).entity("{error: true, message: '" + e.getMessage() + "'}").build();
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Database error occurred", e);
             return Response.status(500).entity("{error: true, message: '" + e.getMessage() + "'}").build();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
             return Response.status(500).entity("{error: true, message: '" + e.getMessage() + "'}").build();
         }
-
-        return Response.ok("{error: false, message: 'success'}", MediaType.APPLICATION_JSON).build();
     }
 
-    private String subscribeToApi(MobileConnectConfig.Api api, String userName, String appName, AmApiCalls amApiCalls) {
+    private String subscribeToApi(MobileConnectConfig.Api api, String userName, String appName,
+                                  ApiCallsInAM amApiCalls) {
         String apiName = api.getApiName();
         String version = api.getApiVersion();
         String provider = api.getApiprovider();
@@ -244,7 +318,6 @@ public class Endpoints {
     }
 
     private String removeHttpCode(String response) throws JSONException {
-        System.out.println("Removing httpCode from: " + response);
         JSONObject jsonObject = new JSONObject(response);
         if (jsonObject.has("output")) {
             return jsonObject.getJSONObject("output").toString();
@@ -261,4 +334,6 @@ public class Endpoints {
     private JSONObject stringToJsonObject(String jsonStr) throws JSONException {
         return new JSONObject(jsonStr);
     }
+
+
 }
