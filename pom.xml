@@ -138,7 +138,6 @@
         <module>components/auth-proxy-service</module>
         <module>components/sign</module>
         <module>components/session-updater</module>
-        <module>components/sp-provision-service</module>
         <module>components/portal</module>
         <module>components/dashboard</module>
         <module>components/authentication-endpoint</module>
@@ -148,6 +147,7 @@
         <module>components/token-introspection</module>
         <module>components/sample-request</module>
         <module>components/self-service-portal</module>
+        <module>components/sp-provision-service</module>
         <module>features</module>
     </modules>
 

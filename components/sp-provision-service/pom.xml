@@ -18,7 +18,6 @@
 <modelVersion>4.0.0</modelVersion>
 <artifactId>sp-provision-service</artifactId>
 <packaging>war</packaging>
-<name>Service Provider Provisioning Service</name>
 
 <dependencies>
     <dependency>
@@ -84,7 +83,7 @@
 </dependencies>
 
 <build>
-    <finalName>service-provider-provision</finalName>
+    <finalName>spprovisionservice</finalName>
     <plugins>
         <plugin>
             <artifactId>maven-compiler-plugin</artifactId>
@@ -103,15 +102,7 @@
                         <directory>src/main/webapp</directory>
                     </resource>
                 </webResources>
-                <warName>service-provider-provision</warName>
-            </configuration>
-        </plugin>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-                <source>7</source>
-                <target>7</target>
+                <warName>spprovisionservice</warName>
             </configuration>
         </plugin>
     </plugins>
