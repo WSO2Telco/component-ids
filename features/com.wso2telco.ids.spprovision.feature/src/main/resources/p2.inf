@@ -1,2 +1,0 @@
-instructions.configure = \
-org.eclipse.equinox.p2.touchpoint.natives.copy(source:${installFolder}/../features/com.wso2telco.ids.spprovision_${feature.version}/generated/service-provider-provision.war,target:${installFolder}/../../deployment/server/webapps/service-provider-provision.war,overwrite:true);
