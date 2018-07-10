@@ -39,7 +39,6 @@ public class DataBaseAccessUtil {
     public static Connection getConnectionToAxiataDb() throws SQLException {
         try {
             Connection con = DbUtils.getDbConnection(DataSourceNames.WSO2TELCO_DEP_DB);
-            con.setAutoCommit(true);
             return con;
         } catch (Exception e) {
             logInstance.error("SPProvisionAPI: Error in DEP DB connection", e);
@@ -50,7 +49,6 @@ public class DataBaseAccessUtil {
     public static Connection getConnectionToConnectDb()throws SQLException {
         try {
             Connection con = DbUtils.getConnectDbConnection();
-            con.setAutoCommit(true);
             return con;
         } catch (DBUtilException e) {
             logInstance.error("SPProvisionAPI: Error in CONNECT DB connection", e);
