@@ -123,13 +123,12 @@ public class DbService {
     /**
      * Gets paged result set for login history
      * @param msisdn msisdn
-     * @param order sort order
      * @param orderType sort order type
      * @param pagination pagination object
      * @return paged result set
      * @throws DBUtilException Database access fail
      */
-    public static PagedResults getLoginHistoryByMsisdn(String msisdn, String order,
+    public static PagedResults getLoginHistoryByMsisdn(String msisdn,
                                                        OrderByType orderType, Pagination pagination)
             throws DBUtilException {
 
@@ -144,13 +143,12 @@ public class DbService {
             con = getConnectDBConnection();
 
             String sql = "SELECT *, UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(created_date) as duration FROM sp_login_history "
-                    + "WHERE authenticated_user=? ORDER BY ? " + orderType.toString() + " LIMIT ?,? ";
+                    + "WHERE authenticated_user=? ORDER BY id " + orderType.toString() + " LIMIT ?,? ";
 
             ps = con.prepareStatement(sql);
             ps.setString(1, msisdn);
-            ps.setString(2, order);
-            ps.setInt(3, pagination.getOffset());
-            ps.setInt(4, pagination.getLimit());
+            ps.setInt(2, pagination.getOffset());
+            ps.setInt(3, pagination.getLimit());
 
             rs = ps.executeQuery();
 
