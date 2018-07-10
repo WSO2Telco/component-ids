@@ -29,9 +29,7 @@ public class DataBaseAccessUtil {
 
     public static Connection getConnectionToApimgtDb() throws SQLException {
         try {
-            Connection con = DbUtils.getDbConnection(DataSourceNames.WSO2AM_DB);
-            con.setAutoCommit(true);
-            return con;
+            return DbUtils.getDbConnection(DataSourceNames.WSO2AM_DB);
         } catch (Exception e) {
             logInstance.error("SPProvisionAPI: Error in AM DB connection", e);
             throw new SQLException(e);

@@ -52,8 +52,9 @@ public class DataBaseFunction {
             message = "{error: false, message: \"success\"}";
 
         } catch (SQLException e) {
+            log.error("SPProvisionAPI: Error occurred while activating AM application", e);
+            conn.rollback();
             message = "{error: true, message: \"" + e.getMessage() + "\"}";
-
         } finally {
             conn.close();
         }
@@ -83,8 +84,9 @@ public class DataBaseFunction {
             message = "{error: false, message: \"success\"}";
 
         } catch (SQLException e) {
+            conn.rollback();
+            log.error("SPProvisionAPI: Error occurred while updating AM application", e);
             message = "{error: true, message: \"" + e.getMessage() + "\"}";
-
         } finally {
             conn.close();
         }
@@ -109,8 +111,9 @@ public class DataBaseFunction {
             message = "{error: false, message: \"success\"}";
 
         } catch (SQLException e) {
+            conn.rollback();
+            log.error("SPProvisionAPI: Error occurred while updating AM subscriptions", e);
             message = "{error: true, message: \"" + e.getMessage() + "\"}";
-
         } finally {
             conn.close();
         }
@@ -135,8 +138,9 @@ public class DataBaseFunction {
             message = "{error: false, message: \"success\"}";
 
         } catch (SQLException e) {
+            conn.rollback();
+            log.error("SPProvisionAPI: Error occurred in Populate Subscription Validator", e);
             message = "{error: true, message: \"" + e.getMessage() + "\"}";
-
         } finally {
             conn.close();
         }
@@ -159,10 +163,10 @@ public class DataBaseFunction {
             }
             conn.commit();
             message = "{error: false, message: \"success\"}";
-
         } catch (SQLException e) {
+            conn.rollback();
+            log.error("SPProvisionAPI: Error occurred in Scope Configuration", e);
             message = "{error: true, message: \"" + e.getMessage() + "\"}";
-
         } finally {
             conn.close();
         }
@@ -209,10 +213,10 @@ public class DataBaseFunction {
             callablestatement.execute();
             conn.commit();
             message = "{error: false, message: \"success\"}";
-
         } catch (SQLException e) {
+            conn.rollback();
+            log.error("SPProvisionAPI: Error occurred in Trusted status configuration", e);
             message = "{error: true, message: \"" + e.getMessage() + "\"}";
-
         } finally {
             conn.close();
         }

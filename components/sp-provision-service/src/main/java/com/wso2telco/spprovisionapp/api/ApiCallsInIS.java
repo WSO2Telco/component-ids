@@ -25,7 +25,7 @@ import org.wso2.carbon.identity.oauth.stub.dto.OAuthConsumerAppDTO;
 
 public class ApiCallsInIS {
 
-    private static ApplicationManagementClient applicationManagmenetClient;
+    private static ApplicationManagementClient applicationManagementClient;
     private static OauthAdminClient oauthAdminClient;
     private String oAuthVersion, grantType;
     static final Logger logInstance = Logger.getLogger(ApiCallsInIS.class);
@@ -39,7 +39,7 @@ public class ApiCallsInIS {
 
     public ApiCallsInIS() {
 
-        applicationManagmenetClient = new ApplicationManagementClient();
+        applicationManagementClient = new ApplicationManagementClient();
         oauthAdminClient = new OauthAdminClient();
         oAuthVersion = mobileConnectConfigs.getSpProvisionConfig().getOauthVersion();
         grantType = mobileConnectConfigs.getSpProvisionConfig().getGrantTypes();
@@ -51,7 +51,7 @@ public class ApiCallsInIS {
 
         String consumerKey = "", secretKey = "";
         try {
-            ServiceProvider serviceProvider = applicationManagmenetClient.getSpApplicationData(appName);
+            ServiceProvider serviceProvider = applicationManagementClient.getSpApplicationData(appName);
 
             if (serviceProvider != null) {
                 InboundProvisioningConfig inboundProvisioningConfig = serviceProvider.getInboundProvisioningConfig();
@@ -59,7 +59,7 @@ public class ApiCallsInIS {
                         .getInboundAuthenticationRequestConfigs();
 
                 for (int i = 0; i < x.length; i++) {
-                    if (x[i].getInboundAuthType().equals("oauth2")) {
+                    if (x[i].getInboundAuthType().equals(ApiConstants.IsConstants.AUTH_TYPE_OAUTH2)) {
                         consumerKey = x[i].getInboundAuthKey();
                         Property[] property = x[i].getProperties();
                         secretKey = property[0].getValue();
@@ -106,16 +106,16 @@ public class ApiCallsInIS {
             serviceProviderApp.setApplicationName(appName);
             serviceProviderApp.setDescription(appDescription);
 
-            if (applicationManagmenetClient.getSpApplicationData(appName) == null) {
-                applicationManagmenetClient.createSpApplication(serviceProviderApp);
+            if (applicationManagementClient.getSpApplicationData(appName) == null) {
+                applicationManagementClient.createSpApplication(serviceProviderApp);
             } else {
                 responseMessage[0] = "failure.App is already available in SP Database";
                 return responseMessage;
             }
 
-            if (applicationManagmenetClient.getSpApplicationData(appName) != null) {
+            if (applicationManagementClient.getSpApplicationData(appName) != null) {
 
-                serviceProviderApp = applicationManagmenetClient.getSpApplicationData(appName);
+                serviceProviderApp = applicationManagementClient.getSpApplicationData(appName);
                 serviceProviderApp.setSaasApp(false);
 
                 serviceProviderApp = setClaimConfigObject(serviceProviderApp);
@@ -125,7 +125,7 @@ public class ApiCallsInIS {
                 serviceProviderApp = setPermissionsAndRoleConfigObject(serviceProviderApp);
                 serviceProviderApp = setLocalAndOutboundAuthenticationConfigObject(serviceProviderApp);
 
-                String updateStatus = applicationManagmenetClient.updateSpApplication(serviceProviderApp);
+                String updateStatus = applicationManagementClient.updateSpApplication(serviceProviderApp);
 
                 if (updateStatus.equals("Success")) {
                     String[] keys = getClientSecret(appName);
@@ -171,10 +171,10 @@ public class ApiCallsInIS {
         InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig1 = new InboundAuthenticationRequestConfig();
         InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig2 = new InboundAuthenticationRequestConfig();
         inboundAuthenticationRequestConfig1.setInboundAuthKey(serviceProviderDto.getApplicationName());
-        inboundAuthenticationRequestConfig1.setInboundAuthType("passivests");
+        inboundAuthenticationRequestConfig1.setInboundAuthType(ApiConstants.IsConstants.AUTH_TYPE_PASSIVE_STS);
 
         inboundAuthenticationRequestConfig2.setInboundAuthKey(consumerKey);
-        inboundAuthenticationRequestConfig2.setInboundAuthType("oauth2");
+        inboundAuthenticationRequestConfig2.setInboundAuthType(ApiConstants.IsConstants.AUTH_TYPE_OAUTH2);
         inboundAuthenticationRequestConfig2.setProperties(setPropertyObject(consumerSecret));
         InboundAuthenticationRequestConfig inboundAuthenticationRequestConfig[] = {inboundAuthenticationRequestConfig1,
             inboundAuthenticationRequestConfig2};
@@ -204,7 +204,7 @@ public class ApiCallsInIS {
         Property property1 = new Property();
         property1.setConfidential(false);
         property1.setDefaultValue(null);
-        property1.setName("oauthConsumerSecret");
+        property1.setName(ApiConstants.IsConstants.OAUTH_CONSUMER_SECRET);
         property1.setValue(consumerSecret);
         property1.setRequired(false);
         Property[] property = {property1};
@@ -219,11 +219,6 @@ public class ApiCallsInIS {
     	 PermissionsAndRoleConfig permissionsAndRoleConfig1 = new PermissionsAndRoleConfig();
          serviceProviderObject.setPermissionAndRoleConfig(permissionsAndRoleConfig1);
          return serviceProviderObject;
-
-        /*PermissionsAndRoleConfig permissionsAndRoleConfig1 = new PermissionsAndRoleConfig();
-        permissionsAndRoleConfig1.setIdpRoles(null);
-        serviceProviderObject.setPermissionAndRoleConfig(null);
-        return serviceProviderObject;*/
     }
 
     /*
@@ -234,7 +229,7 @@ public class ApiCallsInIS {
 
         LocalAndOutboundAuthenticationConfig localAndOutboundAuthenticationConfig1 =
                 new LocalAndOutboundAuthenticationConfig();
-        localAndOutboundAuthenticationConfig1.setAuthenticationType("flow");
+        localAndOutboundAuthenticationConfig1.setAuthenticationType(ApiConstants.IsConstants.LOA_OUTBOUND_AUTH_TYPE);
         localAndOutboundAuthenticationConfig1.setAuthenticationSteps(authenticationStep);
         serviceProviderObject.setLocalAndOutBoundAuthenticationConfig(localAndOutboundAuthenticationConfig1);
         return serviceProviderObject;
@@ -245,9 +240,9 @@ public class ApiCallsInIS {
      */
     private LocalAuthenticatorConfig[] setLocalAuthenticatorConfigObject() {
         LocalAuthenticatorConfig localAuthenticatorConfig1 = new LocalAuthenticatorConfig();
-        localAuthenticatorConfig1.setDisplayName("LOA");
+        localAuthenticatorConfig1.setDisplayName(ApiConstants.IsConstants.LOA_DISPLAY_NAME);
         localAuthenticatorConfig1.setEnabled(false);
-        localAuthenticatorConfig1.setName("LOACompositeAuthenticator");
+        localAuthenticatorConfig1.setName(ApiConstants.IsConstants.LOA_NAME);
         localAuthenticatorConfig1.setValid(true);
         LocalAuthenticatorConfig localAuthenticatorConfig[] = {localAuthenticatorConfig1};
 
@@ -274,7 +269,7 @@ public class ApiCallsInIS {
 
         InboundProvisioningConfig inboundProvisioningConfig1 = new InboundProvisioningConfig();
         inboundProvisioningConfig1.setProvisioningEnabled(false);
-        inboundProvisioningConfig1.setProvisioningUserStore("PRIMARY");
+        inboundProvisioningConfig1.setProvisioningUserStore(ApiConstants.IsConstants.PROVISIONING_USER_STORE);
         serviceProviderObject.setInboundProvisioningConfig(inboundProvisioningConfig1);
         return serviceProviderObject;
     }
