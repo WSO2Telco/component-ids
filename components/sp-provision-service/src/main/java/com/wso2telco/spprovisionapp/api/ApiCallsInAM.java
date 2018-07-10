@@ -104,8 +104,8 @@ public class ApiCallsInAM {
                     + totalOutput.toString() + "}";
             return postResponse;
         } catch (IOException ex) {
-            logInstance.error("IOException occured in reading responce from AM APIs:" + ex.toString(), ex);
-            String postResponse = "{\"exception\": " + ex.toString() + "\"}";
+            logInstance.error("IOException occured in reading responce from AM APIs:" + ex.getMessage(), ex);
+            String postResponse = "{error: true, message: \"" + ex.getMessage() + "\"}";
             return postResponse;
         }
     }
@@ -169,7 +169,7 @@ public class ApiCallsInAM {
             loginToAm(userName);
         } catch (IOException ex) {
             logInstance.error("IO Exception occured when trying to login to the user in Add subscription " +
-                    "process" + ex.toString(), ex);
+                    "process" + ex.getMessage(), ex);
         }
         String url = addSubscriptionAPI + "?action=addAPISubscription&name=" + apiName + "&version=" + apiVersion
                 + "&provider=" + apiProvider + "&tier=" + tier + "&applicationName=" + appName + "";
@@ -195,8 +195,6 @@ public class ApiCallsInAM {
                 .post(body)
                 .addHeader("authorization", "Basic " + encoding)
                 .addHeader("content-type", "application/x-www-form-urlencoded")
-                .addHeader("cache-control", "no-cache")
-                .addHeader("postman-token", "37e6d409-ba6d-b94d-50d2-273b7d671a84")
                 .build();
 
         Response response = client.newCall(request).execute();
