@@ -29,5 +29,6 @@
         <module>com.wso2telco.ids.tokenintrospection.feature</module>
         <module>com.wso2telco.ids.premiuminfo.feature</module>
         <module>com.wso2telco.ids.samplerequest.feature</module>
+        <module>com.wso2telco.ids.spprovision.feature</module>
     </modules>
 </project>
