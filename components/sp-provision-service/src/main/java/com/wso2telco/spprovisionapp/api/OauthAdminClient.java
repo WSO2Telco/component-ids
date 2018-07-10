@@ -19,6 +19,7 @@ import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.spprovisionapp.exception.SpProvisionServiceException;
+import com.wso2telco.spprovisionapp.utils.MIGUtils;
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.client.Options;
 import org.apache.axis2.client.ServiceClient;
@@ -26,6 +27,8 @@ import org.apache.axis2.transport.http.HttpTransportProperties;
 import org.wso2.carbon.identity.oauth.stub.OAuthAdminServiceException;
 import org.wso2.carbon.identity.oauth.stub.OAuthAdminServiceStub;
 import org.wso2.carbon.identity.oauth.stub.dto.OAuthConsumerAppDTO;
+
+import java.net.SocketException;
 import java.rmi.RemoteException;
 import org.apache.log4j.Logger;
 
@@ -46,8 +49,16 @@ public class OauthAdminClient {
 
 
     public OauthAdminClient() {
-        String host;
-        host = mobileConnectConfigs.getSpProvisionConfig().getMigUrl();
+        String host = null;
+        try {
+            host = MIGUtils.getMigHostName() + ":" + MIGUtils.getMigPort();
+            if (logInstance.isDebugEnabled()) {
+                logInstance.debug("SPProvisionAPI: MIG URL - " + host);
+            }
+        } catch (SocketException e) {
+            logInstance.error("SPProvisionAPI: Error retrieving MIG URL", e);
+        }
+
         userName = mobileConnectConfigs.getSpProvisionConfig().getMigUserName();
         password = mobileConnectConfigs.getSpProvisionConfig().getMigUserPassword();
         adminServiceHostUrl = host + "/services/OAuthAdminService";

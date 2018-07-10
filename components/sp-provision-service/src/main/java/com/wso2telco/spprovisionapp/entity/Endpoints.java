@@ -52,15 +52,13 @@ public class Endpoints {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/spprovision/operator/{operatorName}/{environment}")
+    @Path("/operator/{operatorName}")
     public Response serviceProviderProvision(@Context HttpServletRequest httpServletRequest,
                                              @Context HttpServletResponse httpServletResponse,
                                              @PathParam("operatorName") String operatorName,
-                                             @PathParam("environment") String environment,
-                                             String requestParamInfo) /*throws Exception*/ {
+                                             String requestParamInfo) {
 
-        log.info("Service provision API called with operatorName: " + operatorName + ", Environment: " + environment);
-
+        log.info("Service provision API called with operatorName: " + operatorName);
         String accessToken = null;
         try {
             JSONObject requestBody = stringToJsonObject(requestParamInfo);
