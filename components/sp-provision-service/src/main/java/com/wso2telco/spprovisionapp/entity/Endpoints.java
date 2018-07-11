@@ -225,7 +225,7 @@ public class Endpoints {
             //scope configuration
             String[] scopeList = scopes.split(",");
             String scopeConfigRet = DataBaseFunction.scopeConfiguration(ConnectdbConnectionUtil.getConnection(),
-                    newConsumerKey);
+                    newConsumerKey, scopeList, operatorName);
             if (log.isDebugEnabled()) {
                 log.debug("SPProvisionAPI: Scope configuration response - " + scopeConfigRet);
             }
@@ -236,7 +236,7 @@ public class Endpoints {
 
             if (trustedServiceProvider) {
                 String trustedStatusRet = DataBaseFunction.trustedStatusConfiguration(ConnectdbConnectionUtil.getConnection(),
-                        newConsumerKey);
+                        newConsumerKey, operatorName);
 
                 if (checkResponseErrors(trustedStatusRet)) {
                     log.error("SPProvisionAPI: Error occurred while configuring trusted status - " + trustedStatusRet);
