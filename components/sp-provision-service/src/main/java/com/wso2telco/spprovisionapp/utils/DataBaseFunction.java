@@ -186,11 +186,17 @@ public class DataBaseFunction {
         resultsetValueNew = check_for_consumer_key_availability(consumerKeyNew);
 
         if (resultsetValueOld == null ) {
+            log.error("SPPRovisionAPI: Supplied old consumer key does not exist [" + consumerKeyOld + "]");
             return "{error: true, message: \"Supplied old consumer key does not exist\"}";
+
         } else if (!resultsetValueOld.equals(consumerKeyOld)) {
+            log.error("SPPRovisionAPI: Supplied old consumer key does match with the key in the database " +
+                    "[" + consumerKeyOld + " AND " + consumerKeyNew + "]");
             return "{error: true, message: \"Supplied old consumer key does match with the key in the database\"}";
+
         } else if (resultsetValueNew != null) {
-            return "{error: true, message: \"Supplied new consumer already exists\"}";
+            log.error("SPPRovisionAPI: Supplied consumer key already exists [" + consumerKeyNew + "]");
+            return "{error: true, message: \"Supplied consumer key already exists\"}";
         }
 
         if (resultsetValueOld != null && resultsetValueOld.equals(consumerKeyOld) && resultsetValueNew == null) {
@@ -256,7 +262,7 @@ public class DataBaseFunction {
 
         } catch (SQLException ex) {
             Logger.getLogger(DataBaseFunction.class.getName()).log(Level.SEVERE,
-                    "SQL Exception occured when check for consumer key availability:" + ex.getMessage(), ex);
+                    "SQL Exception occurrsed when check for consumer key availability:" + ex.getMessage(), ex);
 
         } finally {
 

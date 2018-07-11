@@ -186,7 +186,7 @@ public class ApiCallsInAM {
     }
 
     private String getTokenWithOkHttpClient(String consumerKey, String consumerSecret) throws IOException {
-        OkHttpClient client = HttpClientUtil.getUnsafeOkHttpClient();//HttpClientUtil.getUnsecureHttpClient();//null;//new OkHttpClient();
+        OkHttpClient client = HttpClientUtil.getUnsafeOkHttpClient();
         MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
         RequestBody body = RequestBody.create(mediaType, "grant_type=client_credentials");
         String encoding = Base64.encodeBytes((consumerKey + ":" + consumerSecret).getBytes());
@@ -200,7 +200,6 @@ public class ApiCallsInAM {
         Response response = client.newCall(request).execute();
         if (response != null && response.body() != null) {
             TokenResponse tokenResponse = new Gson().fromJson(response.body().string(), TokenResponse.class);
-
             return tokenResponse.getAccessToken();
         } else {
             throw new HttpResponseIsEmptyException("Response is empty");

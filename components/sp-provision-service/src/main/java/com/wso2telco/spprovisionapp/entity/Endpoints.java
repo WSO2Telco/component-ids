@@ -285,7 +285,7 @@ public class Endpoints {
             log.error("Database error occurred", e);
             return Response.status(500).entity("{error: true, message: '" + e.getMessage() + "'}").build();
         } catch (IOException e) {
-            log.error(e.getMessage(), e);
+            log.error("IOException occurred: " + e.getMessage(), e);
             return Response.status(500).entity("{error: true, message: '" + e.getMessage() + "'}").build();
         }
     }
