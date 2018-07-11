@@ -147,29 +147,32 @@ public class DataBaseFunction {
         return message;
     }
 
-    public static String scopeConfiguration(Connection conn, String consumerKey) throws SQLException {
+    public static String scopeConfiguration(Connection conn, String consumerKey, String[] scopes, String operatorName) throws SQLException {
+        String message = "{error: false, message: \"success\"}";
+        for (String scope: scopes) {
+            CallableStatement callablestatement = null;
+            try {
+                String SQL = "{call populate_sp_config_procedure(?,?,?)}";
+                callablestatement = conn.prepareCall(SQL);
+                callablestatement.setString(1, consumerKey);
+                callablestatement.setString(2, scope);
+                callablestatement.setString(3, operatorName);
+                callablestatement.execute();
 
-        CallableStatement callablestatement = null;
-        String message;
-
-        try {
-            String SQL = "{call populate_sp_config_procedure(?)}";
-            callablestatement = conn.prepareCall(SQL);
-            callablestatement.setString(1, consumerKey);
-            callablestatement.execute();
-
-            if (log.isDebugEnabled()) {
-                log.debug("scopeConfiguration sql procedure call: " + callablestatement);
+                if (log.isDebugEnabled()) {
+                    log.debug("scopeConfiguration sql procedure call: " + callablestatement);
+                }
+                message = "{error: false, message: \"success\"}";
+            } catch (SQLException e) {
+                conn.rollback();
+                log.error("SPProvisionAPI: Error occurred in Scope Configuration", e);
+                message = "{error: true, message: \"" + e.getMessage() + "\"}";
+                break;
             }
-            conn.commit();
-            message = "{error: false, message: \"success\"}";
-        } catch (SQLException e) {
-            conn.rollback();
-            log.error("SPProvisionAPI: Error occurred in Scope Configuration", e);
-            message = "{error: true, message: \"" + e.getMessage() + "\"}";
-        } finally {
-            conn.close();
         }
+
+        conn.commit();
+        conn.close();
         return message;
     }
 
@@ -201,15 +204,17 @@ public class DataBaseFunction {
         return message;
     }
 
-    public static String trustedStatusConfiguration(Connection conn, String consumerKey) throws SQLException {
+    public static String trustedStatusConfiguration(Connection conn, String consumerKey, String operatorName)
+            throws SQLException {
 
         CallableStatement callablestatement = null;
         String message;
 
         try {
-            String SQL = "{call populate_trusted_status_procedure(?)}";
+            String SQL = "{call populate_trusted_status_procedure(?, ?)}";
             callablestatement = conn.prepareCall(SQL);
             callablestatement.setString(1, consumerKey);
+            callablestatement.setString(2, operatorName);
             callablestatement.execute();
             conn.commit();
             message = "{error: false, message: \"success\"}";
