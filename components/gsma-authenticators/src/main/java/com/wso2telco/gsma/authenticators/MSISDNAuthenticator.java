@@ -159,14 +159,15 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
             Map<String, String> attributeSet = new HashMap();
             boolean isAttribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
-            String trustedStatus = request.getParameter(Constants.TRUSTED_STATUS);
+            String trustedStatus = context.getProperty(Constants.TRUSTED_STATUS).toString();
             String msisdn = "";
 
             if (isAttribute && (null != request.getParameter(Constants.TRUSTED_STATUS))) {
-                if ((trustedStatus.equalsIgnoreCase(AuthenticatorEnum
-                        .TrustedStatus.TRUSTED
-                        .name())) || (trustedStatus.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED
-                        .name()))) {
+                if (trustedStatus.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.TRUSTED.name())){
+                    context.setProperty(Constants.IS_SHOW_TNC, false);
+                }
+
+                else if(trustedStatus.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.FULLY_TRUSTED.name())){
                     context.setProperty(Constants.IS_SHOW_TNC, false);
                 }
             }
@@ -185,6 +186,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
                 }
 
+                if((trustedStatus.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name())) && (isExplicitScope)){
+                    context.setProperty(Constants.IS_SHOW_TNC, false);
+                }
             }
 
             loginPage = getAuthEndpointUrl(context, isExplicitScope);

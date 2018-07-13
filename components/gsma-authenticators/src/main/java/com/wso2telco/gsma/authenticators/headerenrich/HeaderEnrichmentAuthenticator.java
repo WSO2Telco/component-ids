@@ -461,7 +461,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 if (isRegistering || isStatusUpdate) {
                     // authenticators from step map
                     try {
-                        if(!isShowConcent) {
+
                         new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope,
                                 spType, attrShareType);
 
@@ -471,7 +471,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                             WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
                         }
 
-                        }
                         if (isAttributeScope) {
                             handleAttributeShareResponse(context);
                         }
