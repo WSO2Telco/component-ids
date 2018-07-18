@@ -369,14 +369,14 @@ public class AttributeConfigDaoImpl implements AttributeConfigDao {
         ResultSet resultSet = null;
         String result = null;
         String query = "SELECT sp_config.config_value from " + TableName.SP_CONFIGURATION + " sp_config where " +
-                "sp_config.client_id=? AND sp_config.operator=? AND sp_config.config_key=?;";
+                "sp_config.client_id=? AND sp_config.config_key=? AND (sp_config.operator=? OR sp_config.operator='ALL');";
 
         try {
             connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setString(1, clientID);
-            preparedStatement.setString(2, operator);
-            preparedStatement.setString(3, key);
+            preparedStatement.setString(2, key);
+            preparedStatement.setString(3, operator);
 
             if (log.isDebugEnabled()) {
                 log.debug("Query in method getSpConfigValue:" + preparedStatement);
