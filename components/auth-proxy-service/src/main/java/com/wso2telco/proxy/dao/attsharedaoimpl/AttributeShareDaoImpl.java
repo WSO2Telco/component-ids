@@ -53,15 +53,15 @@ public class AttributeShareDaoImpl implements AttributeShareDao {
         //todo : use left join instead of inner join
         String query = "SELECT ts.status FROM " + TableNameConstants.TRUSTED_STATUS + " ts INNER JOIN " +
                 TableNameConstants.SP_CONFIGURATION + " spconfig ON spconfig.config_value=ts.id_Trusted_type where " +
-                "spconfig.client_id=? AND spconfig.operator=? AND spconfig.config_key=? ;";
+                "spconfig.client_id=? AND spconfig.config_key=? AND (spconfig.operator=? OR spconfig.operator='ALL');";
 
         try {
             connection = DbUtils.getConnectDbConnection();
             preparedStatement = connection.prepareStatement(query);
 
             preparedStatement.setString(1, clientId);
-            preparedStatement.setString(2, operatorName);
-            preparedStatement.setString(3, trustedStatus);
+            preparedStatement.setString(2, trustedStatus);
+            preparedStatement.setString(3, operatorName);
 
             if (log.isDebugEnabled()) {
                 log.debug("Query in method getSpTypeConfigValue:" + preparedStatement);
