@@ -59,7 +59,6 @@ class RecentLogin extends Component {
                 console.log(error);
                 this.setState({showToast: true, message: 'Error occurred while fetching recent activities.'})
              } else {
-                console.log(data);
                 const items = data.data.items;
                 const meta = data.data.meta;
                 this.setState({loginData: items, currentPage: meta.page, perPage: meta.perPage,

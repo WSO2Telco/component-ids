@@ -61,10 +61,17 @@ class SPProvision extends Component {
   }
 
   handleCreateSp = (event) => {
+      const apiParameters = this.state.apiParameters;
+      const checkEmpty = checkEmptyApiParameters(apiParameters)
+      if (!checkEmpty.ok) {
+        this.setState({showToast: true, toastMessage: 'Required parameter (' + checkEmpty.missingParam + ') is missing.'});
+        return;
+      }
+
       this.setState({showToast: true, toastMessage: 'Processing request. Please wait...'})
-      const data = JSON.stringify(this.state.apiParameters);
+      const data = JSON.stringify(apiParameters);
       const axios = require('axios');
-      const url = hostUtils.getSpProvisionApiEndpoint(this.state.apiParameters.operatorName);
+      const url = hostUtils.getSpProvisionApiEndpoint(apiParameters.operatorName);
       axios.post(url, data, {
         headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
       }).then((result) => {
@@ -129,6 +136,16 @@ class SPProvision extends Component {
       </div>
     );
   }
+}
+
+function checkEmptyApiParameters(apiParameters) {
+    for (var key in apiParameters) {
+        if (apiParameters[key] === '' || apiParameters[key] === null) {
+            return {ok: false, missingParam: key};
+        }
+    }
+
+    return {ok: true, missingParam: null};
 }
 
 SPProvision.propTypes = {
