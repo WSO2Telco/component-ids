@@ -61,7 +61,7 @@ public class Endpoints {
         log.info("Service provision API called with operatorName: " + operatorName);
         String accessToken = null;
         try {
-            JSONObject requestBody = stringToJsonObject(requestParamInfo);
+            JSONObject requestBody = new JSONObject(requestParamInfo);
             String userName = requestBody.getString("userName");
             String appName = requestBody.getString("applicationName");
             String appDescription = appName; //add this as a request body parameter
@@ -76,9 +76,13 @@ public class Endpoints {
             String scopes = requestBody.getString("scopes");
             boolean trustedServiceProvider = requestBody.getBoolean("trustedServiceProvider");
 
+            System.out.println(requestBody.toString());
+
             //create a user in AM
             ApiCallsInAM amApiCalls = new ApiCallsInAM();
-            String respCreateUserCall = removeHttpCode(amApiCalls.createNewUserInAm(appName, firstName, lastName,
+//            String respCreateUserCall = removeHttpCode(amApiCalls.createNewUserInAm(appName, firstName, lastName,
+//                    devMail));
+            String respCreateUserCall = removeHttpCode(amApiCalls.createNewUserInAm(userName, firstName, lastName,
                     devMail));
             if (log.isDebugEnabled()) {
                 log.debug("SPProvisionAPI: AM user [username: " + userName + "] create response - "
@@ -92,7 +96,8 @@ public class Endpoints {
             }
 
             //Login to AM
-            String respLoginCall = removeHttpCode(amApiCalls.loginToAm(appName));
+//            String respLoginCall = removeHttpCode(amApiCalls.loginToAm(appName));
+            String respLoginCall = removeHttpCode(amApiCalls.loginToAm(userName));
             if (log.isDebugEnabled()) {
                 log.debug("SPProvisionAPI: AM user login response - " + respLoginCall);
             }
@@ -147,7 +152,8 @@ public class Endpoints {
             for (MobileConnectConfig.Api api: apiList) {
                 for (String requestedApi: requestedApis) {
                     if (api.getApiName().equalsIgnoreCase(requestedApi)) {
-                        String respSubscribeCall = removeHttpCode(subscribeToApi(api, userName, appName, amApiCalls));
+                        String response = subscribeToApi(api, userName, appName, amApiCalls);
+                        String respSubscribeCall = removeHttpCode(response);
 
                         if (log.isDebugEnabled()) {
                             log.debug("SPProvisionAPI: Subscribe to API [" + api.getApiName() + "] response - "
@@ -171,10 +177,10 @@ public class Endpoints {
                 log.debug("SPProvisionAPI: Update subscriptions response - " + respUpdateSubscriptions);
             }
             if (checkResponseErrors(respUpdateSubscriptions)) {
-                log.error("SP Provision API: Failed to update subscriptions. - " + respUpdateSubscriptions);
+                log.error("SPProvisionAPI: Failed to update subscriptions. - " + respUpdateSubscriptions);
                 return Response.status(500).entity(respUpdateSubscriptions).build();
             } else {
-                log.info("APProvisionAPI: Subscriptions updated successfully");
+                log.info("SPProvisionAPI: Subscriptions updated successfully");
             }
 
             //Populate subscription validator
@@ -268,15 +274,18 @@ public class Endpoints {
                     + "&nonce=nonce_a75674c9-2007-4e36-afee-ccf7c865a25d";
 
             String tokenRequestCurl = "curl -v -X POST --user " + newConsumerKey + ":" + newConsumerSecret + " "
-                    + "-H \"Content-Type: application/x-www-form-urlencoded;charset=UTF-8\" -k -d "
-                    + "\"grant_type=authorization_code&code=d3ce9ee75a5de3ca955b1798b39bf2&"
-                    + "redirect_uri=" + callbackUrl + "\" " + mobileConnectConfigs.getSpProvisionConfig().getTokenUrl();
+                    + "-H 'Content-Type: application/x-www-form-urlencoded;charset=UTF-8' -k -d "
+                    + "'grant_type=authorization_code&code=d3ce9ee75a5de3ca955b1798b39bf2&"
+                    + "redirect_uri=" + callbackUrl + "' '" + mobileConnectConfigs.getSpProvisionConfig().getTokenUrl() + "'";
 
             String userInfoCurl = "curl -i " + mobileConnectConfigs.getSpProvisionConfig().getUserInfoUrl() +
-                    "?schema=openid -H \"Authorization: Bearer 9d55e77b3f823d84ae5fdff1d7135fcd\"";
+                    "?schema=openid -H 'Authorization: Bearer " + accessToken + "'";
 
-            return Response.ok("{error: false, message: 'success', accessToken: '" + accessToken + "'}",
-                    MediaType.APPLICATION_JSON).build();
+            String response = "{\"error\": false, \"message\": \"success\", \"accessToken\": \"" + accessToken + "\"," +
+                    "\"oAuthRequestCurl\": \"" + oAuthRequestCurl + "\"," +
+                    "\"tokenRequestCurl\": \"" + tokenRequestCurl + "\"," +
+                    "\"userInfoCurl\": \"" + userInfoCurl + "\"}";
+            return Response.ok(response, MediaType.APPLICATION_JSON).build();
 
         } catch (JSONException e) {
             log.error("Error occurred while parsing one of API responses", e);
@@ -322,16 +331,4 @@ public class Endpoints {
         }
         return response;
     }
-
-    /**
-     * Parses json string into JSONObject
-     * @param jsonStr String to be parsed into json
-     * @return JSONObject
-     * @throws JSONException if parsing failed
-     */
-    private JSONObject stringToJsonObject(String jsonStr) throws JSONException {
-        return new JSONObject(jsonStr);
-    }
-
-
 }

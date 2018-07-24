@@ -164,18 +164,31 @@ public class ApiCallsInAM {
 
     public String addSubscritions(String userName, String appName, String apiName, String apiVersion,
                                   String apiProvider, String tier) {
-
+        String response = null;
         try {
-            loginToAm(userName);
+            response = loginToAm(userName);
+            try {
+                JSONObject responseJson = new JSONObject(response);
+                if (responseJson.has("output")) {
+                    JSONObject output = responseJson.getJSONObject("output");
+                    if (output.has("error")) {
+                        if (output.getBoolean("error")) {
+                            return response;
+                        }
+                    }
+                }
+            } catch (JSONException e) {
+                logInstance.error("Error parsing Add Subscriptions JSON response", e);
+            }
         } catch (IOException ex) {
-            logInstance.error("IO Exception occured when trying to login to the user in Add subscription " +
+            logInstance.error("IO Exception occurred when trying to login to the user in Add subscription " +
                     "process" + ex.getMessage(), ex);
         }
         String url = addSubscriptionAPI + "?action=addAPISubscription&name=" + apiName + "&version=" + apiVersion
                 + "&provider=" + apiProvider + "&tier=" + tier + "&applicationName=" + appName + "";
         DefaultHttpClient httpClient = getNewHttpClient();
         httpClient.setCookieStore(cookieStore);
-        String response = postToURLjson(url, httpClient);
+        response = postToURLjson(url, httpClient);
         httpClient.getConnectionManager().shutdown();
         return response;
     }

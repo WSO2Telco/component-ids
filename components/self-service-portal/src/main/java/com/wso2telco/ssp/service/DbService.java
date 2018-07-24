@@ -216,7 +216,7 @@ public class DbService {
         try {
             con = getConnectDBConnection();
 
-            String sql = "SELECT application_id,  max(created_date) as l, count(*) as count FROM mig_connectdb.sp_login_history "
+            String sql = "SELECT application_id,  max(created_date) as l, count(*) as count FROM sp_login_history "
                     + "WHERE authenticated_user=? GROUP BY application_id ORDER BY ? " + orderType.toString();
 
             ps = con.prepareStatement(sql);
