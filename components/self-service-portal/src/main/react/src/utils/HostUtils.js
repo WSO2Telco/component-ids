@@ -12,9 +12,9 @@ function getMigAuthUrl(msisdn, acr) {
     return constants.MIG_AUTH_URL + "auth/login?acr=" + acr + "&msisdn=" + msisdn;
 }
 
-function getRecentActivityEndpoint(accessToken, page, limit) {
+function getRecentActivityEndpoint(accessToken, msisdn, page, limit) {
     return constants.RECENT_ACTIVITY_ENDPOINT + "?access_token=" + accessToken
-            + "&page=" + page + "&limit=" + limit;
+            + "&page=" + page + "&limit=" + limit + "&msisdn=" + msisdn;
 }
 
 function getSpProvisionApiEndpoint(operatorName) {

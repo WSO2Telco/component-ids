@@ -218,13 +218,24 @@ public class Endpoints {
     @Path("user/login_history")
     @Produces(MediaType.APPLICATION_JSON)
     public Response LoginHistory(@QueryParam("access_token") String accessToken,
+                                 @QueryParam("msisdn") String userMsisdn,
                                  @QueryParam("page") String page,
                                  @QueryParam("limit") String limit) throws ApiException {
+
+        String msisdn = null;
 
         // call user info to validate access token
         String output = UserService.getUserInfo(accessToken);
         JSONObject outputResponse = new JSONObject(output);
         if(outputResponse.isNull(selfServicePortalConfig.getMsisdnClaim())){
+            if (!outputResponse.isNull("sub")) {
+                msisdn = userMsisdn;
+            }
+        } else {
+            msisdn = outputResponse.getString(selfServicePortalConfig.getMsisdnClaim());
+        }
+
+        if (null == msisdn) {
             throw new ApiException("Invalid Token", "invalid_token", Response.Status.UNAUTHORIZED);
         }
 
@@ -232,9 +243,7 @@ public class Endpoints {
         Pagination pagination = new Pagination(page, limit);
 
         try {
-            PagedResults lh = DbService.getLoginHistoryByMsisdn(
-                    outputResponse.getString(selfServicePortalConfig.getMsisdnClaim()),
-                    OrderByType.DESC, pagination);
+            PagedResults lh = DbService.getLoginHistoryByMsisdn(msisdn, OrderByType.DESC, pagination);
             return PrepareResponse.Success(lh);
         }catch (DBUtilException e){
             throw new ApiException(e.getMessage(), "login_history_error", Response.Status.INTERNAL_SERVER_ERROR);

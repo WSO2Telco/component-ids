@@ -141,7 +141,8 @@ class RecentLogin extends Component {
 
 function fetchRecentLogins(page, limit, callback) {
     const accessToken = authUtils.getAccessToken();
-    const url = hostUtils.getRecentActivityEndpoint(accessToken, page, limit);
+    const msisdn = authUtils.getMsisdn();
+    const url = hostUtils.getRecentActivityEndpoint(accessToken, msisdn, page, limit);
     console.log(url)
     const axios = require('axios');
     axios.get(url).
