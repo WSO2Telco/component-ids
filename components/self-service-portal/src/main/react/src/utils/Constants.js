@@ -1,10 +1,10 @@
 const HOST = window.location.origin;
-const LOGIN_PAGE = HOST + "/selfcareportal/#/login";
-const HOME = HOST + "/selfcareportal/#/";
-const MIG_AUTH_URL = HOST + "/selfcareportal/api/v1/";
+const LOGIN_PAGE = HOST + "/selfserviceportal/#/login";
+const HOME = HOST + "/selfserviceportal/#/";
+const MIG_AUTH_URL = HOST + "/selfserviceportal/api/v1/";
 
 const SP_PROVISION_ENDPOINT = HOST + "/spprovisionservice/operator/";
-const RECENT_ACTIVITY_ENDPOINT = HOST + "/selfcareportal/api/v1/user/login_history"
+const RECENT_ACTIVITY_ENDPOINT = HOST + "/selfserviceportal/api/v1/user/login_history"
 
 const ACCESS_TOKEN = "AccessToken";
 const MSISDN = "msisdn";
