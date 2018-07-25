@@ -57,7 +57,7 @@ class Navigation extends React.Component {
       <div className={classes.root}>
         <AppBar position="static">
           <Tabs value={value} onChange={this.handleChange}>
-            <img className={classes.logo} src="./assets/img/logo_mobileconnect.png"/>
+            <img className={classes.logo} src="./assets/img/logo_mobileconnect.png" alt="mobileconnect logo"/>
             <Tab label="Dashboard" />
             <Tab label="SP Provision" />
 

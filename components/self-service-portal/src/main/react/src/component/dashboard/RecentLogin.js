@@ -144,8 +144,7 @@ function fetchRecentLogins(page, limit, callback) {
     const url = hostUtils.getRecentActivityEndpoint(accessToken, msisdn, page, limit);
     console.log(url)
     const axios = require('axios');
-    axios.get(url).
-      then((result) => {
+    axios.get(url).then((result) => {
         const response = result.data;
         callback(false, response);
       }).catch((error) => {

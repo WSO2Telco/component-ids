@@ -27,3 +27,5 @@ target
 *release.properties
 features/com.wso2telco.ids.dashboard.ui.feature/src/main/resources/generated/dashboard.zip
 components/self-service-portal/src/angular-source/node_modules
+components/self-service-portal/src/main/react/build/
+components/self-service-portal/src/main/react/node_modules/
