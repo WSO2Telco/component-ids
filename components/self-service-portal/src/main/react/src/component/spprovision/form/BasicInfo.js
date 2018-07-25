@@ -33,7 +33,6 @@ const styles = theme => ({
 class BasicInfo extends Component {
   onOptionChange = (event) => {
     let data = {target: {id: event.target.name, value: event.target.value}};
-    console.log(data);
     this.props.onChange(data);
   }
 

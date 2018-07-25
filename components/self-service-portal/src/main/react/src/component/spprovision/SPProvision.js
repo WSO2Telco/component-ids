@@ -48,15 +48,12 @@ class SPProvision extends Component {
   }
 
   handleInfoChange = (event) => {
-    console.log(event.target.id);
-    console.log(event.target.value);
     let apiParameters = this.state.apiParameters;
     apiParameters[event.target.id] = event.target.value;
     this.setState({apiParameters: apiParameters});
   };
 
   handleAlertClose = () => {
-    console.log("Handle alert close");
     this.setState({showAlertDialog: false, title: '',});
   }
 
@@ -76,7 +73,6 @@ class SPProvision extends Component {
         headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
       }).then((result) => {
         const response = result.data;
-        console.log(typeof response);
         if (response.error) {
            const errorMessage = response.message;
            const alertData = [{title: 'Error Occurred', value: errorMessage,},];

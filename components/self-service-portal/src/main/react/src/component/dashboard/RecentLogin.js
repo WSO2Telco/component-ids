@@ -81,7 +81,6 @@ class RecentLogin extends Component {
                     this.setState({showToast: true, toastMessage: 'Error occurred while fetching recent activities. Please logout and login again.'});
 
                  } else {
-                    console.log(data);
                     const items = oldData.concat(data.data.items);
                     const meta = data.data.meta;
                     this.setState({loginData: items, currentPage: meta.page, perPage: meta.perPage,
@@ -142,7 +141,6 @@ function fetchRecentLogins(page, limit, callback) {
     const accessToken = authUtils.getAccessToken();
     const msisdn = authUtils.getMsisdn();
     const url = hostUtils.getRecentActivityEndpoint(accessToken, msisdn, page, limit);
-    console.log(url)
     const axios = require('axios');
     axios.get(url).then((result) => {
         const response = result.data;
