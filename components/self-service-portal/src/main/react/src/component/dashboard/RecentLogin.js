@@ -84,7 +84,7 @@ class RecentLogin extends Component {
                     console.log(data);
                     const items = oldData.concat(data.data.items);
                     const meta = data.data.meta;
-                    this.setState({loginData: items, currentPage: meta.page + 1, perPage: meta.perPage,
+                    this.setState({loginData: items, currentPage: meta.page, perPage: meta.perPage,
                         totalItems: meta.total_count});
                  }
             });

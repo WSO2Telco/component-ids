@@ -20,7 +20,7 @@ const styles = {
     marginTop: '5%',
   },
   logo: {
-    backgroundColor: 'lightblue',
+    backgroundColor: '#6200EE',
     width: '95%',
     height: '100%',
     padding: '16px',
