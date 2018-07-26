@@ -1,5 +1,6 @@
 package com.wso2telco.spprovisionapp.entity;
 
+import com.google.gson.Gson;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
@@ -7,9 +8,11 @@ import com.wso2telco.spprovisionapp.api.ApiCallsInAM;
 import com.wso2telco.spprovisionapp.api.ApiCallsInIS;
 import com.wso2telco.spprovisionapp.conn.ApimgtConnectionUtil;
 import com.wso2telco.spprovisionapp.conn.ConnectdbConnectionUtil;
+import com.wso2telco.spprovisionapp.conn.DataBaseAccessUtil;
 import com.wso2telco.spprovisionapp.utils.DataBaseFunction;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -21,10 +24,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.List;
+import java.util.*;
 
 /**
- * The following tasks should be performed when this API is called (in exact order)
+ * The following tasks should be performed when this API (/operator/{operatorName}) is called (in exact order)
  * 1. Login and Sign In to the API Manager
  * 2. Create Application
  * 3. Activate Application
@@ -71,17 +74,27 @@ public class Endpoints {
             String applicationTier = requestBody.getString("applicationTier");
             String newConsumerKey = requestBody.getString("newConsumerKey");
             String newConsumerSecret = requestBody.getString("newConsumerSecret");
-            String apis = requestBody.getString("api");
+
             String callbackUrl = requestBody.getString("callbackUrl");
-            String scopes = requestBody.getString("scopes");
+
             boolean trustedServiceProvider = requestBody.getBoolean("trustedServiceProvider");
+
+            JSONArray apiArray = requestBody.getJSONArray("api");
+            List<String> apis = new LinkedList<>();
+            for (int i=0; i<apiArray.length(); i++) {
+                apis.add(apiArray.getString(i));
+            }
+
+            JSONArray scopesArray = requestBody.getJSONArray("scopes");
+            List<String> scopes = new LinkedList<>();
+            for (int i=0; i<scopesArray.length(); i++) {
+                scopes.add(scopesArray.getString(i));
+            }
 
             System.out.println(requestBody.toString());
 
             //create a user in AM
             ApiCallsInAM amApiCalls = new ApiCallsInAM();
-//            String respCreateUserCall = removeHttpCode(amApiCalls.createNewUserInAm(appName, firstName, lastName,
-//                    devMail));
             String respCreateUserCall = removeHttpCode(amApiCalls.createNewUserInAm(userName, firstName, lastName,
                     devMail));
             if (log.isDebugEnabled()) {
@@ -96,7 +109,6 @@ public class Endpoints {
             }
 
             //Login to AM
-//            String respLoginCall = removeHttpCode(amApiCalls.loginToAm(appName));
             String respLoginCall = removeHttpCode(amApiCalls.loginToAm(userName));
             if (log.isDebugEnabled()) {
                 log.debug("SPProvisionAPI: AM user login response - " + respLoginCall);
@@ -148,9 +160,8 @@ public class Endpoints {
             //Subscribing to APIs
             List<MobileConnectConfig.Api> apiList = mobileConnectConfigs.getSpProvisionConfig()
                     .getApiConfigs().getApiList();
-            String[] requestedApis = apis.split(",");
             for (MobileConnectConfig.Api api: apiList) {
-                for (String requestedApi: requestedApis) {
+                for (String requestedApi: apis) {
                     if (api.getApiName().equalsIgnoreCase(requestedApi)) {
                         String response = subscribeToApi(api, userName, appName, amApiCalls);
                         String respSubscribeCall = removeHttpCode(response);
@@ -229,9 +240,8 @@ public class Endpoints {
             }
 
             //scope configuration
-            String[] scopeList = scopes.split(",");
             String scopeConfigRet = DataBaseFunction.scopeConfiguration(ConnectdbConnectionUtil.getConnection(),
-                    newConsumerKey, scopeList, operatorName);
+                    newConsumerKey, scopes, operatorName);
             if (log.isDebugEnabled()) {
                 log.debug("SPProvisionAPI: Scope configuration response - " + scopeConfigRet);
             }
@@ -268,7 +278,10 @@ public class Endpoints {
                 log.info("SPProvisionAPI: Client keys updated successfully");
             }
 
-            String oAuthRequestCurl = mobileConnectConfigs.getSpProvisionConfig().getAuthUrl()
+            String authUrl = mobileConnectConfigs.getSpProvisionConfig().getAuthUrl()
+                    .replace("${operator}", operatorName);
+
+            String oAuthRequestCurl = authUrl
                     + "?client_id=" + newConsumerKey + "&response_type=code&scope=openid"
                     + "&redirect_uri=" + callbackUrl + "&acr_values=2&state=state_33945636-d3b7-4b12-b7b6-288e5a9683a7"
                     + "&nonce=nonce_a75674c9-2007-4e36-afee-ccf7c865a25d";
@@ -297,6 +310,52 @@ public class Endpoints {
             log.error("IOException occurred: " + e.getMessage(), e);
             return Response.status(500).entity("{error: true, message: '" + e.getMessage() + "'}").build();
         }
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/apis")
+    public Response getAvailableApis(@Context HttpServletRequest httpServletRequest,
+                                     @Context HttpServletResponse httpServletResponse) {
+        MobileConnectConfig.ApiConfigs apiConfigs = mobileConnectConfigs.getSpProvisionConfig().getApiConfigs();
+        List<String> apis = new LinkedList<>();
+        for (MobileConnectConfig.Api api: apiConfigs.getApiList()) {
+            apis.add(api.getApiName());
+        }
+
+        Map<String, List<String>> output = new HashMap<>();
+        output.put("apiList", apis);
+
+        return Response.ok(new Gson().toJson(output), MediaType.APPLICATION_JSON).build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/scopes")
+    public Response getScopesList(@Context HttpServletRequest httpServletRequest,
+                                     @Context HttpServletResponse httpServletResponse) {
+        List<String> scopes = Arrays.asList("openid,mnv,mc_mnv_validate".split(","));
+        Map<String, List<String>> output = new HashMap<>();
+        output.put("scopeList", scopes);
+        return Response.ok(new Gson().toJson(output), MediaType.APPLICATION_JSON).build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/operators")
+    public Response getAvailableOperatorList(@Context HttpServletRequest httpServletRequest,
+                                     @Context HttpServletResponse httpServletResponse) {
+        Map<String, List<String>> output = new HashMap<>();
+        try {
+            List<String> operators = DataBaseFunction.getAvailableOperatorList(
+                    DataBaseAccessUtil.getConnectionToConnectDb());
+            output.put("operatorList", operators);
+        } catch (SQLException e) {
+           log.error("SPProvisionAPI: Error establishing connection to CONNECT_DB", e);
+           output.put("operatorList", null);
+        }
+
+        return Response.ok(new Gson().toJson(output), MediaType.APPLICATION_JSON).build();
     }
 
     private String subscribeToApi(MobileConnectConfig.Api api, String userName, String appName,

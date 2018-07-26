@@ -8,6 +8,12 @@ import Button from '@material-ui/core/Button';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
+import Input from '@material-ui/core/Input';
+import Checkbox from '@material-ui/core/Checkbox';
+import ListItemText from '@material-ui/core/ListItemText';
+
+const axios = require('axios');
+const constants = require('../../../utils/Constants');
 
 const styles = theme => ({
   container: {
@@ -30,14 +36,69 @@ const styles = theme => ({
   },
 });
 
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+  PaperProps: {
+    style: {
+      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+      width: 250,
+    },
+  },
+};
+
 class BasicInfo extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+        apiList: [],
+        scopeList: [],
+        operatorList: [],
+    };
+  }
+
+  componentWillMount() {
+    fetchApiList((error, data) => {
+        if (error) {
+            console.log("Unable to fetch api list. Falling back to basic list.");
+            console.log(error);
+            this.setState({apiList: ["Authorize", "authorizemnv", "token", "tokenmnv"]});
+        } else {
+            console.log(data);
+            this.setState({apiList: data.apiList});
+        }
+    });
+
+    fetchScopeList((error, data) => {
+        if (error) {
+            console.log("Unable to fetch scopes list. Falling back to basic list.");
+            console.log(error);
+            this.setState({apiList: ["openid", "mnv", "mc_mnv_validate",]});
+        } else {
+            console.log(data);
+            this.setState({scopeList: data.scopeList});
+        }
+    });
+
+
+    fetchOperatorList((error, data) => {
+        if (error) {
+            console.log("Unable to fetch operator list. Check whether operators are properly configured");
+            console.log(error);
+        } else {
+            console.log(data);
+            this.setState({operatorList: data.operatorList});
+        }
+    });
+  }
+
   onOptionChange = (event) => {
     let data = {target: {id: event.target.name, value: event.target.value}};
     this.props.onChange(data);
   }
 
   render() {
-    const { classes } = this.props;
+    const { classes, theme } = this.props;
 
     return (
       <div className={classes.root}>
@@ -151,37 +212,72 @@ class BasicInfo extends Component {
           </Grid>
 
           <Grid item xs={12} sm={2}>
-            <TextField
-              id={"operatorName"}
-              label={"Operator Name"}
-              value={this.props.data.operatorName}
-              fullWidth={true}
-              className={classes.textField}
-              margin="normal"
-              onChange={this.props.onChange}
-            />
+            <InputLabel htmlFor="operatorName">Operator Name</InputLabel>
+             <Select
+                 value={this.props.data.operatorName}
+                 onChange={this.onOptionChange}
+                 inputProps={{
+                    name: 'operatorName',
+                    id: 'operatorName',
+                 }}
+                 fullWidth={true}
+             >
+                 {this.state.operatorList.map( item => {
+                    return (
+                        <MenuItem key={item} value={item}>{item}</MenuItem>
+                    );
+                 })}
+             </Select>
           </Grid>
           <Grid item xs={12} sm={3}>
-            <TextField
-              id={"api"}
-              label={"APIs"}
-              value={this.props.data.api}
-              fullWidth={true}
-              className={classes.textField}
-              margin="normal"
-              onChange={this.props.onChange}
-            />
+            <InputLabel htmlFor="api">APIs</InputLabel>
+            <Select
+                multiple
+                id="api"
+                label="APIs"
+                value={this.props.data.api}
+                onChange={this.onOptionChange}
+                input={<Input id={"select-apis"} />}
+                renderValue={selected => selected.join(', ')}
+                MenuProps={MenuProps}
+                inputProps={{
+                    name: 'api',
+                    id: 'api',
+                }}
+                fullWidth={true}
+            >
+                {this.state.apiList.map(name => (
+                  <MenuItem key={name} value={name}>
+                    <Checkbox checked={this.props.data.api.indexOf(name) > -1} />
+                    <ListItemText primary={name} />
+                  </MenuItem>
+                ))}
+            </Select>
           </Grid>
           <Grid item xs={12} sm={3}>
-            <TextField
-              id={"scopes"}
-              label={"Scopes"}
-              value={this.props.data.scopes}
-              fullWidth={true}
-              className={classes.textField}
-              margin="normal"
-              onChange={this.props.onChange}
-            />
+            <InputLabel htmlFor="scopes">Scopes</InputLabel>
+            <Select
+                multiple
+                id="scopes"
+                label="Scopes"
+                value={this.props.data.scopes}
+                onChange={this.onOptionChange}
+                input={<Input id={"select-scopes"} />}
+                renderValue={selected => selected.join(', ')}
+                MenuProps={MenuProps}
+                inputProps={{
+                    name: 'scopes',
+                    id: 'scopes',
+                }}
+                fullWidth={true}
+            >
+                {this.state.scopeList.map(name => (
+                  <MenuItem key={name} value={name}>
+                    <Checkbox checked={this.props.data.scopes.indexOf(name) > -1} />
+                    <ListItemText primary={name} />
+                  </MenuItem>
+                ))}
+            </Select>
           </Grid>
           <Grid item xs={12} sm={3}>
             <TextField
@@ -227,8 +323,39 @@ class BasicInfo extends Component {
   }
 }
 
+function fetchApiList(callback) {
+    const url = constants.API_LIST_ENDPOINT;
+    axios.get(url).then((result) => {
+        const response = result.data;
+        callback(false, response);
+      }).catch((error) => {
+        callback(true, error);
+    });
+}
+
+function fetchScopeList(callback) {
+    const url = constants.SCOPE_LIST_ENDPOINT;
+    axios.get(url).then((result) => {
+        const response = result.data;
+        callback(false, response);
+      }).catch((error) => {
+        callback(true, error);
+    });
+}
+
+function fetchOperatorList(callback) {
+    const url = constants.OPERATOR_LIST_ENDPOINT;
+    axios.get(url).then((result) => {
+        const response = result.data;
+        callback(false, response);
+      }).catch((error) => {
+        callback(true, error);
+    });
+}
+
 BasicInfo.propTypes = {
   classes: PropTypes.object.isRequired,
+  theme: PropTypes.object.isRequired,
 };
 
 export default withStyles(styles)(BasicInfo);

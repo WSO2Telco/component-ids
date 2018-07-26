@@ -25,6 +25,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.sql.*;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -147,7 +149,7 @@ public class DataBaseFunction {
         return message;
     }
 
-    public static String scopeConfiguration(Connection conn, String consumerKey, String[] scopes, String operatorName) throws SQLException {
+    public static String scopeConfiguration(Connection conn, String consumerKey, List<String> scopes, String operatorName) throws SQLException {
         String message = "{error: false, message: \"success\"}";
         for (String scope: scopes) {
             CallableStatement callablestatement = null;
@@ -232,6 +234,29 @@ public class DataBaseFunction {
             conn.close();
         }
         return message;
+    }
+
+    /**
+     * Queries database for configured operators
+     * @param conn java.sql.Connection from datasource CONNECT_DB (see master-datasoruces.xml)
+     * @return A list of available operators, null if there was an error.
+     */
+    public static List<String> getAvailableOperatorList(Connection conn) {
+
+        try {
+            String sql = "SELECT operatorname FROM operators";
+            PreparedStatement prep = conn.prepareStatement(sql);
+            ResultSet res = prep.executeQuery();
+            List<String> operators = new LinkedList<>();
+            while (res.next()) {
+                operators.add(res.getString(1));
+            }
+            return operators;
+        } catch (SQLException e) {
+            log.error("SPProvisionAPI: Error occurred while querying available operators", e);
+        }
+
+        return null;
     }
 
     private static String check_for_consumer_key_availability(String consumerKey) throws SQLException {

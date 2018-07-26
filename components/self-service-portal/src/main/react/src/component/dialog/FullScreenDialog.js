@@ -58,7 +58,7 @@ class FullScreenDialog extends React.Component {
 
                 return (
                     <div>
-                        <ListItem button>
+                        <ListItem p>
                             <ListItemText primary={title} secondary={message} />
                         </ListItem>
                         <Divider />
