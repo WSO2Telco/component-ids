@@ -137,7 +137,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
  
         Boolean isShowConsent = Boolean.valueOf(request.getParameter(Constants.IS_SHOW_CONSENT));
- 
+
 
         if (log.isDebugEnabled()) {
             log.debug("mobileNetworkOperator : " + mobileNetworkOperator);
@@ -223,6 +223,11 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
                 loginHintMsisdn,
                 headerMismatchResult,
                 isFrorceOffnetDueToPromptParameter);
+        if(flowType.equals("onnet"))
+            context.setProperty(Constants.IS_OFFNET_FLOW, false);
+        else
+            context.setProperty(Constants.IS_OFFNET_FLOW, true);
+
 
         //Can we find out the MSISDN here
         String msisdnToBeDecrypted = "";
