@@ -24,6 +24,7 @@ import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.core.sp.config.utils.exception.DataAccessException;
 import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
+import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.IPRangeChecker;
 import com.wso2telco.gsma.authenticators.attributeshare.AbstractAttributeShare;
 import com.wso2telco.gsma.authenticators.attributeshare.AttributeShareFactory;
@@ -33,6 +34,7 @@ import com.wso2telco.gsma.manager.client.ClaimManagementClient;
 import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -59,10 +61,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.rmi.RemoteException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 // TODO: Auto-generated Javadoc
 
@@ -493,7 +492,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
             }
             // explicitly remove all other authenticators and mark as a success
-            context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+            if(!isAPIConsent(context))
+               context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
 
             AuthenticationContextHelper.setSubject(context, msisdn);
 
@@ -910,6 +910,54 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     + "&authenticators=" + getName() + ":" + "LOCAL");
         } catch (IOException e) {
             throw new AuthenticationFailedException("I/O exception occurred");
+        }
+    }
+
+    public boolean isAPIConsent(AuthenticationContext context){
+        String msisdn = context.getProperty(Constants.MSISDN).toString();
+        Object scopes = context.getProperty(Constants.TELCO_SCOPE);
+        try {
+            if (scopes != null) {
+                String[] scopesArray = scopes.toString().split("\\s+");
+                String[] api_Scopes = Arrays.copyOfRange(scopesArray, 1, scopesArray.length);
+                if (api_Scopes != null && api_Scopes.length > 0) {
+                    String operator = context.getProperty(Constants.OPERATOR).toString();
+                    boolean enableapproveall = true;
+                    Map<String, String> approveNeededScopes = new HashedMap();
+                    List<String> approvedScopes = new ArrayList<>();
+                    String clientID = context.getProperty(Constants.CLIENT_ID).toString();
+                    for (String scope : api_Scopes) {
+                        String consent[] = DBUtils.getConsentStatus(scope, clientID, operator);
+                        if (consent != null && consent.length == 2 && !consent[0].isEmpty() && consent[0].contains("approve")) {
+                            boolean approved = DBUtils.getUserConsentScopeApproval(msisdn, scope, clientID, operator);
+                            if (approved) {
+                                approvedScopes.add(scope);
+                            } else {
+                                approveNeededScopes.put(scope, consent[1]);
+                            }
+                            if (consent[0].equalsIgnoreCase("approve")) {
+                                enableapproveall = false;
+                            }
+                        }
+                    }
+                    context.setProperty(Constants.APPROVE_NEEDED_SCOPES, approveNeededScopes);
+                    context.setProperty(Constants.APPROVED_SCOPES, approvedScopes);
+                    context.setProperty(Constants.APPROVE_ALL_ENABLE, enableapproveall);
+
+                    if (!approveNeededScopes.isEmpty()) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }catch (Exception e) {
+            log.error("Error occurred while processing request", e);
+            return false;
         }
     }
 }
