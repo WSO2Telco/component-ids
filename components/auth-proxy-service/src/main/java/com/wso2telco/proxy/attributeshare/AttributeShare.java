@@ -16,14 +16,20 @@
 package com.wso2telco.proxy.attributeshare;
 
 import com.wso2telco.core.dbutils.DBUtilException;
+import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.proxy.dao.AttributeShareDao;
 import com.wso2telco.proxy.dao.attsharedaoimpl.AttributeShareDaoImpl;
+import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.util.AuthProxyConstants;
+import com.wso2telco.proxy.util.AuthProxyEnum;
+import com.wso2telco.proxy.util.DBUtils;
 import edu.emory.mathcs.backport.java.util.Arrays;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
+import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -60,14 +66,16 @@ public class AttributeShare {
      * @return Map containing details about scopes
      * @throws AuthenticationFailedException
      */
-    public static Map<String, String> attributeShareScopesValidation(String scopeName, String operatorName, String
+    public static Map<String, Object> attributeShareScopesValidation(String scopeName, String operatorName, String
             clientId, String loginHintMsisdn, String msisdn) throws
-            AuthenticationFailedException {
+            AuthenticationFailedException, AuthenticatorException, NamingException {
 
         String trustedStatus = null;
         boolean isAttributeShare = false;
+        boolean isAPIConsent = false;
         String attShareType = null;
-        Map<String, String> attShareScopeDetails = new HashMap<>();
+        String logoPath = null;
+        Map<String, Object> attShareScopeDetails = new HashMap<>();
         try {
 
             if (scopeName == null || scopeName.isEmpty()) {
@@ -79,7 +87,39 @@ public class AttributeShare {
                 if (!scopeTypes.isEmpty()) {
                     for (String scope : scopeList) {
                         attShareType = scopeTypes.get(scope);
-                        if (attShareType != null) {
+                        if (AuthProxyEnum.SCOPETYPE.APICONSENT.name().equals(attShareType)) {
+                            isAPIConsent = true;
+                            if (scopeList != null) {
+                                if (scopeList != null && scopeList.size() > 0) {
+                                    boolean enableapproveall = true;
+                                    Map<String, String> approveNeededScopes = new HashedMap();
+                                    List<String> approvedScopes = new ArrayList<>();
+                                    for (String scope2 : scopeList) {
+                                        String consent[] = DBUtils.getConsentStatus(scope2, clientId, operatorName);
+                                        if (consent != null && consent.length == 2 && !consent[0].isEmpty() && consent[0].contains("approve")) {
+                                            boolean approved = DBUtils.getUserConsentScopeApproval(msisdn, scope, clientId, operatorName);
+                                            if (approved) {
+                                                approvedScopes.add(scope2);
+                                            } else {
+                                                approveNeededScopes.put(scope2, consent[1]);
+                                            }
+                                            if (consent[0].equalsIgnoreCase("approve")) {
+                                                enableapproveall = false;
+                                            }
+                                        }
+                                    }
+                                    attShareScopeDetails.put(AuthProxyConstants.APPROVE_NEEDED_SCOPES, approveNeededScopes);
+                                    attShareScopeDetails.put(AuthProxyConstants.APPROVED_SCOPES, approvedScopes);
+                                    attShareScopeDetails.put(AuthProxyConstants.APPROVE_ALL_ENABLE, enableapproveall);
+
+                                } else {
+                                    throw new AuthenticationFailedException("Authenticator failed- Approval needed scopes not found");
+                                }
+                            } else {
+                                throw new AuthenticationFailedException("Authenticator failed- Approval needed scopes not found");
+                            }
+                            break;
+                        }else if (attShareType != null){
                             isAttributeShare = true;
                             AttributeSharable attributeShare = ScopeFactory.getAttributeSharable(attShareType);
                             if (attributeShare != null) {
@@ -99,6 +139,8 @@ public class AttributeShare {
         attShareScopeDetails.put(AuthProxyConstants.ATTR_SHARE_SCOPE, Boolean.toString(isAttributeShare));
         attShareScopeDetails.put(AuthProxyConstants.TRUSTED_STATUS, trustedStatus);
         attShareScopeDetails.put(AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE, attShareType);
+        attShareScopeDetails.put(AuthProxyConstants.IS_API_CONSENT, Boolean.toString(isAPIConsent));
+
 
         return attShareScopeDetails;
     }

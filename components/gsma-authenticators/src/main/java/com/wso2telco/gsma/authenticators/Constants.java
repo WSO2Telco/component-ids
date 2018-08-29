@@ -499,6 +499,8 @@ public final class Constants {
 
     public static final String ATTRIBUTE_CONSENT_JSP = "/attributeconsent.do";
 
+    public static final String USER_CONSENT_JSP = "/user_consent.do";
+
 
     public static final String IS_DISPLAYSCOPE = "isDisplayScope";
     public static final String DISPLAY_SCOPES = "displayScopes";
@@ -519,4 +521,6 @@ public final class Constants {
     public static final String CORRELATION_ID = "correlation_id";
 
     public static final String REDIRECT_URL = "redirectUrl";
+
+    public static final String IS_API_CONSENT = "is_api_consent";
 }

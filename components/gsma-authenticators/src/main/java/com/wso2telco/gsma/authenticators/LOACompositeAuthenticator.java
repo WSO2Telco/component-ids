@@ -28,6 +28,7 @@ import com.wso2telco.exception.CommonAuthenticatorException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.dbUtil.DataBaseConnectUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -138,6 +139,12 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
  
         Boolean isShowConsent = Boolean.valueOf(request.getParameter(Constants.IS_SHOW_CONSENT));
 
+        boolean isAPIConsent = Boolean.parseBoolean(request.getParameter(Constants.IS_API_CONSENT));
+
+        boolean enableapproveall;
+        Map<String, String> approveNeededScopes = new HashedMap();
+        List<String> approvedScopes = new ArrayList<>();
+
 
         if (log.isDebugEnabled()) {
             log.debug("mobileNetworkOperator : " + mobileNetworkOperator);
@@ -178,6 +185,34 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         context.setProperty(Constants.TELCO_SCOPE, telcoscope);
         if(scope_types!=null && !scope_types.isEmpty()) {
             context.setProperty(Constants.SCOPE_TYPES, scope_types);
+        }
+        context.setProperty(Constants.IS_API_CONSENT, isAPIConsent);
+        if(isAPIConsent){
+            String approvedScopePara = request.getParameter(Constants.APPROVED_SCOPES);
+            String approveNeededScopePara = request.getParameter(Constants.APPROVE_NEEDED_SCOPES);
+            enableapproveall = Boolean.parseBoolean(request.getParameter(Constants.APPROVE_ALL_ENABLE));
+
+            String[] splitedScope = approvedScopePara.split("-");
+            for(String scope: splitedScope){
+                approvedScopes.add(scope);
+            }
+            splitedScope = approveNeededScopePara.split("---");
+            for(String scope: splitedScope){
+                String[] scp = scope.split("--");
+                approveNeededScopes.put(scp[0], scp[1]);
+            }
+            context.setProperty(Constants.APPROVE_NEEDED_SCOPES, approveNeededScopes);
+            context.setProperty(Constants.APPROVED_SCOPES, approvedScopes);
+            context.setProperty(Constants.APPROVE_ALL_ENABLE, enableapproveall);
+
+            try {
+                String logoPath = DBUtils.getSPConfigValue(mobileNetworkOperator, serviceProvider, Constants.SP_LOGO);
+                if (logoPath != null && !logoPath.isEmpty()) {
+                    context.setProperty(Constants.SP_LOGO, logoPath);
+                }
+            }catch (AuthenticatorException e){
+                log.info(e.fillInStackTrace());
+            }
         }
 
         if (null != request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED) && (isBackChannelAllowed = Boolean

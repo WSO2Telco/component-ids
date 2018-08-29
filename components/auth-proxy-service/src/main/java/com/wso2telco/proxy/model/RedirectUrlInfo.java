@@ -16,9 +16,11 @@
 package com.wso2telco.proxy.model;
 
 import com.wso2telco.core.config.model.ScopeParam;
+import org.apache.commons.collections.map.HashedMap;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 
 /**
  * RedirectUrlInfo is using to construct redirect url.
@@ -48,7 +50,11 @@ public class RedirectUrlInfo {
  
     private boolean showConsent;
     private EnumSet<ScopeParam.scopeTypes> scopeTypesList;
- 
+
+    private Map<String, String> approveNeededScopes;
+    private List<String> approvedScopes;
+    private boolean enableapproveall;
+    private boolean isAPIConsent;
 
     public void setPrompt(String prompt) {
         this.prompt = prompt;
@@ -213,5 +219,36 @@ public class RedirectUrlInfo {
     public EnumSet<ScopeParam.scopeTypes> getScopeTypesList() { return scopeTypesList;  }
 
     public void setScopeTypesList(EnumSet<ScopeParam.scopeTypes> scopeTypesList) { this.scopeTypesList = scopeTypesList; }
- 
+
+    public Map<String, String> getApproveNeededScopes() {
+        return approveNeededScopes;
+    }
+
+    public void setApproveNeededScopes(Map<String, String> approveNeededScopes) {
+        this.approveNeededScopes = approveNeededScopes;
+    }
+
+    public List<String> getApprovedScopes() {
+        return approvedScopes;
+    }
+
+    public void setApprovedScopes(List<String> approvedScopes) {
+        this.approvedScopes = approvedScopes;
+    }
+
+    public boolean isEnableapproveall() {
+        return enableapproveall;
+    }
+
+    public void setEnableapproveall(boolean enableapproveall) {
+        this.enableapproveall = enableapproveall;
+    }
+
+    public boolean isAPIConsent() {
+        return isAPIConsent;
+    }
+
+    public void setAPIConsent(boolean APIConsent) {
+        isAPIConsent = APIConsent;
+    }
 }
