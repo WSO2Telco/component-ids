@@ -27,6 +27,7 @@ import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -44,9 +45,7 @@ import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 // TODO: Auto-generated Javadoc
 
@@ -200,7 +199,11 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     (Constants.IS_DISPLAYSCOPE))) {
 
                 getConsentFromUser(request, response, context, attributeSet, retryParam);
-            } else {
+            } else if (context.getProperty(Constants.IS_REGISTERING) != null && (boolean) context.getProperty(Constants.IS_REGISTERING)){
+                response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + "registering=true&"+queryParams)) + "&redirect_uri=" +
+                        request.getParameter("redirect_uri") + "&authenticators="
+                        + getName() + ":" + "LOCAL" + retryParam);
+            } else{
                 response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + queryParams)) + "&redirect_uri=" +
                         request.getParameter("redirect_uri") + "&authenticators="
                         + getName() + ":" + "LOCAL" + retryParam);
@@ -272,7 +275,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     log.debug("User entered MSISDN : " + msisdn);
                 }
 
-                if (!isUserExists && isShowTnc) {
+                if (!isUserExists && isShowTnc || Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())) {
                     retryAuthenticatorForConsent(context);
                 }
 
@@ -287,6 +290,19 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 String userAction = request.getParameter(Constants.ACTION);
                 if (userAction != null && !userAction.isEmpty()) {
                     // Change behaviour depending on user action
+                    if(context.getProperty(Constants.IS_API_CONSENT) != null && Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())){
+                        String clientID = context.getProperty(Constants.CLIENT_ID).toString();
+                        String operator = context.getProperty(Constants.OPERATOR).toString();
+                        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+                        Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
+                        for (Map.Entry<String, String> scopeEntry : approveNeededScopes.entrySet()) {
+                            String scope = scopeEntry.getKey();
+                            if (userAction.equalsIgnoreCase(Constants.STATUS_APPROVEALL)) {
+                                DBUtils.insertUserConsentDetails(msisdn, scope, clientID, operator, true);
+                            }
+                            DBUtils.insertConsentHistoryDetails(msisdn, scope, clientID, operator, userAction);
+                        }
+                    }
                     switch (userAction) {
                         case Constants.USER_ACTION_REG_CONSENT:
                             log.info("User approved the consent");
@@ -305,11 +321,23 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                             log.info("User rejected the consent");
                             terminateAuthentication(context);
                             break;
+                        case Constants.STATUS_DENY:
+                            //User rejected to registration consent
+                            log.info("User rejected the consent");
+                            terminateAuthentication(context);
+                            break;
                     }
+
+
                 } else {
                     boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+                    boolean isAPIConsent = (boolean) context.getProperty(Constants.IS_API_CONSENT);
                     if (isRegistering && isShowTnc) {
                         log.info("Redirecting user to consent page");
+                        retryAuthenticatorForConsent(context);
+                    }
+                    else if (isAPIConsent){
+                        log.info("Redirecting user to api consent page");
                         retryAuthenticatorForConsent(context);
                     }
                 }
@@ -354,7 +382,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 }
             }
     	}catch(Exception e){
-    		throw new AuthenticationFailedException("Authenicator failed", e); 
+    		throw new AuthenticationFailedException("Authenicator failed", e);
     	}
 
         return isUserExists;
@@ -555,7 +583,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
     private String getAuthEndpointUrl(AuthenticationContext context, boolean explicitScope) {
 
-        String loginPage;
+        String loginPage = null;
 
         if (context.getProperty(Constants.MSISDN) != null) {
 
@@ -567,12 +595,30 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     log.info("Redirecting user to user attribute consent page");
                     loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
                             Constants.ATTRIBUTE_CONSENT_JSP;
+                } else if (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())){
+                    log.info("Redirecting user to consent page");
+                    if (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())) {
+                        Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
+                        if (!approveNeededScopes.isEmpty()) {
+                            DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState.CONCENT_AUTH_REDIRECT_CONSENT_PAGE, "Redirecting to consent page");
+                            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + "/user_consent.do";
+                        }
+                    }
+
                 } else {
                     log.info("Redirecting user to consent page");
                     loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
                             Constants.CONSENT_JSP;
                 }
-
+            } else if (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())){
+                log.info("Redirecting user to consent page");
+                if (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())) {
+                    Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
+                    if (!approveNeededScopes.isEmpty()) {
+                        DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState.CONCENT_AUTH_REDIRECT_CONSENT_PAGE, "Redirecting to consent page");
+                        loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + "/user_consent.do";
+                    }
+                }
             } else {
                 log.info("Redirecting to MSISDN enter page");
                 loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();

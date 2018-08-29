@@ -85,4 +85,9 @@ public class AuthProxyConstants {
     public static final String AUD = "aud";
     public static final String VERSION = "version";
     public static final String SP_REQUEST_ENCRYPTED_PUBLIC_KEY = "bcRequestEncryptedPublicKey";
+    public static final String SP_LOGO = "logo";
+    public static final String APPROVE_NEEDED_SCOPES = "approve_needed_scopes";
+    public static final String APPROVED_SCOPES = "approved_scopes";
+    public static final String APPROVE_ALL_ENABLE = "approve_all_enable";
+    public static final String IS_API_CONSENT = "is_api_consent";
 }

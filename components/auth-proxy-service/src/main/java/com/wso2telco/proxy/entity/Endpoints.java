@@ -323,7 +323,7 @@ public class Endpoints {
                             log.debug("redirectURL : " + redirectURL);
                         }
 
-                        Map<String, String> attShareDetails = AttributeShare.attributeShareScopesValidation(scopeName,
+                        Map<String, Object> attShareDetails = AttributeShare.attributeShareScopesValidation(scopeName,
                                 operatorName, clientId, loginhint_msisdn, msisdn);
 
                         redirectUrlInfo.setMsisdnHeader(msisdn);
@@ -334,11 +334,26 @@ public class Endpoints {
                         redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
 
                         redirectUrlInfo.setAttributeSharingScope(Boolean.parseBoolean(attShareDetails.get
-                                (AuthProxyConstants.ATTR_SHARE_SCOPE)));
-                        redirectUrlInfo.setTrustedStatus(attShareDetails.get(AuthProxyConstants.TRUSTED_STATUS));
-                        redirectUrlInfo.setAttributeSharingScopeType(attShareDetails.get(AuthProxyConstants
-                                .ATTR_SHARE_SCOPE_TYPE));
+                                (AuthProxyConstants.ATTR_SHARE_SCOPE).toString()));
 
+                        if(attShareDetails.get(AuthProxyConstants.TRUSTED_STATUS) != null)
+                            redirectUrlInfo.setTrustedStatus(attShareDetails.get(AuthProxyConstants.TRUSTED_STATUS).toString());
+                        else
+                            redirectUrlInfo.setTrustedStatus(null);
+
+                        if(attShareDetails.get(AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE) != null){
+                            redirectUrlInfo.setAttributeSharingScopeType(attShareDetails.get(AuthProxyConstants
+                                    .ATTR_SHARE_SCOPE_TYPE).toString());
+                        }else{
+                            redirectUrlInfo.setAttributeSharingScopeType(null);
+                        }
+
+                        redirectUrlInfo.setAPIConsent(Boolean.parseBoolean(attShareDetails.get(AuthProxyConstants.IS_API_CONSENT).toString()));
+                        if(Boolean.parseBoolean(attShareDetails.get(AuthProxyConstants.IS_API_CONSENT).toString())){
+                            redirectUrlInfo.setApprovedScopes((List<String>) attShareDetails.get(AuthProxyConstants.APPROVED_SCOPES));
+                            redirectUrlInfo.setApproveNeededScopes((Map<String, String>) attShareDetails.get(AuthProxyConstants.APPROVE_NEEDED_SCOPES));
+                            redirectUrlInfo.setEnableapproveall(Boolean.parseBoolean(attShareDetails.get(AuthProxyConstants.APPROVE_ALL_ENABLE).toString()));
+                        }
 
                         if(scopeParam.isConsentPage()){
                             redirectUrlInfo.setShowConsent(true);
@@ -829,6 +844,8 @@ public class Endpoints {
         EnumSet<ScopeParam.scopeTypes> scopeTypesList = redirectUrlInfo.getScopeTypesList();
 
         String transactionId = redirectUrlInfo.getTransactionId();
+        boolean isAPIConsent = redirectUrlInfo.isAPIConsent();
+
         if (authorizeUrl != null) {
             redirectURL = authorizeUrl + queryString + "&" +
                     AuthProxyConstants.OPERATOR + "=" + operatorName + "&" +
@@ -880,6 +897,37 @@ public class Endpoints {
                     redirectURL+=scopetype.name();
                     init=true;
                 }
+            }
+
+            if(isAPIConsent){
+                log.info("=====================///////////start///////////////==================");
+                redirectURL += "&" + AuthProxyConstants.IS_API_CONSENT + "=" + isAPIConsent;
+                boolean init=false;
+                List<String> approvedScopes = redirectUrlInfo.getApprovedScopes();
+                Map<String, String> approveNeededScopes = redirectUrlInfo.getApproveNeededScopes();
+                Iterator it = approveNeededScopes.entrySet().iterator();
+                redirectURL += "&" + AuthProxyConstants.APPROVED_SCOPES + "=";
+                for(String scopes:approvedScopes){
+                    if(init){
+                        redirectURL+="-";
+                    }
+                    redirectURL+=scopes;
+                    init = true;
+                }
+                init = false;
+                redirectURL += "&" + AuthProxyConstants.APPROVE_NEEDED_SCOPES + "=";
+                while (it.hasNext()) {
+                    Map.Entry pair = (Map.Entry)it.next();
+                    System.out.println(pair.getKey() + " = " + pair.getValue().toString().replaceAll("%", "%25").replaceAll(" ", "%20"));
+                    if(init){
+                        redirectURL+="---";
+                    }
+                    ;
+                    redirectURL+=pair.getKey() + "--" + pair.getValue().toString().replaceAll("%", "%25").replaceAll(" ", "%20");
+                    init = true;
+                    it.remove(); // avoids a ConcurrentModificationException
+                }
+                log.info("===================//////////stop///////////==================");
             }
 
         } else {
