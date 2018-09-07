@@ -28,6 +28,7 @@ import com.wso2telco.model.backchannel.BackChannelRequestDetails;
 import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.util.AuthProxyConstants;
 import com.wso2telco.proxy.util.DBUtils;
+import com.wso2telco.commonutil.CommonAdminServicesUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -48,6 +49,7 @@ import org.wso2.carbon.identity.oauth.dto.OAuthConsumerAppDTO;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminService;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceStub;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceUserRegistrationException;
+import org.wso2.carbon.user.api.UserStoreException;
 
 import javax.naming.ConfigurationException;
 import javax.servlet.http.HttpServletRequest;
@@ -130,7 +132,7 @@ public class ServerInitiatedServiceEndpoints {
             version = payloadObj.get(AuthProxyConstants.VERSION).toString();
             loginHint = payloadObj.get(AuthProxyConstants.LOGIN_HINT).toString();
             scopeName = payloadObj.get(AuthProxyConstants.SCOPE).toString();
-            acrValue = payloadObj.get(AuthProxyConstants.ACR_VALUE).toString() == "2" ? backChanelAcrValue : payloadObj.get(AuthProxyConstants.ACR_VALUE).toString();
+            acrValue = payloadObj.get(AuthProxyConstants.ACR_VALUE).toString().equals("2") ? backChanelAcrValue : payloadObj.get(AuthProxyConstants.ACR_VALUE).toString();
             responseType = payloadObj.get(AuthProxyConstants.RESPONSE_TYPE).toString();
             notificationUrl = payloadObj.get(AuthProxyConstants.NOTIFICATION_URI).toString();
             state = payloadObj.get(AuthProxyConstants.STATE).toString();
@@ -174,7 +176,7 @@ public class ServerInitiatedServiceEndpoints {
                 backChannelOauthResponse.setErrorDescription("Invalid Request");
                 return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
                         (backChannelOauthResponse)).build();
-            } else if (!isUserExists(loginHint)) {
+            } else if (!CommonAdminServicesUtil.isUserExists(loginHint)) {
                 log.error("User is not registered in IDGW");
                 backChannelOauthResponse.setCorrelationId(correlationId);
                 backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
@@ -271,7 +273,7 @@ public class ServerInitiatedServiceEndpoints {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
                     (backChannelOauthResponse)).build();
         } catch (RemoteException | LoginAuthenticationExceptionException | IdentityOAuthAdminException |
-                AuthenticatorException | UserRegistrationAdminServiceUserRegistrationException e) {
+                AuthenticatorException | UserStoreException e) {
             log.error("Error while retrieving Callback Url via Admin calls. ", e);
             backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
             backChannelOauthResponse.setErrorDescription("IDGW rejected the request");
