@@ -108,7 +108,8 @@
                         <Export-Package>!com.wso2telco.core,com.wso2telco.exception,
                             com.wso2telco.dbUtil,
                             com.wso2telco.adminServiceUtil.client,
-                            com.wso2telco.model.backchannel
+                            com.wso2telco.model.backchannel,
+                            com.wso2telco.commonutil
                         </Export-Package>
                         <Import-Package>
                             org.osgi.framework,
