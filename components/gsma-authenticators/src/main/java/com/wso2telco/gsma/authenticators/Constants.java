@@ -523,4 +523,6 @@ public final class Constants {
     public static final String REDIRECT_URL = "redirectUrl";
 
     public static final String IS_API_CONSENT = "is_api_consent";
+
+    public static final String ALREADY_APPROVED = "already_approved";
 }

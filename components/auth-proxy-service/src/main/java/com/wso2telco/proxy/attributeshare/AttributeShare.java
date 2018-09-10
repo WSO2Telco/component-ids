@@ -89,35 +89,7 @@ public class AttributeShare {
                         attShareType = scopeTypes.get(scope);
                         if (AuthProxyEnum.SCOPETYPE.APICONSENT.name().equals(attShareType)) {
                             isAPIConsent = true;
-                            if (scopeList != null) {
-                                if (scopeList != null && scopeList.size() > 0) {
-                                    boolean enableapproveall = true;
-                                    Map<String, String> approveNeededScopes = new HashedMap();
-                                    List<String> approvedScopes = new ArrayList<>();
-                                    for (String scope2 : scopeList) {
-                                        String consent[] = DBUtils.getConsentStatus(scope2, clientId, operatorName);
-                                        if (consent != null && consent.length == 2 && !consent[0].isEmpty() && consent[0].contains("approve")) {
-                                            boolean approved = DBUtils.getUserConsentScopeApproval(msisdn, scope, clientId, operatorName);
-                                            if (approved) {
-                                                approvedScopes.add(scope2);
-                                            } else {
-                                                approveNeededScopes.put(scope2, consent[1]);
-                                            }
-                                            if (consent[0].equalsIgnoreCase("approve")) {
-                                                enableapproveall = false;
-                                            }
-                                        }
-                                    }
-                                    attShareScopeDetails.put(AuthProxyConstants.APPROVE_NEEDED_SCOPES, approveNeededScopes);
-                                    attShareScopeDetails.put(AuthProxyConstants.APPROVED_SCOPES, approvedScopes);
-                                    attShareScopeDetails.put(AuthProxyConstants.APPROVE_ALL_ENABLE, enableapproveall);
 
-                                } else {
-                                    throw new AuthenticationFailedException("Authenticator failed- Approval needed scopes not found");
-                                }
-                            } else {
-                                throw new AuthenticationFailedException("Authenticator failed- Approval needed scopes not found");
-                            }
                             break;
                         }else if (attShareType != null){
                             isAttributeShare = true;

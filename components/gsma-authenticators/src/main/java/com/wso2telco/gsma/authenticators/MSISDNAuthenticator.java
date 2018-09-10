@@ -19,6 +19,7 @@ import com.wso2telco.Util;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.dbutils.DBUtilException;
+import com.wso2telco.gsma.authenticators.apiconsent.AbstractAPIConsent;
 import com.wso2telco.gsma.authenticators.attributeshare.AbstractAttributeShare;
 import com.wso2telco.gsma.authenticators.attributeshare.AttributeShareFactory;
 import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;
@@ -26,6 +27,7 @@ import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
+import com.wso2telco.ids.datapublisher.util.DBUtil;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
@@ -44,6 +46,7 @@ import org.wso2.carbon.identity.oauth.common.OAuthConstants;
 import javax.naming.NamingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.swing.*;
 import java.io.IOException;
 import java.util.*;
 
@@ -275,7 +278,14 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     log.debug("User entered MSISDN : " + msisdn);
                 }
 
-                if (!isUserExists && isShowTnc || Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())) {
+                if(!isUserExists)
+                    DBUtils.removeApprovedAPIsforNewUser(msisdn);
+
+                if((Boolean) context.getProperty(Constants.IS_API_CONSENT)){
+                    AbstractAPIConsent.setApproveNeededScope(context);
+                }
+
+                if (!isUserExists && isShowTnc || (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString()) && !(Boolean)context.getProperty(Constants.ALREADY_APPROVED))) {
                     retryAuthenticatorForConsent(context);
                 }
 
@@ -334,10 +344,14 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     boolean isAPIConsent = (boolean) context.getProperty(Constants.IS_API_CONSENT);
                     if (isRegistering && isShowTnc) {
                         log.info("Redirecting user to consent page");
+                        DBUtils.removeApprovedAPIsforNewUser(msisdn);
+                        if(isAPIConsent)
+                            AbstractAPIConsent.setApproveNeededScope(context);
                         retryAuthenticatorForConsent(context);
                     }
                     else if (isAPIConsent){
                         log.info("Redirecting user to api consent page");
+                        AbstractAPIConsent.setApproveNeededScope(context);
                         retryAuthenticatorForConsent(context);
                     }
                 }
@@ -391,6 +405,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     public AuthenticatorFlowStatus processRequest(HttpServletRequest request, HttpServletResponse response,
                                                   AuthenticationContext context) throws
             AuthenticationFailedException, LogoutFailedException {
+
         if (context.isLogoutRequest()) {
             try {
                 if (!canHandle(request)) {
@@ -598,8 +613,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 } else if (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())){
                     log.info("Redirecting user to consent page");
                     if (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())) {
-                        Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
-                        if (!approveNeededScopes.isEmpty()) {
+                        if (!(Boolean) context.getProperty(Constants.ALREADY_APPROVED)) {
                             DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState.CONCENT_AUTH_REDIRECT_CONSENT_PAGE, "Redirecting to consent page");
                             loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + "/user_consent.do";
                         }
@@ -613,8 +627,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             } else if (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())){
                 log.info("Redirecting user to consent page");
                 if (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())) {
-                    Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
-                    if (!approveNeededScopes.isEmpty()) {
+                    if (!(Boolean) context.getProperty(Constants.ALREADY_APPROVED)) {
                         DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState.CONCENT_AUTH_REDIRECT_CONSENT_PAGE, "Redirecting to consent page");
                         loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + "/user_consent.do";
                     }
@@ -694,7 +707,6 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
         if (!AuthenticatorEnum.TrustedStatus.UNTRUSTED.toString().equalsIgnoreCase(context.getProperty(Constants
                 .TRUSTED_STATUS).toString())) {
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-
             if (isRegistering) {
                 AbstractAttributeShare.createUserProfile(context);
             }
@@ -719,6 +731,14 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
         } catch (IOException e) {
             throw new AuthenticationFailedException("I/O exception occurred");
+        }
+    }
+
+    private void resetApprovedAPIs(String msisdn) throws AuthenticationFailedException{
+        try{
+            DBUtils.removeApprovedAPIsforNewUser(msisdn);
+        }catch(Exception e){
+            throw new AuthenticationFailedException("Authenicator failed", e);
         }
     }
 }

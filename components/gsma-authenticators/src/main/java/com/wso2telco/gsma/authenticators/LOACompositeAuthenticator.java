@@ -159,7 +159,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         ScopeParam.MsisdnMismatchResultTypes headerMismatchResult = ScopeParam.MsisdnMismatchResultTypes.valueOf(
                 request.getParameter(Constants.HEADER_MISMATCH_RESULT));
         String telcoscope = request.getParameter(Constants.TELCO_SCOPE);
-
+        log.info("================///////////// "+ telcoScope);
         ScopeParam.HeFailureResults heFailureResult = ScopeParam.HeFailureResults.valueOf(
                 request.getParameter(Constants.HE_FAILURE_RESULT));
 
@@ -187,33 +187,6 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
             context.setProperty(Constants.SCOPE_TYPES, scope_types);
         }
         context.setProperty(Constants.IS_API_CONSENT, isAPIConsent);
-        if(isAPIConsent){
-            String approvedScopePara = request.getParameter(Constants.APPROVED_SCOPES);
-            String approveNeededScopePara = request.getParameter(Constants.APPROVE_NEEDED_SCOPES);
-            enableapproveall = Boolean.parseBoolean(request.getParameter(Constants.APPROVE_ALL_ENABLE));
-
-            String[] splitedScope = approvedScopePara.split("-");
-            for(String scope: splitedScope){
-                approvedScopes.add(scope);
-            }
-            splitedScope = approveNeededScopePara.split("---");
-            for(String scope: splitedScope){
-                String[] scp = scope.split("--");
-                approveNeededScopes.put(scp[0], scp[1]);
-            }
-            context.setProperty(Constants.APPROVE_NEEDED_SCOPES, approveNeededScopes);
-            context.setProperty(Constants.APPROVED_SCOPES, approvedScopes);
-            context.setProperty(Constants.APPROVE_ALL_ENABLE, enableapproveall);
-
-            try {
-                String logoPath = DBUtils.getSPConfigValue(mobileNetworkOperator, serviceProvider, Constants.SP_LOGO);
-                if (logoPath != null && !logoPath.isEmpty()) {
-                    context.setProperty(Constants.SP_LOGO, logoPath);
-                }
-            }catch (AuthenticatorException e){
-                log.info(e.fillInStackTrace());
-            }
-        }
 
         if (null != request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED) && (isBackChannelAllowed = Boolean
                 .parseBoolean(request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED)))) {
@@ -241,6 +214,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         PromptData promptData = null;
 
         String[] scopes = request.getParameter(Constants.SCOPE).split(" ");
+        context.setProperty(Constants.SCOPE, request.getParameter(Constants.SCOPE));
 
         // RULE 1: change the flow due to prompt parameter only on HE scenarios
         if (StringUtils.isNotEmpty(msisdnHeader)) {
