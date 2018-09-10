@@ -352,6 +352,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
                 } else {
                     handleUserLogin(context);
                 }
+                new UserProfileManager().updateMIGUserRoles(msisdn,context.getProperty(Constants.CLIENT_ID).toString());
             }
             AuthenticationContextHelper.setSubject(context, msisdn);
 
@@ -611,6 +612,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
 
             new UserProfileManager().createUserProfileLoa3(msisdn, operator, challengeAnswer1, challengeAnswer2,
                     pinConfig.getRegisteredPin(), isAttributeScope, spType, attrShareType);
+            new UserProfileManager().updateMIGUserRoles(msisdn,context.getProperty(Constants.CLIENT_ID).toString());
 
             MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig()
                     .getSmsConfig();

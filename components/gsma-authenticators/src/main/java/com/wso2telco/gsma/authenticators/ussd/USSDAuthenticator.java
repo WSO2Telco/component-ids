@@ -287,6 +287,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
                         WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
                     }
                 }
+                new UserProfileManager().updateMIGUserRoles(msisdn, context.getProperty(Constants.CLIENT_ID).toString());
             } else {
                 log.info("Authentication failed. Consent not provided.");
                 context.setProperty("faileduser", (String) context.getProperty("msisdn"));

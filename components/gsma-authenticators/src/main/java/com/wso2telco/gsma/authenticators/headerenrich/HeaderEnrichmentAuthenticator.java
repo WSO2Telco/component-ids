@@ -26,6 +26,7 @@ import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.IPRangeChecker;
+import com.wso2telco.gsma.authenticators.apiconsent.AbstractAPIConsent;
 import com.wso2telco.gsma.authenticators.attributeshare.AbstractAttributeShare;
 import com.wso2telco.gsma.authenticators.attributeshare.AttributeShareFactory;
 import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;
@@ -171,10 +172,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
                     if (flowStatus) {
 
-                        AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN)
-                                .toString());
-                        context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
-                        return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+
 
                     } else if (!flowStatus && isDisplayScopes) {
 
@@ -184,6 +182,14 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     }
                 }else if(!isRegistering && isAPIConsent && Constants.NO.equalsIgnoreCase(context.getProperty(Constants
                         .IS_CONSENTED).toString()) && StringUtils.isNotEmpty(msisdn)){
+                    AbstractAPIConsent.setApproveNeededScope(context);
+                    Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
+                    if((Boolean) context.getProperty(Constants.ALREADY_APPROVED)){
+                        AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN)
+                                .toString());
+                        context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
+                        return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
+                    }
                     context.setProperty(Constants.IS_CONSENTED, Constants.YES);
                     getAPIConsentFromUser(request, response, context);
                     context.setCurrentAuthenticator(getName());
@@ -246,6 +252,12 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             }
         } else {
             try {
+                if((Boolean)context.getProperty(Constants.IS_API_CONSENT)) {
+                    if((Boolean) context.getProperty(Constants.IS_REGISTERING))
+                      DBUtils.removeApprovedAPIsforNewUser(context.getProperty(Constants.MSISDN).toString());
+
+                    AbstractAPIConsent.setApproveNeededScope(context);
+                }
                 initiateAuthenticationRequest(request, response, context);
             } catch (Exception e) {
                 if (Boolean.valueOf(context.getProperty(Constants.AUTHENTICATED_USER).toString())) {
@@ -348,6 +360,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             log.debug("Operator : " + operator);
             log.debug("Query parameters : " + queryParams);
         }
+
 
         Map<String, String> attributeSet = new HashMap();
 
@@ -484,7 +497,11 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             if (requestedLoa == 3) {
                 // if acr is 3, pass the user to next authenticator
             }
-
+            log.info("-============================================");
+            log.info("Query parameters : " + FrameworkUtils
+                    .getQueryStringWithFrameworkContextId(context.getQueryParams(),
+                            context.getCallerSessionKey(),
+                            context.getContextIdentifier()));
             if (requestedLoa == 2) {
                 if (isRegistering || isStatusUpdate) {
                     // authenticators from step map
@@ -515,6 +532,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     handleAttributeShareResponse(context);
                 }
             }
+            new UserProfileManager().updateMIGUserRoles(msisdn, context.getProperty(Constants.CLIENT_ID).toString());
             context.setProperty(Constants.IS_PIN_RESET, false);
 
             if(!isShowConcent) {

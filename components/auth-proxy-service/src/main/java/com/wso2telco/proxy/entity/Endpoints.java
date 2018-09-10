@@ -289,6 +289,10 @@ public class Endpoints {
                                 queryParams.get(AuthProxyConstants.SCOPE)
                                         .set(0, scopeName + " " + AuthProxyConstants.SCOPE_OPENID);
                             }
+                            for(int i = 0; i < queryParams.get(AuthProxyConstants.SCOPE).size(); i++)
+                                log.info(queryParams.get(AuthProxyConstants.SCOPE).get(i));
+
+                            log.info(queryParams.get(AuthProxyConstants.SCOPE).remove("charge"));
                         }
 
                         List<String> promptValues = queryParams.get(AuthProxyConstants.PROMPT);
@@ -349,11 +353,6 @@ public class Endpoints {
                         }
 
                         redirectUrlInfo.setAPIConsent(Boolean.parseBoolean(attShareDetails.get(AuthProxyConstants.IS_API_CONSENT).toString()));
-                        if(Boolean.parseBoolean(attShareDetails.get(AuthProxyConstants.IS_API_CONSENT).toString())){
-                            redirectUrlInfo.setApprovedScopes((List<String>) attShareDetails.get(AuthProxyConstants.APPROVED_SCOPES));
-                            redirectUrlInfo.setApproveNeededScopes((Map<String, String>) attShareDetails.get(AuthProxyConstants.APPROVE_NEEDED_SCOPES));
-                            redirectUrlInfo.setEnableapproveall(Boolean.parseBoolean(attShareDetails.get(AuthProxyConstants.APPROVE_ALL_ENABLE).toString()));
-                        }
 
                         if(scopeParam.isConsentPage()){
                             redirectUrlInfo.setShowConsent(true);
@@ -900,34 +899,35 @@ public class Endpoints {
             }
 
             if(isAPIConsent){
-                log.info("=====================///////////start///////////////==================");
+//                log.info("=====================///////////start///////////////==================");
                 redirectURL += "&" + AuthProxyConstants.IS_API_CONSENT + "=" + isAPIConsent;
-                boolean init=false;
-                List<String> approvedScopes = redirectUrlInfo.getApprovedScopes();
-                Map<String, String> approveNeededScopes = redirectUrlInfo.getApproveNeededScopes();
-                Iterator it = approveNeededScopes.entrySet().iterator();
-                redirectURL += "&" + AuthProxyConstants.APPROVED_SCOPES + "=";
-                for(String scopes:approvedScopes){
-                    if(init){
-                        redirectURL+="-";
-                    }
-                    redirectURL+=scopes;
-                    init = true;
-                }
-                init = false;
-                redirectURL += "&" + AuthProxyConstants.APPROVE_NEEDED_SCOPES + "=";
-                while (it.hasNext()) {
-                    Map.Entry pair = (Map.Entry)it.next();
-                    System.out.println(pair.getKey() + " = " + pair.getValue().toString().replaceAll("%", "%25").replaceAll(" ", "%20"));
-                    if(init){
-                        redirectURL+="---";
-                    }
-                    ;
-                    redirectURL+=pair.getKey() + "--" + pair.getValue().toString().replaceAll("%", "%25").replaceAll(" ", "%20");
-                    init = true;
-                    it.remove(); // avoids a ConcurrentModificationException
-                }
-                log.info("===================//////////stop///////////==================");
+//                boolean init=false;
+//                List<String> approvedScopes = redirectUrlInfo.getApprovedScopes();
+//                Map<String, String> approveNeededScopes = redirectUrlInfo.getApproveNeededScopes();
+//                Iterator it = approveNeededScopes.entrySet().iterator();
+//                redirectURL += "&" + AuthProxyConstants.APPROVED_SCOPES + "=";
+//                for(String scopes:approvedScopes){
+//                    if(init){
+//                        redirectURL+="-";
+//                    }
+//                    redirectURL+=scopes;
+//                    init = true;
+//                }
+//                init = false;
+//                redirectURL += "&" + AuthProxyConstants.APPROVE_NEEDED_SCOPES + "=";
+//                while (it.hasNext()) {
+//                    Map.Entry pair = (Map.Entry)it.next();
+//                    System.out.println(pair.getKey() + " = " + pair.getValue().toString().replaceAll("%", "%25").replaceAll(" ", "%20"));
+//                    if(init){
+//                        redirectURL+="---";
+//                    }
+//                    ;
+//                    redirectURL+=pair.getKey() + "--" + pair.getValue().toString().replaceAll("%", "%25").replaceAll(" ", "%20");
+//                    init = true;
+//                    it.remove(); // avoids a ConcurrentModificationException
+//                }
+//                redirectURL += "&" + AuthProxyConstants.APPROVE_ALL_ENABLE + "=" + redirectUrlInfo.isEnableapproveall();
+//                log.info("===================//////////stop///////////==================");
             }
 
         } else {

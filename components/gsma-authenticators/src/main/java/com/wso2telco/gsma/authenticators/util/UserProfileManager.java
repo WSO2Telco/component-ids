@@ -23,11 +23,13 @@ import com.wso2telco.gsma.manager.client.RemoteUserStoreServiceAdminClient;
 import com.wso2telco.gsma.manager.client.UserRegistrationAdminServiceClient;
 import com.wso2telco.gsma.manager.util.UserProfileClaimsConstant;
 
+import com.wso2telco.ids.datapublisher.util.DBUtil;
 import org.apache.axis2.AxisFault;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 import org.wso2.carbon.identity.user.registration.stub.dto.UserDTO;
@@ -38,9 +40,12 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
 import java.rmi.RemoteException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -79,6 +84,7 @@ public class UserProfileManager {
         try {
             if (AdminServiceUtil.isUserExists(username)) {
                 try {
+
                     updateUserStatus(username, isAttributeScope, spType, attrbShareType);
                 } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
                     log.error("RemoteUserStoreManagerServiceUserStoreExceptionException : " + e.getMessage());
@@ -545,6 +551,45 @@ public class UserProfileManager {
             log.error("RemoteException- " + userName + ":" + e.getMessage());
         } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
             log.error("RemoteUserStoreManagerServiceUserStoreExceptionException- " + userName + ":" + e.getMessage());
+        }
+    }
+
+    public void updateMIGUserRoles(String userName, String clientID){
+        try {
+            String spUser = AdminServiceUtil.getSPUserName(clientID);
+            String[] spUserRoles = AdminServiceUtil.getRoleListOfUser(spUser);
+            ArrayList<String> newSPUserRoles = new ArrayList<String>();
+            ArrayList<String> oldSPUserRoles = new ArrayList<String>();
+            for(String spRoles : spUserRoles){
+                if(!spRoles.startsWith("Internal") && !spRoles.startsWith("Application")){
+                    log.info("Role "+spRoles + " is ready to add to the user "+ userName);
+                    newSPUserRoles.add(spRoles);
+                }
+            }
+            spUserRoles = AdminServiceUtil.getRoleListOfUser(userName);
+            for(String spRoles : spUserRoles){
+                if(!spRoles.startsWith("Internal") && !spRoles.startsWith("Application")){
+                    log.info("Role "+spRoles + " is ready to remove from the user "+ userName);
+                    oldSPUserRoles.add(spRoles);
+                }
+            }
+            AdminServiceUtil.updateRoleListOfUser(userName,Arrays.copyOf(oldSPUserRoles.toArray(), oldSPUserRoles.toArray().length, String[].class), Arrays.copyOf(newSPUserRoles.toArray(), newSPUserRoles.toArray().length, String[].class));
+        } catch (IdentityApplicationManagementException e) {
+            log.error("IdentityApplicationManagementException:- " + e.getMessage());
+        } catch (LoginAuthenticationExceptionException e) {
+            log.error("LoginAuthenticationExceptionException- " + userName + ":" + e.getMessage());
+        } catch (UserStoreException e) {
+            log.error("UserStoreException- " + userName + ":" + e.getMessage());
+        } catch (RemoteException e) {
+            log.error("RemoteException- " + userName + ":" + e.getMessage());
+        } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
+            log.error("RemoteUserStoreManagerServiceUserStoreExceptionException- " + userName + ":" + e.getMessage());
+        } catch (IdentityException e) {
+            log.error("IdentityException- " + userName + ":" + e.getMessage());
+        } catch (NullPointerException e){
+            log.error("NullPointerException- " + userName + ":" + e.getMessage());
+        } catch (Exception e){
+            log.error("Exception- " + userName + ":" + e.getMessage());
         }
     }
 }

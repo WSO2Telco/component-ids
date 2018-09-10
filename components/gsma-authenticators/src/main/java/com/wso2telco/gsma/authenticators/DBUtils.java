@@ -1116,5 +1116,25 @@ public class DBUtils {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet,preparedStatement);
         }
     }
+
+    public static void removeApprovedAPIsforNewUser(String msisdn)
+            throws  AuthenticatorException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        StringBuilder sql = new StringBuilder();
+        sql.append("DELETE from consent_given_user_lifetime ");
+        sql.append("where msisdn =?");
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(sql.toString());
+            preparedStatement.setString(1, msisdn);
+            preparedStatement.execute();
+        }catch (SQLException e) {
+            log.info("No records found to delete ");
+        }  finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet,preparedStatement);
+        }
+    }
 }
 
