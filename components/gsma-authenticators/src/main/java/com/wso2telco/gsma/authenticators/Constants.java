@@ -525,4 +525,6 @@ public final class Constants {
     public static final String IS_API_CONSENT = "is_api_consent";
 
     public static final String ALREADY_APPROVED = "already_approved";
+
+    public static final String API_SCOPES = "api_scopes";
 }

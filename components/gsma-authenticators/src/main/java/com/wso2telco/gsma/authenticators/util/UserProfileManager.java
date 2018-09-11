@@ -17,6 +17,7 @@ package com.wso2telco.gsma.authenticators.util;
 
 import com.wso2telco.core.config.DataHolder;
 import com.wso2telco.gsma.authenticators.Constants;
+import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;
 import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
 import com.wso2telco.gsma.manager.client.RemoteUserStoreServiceAdminClient;
@@ -554,38 +555,18 @@ public class UserProfileManager {
         }
     }
 
-    public void updateMIGUserRoles(String userName, String clientID){
+    public void updateMIGUserRoles(String userName, String clientID, String apiScopes){
         try {
-            String spUser = AdminServiceUtil.getSPUserName(clientID);
-            String[] spUserRoles = AdminServiceUtil.getRoleListOfUser(spUser);
-            ArrayList<String> newSPUserRoles = new ArrayList<String>();
-            ArrayList<String> oldSPUserRoles = new ArrayList<String>();
-            for(String spRoles : spUserRoles){
-                if(!spRoles.startsWith("Internal") && !spRoles.startsWith("Application")){
-                    log.info("Role "+spRoles + " is ready to add to the user "+ userName);
-                    newSPUserRoles.add(spRoles);
+            ArrayList<String> userRolesScope = DBUtils.getRoleNameFromScope(apiScopes);
+            String[] userRoles = AdminServiceUtil.getRoleListOfUser(userName);
+            for(String roles : userRoles){
+                if(!roles.startsWith("Internal") && !roles.startsWith("Application")){
+                    userRolesScope.remove(roles);
                 }
             }
-            spUserRoles = AdminServiceUtil.getRoleListOfUser(userName);
-            for(String spRoles : spUserRoles){
-                if(!spRoles.startsWith("Internal") && !spRoles.startsWith("Application")){
-                    log.info("Role "+spRoles + " is ready to remove from the user "+ userName);
-                    oldSPUserRoles.add(spRoles);
-                }
-            }
-            AdminServiceUtil.updateRoleListOfUser(userName,Arrays.copyOf(oldSPUserRoles.toArray(), oldSPUserRoles.toArray().length, String[].class), Arrays.copyOf(newSPUserRoles.toArray(), newSPUserRoles.toArray().length, String[].class));
-        } catch (IdentityApplicationManagementException e) {
-            log.error("IdentityApplicationManagementException:- " + e.getMessage());
-        } catch (LoginAuthenticationExceptionException e) {
-            log.error("LoginAuthenticationExceptionException- " + userName + ":" + e.getMessage());
+            AdminServiceUtil.updateRoleListOfUser(userName,null, Arrays.copyOf(userRolesScope.toArray(), userRolesScope.toArray().length, String[].class));
         } catch (UserStoreException e) {
             log.error("UserStoreException- " + userName + ":" + e.getMessage());
-        } catch (RemoteException e) {
-            log.error("RemoteException- " + userName + ":" + e.getMessage());
-        } catch (RemoteUserStoreManagerServiceUserStoreExceptionException e) {
-            log.error("RemoteUserStoreManagerServiceUserStoreExceptionException- " + userName + ":" + e.getMessage());
-        } catch (IdentityException e) {
-            log.error("IdentityException- " + userName + ":" + e.getMessage());
         } catch (NullPointerException e){
             log.error("NullPointerException- " + userName + ":" + e.getMessage());
         } catch (Exception e){

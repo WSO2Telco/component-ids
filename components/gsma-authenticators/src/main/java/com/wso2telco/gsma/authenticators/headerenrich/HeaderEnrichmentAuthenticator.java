@@ -497,11 +497,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             if (requestedLoa == 3) {
                 // if acr is 3, pass the user to next authenticator
             }
-            log.info("-============================================");
-            log.info("Query parameters : " + FrameworkUtils
-                    .getQueryStringWithFrameworkContextId(context.getQueryParams(),
-                            context.getCallerSessionKey(),
-                            context.getContextIdentifier()));
             if (requestedLoa == 2) {
                 if (isRegistering || isStatusUpdate) {
                     // authenticators from step map
@@ -532,7 +527,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     handleAttributeShareResponse(context);
                 }
             }
-            new UserProfileManager().updateMIGUserRoles(msisdn, context.getProperty(Constants.CLIENT_ID).toString());
+            new UserProfileManager().updateMIGUserRoles(msisdn, context.getProperty(Constants.CLIENT_ID).toString(), context.getProperty(Constants.API_SCOPES).toString());
             context.setProperty(Constants.IS_PIN_RESET, false);
 
             if(!isShowConcent) {
