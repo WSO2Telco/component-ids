@@ -18,6 +18,7 @@ public abstract class AbstractAPIConsent {
         Map<String, String> approveNeededScopes = new HashedMap();
         List<String> approvedScopes = new ArrayList<>();
         String[] scopeList = context.getProperty(Constants.SCOPE).toString().split(" ");
+        StringBuilder apiScopeList = new StringBuilder();
         try{
             if (scopeList != null) {
                 if (scopeList != null && scopeList.length > 0) {
@@ -25,6 +26,7 @@ public abstract class AbstractAPIConsent {
                     for (String scope : scopeList) {
                         String consent[] = DBUtils.getConsentStatus(scope, context.getProperty(Constants.CLIENT_ID).toString(), context.getProperty(Constants.OPERATOR).toString());
                         if (consent != null && consent.length == 2 && !consent[0].isEmpty() && consent[0].contains("approve")) {
+                            apiScopeList.append(scope).append(",");
                             boolean approved = DBUtils.getUserConsentScopeApproval(context.getProperty(Constants.MSISDN).toString(), scope, context.getProperty(Constants.CLIENT_ID).toString(), context.getProperty(Constants.OPERATOR).toString());
                             if (approved) {
                                 approvedScopes.add(scope);
@@ -38,10 +40,12 @@ public abstract class AbstractAPIConsent {
                             }
                         }
                     }
+                    apiScopeList.deleteCharAt(apiScopeList.length()-1);
                     context.setProperty(Constants.ALREADY_APPROVED, approveNeededScopes.isEmpty());
                     context.setProperty(Constants.APPROVE_NEEDED_SCOPES, approveNeededScopes);
                     context.setProperty(Constants.APPROVED_SCOPES, approvedScopes);
                     context.setProperty(Constants.APPROVE_ALL_ENABLE, enableapproveall);
+                    context.setProperty(Constants.API_SCOPES, apiScopeList.toString());
 
                     String logoPath = DBUtils.getSPConfigValue(context.getProperty(Constants.OPERATOR).toString(), context.getProperty(Constants.CLIENT_ID).toString(), Constants.SP_LOGO);
                     if (logoPath != null && !logoPath.isEmpty()) {

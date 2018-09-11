@@ -159,7 +159,6 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         ScopeParam.MsisdnMismatchResultTypes headerMismatchResult = ScopeParam.MsisdnMismatchResultTypes.valueOf(
                 request.getParameter(Constants.HEADER_MISMATCH_RESULT));
         String telcoscope = request.getParameter(Constants.TELCO_SCOPE);
-        log.info("================///////////// "+ telcoScope);
         ScopeParam.HeFailureResults heFailureResult = ScopeParam.HeFailureResults.valueOf(
                 request.getParameter(Constants.HE_FAILURE_RESULT));
 
