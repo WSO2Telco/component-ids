@@ -352,7 +352,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     else if (isAPIConsent){
                         log.info("Redirecting user to api consent page");
                         AbstractAPIConsent.setApproveNeededScope(context);
-                        retryAuthenticatorForConsent(context);
+                        if(!(Boolean) context.getProperty(Constants.ALREADY_APPROVED)){
+                            retryAuthenticatorForConsent(context);
+                        }
                     }
                 }
             }
