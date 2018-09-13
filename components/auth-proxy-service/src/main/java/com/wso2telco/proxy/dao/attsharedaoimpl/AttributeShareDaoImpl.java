@@ -108,7 +108,6 @@ public class AttributeShareDaoImpl implements AttributeShareDao {
                         .SCOPETYPE.ATT_SHARE.name().equalsIgnoreCase(scopeType) || AuthProxyEnum
                         .SCOPETYPE.APICONSENT.name().equalsIgnoreCase(scopeType)) {
                     scopeParams.put(resultSet.getString("scope"), scopeType);
-                    log.info("=============" + resultSet.getString("scope") + "==="+scopeType+"====");
                 }
             }
 

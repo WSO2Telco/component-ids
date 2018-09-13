@@ -35,9 +35,10 @@ public abstract class AbstractAPIConsent {
                             }
                             if (consent[0].equalsIgnoreCase("approve")) {
                                 enableapproveall = false;
-                            } else if (consent[0].equalsIgnoreCase("deny")){
-                                throw new AuthenticationFailedException("Authenticator failed- Denied scopes are found");
                             }
+                        }else if (consent != null && consent.length == 2 && !consent[0].isEmpty() && consent[0].equalsIgnoreCase("deny")){
+                            context.setProperty(Constants.DENIED_SCOPE, true);
+                            throw new AuthenticationFailedException("Authenticator failed- Denied scopes are found");
                         }
                     }
                     apiScopeList.deleteCharAt(apiScopeList.length()-1);

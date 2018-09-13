@@ -371,6 +371,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     .updateAndPublishUserStatus(
                             (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
                             DataPublisherUtil.UserState.MSISDN_AUTH_PROCESSING_FAIL, ex.getMessage());
+            if (context.getProperty(Constants.DENIED_SCOPE) != null && (Boolean)context.getProperty(Constants.DENIED_SCOPE)){
+                terminateAuthentication(context);
+            }
             throw new AuthenticationFailedException("Authenicator failed", ex);
         }
     }

@@ -213,6 +213,10 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 publishAuthenticationStepAttempt(request, context, context.getSubject(), true);
                 return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
             } catch (AuthenticationFailedException e) {
+                if (context.getProperty(Constants.DENIED_SCOPE) != null && (Boolean)context.getProperty(Constants.DENIED_SCOPE)){
+                    terminateAuthentication(context);
+                    return AuthenticatorFlowStatus.INCOMPLETE;
+                }
                 Object property = context.getProperty(Constants.IS_TERMINATED);
                 boolean isTerminated = false;
                 if (property != null) {
@@ -260,6 +264,11 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 }
                 initiateAuthenticationRequest(request, response, context);
             } catch (Exception e) {
+
+                if (context.getProperty(Constants.DENIED_SCOPE) != null && (Boolean)context.getProperty(Constants.DENIED_SCOPE)){
+                    terminateAuthentication(context);
+                    return AuthenticatorFlowStatus.INCOMPLETE;
+                }
                 if (Boolean.valueOf(context.getProperty(Constants.AUTHENTICATED_USER).toString())) {
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                 }
@@ -527,7 +536,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     handleAttributeShareResponse(context);
                 }
             }
-            new UserProfileManager().updateMIGUserRoles(msisdn, context.getProperty(Constants.CLIENT_ID).toString(), context.getProperty(Constants.API_SCOPES).toString());
+            if(context.getProperty(Constants.API_SCOPES) != null)
+                new UserProfileManager().updateMIGUserRoles(msisdn, context.getProperty(Constants.CLIENT_ID).toString(), context.getProperty(Constants.API_SCOPES).toString());
             context.setProperty(Constants.IS_PIN_RESET, false);
 
             if(!isShowConcent) {

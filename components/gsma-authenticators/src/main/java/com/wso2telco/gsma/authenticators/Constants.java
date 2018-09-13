@@ -527,4 +527,6 @@ public final class Constants {
     public static final String ALREADY_APPROVED = "already_approved";
 
     public static final String API_SCOPES = "api_scopes";
+
+    public static final String DENIED_SCOPE = "denied_scope";
 }
