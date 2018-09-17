@@ -25,7 +25,7 @@ public abstract class AbstractAPIConsent {
                     boolean enableapproveall = true;
                     for (String scope : scopeList) {
                         String consent[] = DBUtils.getConsentStatus(scope, context.getProperty(Constants.CLIENT_ID).toString(), context.getProperty(Constants.OPERATOR).toString());
-                        if (consent != null && consent.length == 2 && !consent[0].isEmpty() && consent[0].contains("approve")) {
+                        if (consent != null && consent.length == 2 && !consent[0].isEmpty() && consent[0].contains(Constants.STATUS_APPROVE)) {
                             apiScopeList.append(scope).append(",");
                             boolean approved = DBUtils.getUserConsentScopeApproval(context.getProperty(Constants.MSISDN).toString(), scope, context.getProperty(Constants.CLIENT_ID).toString(), context.getProperty(Constants.OPERATOR).toString());
                             if (approved) {
@@ -33,10 +33,10 @@ public abstract class AbstractAPIConsent {
                             } else {
                                 approveNeededScopes.put(scope, consent[1]);
                             }
-                            if (consent[0].equalsIgnoreCase("approve")) {
+                            if (consent[0].equalsIgnoreCase(Constants.STATUS_APPROVE)) {
                                 enableapproveall = false;
                             }
-                        }else if (consent != null && consent.length == 2 && !consent[0].isEmpty() && consent[0].equalsIgnoreCase("deny")){
+                        }else if (consent != null && consent.length == 2 && !consent[0].isEmpty() && consent[0].equalsIgnoreCase(Constants.STATUS_DENY)){
                             context.setProperty(Constants.DENIED_SCOPE, true);
                             throw new AuthenticationFailedException("Authenticator failed- Denied scopes are found");
                         }
