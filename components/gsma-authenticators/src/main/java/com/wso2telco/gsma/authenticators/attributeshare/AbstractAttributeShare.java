@@ -237,6 +237,9 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
 
         try {
             new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope, spType, attrShareType);
+            if(context.getProperty(Constants.API_SCOPES) != null)
+                new UserProfileManager().updateMIGUserRoles(msisdn, context.getProperty(Constants.CLIENT_ID).toString(),context.getProperty(Constants.API_SCOPES).toString());
+
 
         } catch (RemoteException | UserRegistrationAdminServiceIdentityException e) {
             log.error("error occurred while create user profile : " + e.getMessage());

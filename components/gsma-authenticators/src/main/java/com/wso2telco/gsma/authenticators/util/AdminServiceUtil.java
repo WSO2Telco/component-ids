@@ -18,19 +18,15 @@ package com.wso2telco.gsma.authenticators.util;
 import com.wso2telco.gsma.authenticators.internal.CustomAuthenticatorServiceComponent;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
+import org.wso2.carbon.identity.application.mgt.ApplicationManagementService;
 import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceStub;
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 import org.wso2.carbon.user.api.UserRealm;
 import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserStoreManager;
+import org.wso2.carbon.utils.multitenancy.MultitenantConstants;
 import org.wso2.carbon.utils.multitenancy.MultitenantUtils;
-import org.wso2.carbon.identity.base.IdentityException;
-import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
-
-import java.rmi.RemoteException;
-
-import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
 import java.rmi.RemoteException;
 
@@ -57,5 +53,25 @@ public class AdminServiceUtil {
         UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService().getTenantUserRealm(tenantId);
         UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
         return userStoreManager.getUserClaimValue(username, "http://wso2.org/claims/status", null);
+    }
+
+    public static String[] getRoleListOfUser(String username) throws IdentityException, UserStoreException,
+            RemoteException, LoginAuthenticationExceptionException,
+            RemoteUserStoreManagerServiceUserStoreExceptionException {
+        final int tenantId = -1234;
+        UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService().getTenantUserRealm(tenantId);
+        UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
+        return userStoreManager.getRoleListOfUser(username);
+    }
+
+    public static String getSPUserName(String clientid) throws IdentityApplicationManagementException {
+        return ApplicationManagementService.getInstance().getServiceProviderByClientId(clientid, "oauth2", MultitenantConstants.SUPER_TENANT_DOMAIN_NAME).getOwner().getUserName();
+    }
+
+    public static void updateRoleListOfUser(String username, String[] deletedRoles, String[] newRoles) throws UserStoreException {
+        final int tenantId = -1234;
+        UserRealm userRealm = CustomAuthenticatorServiceComponent.getRealmService().getTenantUserRealm(tenantId);
+        UserStoreManager userStoreManager = (UserStoreManager) userRealm.getUserStoreManager();
+        userStoreManager.updateRoleListOfUser(username, deletedRoles, newRoles);
     }
 }

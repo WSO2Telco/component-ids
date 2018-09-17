@@ -368,6 +368,9 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
                         log.info("Welcome SMS sent");
                     }
                 }
+                if(context.getProperty(Constants.API_SCOPES) != null)
+                    new UserProfileManager().updateMIGUserRoles(msisdn,context.getProperty(Constants.CLIENT_ID).toString(),context.getProperty(Constants.API_SCOPES).toString());
+
             }
 
         } catch (AuthenticatorException | RemoteException | UserRegistrationAdminServiceIdentityException e) {

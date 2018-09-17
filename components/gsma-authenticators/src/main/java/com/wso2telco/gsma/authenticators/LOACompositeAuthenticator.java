@@ -28,6 +28,7 @@ import com.wso2telco.exception.CommonAuthenticatorException;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.dbUtil.DataBaseConnectUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -137,7 +138,13 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
  
         Boolean isShowConsent = Boolean.valueOf(request.getParameter(Constants.IS_SHOW_CONSENT));
- 
+
+        boolean isAPIConsent = Boolean.parseBoolean(request.getParameter(Constants.IS_API_CONSENT));
+
+        boolean enableapproveall;
+        Map<String, String> approveNeededScopes = new HashedMap();
+        List<String> approvedScopes = new ArrayList<>();
+
 
         if (log.isDebugEnabled()) {
             log.debug("mobileNetworkOperator : " + mobileNetworkOperator);
@@ -152,7 +159,6 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         ScopeParam.MsisdnMismatchResultTypes headerMismatchResult = ScopeParam.MsisdnMismatchResultTypes.valueOf(
                 request.getParameter(Constants.HEADER_MISMATCH_RESULT));
         String telcoscope = request.getParameter(Constants.TELCO_SCOPE);
-
         ScopeParam.HeFailureResults heFailureResult = ScopeParam.HeFailureResults.valueOf(
                 request.getParameter(Constants.HE_FAILURE_RESULT));
 
@@ -179,6 +185,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         if(scope_types!=null && !scope_types.isEmpty()) {
             context.setProperty(Constants.SCOPE_TYPES, scope_types);
         }
+        context.setProperty(Constants.IS_API_CONSENT, isAPIConsent);
 
         if (null != request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED) && (isBackChannelAllowed = Boolean
                 .parseBoolean(request.getParameter(Constants.IS_BACKCHANNEL_ALLOWED)))) {
@@ -206,6 +213,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
         PromptData promptData = null;
 
         String[] scopes = request.getParameter(Constants.SCOPE).split(" ");
+        context.setProperty(Constants.SCOPE, request.getParameter(Constants.SCOPE));
 
         // RULE 1: change the flow due to prompt parameter only on HE scenarios
         if (StringUtils.isNotEmpty(msisdnHeader)) {
@@ -223,6 +231,11 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
                 loginHintMsisdn,
                 headerMismatchResult,
                 isFrorceOffnetDueToPromptParameter);
+        if(flowType.equals("onnet"))
+            context.setProperty(Constants.IS_OFFNET_FLOW, false);
+        else
+            context.setProperty(Constants.IS_OFFNET_FLOW, true);
+
 
         //Can we find out the MSISDN here
         String msisdnToBeDecrypted = "";
