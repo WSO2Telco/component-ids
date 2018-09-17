@@ -384,6 +384,12 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
                     e.getMessage());
             log.error("Error occurred while hashing the pin", e);
             terminateAuthentication(context);
+        } catch (AuthenticatorException e){
+            DataPublisherUtil.updateAndPublishUserStatus(userStatus,
+                    DataPublisherUtil.UserState.USSDPIN_AUTH_PROCESSING_FAIL,
+                    e.getMessage());
+            log.error("Error occurred while updating user roles", e);
+            terminateAuthentication(context);
         }
     }
 
@@ -587,7 +593,7 @@ public class USSDPinAuthenticator extends AbstractApplicationAuthenticator
     }
 
     private void handleUserRegistration(AuthenticationContext context, UserStatus userStatus) throws
-            UserRegistrationAdminServiceIdentityException, RemoteException, AuthenticationFailedException {
+            UserRegistrationAdminServiceIdentityException, RemoteException, AuthenticationFailedException, AuthenticatorException {
         String challengeAnswer1 = (String) context.getProperty(Constants.CHALLENGE_ANSWER_1);
         String challengeAnswer2 = (String) context.getProperty(Constants.CHALLENGE_ANSWER_2);
         String challengeQuestion1 = (String) context.getProperty(Constants.CHALLENGE_QUESTION_1);
