@@ -401,6 +401,7 @@ public class DBUtils {
                 authenticationData.setStatus(rs.getInt("status"));
 
             }
+
         } catch (SQLException ex) {
             log.error("authenticationData Error " + ex);
         } finally {
@@ -411,7 +412,6 @@ public class DBUtils {
                     log.error("Error " + e);
                 }
             }
-
             return authenticationData;
         }
     }
@@ -1115,6 +1115,73 @@ public class DBUtils {
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet,preparedStatement);
         }
+    }
+
+    public static void removeApprovedAPIsforNewUser(String msisdn)
+            throws  AuthenticatorException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT msisdn from consent_given_user_lifetime ");
+        sql.append("where msisdn =?");
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(sql.toString());
+            preparedStatement.setString(1, msisdn);
+            resultSet = preparedStatement.executeQuery();
+            preparedStatement.close();
+            if(resultSet.next()){
+                sql = new StringBuilder();
+                sql.append("DELETE from consent_given_user_lifetime ");
+                sql.append("where msisdn =?");
+                preparedStatement = connection.prepareStatement(sql.toString());
+                preparedStatement.setString(1, msisdn);
+                preparedStatement.execute();
+            } else{
+                log.info("No records found to delete ");
+            }
+        }catch (SQLException e) {
+            log.error("Error in removing Approved APIs for MIG User " + e.getMessage());
+            throw new AuthenticatorException();
+        }  finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet,preparedStatement);
+        }
+    }
+
+    public static ArrayList<String> getRoleNameFromScope(String apiScopes)
+            throws  AuthenticatorException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        String[] apiList = apiScopes.split(",");
+        ArrayList<String> scope_role = new ArrayList<>();
+        StringBuilder parameters = new StringBuilder();
+        for(String api : apiList){
+            parameters.append("?,");
+        }
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT scope_role from scope_parameter ");
+        sql.append("where scope in (");
+        sql.append(parameters.deleteCharAt(parameters.length() -1).toString());
+        sql.append(")");
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(sql.toString());
+            int index = 1;
+            for(String api : apiList){
+                preparedStatement.setString(index++, api);
+            }
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                scope_role.add(resultSet.getString("scope_role"));
+            }
+        }catch (SQLException e) {
+            handleException("Error while getting roles mapped with scopes ", e);
+        }  finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet,preparedStatement);
+        }
+        return scope_role;
     }
 }
 

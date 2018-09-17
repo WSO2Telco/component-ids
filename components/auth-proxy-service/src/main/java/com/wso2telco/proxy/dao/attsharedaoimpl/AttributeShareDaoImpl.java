@@ -105,7 +105,8 @@ public class AttributeShareDaoImpl implements AttributeShareDao {
             while (resultSet.next()) {
                 String scopeType = resultSet.getString("scope_type");
                 if (AuthProxyEnum.SCOPETYPE.ATT_VERIFICATION.name().equalsIgnoreCase(scopeType) || AuthProxyEnum
-                        .SCOPETYPE.ATT_SHARE.name().equalsIgnoreCase(scopeType)) {
+                        .SCOPETYPE.ATT_SHARE.name().equalsIgnoreCase(scopeType) || AuthProxyEnum
+                        .SCOPETYPE.APICONSENT.name().equalsIgnoreCase(scopeType)) {
                     scopeParams.put(resultSet.getString("scope"), scopeType);
                 }
             }

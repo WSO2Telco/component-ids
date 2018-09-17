@@ -30,5 +30,6 @@ public class TableName {
     public static final String OPERATOR = "operators";
     public static final String CONSENT_TYPE = "consent_type";
     public static final String CONSENT_VALIDITY_TYPE = "consent_validity_type";
+    public static final String IDN_OAUTH_CONSUMER_APPS = "idn_oauth_consumer_apps";
 
 }

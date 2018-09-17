@@ -289,6 +289,10 @@ public class Endpoints {
                                 queryParams.get(AuthProxyConstants.SCOPE)
                                         .set(0, scopeName + " " + AuthProxyConstants.SCOPE_OPENID);
                             }
+                            for(int i = 0; i < queryParams.get(AuthProxyConstants.SCOPE).size(); i++)
+                                log.info(queryParams.get(AuthProxyConstants.SCOPE).get(i));
+
+                            log.info(queryParams.get(AuthProxyConstants.SCOPE).remove("charge"));
                         }
 
                         List<String> promptValues = queryParams.get(AuthProxyConstants.PROMPT);
@@ -323,7 +327,7 @@ public class Endpoints {
                             log.debug("redirectURL : " + redirectURL);
                         }
 
-                        Map<String, String> attShareDetails = AttributeShare.attributeShareScopesValidation(scopeName,
+                        Map<String, Object> attShareDetails = AttributeShare.attributeShareScopesValidation(scopeName,
                                 operatorName, clientId, loginhint_msisdn, msisdn);
 
                         redirectUrlInfo.setMsisdnHeader(msisdn);
@@ -334,11 +338,21 @@ public class Endpoints {
                         redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
 
                         redirectUrlInfo.setAttributeSharingScope(Boolean.parseBoolean(attShareDetails.get
-                                (AuthProxyConstants.ATTR_SHARE_SCOPE)));
-                        redirectUrlInfo.setTrustedStatus(attShareDetails.get(AuthProxyConstants.TRUSTED_STATUS));
-                        redirectUrlInfo.setAttributeSharingScopeType(attShareDetails.get(AuthProxyConstants
-                                .ATTR_SHARE_SCOPE_TYPE));
+                                (AuthProxyConstants.ATTR_SHARE_SCOPE).toString()));
 
+                        if(attShareDetails.get(AuthProxyConstants.TRUSTED_STATUS) != null)
+                            redirectUrlInfo.setTrustedStatus(attShareDetails.get(AuthProxyConstants.TRUSTED_STATUS).toString());
+                        else
+                            redirectUrlInfo.setTrustedStatus(null);
+
+                        if(attShareDetails.get(AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE) != null){
+                            redirectUrlInfo.setAttributeSharingScopeType(attShareDetails.get(AuthProxyConstants
+                                    .ATTR_SHARE_SCOPE_TYPE).toString());
+                        }else{
+                            redirectUrlInfo.setAttributeSharingScopeType(null);
+                        }
+
+                        redirectUrlInfo.setAPIConsent(Boolean.parseBoolean(attShareDetails.get(AuthProxyConstants.IS_API_CONSENT).toString()));
 
                         if(scopeParam.isConsentPage()){
                             redirectUrlInfo.setShowConsent(true);
@@ -829,6 +843,8 @@ public class Endpoints {
         EnumSet<ScopeParam.scopeTypes> scopeTypesList = redirectUrlInfo.getScopeTypesList();
 
         String transactionId = redirectUrlInfo.getTransactionId();
+        boolean isAPIConsent = redirectUrlInfo.isAPIConsent();
+
         if (authorizeUrl != null) {
             redirectURL = authorizeUrl + queryString + "&" +
                     AuthProxyConstants.OPERATOR + "=" + operatorName + "&" +
@@ -880,6 +896,10 @@ public class Endpoints {
                     redirectURL+=scopetype.name();
                     init=true;
                 }
+            }
+
+            if(isAPIConsent){
+                redirectURL += "&" + AuthProxyConstants.IS_API_CONSENT + "=" + isAPIConsent;
             }
 
         } else {

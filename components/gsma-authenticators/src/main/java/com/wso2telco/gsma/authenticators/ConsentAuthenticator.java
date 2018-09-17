@@ -141,63 +141,8 @@ public class ConsentAuthenticator extends AbstractApplicationAuthenticator
         log.info("Initiating authentication request");
         try {
             String msisdn = context.getProperty(Constants.MSISDN).toString();
-            if (msisdn != null && !msisdn.isEmpty()) {
-                Object scopes = context.getProperty(Constants.TELCO_SCOPE);
-                if (scopes != null) {
-                    String[] scopesArray = scopes.toString().split("\\s+");
-                    String[] api_Scopes = Arrays.copyOfRange(scopesArray, 1, scopesArray.length);
-                    if (api_Scopes != null && api_Scopes.length > 0) {
-                        String operator = context.getProperty(Constants.OPERATOR).toString();
-                        boolean enableapproveall = true;
-                        Map<String, String> approveNeededScopes = new HashedMap();
-                        List<String> approvedScopes = new ArrayList<>();
-                        String clientID = context.getProperty(Constants.CLIENT_ID).toString();
-                        for (String scope : api_Scopes) {
-                            String consent[] = DBUtils.getConsentStatus(scope, clientID, operator);
-                            if (consent != null && consent.length == 2 && !consent[0].isEmpty() && consent[0].contains("approve")) {
-                                boolean approved = DBUtils.getUserConsentScopeApproval(msisdn, scope, clientID, operator);
-                                if (approved) {
-                                    approvedScopes.add(scope);
-                                } else {
-                                    approveNeededScopes.put(scope, consent[1]);
-                                }
-                                if (consent[0].equalsIgnoreCase("approve")) {
-                                    enableapproveall = false;
-                                }
-                            }
-                        }
-                        context.setProperty(Constants.APPROVE_NEEDED_SCOPES, approveNeededScopes);
-                        context.setProperty(Constants.APPROVED_SCOPES, approvedScopes);
-                        context.setProperty(Constants.APPROVE_ALL_ENABLE, enableapproveall);
-                        boolean isConsentGiven = Constants.USER_ACTION_REG_CONSENT.equals(request.getParameter(Constants.ACTION));
-                        String logoPath = DBUtils.getSPConfigValue(operator, clientID, Constants.SP_LOGO);
-                        if (logoPath != null && !logoPath.isEmpty()) {
-                            context.setProperty(Constants.SP_LOGO, logoPath);
-                        }
-                        boolean registering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-                        if (!approveNeededScopes.isEmpty()) {
-                            DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState.CONCENT_AUTH_REDIRECT_CONSENT_PAGE, "Redirecting to consent page");
-                            if (isConsentGiven) {
-                                response.sendRedirect("/authenticationendpoint/user_consent.do?sessionDataKey=" + context.getContextIdentifier());
-                            } else {
-                                response.sendRedirect("/authenticationendpoint/user_consent.do?sessionDataKey=" + context.getContextIdentifier() + "&registering=" + registering);
-                            }
-                        } else {
-                            if (!approvedScopes.isEmpty()) {
-                                response.sendRedirect("/commonauth/?sessionDataKey=" + context.getContextIdentifier() + "&action=default");
-                            } else {
-                                throw new AuthenticationFailedException("Authenticator failed- Approval needed scopes not found");
-                            }
-                        }
-                    } else {
-                        throw new AuthenticationFailedException("Authenticator failed- Approval needed scopes not found");
-                    }
-                } else {
-                    throw new AuthenticationFailedException("Authenticator failed- Approval needed scopes not found");
-                }
-            } else {
-                throw new AuthenticationFailedException("Authenticator failed- MSISDN not found");
-            }
+            response.sendRedirect("/authenticationendpoint/user_consent.do?sessionDataKey=" + context.getContextIdentifier() + "&registering=" + "false");
+
         } catch (Exception e) {
             log.error("Error occurred while processing request", e);
             DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState.CONCENT_AUTH_PROCESSING_FAIL, e.getMessage());

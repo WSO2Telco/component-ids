@@ -169,6 +169,8 @@ public class VoiceCallAuthenticator extends AbstractApplicationAuthenticator
                     new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope, spType,
                             attrShareType);
                 }
+                if(authenticationContext.getProperty(Constants.API_SCOPES) != null)
+                    new UserProfileManager().updateMIGUserRoles(msisdn, authenticationContext.getProperty(Constants.CLIENT_ID).toString(),authenticationContext.getProperty(Constants.API_SCOPES).toString());
                 authenticationContext.setProperty(IS_FLOW_COMPLETED, true);
                 AuthenticationContextHelper.setSubject(authenticationContext,
                         authenticationContext.getProperty(Constants.MSISDN).toString());

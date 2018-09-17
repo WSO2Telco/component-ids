@@ -25,6 +25,7 @@ import com.wso2telco.proxy.model.MSISDNHeader;
 import com.wso2telco.proxy.model.Operator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
 import javax.naming.ConfigurationException;
 import javax.naming.Context;
@@ -588,6 +589,29 @@ public class DBUtils {
             closeAllConnections(preparedStatement, connection, resultSet);
         }
         return sharedKey;
+    }
+
+    public static String getSPConfigValue(String operator, String clientID, String key) throws AuthenticatorException, NamingException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        String queryToGetConsent = "SELECT config_value FROM sp_configuration WHERE client_id=? AND operator=? AND config_key=?";
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(queryToGetConsent);
+            preparedStatement.setString(1,clientID);
+            preparedStatement.setString(2,operator);
+            preparedStatement.setString(3, key);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                return resultSet.getString("config_value");
+            }
+        } catch (SQLException e) {
+            handleException("Error occurred while retrieving config_value for client_id : " + clientID,e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet,preparedStatement);
+        }
+        return null;
     }
 
     private static void closeAllConnections(PreparedStatement preparedStatement,
