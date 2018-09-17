@@ -20,6 +20,7 @@ import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.dbutils.DBUtilException;
+import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.attributeshare.internal.ValidityType;
 import com.wso2telco.gsma.authenticators.dao.AttributeConfigDao;
@@ -241,7 +242,7 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
                 new UserProfileManager().updateMIGUserRoles(msisdn, context.getProperty(Constants.CLIENT_ID).toString(),context.getProperty(Constants.API_SCOPES).toString());
 
 
-        } catch (RemoteException | UserRegistrationAdminServiceIdentityException e) {
+        } catch (RemoteException | UserRegistrationAdminServiceIdentityException | AuthenticatorException e) {
             log.error("error occurred while create user profile : " + e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
