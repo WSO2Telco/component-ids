@@ -146,6 +146,8 @@
         <module>components/openid-extension</module>
         <module>components/token-introspection</module>
         <module>components/sample-request</module>
+        <module>components/self-service-portal</module>
+        <module>components/sp-provision-service</module>
         <module>features</module>
     </modules>
 

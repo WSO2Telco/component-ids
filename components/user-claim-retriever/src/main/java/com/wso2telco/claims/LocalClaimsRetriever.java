@@ -37,7 +37,7 @@ public class LocalClaimsRetriever implements ClaimsRetriever {
 
 
     private void populateScopeConfigs(List<ScopeDetailsConfig.Scope> scopeConfigs) {
-        if (!scopeConfigsMap.isEmpty()) {
+        if (scopeConfigsMap.size() == 0) {
             for (ScopeDetailsConfig.Scope scope : scopeConfigs) {
                 scopeConfigsMap.put(scope.getName(), scope);
             }
@@ -70,15 +70,14 @@ public class LocalClaimsRetriever implements ClaimsRetriever {
                 Iterator<String> i = scopeConfigsMap.get(scope).getClaimSet().iterator();
                 boolean isHashed = scopeConfigsMap.get(scope).isHashed();
                 while (i.hasNext()) {
-                    Object claimStr = totalClaims.get(i.next());
+                    String key = i.next();
+                    Object claimStr = totalClaims.get(key);
                     if (claimStr != null) {
-                        String claimValue = (isHashed) ? getHashedClaimValue(totalClaims.get(i.next()).toString()) :
-                                totalClaims.get(i.next()).toString();
-                        requestedClaims.put(i.next(), totalClaims.get(claimValue));
+                        String claimValue = (isHashed) ? getHashedClaimValue(totalClaims.get(key).toString()) :
+                                claimStr.toString();
+                        requestedClaims.put(key, claimValue);
                     }
-
                 }
-
             }
         }
 
