@@ -1123,24 +1123,13 @@ public class DBUtils {
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT msisdn from consent_given_user_lifetime ");
+        sql.append("DELETE from consent_given_user_lifetime ");
         sql.append("where msisdn =?");
         try {
             connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(sql.toString());
             preparedStatement.setString(1, msisdn);
-            resultSet = preparedStatement.executeQuery();
-            preparedStatement.close();
-            if(resultSet.next()){
-                sql = new StringBuilder();
-                sql.append("DELETE from consent_given_user_lifetime ");
-                sql.append("where msisdn =?");
-                preparedStatement = connection.prepareStatement(sql.toString());
-                preparedStatement.setString(1, msisdn);
-                preparedStatement.execute();
-            } else{
-                log.info("No records found to delete ");
-            }
+            preparedStatement.execute();
         }catch (SQLException e) {
             log.error("Error in removing Approved APIs for MIG User " + e.getMessage());
             throw new AuthenticatorException();

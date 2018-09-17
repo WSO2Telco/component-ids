@@ -256,10 +256,10 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             }
         } else {
             try {
-                if((Boolean)context.getProperty(Constants.IS_API_CONSENT)) {
-                    if((Boolean) context.getProperty(Constants.IS_REGISTERING))
-                      DBUtils.removeApprovedAPIsforNewUser(context.getProperty(Constants.MSISDN).toString());
+                if((Boolean) context.getProperty(Constants.IS_REGISTERING))
+                    DBUtils.removeApprovedAPIsforNewUser(context.getProperty(Constants.MSISDN).toString());
 
+                if((Boolean)context.getProperty(Constants.IS_API_CONSENT)) {
                     AbstractAPIConsent.setApproveNeededScope(context);
                 }
                 initiateAuthenticationRequest(request, response, context);
