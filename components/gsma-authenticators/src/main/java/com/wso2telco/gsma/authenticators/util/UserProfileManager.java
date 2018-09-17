@@ -16,6 +16,7 @@
 package com.wso2telco.gsma.authenticators.util;
 
 import com.wso2telco.core.config.DataHolder;
+import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;
@@ -555,7 +556,7 @@ public class UserProfileManager {
         }
     }
 
-    public void updateMIGUserRoles(String userName, String clientID, String apiScopes){
+    public void updateMIGUserRoles(String userName, String clientID, String apiScopes) throws AuthenticatorException {
         try {
             ArrayList<String> userRolesScope = DBUtils.getRoleNameFromScope(apiScopes);
             String[] userRoles = AdminServiceUtil.getRoleListOfUser(userName);
@@ -564,13 +565,11 @@ public class UserProfileManager {
                     userRolesScope.remove(roles);
                 }
             }
-            AdminServiceUtil.updateRoleListOfUser(userName,null, Arrays.copyOf(userRolesScope.toArray(), userRolesScope.toArray().length, String[].class));
-        } catch (UserStoreException e) {
-            log.error("UserStoreException- " + userName + ":" + e.getMessage());
-        } catch (NullPointerException e){
-            log.error("NullPointerException- " + userName + ":" + e.getMessage());
-        } catch (Exception e){
-            log.error("Exception- " + userName + ":" + e.getMessage());
+            if(!userRolesScope.isEmpty())
+                AdminServiceUtil.updateRoleListOfUser(userName,null, Arrays.copyOf(userRolesScope.toArray(), userRolesScope.toArray().length, String[].class));
+        } catch (Exception e) {
+            log.error("Exception in updating MIG User Roles- " + userName + ":" + e.getMessage());
+            throw new AuthenticatorException();
         }
     }
 }
