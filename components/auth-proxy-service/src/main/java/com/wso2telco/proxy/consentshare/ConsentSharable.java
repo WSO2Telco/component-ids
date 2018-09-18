@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.proxy.attributeshare;
+package com.wso2telco.proxy.consentshare;
 
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
-public interface AttributeSharable {
+public interface ConsentSharable {
 
     /***
      *
@@ -28,7 +28,7 @@ public interface AttributeSharable {
      * @return
      * @throws AuthenticationFailedException
      */
-    String getAttributeShareDetails(String operatorName, String clientId, String loginHintMsisdn, String msisdn) throws
+    String getConsentShareDetails(String operatorName, String clientId, String loginHintMsisdn, String msisdn) throws
             AuthenticationFailedException;
 
 }

@@ -28,7 +28,7 @@ import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
 import com.wso2telco.openidtokenbuilder.MIFEOpenIDTokenBuilder;
 import com.wso2telco.proxy.MSISDNDecryption;
-import com.wso2telco.proxy.attributeshare.AttributeShare;
+import com.wso2telco.proxy.consentshare.ConsentShare;
 import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.model.MSISDNHeader;
 import com.wso2telco.proxy.model.RedirectUrlInfo;
@@ -327,7 +327,7 @@ public class Endpoints {
                             log.debug("redirectURL : " + redirectURL);
                         }
 
-                        Map<String, Object> attShareDetails = AttributeShare.attributeShareScopesValidation(scopeName,
+                        Map<String, Object> consentShareDetails = ConsentShare.scopesValidation(scopeName,
                                 operatorName, clientId, loginhint_msisdn, msisdn);
 
                         redirectUrlInfo.setMsisdnHeader(msisdn);
@@ -337,22 +337,22 @@ public class Endpoints {
                         redirectUrlInfo.setTelcoScope(operatorScopeWithClaims);
                         redirectUrlInfo.setTransactionId(userStatus.getTransactionId());
 
-                        redirectUrlInfo.setAttributeSharingScope(Boolean.parseBoolean(attShareDetails.get
+                        redirectUrlInfo.setAttributeSharingScope(Boolean.parseBoolean(consentShareDetails.get
                                 (AuthProxyConstants.ATTR_SHARE_SCOPE).toString()));
 
-                        if(attShareDetails.get(AuthProxyConstants.TRUSTED_STATUS) != null)
-                            redirectUrlInfo.setTrustedStatus(attShareDetails.get(AuthProxyConstants.TRUSTED_STATUS).toString());
+                        if(consentShareDetails.get(AuthProxyConstants.TRUSTED_STATUS) != null)
+                            redirectUrlInfo.setTrustedStatus(consentShareDetails.get(AuthProxyConstants.TRUSTED_STATUS).toString());
                         else
                             redirectUrlInfo.setTrustedStatus(null);
 
-                        if(attShareDetails.get(AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE) != null){
-                            redirectUrlInfo.setAttributeSharingScopeType(attShareDetails.get(AuthProxyConstants
+                        if(consentShareDetails.get(AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE) != null){
+                            redirectUrlInfo.setAttributeSharingScopeType(consentShareDetails.get(AuthProxyConstants
                                     .ATTR_SHARE_SCOPE_TYPE).toString());
                         }else{
                             redirectUrlInfo.setAttributeSharingScopeType(null);
                         }
 
-                        redirectUrlInfo.setAPIConsent(Boolean.parseBoolean(attShareDetails.get(AuthProxyConstants.IS_API_CONSENT).toString()));
+                        redirectUrlInfo.setAPIConsent(Boolean.parseBoolean(consentShareDetails.get(AuthProxyConstants.IS_API_CONSENT).toString()));
 
                         if(scopeParam.isConsentPage()){
                             redirectUrlInfo.setShowConsent(true);

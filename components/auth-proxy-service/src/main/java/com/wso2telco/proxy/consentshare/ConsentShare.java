@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.proxy.attributeshare;
+package com.wso2telco.proxy.consentshare;
 
 import com.wso2telco.core.dbutils.DBUtilException;
-import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
-import com.wso2telco.proxy.dao.AttributeShareDao;
-import com.wso2telco.proxy.dao.attsharedaoimpl.AttributeShareDaoImpl;
+import com.wso2telco.proxy.dao.ConsentShareDao;
+import com.wso2telco.proxy.dao.attsharedaoimpl.ConsentShareDaoImpl;
 import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.util.AuthProxyConstants;
 import com.wso2telco.proxy.util.AuthProxyEnum;
-import com.wso2telco.proxy.util.DBUtils;
 import edu.emory.mathcs.backport.java.util.Arrays;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
@@ -35,21 +32,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class AttributeShare {
+public class ConsentShare {
 
-    private static Log log = LogFactory.getLog(AttributeShare.class);
+    private static Log log = LogFactory.getLog(ConsentShare.class);
 
-    private static AttributeShareDao attShareDao;
+    private static ConsentShareDao conentShareDao;
     private static Map<String, String> scopeTypes;
 
-    private AttributeShare() {
+    private ConsentShare() {
     }
 
     static {
 
         try {
-            attShareDao = new AttributeShareDaoImpl();
-            scopeTypes = attShareDao.getScopeParams();
+            conentShareDao = new ConsentShareDaoImpl();
+            scopeTypes = conentShareDao.getScopeParams();
         } catch (DBUtilException e) {
             log.error("Error occurred while scope retrieving the data from database : " + e);
         }
@@ -66,16 +63,16 @@ public class AttributeShare {
      * @return Map containing details about scopes
      * @throws AuthenticationFailedException
      */
-    public static Map<String, Object> attributeShareScopesValidation(String scopeName, String operatorName, String
+    public static Map<String, Object> scopesValidation(String scopeName, String operatorName, String
             clientId, String loginHintMsisdn, String msisdn) throws
             AuthenticationFailedException, AuthenticatorException, NamingException {
 
         String trustedStatus = null;
         boolean isAttributeShare = false;
         boolean isAPIConsent = false;
-        String attShareType = null;
+        String scopeType = null;
         String logoPath = null;
-        Map<String, Object> attShareScopeDetails = new HashMap<>();
+        Map<String, Object> scopeDetails = new HashMap<>();
         try {
 
             if (scopeName == null || scopeName.isEmpty()) {
@@ -86,16 +83,20 @@ public class AttributeShare {
 
                 if (!scopeTypes.isEmpty()) {
                     for (String scope : scopeList) {
-                        attShareType = scopeTypes.get(scope);
-                        if (AuthProxyEnum.SCOPETYPE.APICONSENT.name().equals(attShareType)) {
+                        scopeType = scopeTypes.get(scope);
+                        if (AuthProxyEnum.SCOPETYPE.APICONSENT.name().equals(scopeType)) {
                             isAPIConsent = true;
-
+                            ConsentSharable consentShare = ScopeFactory.getConsentSharable(scopeType);
+                            if (consentShare != null) {
+                                trustedStatus = consentShare.getConsentShareDetails
+                                        (operatorName, clientId, loginHintMsisdn, msisdn);
+                            }
                             break;
-                        }else if (attShareType != null){
+                        }else if (scopeType != null){
                             isAttributeShare = true;
-                            AttributeSharable attributeShare = ScopeFactory.getAttributeSharable(attShareType);
-                            if (attributeShare != null) {
-                                trustedStatus = attributeShare.getAttributeShareDetails
+                            ConsentSharable consentShare = ScopeFactory.getConsentSharable(scopeType);
+                            if (consentShare != null) {
+                                trustedStatus = consentShare.getConsentShareDetails
                                         (operatorName, clientId, loginHintMsisdn, msisdn);
                             }
                             break;
@@ -108,12 +109,12 @@ public class AttributeShare {
             log.error("Authentication Exception in validateAttributeShareScopes : " + e.getMessage());
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
-        attShareScopeDetails.put(AuthProxyConstants.ATTR_SHARE_SCOPE, Boolean.toString(isAttributeShare));
-        attShareScopeDetails.put(AuthProxyConstants.TRUSTED_STATUS, trustedStatus);
-        attShareScopeDetails.put(AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE, attShareType);
-        attShareScopeDetails.put(AuthProxyConstants.IS_API_CONSENT, Boolean.toString(isAPIConsent));
+        scopeDetails.put(AuthProxyConstants.ATTR_SHARE_SCOPE, Boolean.toString(isAttributeShare));
+        scopeDetails.put(AuthProxyConstants.TRUSTED_STATUS, trustedStatus);
+        scopeDetails.put(AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE, scopeType);
+        scopeDetails.put(AuthProxyConstants.IS_API_CONSENT, Boolean.toString(isAPIConsent));
 
 
-        return attShareScopeDetails;
+        return scopeDetails;
     }
 }

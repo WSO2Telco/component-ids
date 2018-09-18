@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.proxy.attributeshare;
+package com.wso2telco.proxy.consentshare;
 
 import com.wso2telco.proxy.util.AuthProxyEnum;
 
@@ -21,6 +21,7 @@ public class ScopeFactory {
 
     private static ProvisionScope provisionScope;
     private static VerificationScope verificationScope;
+    private static APIConsentScope apiConsentScope;
 
     private ScopeFactory() {
     }
@@ -28,11 +29,11 @@ public class ScopeFactory {
     /***
      * Identifying the type of the request(Provision request/Verification request)
      * @param scopeType
-     * @return AttributeSharable object
+     * @return ConsentSharable object
      */
-    public static AttributeSharable getAttributeSharable(String scopeType) {
+    public static ConsentSharable getConsentSharable(String scopeType) {
 
-        AbstractAttributeShare attributeShareScope = null;
+        AbstractConsentShare consentShareScope = null;
 
         AuthProxyEnum.SCOPETYPE scopetype = AuthProxyEnum.SCOPETYPE.valueOf(scopeType);
 
@@ -42,13 +43,19 @@ public class ScopeFactory {
                     if (verificationScope == null) {
                         verificationScope = new VerificationScope();
                     }
-                    attributeShareScope = verificationScope;
+                    consentShareScope = verificationScope;
                     break;
                 case ATT_SHARE:
                     if (provisionScope == null) {
                         provisionScope = new ProvisionScope();
                     }
-                    attributeShareScope = provisionScope;
+                    consentShareScope = provisionScope;
+                    break;
+                case APICONSENT:
+                    if (apiConsentScope == null) {
+                        apiConsentScope = new APIConsentScope();
+                    }
+                    consentShareScope = apiConsentScope;
                     break;
                 default:
                     break;
@@ -56,6 +63,6 @@ public class ScopeFactory {
 
         }
 
-        return attributeShareScope;
+        return consentShareScope;
     }
 }

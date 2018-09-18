@@ -13,31 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.proxy.attributeshare;
+package com.wso2telco.proxy.dao;
 
-import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import com.wso2telco.core.dbutils.DBUtilException;
 
-public class ProvisionScope extends AbstractAttributeShare {
+import java.util.Map;
 
+public interface ConsentShareDao {
 
-    public void mandatoryFieldValidation() {
-      /*mandatory feild validation in next phase*/
-    }
+    String getSpTypeConfigValue(String operatorName, String clientId, String spType) throws
+            DBUtilException;
 
-    public void scopeAndClaimMatching() {
-     /*
-     * this should be implemented in the next phase*/
-    }
-
-    public void shaAlgorithmValidation() {
-        /*
-     * this should be implemented in the next phase*/
-    }
-
-    @Override
-    public String getAttributeShareDetails(String operatorName, String clientId, String loginHintMsisdn, String
-            msisdn) throws AuthenticationFailedException {
-
-        return getTrustedStatus(operatorName, clientId, loginHintMsisdn, msisdn);
-    }
+    Map<String, String> getScopeParams() throws DBUtilException;
 }

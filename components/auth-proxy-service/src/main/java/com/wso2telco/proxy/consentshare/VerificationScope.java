@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.proxy.attributeshare;
+package com.wso2telco.proxy.consentshare;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
-public class VerificationScope extends AbstractAttributeShare {
+public class VerificationScope extends AbstractConsentShare {
 
-    private static Log logger = LogFactory.getLog(AttributeShare.class);
+    private static Log logger = LogFactory.getLog(ConsentShare.class);
 
     public void mandatoryFieldValidation() {
          /*this method for do the mandatory field validation in attribute verification*/
@@ -36,7 +36,7 @@ public class VerificationScope extends AbstractAttributeShare {
     }
 
     @Override
-    public String getAttributeShareDetails(String operatorName, String clientId, String loginHintMsisdn, String
+    public String getConsentShareDetails(String operatorName, String clientId, String loginHintMsisdn, String
             msisdn) throws AuthenticationFailedException {
         logger.debug(" Verification scope validation for client id : " + clientId);
         return getTrustedStatus(operatorName, clientId, loginHintMsisdn, msisdn);

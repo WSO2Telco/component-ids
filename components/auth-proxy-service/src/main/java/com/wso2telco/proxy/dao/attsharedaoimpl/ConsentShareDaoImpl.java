@@ -17,7 +17,7 @@ package com.wso2telco.proxy.dao.attsharedaoimpl;
 
 import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.core.dbutils.DbUtils;
-import com.wso2telco.proxy.dao.AttributeShareDao;
+import com.wso2telco.proxy.dao.ConsentShareDao;
 import com.wso2telco.proxy.util.AuthProxyEnum;
 import com.wso2telco.proxy.util.TableNameConstants;
 import org.apache.commons.logging.Log;
@@ -31,9 +31,9 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AttributeShareDaoImpl implements AttributeShareDao {
+public class ConsentShareDaoImpl implements ConsentShareDao {
 
-    private static Log log = LogFactory.getLog(AttributeShareDaoImpl.class);
+    private static Log log = LogFactory.getLog(ConsentShareDaoImpl.class);
 
     /***
      * Get Sp Type from the given clientID
