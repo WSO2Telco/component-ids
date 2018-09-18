@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package com.wso2telco.proxy.attributeshare;
+package com.wso2telco.proxy.consentshare;
 
 import com.wso2telco.core.dbutils.DBUtilException;
-import com.wso2telco.proxy.dao.AttributeShareDao;
-import com.wso2telco.proxy.dao.attsharedaoimpl.AttributeShareDaoImpl;
+import com.wso2telco.proxy.dao.ConsentShareDao;
+import com.wso2telco.proxy.dao.attsharedaoimpl.ConsentShareDaoImpl;
 import com.wso2telco.proxy.util.AuthProxyEnum;
 import com.wso2telco.proxy.util.AuthProxyConstants;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
-public abstract class AbstractAttributeShare implements AttributeSharable {
+public abstract class AbstractConsentShare implements ConsentSharable {
 
-    private static Log log = LogFactory.getLog(AbstractAttributeShare.class);
+    private static Log log = LogFactory.getLog(AbstractConsentShare.class);
 
     /**
      * Get trusted status of given clientId
@@ -44,8 +44,8 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
         String trustedStatus = null;
 
         try {
-            AttributeShareDao attShareDAO = new AttributeShareDaoImpl();
-            trustedStatus = attShareDAO.getSpTypeConfigValue(operatorName, clientId, AuthProxyConstants.TRUSTED_STATUS);
+            ConsentShareDao consentShareDAO = new ConsentShareDaoImpl();
+            trustedStatus = consentShareDAO.getSpTypeConfigValue(operatorName, clientId, AuthProxyConstants.TRUSTED_STATUS);
 
             AuthProxyEnum.TRUSTEDSTATUS sp = AuthProxyEnum.TRUSTEDSTATUS.getStatus(trustedStatus);
 
