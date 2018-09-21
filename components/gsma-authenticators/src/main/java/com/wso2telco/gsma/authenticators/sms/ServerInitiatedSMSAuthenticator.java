@@ -375,6 +375,24 @@ public class ServerInitiatedSMSAuthenticator extends AbstractApplicationAuthenti
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         String sessionDataKey = request.getParameter("sessionDataKey");
         String msisdn = (String) context.getProperty("msisdn");
+        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+        String operator = (String) context.getProperty(Constants.OPERATOR);
+        boolean isAttributeScope = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+        String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
+        String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
+
+        if (isRegistering) {
+            UserProfileManager userProfileManager = new UserProfileManager();
+            try {
+                userProfileManager.createUserProfileLoa2(msisdn,operator,isAttributeScope,spType,attrShareType,true);
+            } catch (UserRegistrationAdminServiceIdentityException e) {
+                log.error("ERROR in Registering new User", e);
+                throw new AuthenticationFailedException(e.getMessage(), e);
+            } catch (RemoteException e) {
+                log.error("ERROR in Registering new User", e);
+                throw new AuthenticationFailedException(e.getMessage(), e);
+            }
+        }
        /* String operator = (String) context.getProperty("operator");
         String userAction = request.getParameter(Constants.ACTION);*/
 

@@ -176,13 +176,6 @@ public class ServerInitiatedServiceEndpoints {
                 backChannelOauthResponse.setErrorDescription("Invalid Request");
                 return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
                         (backChannelOauthResponse)).build();
-            } else if (!CommonAdminServicesUtil.isUserExists(loginHint)) {
-                log.error("User is not registered in IDGW");
-                backChannelOauthResponse.setCorrelationId(correlationId);
-                backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
-                backChannelOauthResponse.setErrorDescription("User is not a registered user");
-                return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
-                        (backChannelOauthResponse)).build();
             } else if (!DataBaseConnectUtils.isBackChannelAllowedScope(scopeName)) {
                 log.error("Requested scope should be Back Channel support");
                 backChannelOauthResponse.setCorrelationId(correlationId);
@@ -273,7 +266,7 @@ public class ServerInitiatedServiceEndpoints {
             return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
                     (backChannelOauthResponse)).build();
         } catch (RemoteException | LoginAuthenticationExceptionException | IdentityOAuthAdminException |
-                AuthenticatorException | UserStoreException e) {
+                AuthenticatorException e) {
             log.error("Error while retrieving Callback Url via Admin calls. ", e);
             backChannelOauthResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
             backChannelOauthResponse.setErrorDescription("IDGW rejected the request");

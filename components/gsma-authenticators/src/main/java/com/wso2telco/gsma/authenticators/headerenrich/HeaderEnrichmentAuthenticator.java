@@ -35,7 +35,6 @@ import com.wso2telco.gsma.manager.client.ClaimManagementClient;
 import com.wso2telco.gsma.manager.client.LoginAdminServiceClient;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -512,7 +511,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     try {
 
                         new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope,
-                                spType, attrShareType);
+                                spType, attrShareType, false);
 
                         MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder()
                                 .getMobileConnectConfig().getSmsConfig();

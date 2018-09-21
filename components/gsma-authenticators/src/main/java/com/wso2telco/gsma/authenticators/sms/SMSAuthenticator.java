@@ -359,7 +359,7 @@ public class SMSAuthenticator extends AbstractApplicationAuthenticator
 
                 if (isRegistering || isStatusUpdate) {
                     UserProfileManager userProfileManager = new UserProfileManager();
-                    userProfileManager.createUserProfileLoa2(msisdn, operator, isAttributeScope, spType, attrShareType);
+                    userProfileManager.createUserProfileLoa2(msisdn, operator, isAttributeScope, spType, attrShareType, false);
 
                     MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder()
                             .getMobileConnectConfig().getSmsConfig();
