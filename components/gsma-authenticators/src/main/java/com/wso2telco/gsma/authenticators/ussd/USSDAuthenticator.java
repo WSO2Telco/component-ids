@@ -279,7 +279,7 @@ public class USSDAuthenticator extends AbstractApplicationAuthenticator
 
                 if (isRegistering || isStatusUpdate) {
                     new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope, spType,
-                            attrShareType);
+                            attrShareType, false);
 
                     MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder()
                             .getMobileConnectConfig().getSmsConfig();

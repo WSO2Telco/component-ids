@@ -25,13 +25,11 @@ import com.wso2telco.gsma.manager.client.RemoteUserStoreServiceAdminClient;
 import com.wso2telco.gsma.manager.client.UserRegistrationAdminServiceClient;
 import com.wso2telco.gsma.manager.util.UserProfileClaimsConstant;
 
-import com.wso2telco.ids.datapublisher.util.DBUtil;
 import org.apache.axis2.AxisFault;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.authenticator.stub.LoginAuthenticationExceptionException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
-import org.wso2.carbon.identity.application.common.IdentityApplicationManagementException;
 import org.wso2.carbon.identity.base.IdentityException;
 import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 import org.wso2.carbon.identity.user.registration.stub.dto.UserDTO;
@@ -42,7 +40,6 @@ import org.wso2.carbon.user.api.UserStoreException;
 import org.wso2.carbon.user.core.UserCoreConstants;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
 import java.rmi.RemoteException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -80,7 +77,7 @@ public class UserProfileManager {
     }
 
     public boolean createUserProfileLoa2(String username, String operator, boolean isAttributeScope, String spType,
-                                         String attrbShareType) throws
+                                         String attrbShareType, boolean isBackChannel) throws
             UserRegistrationAdminServiceIdentityException, RemoteException {
         boolean isNewUser = false;
         try {
@@ -133,7 +130,7 @@ public class UserProfileManager {
                                 .name()) && attrbShareType.equalsIgnoreCase(AuthenticatorEnum
                                 .AttributeShareScopeTypes.PROVISIONING_SCOPE.getAttributeShareScopeType())) {
                             userFieldDTOs[count].setFieldValue(STATUS_ACTIVE);
-                        } else if (isAttributeScope) {
+                        } else if (isAttributeScope || isBackChannel) {
                             userFieldDTOs[count].setFieldValue(STATUS_PARTIALLY_ACTIVE);
                         } else
                             userFieldDTOs[count].setFieldValue(STATUS_ACTIVE);

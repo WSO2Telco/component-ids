@@ -26,7 +26,6 @@ import com.wso2telco.gsma.authenticators.util.UserProfileManager;
 import com.wso2telco.gsma.authenticators.util.WelcomeSmsUtil;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -186,7 +185,7 @@ public class ConsentAuthenticator extends AbstractApplicationAuthenticator
                             boolean isAttributeScope = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
                             String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
                             String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
-                            new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope, spType, attrShareType);
+                            new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope, spType, attrShareType, false);
                             ;
                             MobileConnectConfig.SMSConfig smsConfig = configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig();
                             if (!smsConfig.getWelcomeMessageDisabled()) {

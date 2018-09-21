@@ -237,7 +237,7 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
         String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
 
         try {
-            new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope, spType, attrShareType);
+            new UserProfileManager().createUserProfileLoa2(msisdn, operator, isAttributeScope, spType, attrShareType, false);
             if(context.getProperty(Constants.API_SCOPES) != null)
                 new UserProfileManager().updateMIGUserRoles(msisdn, context.getProperty(Constants.CLIENT_ID).toString(),context.getProperty(Constants.API_SCOPES).toString());
 
