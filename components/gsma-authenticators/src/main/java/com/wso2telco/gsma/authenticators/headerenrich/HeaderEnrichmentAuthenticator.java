@@ -189,10 +189,16 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                         context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
                         return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                     }
-                    context.setProperty(Constants.IS_CONSENTED, Constants.YES);
-                    getAPIConsentFromUser(request, response, context);
-                    context.setCurrentAuthenticator(getName());
-                    return AuthenticatorFlowStatus.INCOMPLETE;
+                    attributeSet = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants
+                            .TRUSTED_STATUS).toString()).getAttributeShareDetails(context);
+                    boolean flowStatus = Boolean.valueOf(attributeSet.get(Constants.IS_AUNTHENTICATION_CONTINUE));
+                    isDisplayScopes = Boolean.parseBoolean(attributeSet.get(Constants.IS_DISPLAYSCOPE).toString());
+                    if (!flowStatus && isDisplayScopes) {
+                        context.setProperty(Constants.IS_CONSENTED, Constants.YES);
+                        getAPIConsentFromUser(request, response, context);
+                        context.setCurrentAuthenticator(getName());
+                        return AuthenticatorFlowStatus.INCOMPLETE;
+                    }
                 }
 
 
@@ -375,13 +381,14 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         try {
 
             boolean isAttribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+            boolean isAPIConsent = (boolean) context.getProperty(Constants.IS_API_CONSENT);
 
             DataPublisherUtil
                     .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
                             .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
                             .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
 
-            if (isAttribute && StringUtils.isNotEmpty(msisdn)) {
+            if ((isAttribute || isAPIConsent) && StringUtils.isNotEmpty(msisdn)) {
                 attributeSet = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants
                         .TRUSTED_STATUS).toString()).getAttributeShareDetails(context);
                 isExplicitScope = Boolean.parseBoolean(attributeSet.get(Constants.IS_DISPLAYSCOPE));
@@ -447,18 +454,18 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         try {
             if (userAction != null && !userAction.isEmpty()) {
                 // Change behaviour depending on user action
-                if(context.getProperty(Constants.IS_API_CONSENT) != null && Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())){
-                    String clientID = context.getProperty(Constants.CLIENT_ID).toString();
-                    boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-                    Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
-                    for (Map.Entry<String, String> scopeEntry : approveNeededScopes.entrySet()) {
-                        String scope = scopeEntry.getKey();
-                        if (userAction.equalsIgnoreCase(Constants.STATUS_APPROVEALL)) {
-                            DBUtils.insertUserConsentDetails(msisdn, scope, clientID, operator, true);
-                        }
-                        DBUtils.insertConsentHistoryDetails(msisdn, scope, clientID, operator, userAction);
-                    }
-                }
+//                if(context.getProperty(Constants.IS_API_CONSENT) != null && Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())){
+//                    String clientID = context.getProperty(Constants.CLIENT_ID).toString();
+//                    boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+//                    Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
+//                    for (Map.Entry<String, String> scopeEntry : approveNeededScopes.entrySet()) {
+//                        String scope = scopeEntry.getKey();
+//                        if (userAction.equalsIgnoreCase(Constants.STATUS_APPROVEALL)) {
+//                            DBUtils.insertUserConsentDetails(msisdn, scope, clientID, operator, true);
+//                        }
+//                        DBUtils.insertConsentHistoryDetails(msisdn, scope, clientID, operator, userAction);
+//                    }
+                context.setProperty(Constants.USER_ACTION, userAction);
                 switch (userAction) {
                     case Constants.USER_ACTION_REG_CONSENT:
                         //User agreed to registration consent
@@ -495,7 +502,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
             boolean isAttributeScope = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
-            boolean isStatusUpdate = (boolean) context.getProperty(Constants.IS_STATUS_TO_CHANGE);
+            boolean isAPIConsentScope = (Boolean) context.getProperty(Constants.IS_API_CONSENT);
+            boolean isStatusUpdate = (boolean) context.getProperty(Constants.IS_API_CONSENT);
             String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
             String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
             boolean isShowConcent = (boolean) context.getProperty(Constants.IS_SHOW_CONSENT);
@@ -519,7 +527,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                             WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
                         }
 
-                        if (isAttributeScope) {
+                        if (isAttributeScope || isAPIConsentScope) {
                             handleAttributeShareResponse(context);
                         }
 
@@ -531,7 +539,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                         log.error("Welcome SMS sending failed", e);
                     }
 
-                } else if (isAttributeScope) {
+                } else if (isAttributeScope || isAPIConsentScope) {
                     handleAttributeShareResponse(context);
                 }
             }
@@ -746,16 +754,25 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         if (isRegistering && isShowTnc) {
 
             if (explicitScope) {
-                loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
-                        Constants.ATTRIBUTE_CONSENT_JSP;
-            } else if (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())){
-                log.info("Redirecting user to consent page");
                 if (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())) {
                     Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
                     if (!approveNeededScopes.isEmpty()) {
                         DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState.CONCENT_AUTH_REDIRECT_CONSENT_PAGE, "Redirecting to consent page");
-                        loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + "/user_consent.do";
+                        loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.USER_CONSENT_JSP;
                     }
+                }else {
+                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+                            Constants.ATTRIBUTE_CONSENT_JSP;
+                }
+            } else if (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())){
+                log.info("Redirecting user to consent page");
+                Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
+                if (!approveNeededScopes.isEmpty()) {
+                    DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState.CONCENT_AUTH_REDIRECT_CONSENT_PAGE, "Redirecting to consent page");
+                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.USER_CONSENT_JSP;
+                }else {
+                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+                            Constants.CONSENT_JSP;
                 }
             } else {
                 loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
@@ -767,14 +784,22 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
                 if (!approveNeededScopes.isEmpty()) {
                     DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState.CONCENT_AUTH_REDIRECT_CONSENT_PAGE, "Redirecting to consent page");
-                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + "/user_consent.do";
+                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.USER_CONSENT_JSP;
                 }
             }
         } else {
 
             if (explicitScope) {
-                loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
-                        Constants.ATTRIBUTE_CONSENT_JSP;
+                if (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())) {
+                    Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
+                    if (!approveNeededScopes.isEmpty()) {
+                        DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState.CONCENT_AUTH_REDIRECT_CONSENT_PAGE, "Redirecting to consent page");
+                        loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.USER_CONSENT_JSP;
+                    }
+                }else {
+                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+                            Constants.ATTRIBUTE_CONSENT_JSP;
+                }
             } else {
                 loginPage = ConfigurationFacade.getInstance().getAuthenticationEndpointURL();
             }
@@ -941,7 +966,13 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
     private void handleAttributeShareResponse(AuthenticationContext context) throws AuthenticationFailedException {
 
-        if (context.getProperty(Constants.LONGLIVEDSCOPES) != null) {
+        if (context.getProperty(Constants.LONGLIVEDSCOPES) != null && !(boolean)context.getProperty(Constants.IS_API_CONSENT)) {
+            try {
+                AbstractAttributeShare.persistConsentedScopeDetails(context);
+            } catch (Exception e) {
+                throw new AuthenticationFailedException("error occurred while persiste data");
+            }
+        }else if(context.getProperty(Constants.LONGLIVEDSCOPES) != null && (boolean)context.getProperty(Constants.IS_API_CONSENT) && (context.getProperty(Constants.USER_ACTION) != null && context.getProperty(Constants.USER_ACTION).toString().equalsIgnoreCase(Constants.STATUS_APPROVEALL))){
             try {
                 AbstractAttributeShare.persistConsentedScopeDetails(context);
             } catch (Exception e) {

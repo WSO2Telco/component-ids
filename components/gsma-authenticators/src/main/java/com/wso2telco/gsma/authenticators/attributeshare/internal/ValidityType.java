@@ -23,7 +23,8 @@ import java.util.Map;
 public enum ValidityType {
     LONG_LIVE("long_live"),
     TRANSACTIONAL("transactional"),
-    UNDEFINED("undefined");
+    UNDEFINED("undefined"),
+    DENY("deny");
 
     private String type;
 

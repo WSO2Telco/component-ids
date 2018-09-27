@@ -529,4 +529,6 @@ public final class Constants {
     public static final String API_SCOPES = "api_scopes";
 
     public static final String DENIED_SCOPE = "denied_scope";
+
+    public static final String USER_ACTION = "user_action";
 }
