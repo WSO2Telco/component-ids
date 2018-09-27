@@ -161,10 +161,11 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
             Map<String, String> attributeSet = new HashMap();
             boolean isAttribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+            boolean isAPIConsent = (boolean) context.getProperty(Constants.IS_API_CONSENT);
             String trustedStatus = context.getProperty(Constants.TRUSTED_STATUS).toString();
             String msisdn = "";
 
-            if (isAttribute && (null != request.getParameter(Constants.TRUSTED_STATUS))) {
+            if ((isAttribute || isAPIConsent) && (null != request.getParameter(Constants.TRUSTED_STATUS))) {
                 if (trustedStatus.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.TRUSTED.name())){
                     context.setProperty(Constants.IS_SHOW_TNC, false);
                 }
@@ -174,7 +175,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 }
             }
 
-            if (isAttribute && Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString())) {
+            if ((isAttribute || isAPIConsent)  && Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString())) {
 
                 if (request.getParameter(Constants.ACTION) != null || context.getProperty(Constants.MSISDN) != null) {
                     msisdn = ((request.getParameter(Constants.ACTION) != null) ? request.getParameter(Constants
@@ -285,7 +286,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     AbstractAPIConsent.setApproveNeededScope(context);
                 }
 
-                if (!isUserExists && isShowTnc || (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString()) && !(Boolean)context.getProperty(Constants.ALREADY_APPROVED))) {
+                if (!isUserExists && isShowTnc) {
                     retryAuthenticatorForConsent(context);
                 }
 
@@ -300,19 +301,20 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 String userAction = request.getParameter(Constants.ACTION);
                 if (userAction != null && !userAction.isEmpty()) {
                     // Change behaviour depending on user action
-                    if(context.getProperty(Constants.IS_API_CONSENT) != null && Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())){
-                        String clientID = context.getProperty(Constants.CLIENT_ID).toString();
-                        String operator = context.getProperty(Constants.OPERATOR).toString();
-                        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
-                        Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
-                        for (Map.Entry<String, String> scopeEntry : approveNeededScopes.entrySet()) {
-                            String scope = scopeEntry.getKey();
-                            if (userAction.equalsIgnoreCase(Constants.STATUS_APPROVEALL)) {
-                                DBUtils.insertUserConsentDetails(msisdn, scope, clientID, operator, true);
-                            }
-                            DBUtils.insertConsentHistoryDetails(msisdn, scope, clientID, operator, userAction);
-                        }
-                    }
+//                    if(context.getProperty(Constants.IS_API_CONSENT) != null && Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())){
+//                        String clientID = context.getProperty(Constants.CLIENT_ID).toString();
+//                        String operator = context.getProperty(Constants.OPERATOR).toString();
+//                        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+//                        Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
+//                        for (Map.Entry<String, String> scopeEntry : approveNeededScopes.entrySet()) {
+//                            String scope = scopeEntry.getKey();
+//                            if (userAction.equalsIgnoreCase(Constants.STATUS_APPROVEALL)) {
+//                                DBUtils.insertUserConsentDetails(msisdn, scope, clientID, operator, true);
+//                            }
+//                            DBUtils.insertConsentHistoryDetails(msisdn, scope, clientID, operator, userAction);
+//                        }
+//                    }
+                    context.setProperty(Constants.USER_ACTION, userAction);
                     switch (userAction) {
                         case Constants.USER_ACTION_REG_CONSENT:
                             log.info("User approved the consent");
@@ -322,7 +324,20 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                                             .REG_CONSENT_AGREED, "Consent approved");
 
                             //User agreed to registration consent
-                            if ((Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE)) {
+                            if ((Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE) || (Boolean) context.getProperty(Constants.IS_API_CONSENT)) {
+                                handleAttributeShareResponse(context);
+                            }
+                            break;
+                        case Constants.STATUS_APPROVEALL:
+                        case Constants.STATUS_APPROVE:
+                            log.info("User approved the consent");
+                            DataPublisherUtil
+                                    .updateAndPublishUserStatus((UserStatus) context.getParameter(Constants
+                                            .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
+                                            .REG_CONSENT_AGREED, "Consent approved");
+
+                            //User agreed to registration consent
+                            if ((Boolean) context.getProperty(Constants.IS_API_CONSENT)) {
                                 handleAttributeShareResponse(context);
                             }
                             break;
@@ -342,6 +357,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 } else {
                     boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
                     boolean isAPIConsent = (boolean) context.getProperty(Constants.IS_API_CONSENT);
+                    if(isRegistering){
+                        DBUtils.removeApprovedAPIsforNewUser(context.getProperty(Constants.MSISDN).toString());
+                    }
                     if (isRegistering && isShowTnc) {
                         log.info("Redirecting user to consent page");
                         DBUtils.removeApprovedAPIsforNewUser(msisdn);
@@ -352,9 +370,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                     else if (isAPIConsent){
                         log.info("Redirecting user to api consent page");
                         AbstractAPIConsent.setApproveNeededScope(context);
-                        if(!(Boolean) context.getProperty(Constants.ALREADY_APPROVED)){
-                            retryAuthenticatorForConsent(context);
-                        }
+//                        if(!(Boolean) context.getProperty(Constants.ALREADY_APPROVED)){
+//                            retryAuthenticatorForConsent(context);
+//                        }
                     }
                 }
             }
@@ -432,15 +450,20 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 == null || !(Boolean) request.getAttribute("commonAuthHandled"))) {
             try {
                 boolean isattribute = (boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+                boolean isapiconsent = (boolean) context.getProperty(Constants.IS_API_CONSENT);
                 String msisdn = "";
                 Map<String, String> attributeset;
                 boolean isDisplayScopes;
                 String retryParam = "";
 
-                if (isattribute && !(context.getProperty(Constants
+                if ((isattribute || isapiconsent)  &&  !(context.getProperty(Constants
                         .TRUSTED_STATUS)).toString().equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name
                         ()) && triggerInitiateAuthRequest(context)) {
                     try {
+                        if((boolean)context.getProperty(Constants.IS_REGISTERING) && context.getProperty(Constants.MSISDN) != null)
+                            DBUtils.removeApprovedAPIsforNewUser(context.getProperty(Constants.MSISDN).toString());
+                        if(isapiconsent)
+                            AbstractAPIConsent.setApproveNeededScope(context);
                         initiateAuthenticationRequest(request, response, context);
                     } catch (Exception e) {
                         if (Boolean.valueOf(context.getProperty(Constants.AUTHENTICATED_USER).toString())) {
@@ -453,7 +476,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
                 processAuthenticationResponse(request, response, context);
 
-                if (isattribute && Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString
+                if ((isattribute || isapiconsent) && Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString
                         ())) {
 
                     if (request.getParameter(Constants.MSISDN) != null || context.getProperty(Constants.MSISDN) !=
@@ -519,7 +542,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
                 if (isTerminated) {
                     throw new AuthenticationFailedException("Authenticator is terminated");
-                } else if ((boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE) && Boolean.valueOf
+                } else if (((boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE) || (boolean) context.getProperty(Constants.IS_API_CONSENT)) && Boolean.valueOf
                         (context
                                 .getProperty(Constants.AUTHENTICATED_USER).toString())) {
                     return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
@@ -613,15 +636,25 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             if (isShowTnC && isRegistering) {
                 if (explicitScope) {
                     log.info("Redirecting user to user attribute consent page");
-                    loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
-                            Constants.ATTRIBUTE_CONSENT_JSP;
+                    if (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())) {
+                        Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
+                        if (!approveNeededScopes.isEmpty()) {
+                            DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState.CONCENT_AUTH_REDIRECT_CONSENT_PAGE, "Redirecting to consent page");
+                            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.USER_CONSENT_JSP;
+                        }
+                    }else {
+                        loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+                                Constants.ATTRIBUTE_CONSENT_JSP;
+                    }
                 } else if (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())){
                     log.info("Redirecting user to consent page");
-                    if (Boolean.parseBoolean(context.getProperty(Constants.IS_API_CONSENT).toString())) {
-                        if (!(Boolean) context.getProperty(Constants.ALREADY_APPROVED)) {
-                            DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState.CONCENT_AUTH_REDIRECT_CONSENT_PAGE, "Redirecting to consent page");
-                            loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + "/user_consent.do";
-                        }
+                    Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
+                    if (!approveNeededScopes.isEmpty()) {
+                        DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState.CONCENT_AUTH_REDIRECT_CONSENT_PAGE, "Redirecting to consent page");
+                        loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() + Constants.USER_CONSENT_JSP;
+                    }else {
+                        loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
+                                Constants.CONSENT_JSP;
                     }
 
                 } else {
@@ -701,7 +734,13 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
     private void handleAttributeShareResponse(AuthenticationContext context) throws AuthenticationFailedException {
 
-        if (context.getProperty(Constants.LONGLIVEDSCOPES) != null) {
+        if (context.getProperty(Constants.LONGLIVEDSCOPES) != null && !(boolean)context.getProperty(Constants.IS_API_CONSENT)) {
+            try {
+                AbstractAttributeShare.persistConsentedScopeDetails(context);
+            } catch (Exception e) {
+                throw new AuthenticationFailedException("error occurred while persiste data");
+            }
+        }else if(context.getProperty(Constants.LONGLIVEDSCOPES) != null && (boolean)context.getProperty(Constants.IS_API_CONSENT) && (context.getProperty(Constants.USER_ACTION) != null && context.getProperty(Constants.USER_ACTION).toString().equalsIgnoreCase(Constants.STATUS_APPROVEALL))){
             try {
                 AbstractAttributeShare.persistConsentedScopeDetails(context);
             } catch (Exception e) {
@@ -726,8 +765,12 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                                     AuthenticationContext context, Map<String, String> attributeset, String
                                             retryParam) throws AuthenticationFailedException {
 
-        String loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl() +
-                Constants.ATTRIBUTE_CONSENT_JSP;
+        String loginPage = configurationService.getDataHolder().getMobileConnectConfig().getAuthEndpointUrl();
+        if((boolean)context.getProperty(Constants.IS_API_CONSENT)){
+            loginPage = loginPage + Constants.USER_CONSENT_JSP;
+        }else{
+            loginPage = loginPage + Constants.ATTRIBUTE_CONSENT_JSP;
+        }
         try {
             response.sendRedirect(response.encodeRedirectURL(loginPage) + "?" + OAuthConstants.SESSION_DATA_KEY + "="
                     + context.getContextIdentifier() + "&skipConsent=true&scope=" + attributeset.get(Constants

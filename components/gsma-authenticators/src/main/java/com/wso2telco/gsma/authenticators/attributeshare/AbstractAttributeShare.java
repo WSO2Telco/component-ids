@@ -74,8 +74,12 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
         AttributeConfigDao attributeConfigDao = new AttributeConfigDaoImpl();
         String operator = context.getProperty(Constants.OPERATOR).toString();
         String clientId = context.getProperty(Constants.CLIENT_ID).toString();
+        boolean transactional = false;
+        if(context.getProperty(Constants.APPROVE_ALL_ENABLE) != null && !(boolean) context.getProperty(Constants.APPROVE_ALL_ENABLE)){
+            transactional = true;
+        }
         List<ScopeParam> scopeParamList = attributeConfigDao.getScopeParams(context.getProperty(Constants
-                .TELCO_SCOPE).toString(), operator, clientId);
+                .TELCO_SCOPE).toString(), operator, clientId, transactional);
 
         for (ScopeParam scopeParam : scopeParamList) {
             String consentType = scopeParam.getConsentType();
@@ -85,7 +89,11 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
 
             if (consentType.equalsIgnoreCase(AuthenticatorEnum.ConsentType.EXPLICIT.name()) && "true"
                     .equalsIgnoreCase(validityMap.get(Constants.IS_CONSENT))) {
-                explicitScopes = getScopesToDisplay(explicitScopes, scope);
+                if((boolean) context.getProperty(Constants.IS_API_CONSENT)){
+                    explicitScopes.add(scope);
+                }else {
+                    explicitScopes = getScopesToDisplay(explicitScopes, scope);
+                }
                 if (validityMap.get(Constants.VALIDITY_TYPE).equalsIgnoreCase(ValidityType.LONG_LIVE.name())) {
                     longLivedScopes.add(scope);
                 }
