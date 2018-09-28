@@ -179,6 +179,9 @@ public class ServerInitiatedUSSDAuthenticator extends AbstractApplicationAuthent
 
         boolean isUserExists = !(boolean) context.getProperty(Constants.IS_REGISTERING);
         String serviceProviderName = context.getSequenceConfig().getApplicationConfig().getApplicationName();
+        boolean isAttributeScope = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+        String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
+        String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
 
         if (log.isDebugEnabled()) {
             log.debug("SessionDataKey : " + sessionDataKey);
@@ -187,6 +190,19 @@ public class ServerInitiatedUSSDAuthenticator extends AbstractApplicationAuthent
             log.debug("Operator : " + operator);
             log.debug("UserExists : " + isUserExists);
             log.debug("ServiceProviderName : " + serviceProviderName);
+        }
+
+        if (isRegistering) {
+            UserProfileManager userProfileManager = new UserProfileManager();
+            try {
+                userProfileManager.createUserProfileLoa2(msisdn,operator,isAttributeScope,spType,attrShareType,true);
+            } catch (UserRegistrationAdminServiceIdentityException e) {
+                log.error("ERROR in Registering new User", e);
+                throw new AuthenticationFailedException(e.getMessage(), e);
+            } catch (RemoteException e) {
+                log.error("ERROR in Registering new User", e);
+                throw new AuthenticationFailedException(e.getMessage(), e);
+            }
         }
 
         try {
