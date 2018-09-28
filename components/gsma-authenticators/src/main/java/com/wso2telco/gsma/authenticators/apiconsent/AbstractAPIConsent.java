@@ -1,12 +1,13 @@
 package com.wso2telco.gsma.authenticators.apiconsent;
 
-import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.attributeshare.internal.ValidityType;
 import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;
 import org.apache.commons.collections.map.HashedMap;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
@@ -20,6 +21,7 @@ import java.util.Map;
 
 public abstract class AbstractAPIConsent {
 
+    private static Log log = LogFactory.getLog(AbstractAPIConsent.class);
     public static void setApproveNeededScope(AuthenticationContext context) throws AuthenticationFailedException {
         Map<String, String> approveNeededScopes = new HashedMap();
         List<String> approvedScopes = new ArrayList<>();
@@ -55,6 +57,7 @@ public abstract class AbstractAPIConsent {
                             }
                         }else if (consent != null && consent.length == 2 && !consent[0].isEmpty() && consent[0].equalsIgnoreCase(ValidityType.DENY.name())){
                             context.setProperty(Constants.DENIED_SCOPE, true);
+                            log.error("Authenticator failed- Denied scopes are found");
                             throw new AuthenticationFailedException("Authenticator failed- Denied scopes are found");
                         }
                     }
@@ -70,14 +73,18 @@ public abstract class AbstractAPIConsent {
                         context.setProperty(Constants.SP_LOGO, logoPath);
                     }
                 } else {
+                    log.error("Authenticator failed- Approval needed scopes not found");
                     throw new AuthenticationFailedException("Authenticator failed- Approval needed scopes not found");
                 }
             } else {
+                log.error("Authenticator failed- Approval needed scopes not found");
                 throw new AuthenticationFailedException("Authenticator failed- Approval needed scopes not found");
             }
         }catch (AuthenticatorException e){
+            log.error("Authenticator failed- Approval needed scopes not found");
             throw new AuthenticationFailedException("Authenticator failed- Approval needed scopes not found");
         } catch (ParseException e) {
+            log.error("Error occurred while formatting the date : " + e.getMessage());
             throw new AuthenticationFailedException("Error occurred while formatting the date : " + e.getMessage());
         }
     }
