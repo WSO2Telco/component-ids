@@ -38,7 +38,7 @@ public interface AttributeConfigDao {
     void saveUserConsentedAttributes(List<UserConsentHistory> userConsentHistory) throws NamingException,
             DBUtilException;
 
-    List<ScopeParam> getScopeParams(String scopes, String operator, String consumerKey) throws NamingException,
+    List<ScopeParam> getScopeParams(String scopes, String operator, String consumerKey, boolean transactional) throws NamingException,
             DBUtilException;
 
 

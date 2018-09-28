@@ -984,40 +984,39 @@ public class DBUtils {
         return null;
     }
 
-    public static boolean getUserConsentScopeApproval(String msisdn, String scope, String clientID, String operator)
+    public static String getUserConsentScopeApproval(String msisdn, String scope, String clientID, String operator)
             throws AuthenticatorException {
-        boolean approved = false;
+        String expiryDate = null;
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT consent_given_user_lifetime.approve ");
-        sql.append("FROM consent_given_user_lifetime ");
-        sql.append("INNER JOIN (");
-        sql.append(     "SELECT consent_configuration.consent_id ");
-        sql.append(     "FROM consent_configuration ");
-        sql.append(     "INNER JOIN scope_parameter ON scope_parameter.param_id=consent_configuration.scope_id ");
-        sql.append(     "INNER JOIN operators ON operators.ID=consent_configuration.operator_id ");
-        sql.append(     "WHERE scope_parameter.scope=? AND consent_configuration.client_id=? AND operators.operatorname=? ");
-        sql.append( ") as consentinfo on consentinfo.consent_id=consent_given_user_lifetime.consent_id ");
-        sql.append("WHERE consent_given_user_lifetime.msisdn=?");
+        sql.append("SELECT expire_time ");
+        sql.append("FROM user_consent ");
+        sql.append("WHERE consent_id=(");
+        sql.append(     "SELECT consent.consent_id ");
+        sql.append(     "FROM consent ");
+        sql.append(     "INNER JOIN scope_parameter ON scope_parameter.param_id=consent.scope_id ");
+        sql.append(     "WHERE scope_parameter.scope=? )");
+        sql.append(     "AND msisdn=? and client_id=? and operator=? ");
+        sql.append(     "ORDER BY user_consent_id  DESC LIMIT 1");
         try {
             connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(sql.toString());
             preparedStatement.setString(1, scope);
-            preparedStatement.setString(2, clientID);
-            preparedStatement.setString(3, operator);
-            preparedStatement.setString(4, msisdn);
+            preparedStatement.setString(2, msisdn);
+            preparedStatement.setString(3, clientID);
+            preparedStatement.setString(4, operator);
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                approved=resultSet.getBoolean("approve");
+                expiryDate=resultSet.getString("expire_time");
             }
         } catch (SQLException e) {
             handleException("Error occurred while retrieving user consent details for msisdn :- " + msisdn  + scope, e);
         } finally {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet,preparedStatement);
         }
-        return approved;
+        return expiryDate;
     }
 
 
@@ -1029,11 +1028,13 @@ public class DBUtils {
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT consent_configuration.approve_status,scope_parameter.description ");
-        sql.append("FROM consent_configuration ");
-        sql.append("INNER JOIN scope_parameter ON scope_parameter.param_id=consent_configuration.scope_id ");
-        sql.append("INNER JOIN operators ON operators.ID=consent_configuration.operator_id ");
-        sql.append("where scope_parameter.scope=? AND consent_configuration.client_id=? AND operators.operatorname=?");
+        sql.append("SELECT consent_validity_type.validity_type,consent_type.consent_type,scope_parameter.description ");
+        sql.append("FROM consent ");
+        sql.append("INNER JOIN scope_parameter ON scope_parameter.param_id=consent.scope_id ");
+        sql.append("INNER JOIN operators ON operators.operatorname=consent.operator_id ");
+        sql.append("INNER JOIN consent_validity_type ON consent_validity_type.validity_id=consent.consent_validity_type ");
+        sql.append("INNER JOIN consent_type ON consent_type.consent_typeID=consent.consent_type ");
+        sql.append("where scope_parameter.scope=? AND consent.client_id=? AND operators.operatorname=?");
         try {
             connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(sql.toString());
@@ -1042,9 +1043,10 @@ public class DBUtils {
             preparedStatement.setString(3, operator);
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                consent=new String[2];
-                consent[0]=resultSet.getString("approve_status");
+                consent=new String[3];
+                consent[0]=resultSet.getString("validity_type");
                 consent[1]=resultSet.getString("description");
+                consent[2]=resultSet.getString("consent_type");
             }
         } catch (SQLException e) {
             handleException("Error occurred while retrieving consent details for client_id : " + clientID,e);
@@ -1123,7 +1125,7 @@ public class DBUtils {
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         StringBuilder sql = new StringBuilder();
-        sql.append("DELETE from consent_given_user_lifetime ");
+        sql.append("DELETE from user_consent ");
         sql.append("where msisdn =?");
         try {
             connection = getConnectDBConnection();

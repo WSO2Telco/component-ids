@@ -18,7 +18,6 @@ package com.wso2telco.proxy.consentshare;
 import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.proxy.dao.ConsentShareDao;
 import com.wso2telco.proxy.dao.attsharedaoimpl.ConsentShareDaoImpl;
-import com.wso2telco.proxy.model.AuthenticatorException;
 import com.wso2telco.proxy.util.AuthProxyConstants;
 import com.wso2telco.proxy.util.AuthProxyEnum;
 import edu.emory.mathcs.backport.java.util.Arrays;
@@ -26,7 +25,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 
-import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -65,13 +63,12 @@ public class ConsentShare {
      */
     public static Map<String, Object> scopesValidation(String scopeName, String operatorName, String
             clientId, String loginHintMsisdn, String msisdn) throws
-            AuthenticationFailedException, AuthenticatorException, NamingException {
+            AuthenticationFailedException {
 
         String trustedStatus = null;
         boolean isAttributeShare = false;
         boolean isAPIConsent = false;
         String scopeType = null;
-        String logoPath = null;
         Map<String, Object> scopeDetails = new HashMap<>();
         try {
 
@@ -91,7 +88,6 @@ public class ConsentShare {
                                 trustedStatus = consentShare.getConsentShareDetails
                                         (operatorName, clientId, loginHintMsisdn, msisdn);
                             }
-                            break;
                         }else if (scopeType != null){
                             isAttributeShare = true;
                             ConsentSharable consentShare = ScopeFactory.getConsentSharable(scopeType);
@@ -99,9 +95,10 @@ public class ConsentShare {
                                 trustedStatus = consentShare.getConsentShareDetails
                                         (operatorName, clientId, loginHintMsisdn, msisdn);
                             }
-                            break;
                         }
                     }
+                    if(isAPIConsent && isAttributeShare)
+                        throw new AuthenticationFailedException("Authentication Exception due to invalid scope types");
                 }
             }
 
