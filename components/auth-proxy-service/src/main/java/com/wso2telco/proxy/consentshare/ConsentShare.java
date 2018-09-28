@@ -91,7 +91,6 @@ public class ConsentShare {
                                 trustedStatus = consentShare.getConsentShareDetails
                                         (operatorName, clientId, loginHintMsisdn, msisdn);
                             }
-                            break;
                         }else if (scopeType != null){
                             isAttributeShare = true;
                             ConsentSharable consentShare = ScopeFactory.getConsentSharable(scopeType);
@@ -99,9 +98,10 @@ public class ConsentShare {
                                 trustedStatus = consentShare.getConsentShareDetails
                                         (operatorName, clientId, loginHintMsisdn, msisdn);
                             }
-                            break;
                         }
                     }
+                    if(isAPIConsent && isAttributeShare)
+                        throw new AuthenticationFailedException("Authentication Exception due to invalid scope types");
                 }
             }
 

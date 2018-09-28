@@ -21,6 +21,7 @@ import com.wso2telco.core.config.service.ConfigurationServiceImpl;
 import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.Constants;
+import com.wso2telco.gsma.authenticators.attributeshare.internal.ValidityType;
 import com.wso2telco.gsma.authenticators.dao.AttributeConfigDao;
 import com.wso2telco.gsma.authenticators.model.SpConsent;
 import com.wso2telco.gsma.authenticators.model.UserConsentDetails;
@@ -71,7 +72,7 @@ public class AttributeConfigDaoImpl implements AttributeConfigDao {
     /**
      * Gets the connect db connection.
      *
-     * @return the connect db connection
+     * @return the connect db connections
      * @throws AuthenticatorException the authenticator exception
      */
     private static Connection getConnectDBConnection() throws SQLException, NamingException {
@@ -157,7 +158,7 @@ public class AttributeConfigDaoImpl implements AttributeConfigDao {
         return spConsentList;
     }
 
-    public List<ScopeParam> getScopeParams(String scopes, String operator, String consumerKey) throws
+    public List<ScopeParam> getScopeParams(String scopes, String operator, String consumerKey, boolean transactional) throws
             NamingException, DBUtilException {
 
         Connection connection = null;
@@ -257,7 +258,7 @@ public class AttributeConfigDaoImpl implements AttributeConfigDao {
 
             resultSet = preparedStatement.executeQuery();
 
-            if (!resultSet.next()) {
+            if (resultSet.wasNull()) {
                 avalability = false;
             } else {
                 avalability = true;
