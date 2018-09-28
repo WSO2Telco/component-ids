@@ -10,10 +10,7 @@ import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.Utility;
 import com.wso2telco.gsma.authenticators.cryptosystem.AESencrp;
 import com.wso2telco.gsma.authenticators.model.SMSMessage;
-import com.wso2telco.gsma.authenticators.util.Application;
-import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
-import com.wso2telco.gsma.authenticators.util.BasicFutureCallback;
-import com.wso2telco.gsma.authenticators.util.OutboundMessage;
+import com.wso2telco.gsma.authenticators.util.*;
 import com.wso2telco.gsma.shorten.SelectShortUrl;
 import com.wso2telco.ids.datapublisher.model.UserStatus;
 import com.wso2telco.ids.datapublisher.util.DataPublisherUtil;
@@ -27,9 +24,11 @@ import org.wso2.carbon.identity.application.authentication.framework.context.Aut
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkUtils;
+import org.wso2.carbon.identity.user.registration.stub.UserRegistrationAdminServiceIdentityException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -119,6 +118,24 @@ public class ServerInitiatedSMSOTPAuthenticator extends AbstractApplicationAuthe
         String sessionDataKey = context.getContextIdentifier();
         String msisdn = (String) context.getProperty("msisdn");
         String status = null;
+        boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
+        String operator = (String) context.getProperty(Constants.OPERATOR);
+        boolean isAttributeScope = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
+        String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
+        String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
+
+        if (isRegistering) {
+            UserProfileManager userProfileManager = new UserProfileManager();
+            try {
+                userProfileManager.createUserProfileLoa2(msisdn,operator,isAttributeScope,spType,attrShareType,true);
+            } catch (UserRegistrationAdminServiceIdentityException e) {
+                log.error("ERROR in Registering new User", e);
+                throw new AuthenticationFailedException(e.getMessage(), e);
+            } catch (RemoteException e) {
+                log.error("ERROR in Registering new User", e);
+                throw new AuthenticationFailedException(e.getMessage(), e);
+            }
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("SessionDataKey : " + sessionDataKey);
