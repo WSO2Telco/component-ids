@@ -81,8 +81,8 @@ public abstract class AbstractAPIConsent {
                 throw new AuthenticationFailedException("Authenticator failed- Approval needed scopes not found");
             }
         }catch (AuthenticatorException e){
-            log.error("Authenticator failed- Approval needed scopes not found");
-            throw new AuthenticationFailedException("Authenticator failed- Approval needed scopes not found");
+            log.error("Authenticator failed- Approval needed scopes not found " + e.getMessage());
+            throw new AuthenticationFailedException("Authenticator failed- Approval needed scopes not found " + e.getMessage());
         } catch (ParseException e) {
             log.error("Error occurred while formatting the date : " + e.getMessage());
             throw new AuthenticationFailedException("Error occurred while formatting the date : " + e.getMessage());
