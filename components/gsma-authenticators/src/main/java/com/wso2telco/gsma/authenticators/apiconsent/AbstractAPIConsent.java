@@ -61,7 +61,11 @@ public abstract class AbstractAPIConsent {
                             throw new AuthenticationFailedException("Authenticator failed- Denied scopes are found");
                         }
                     }
-                    apiScopeList.deleteCharAt(apiScopeList.length()-1);
+
+                    if (apiScopeList != null && apiScopeList.length() > 1) {
+                        apiScopeList.deleteCharAt(apiScopeList.length() - 1);
+                    }
+
                     context.setProperty(Constants.ALREADY_APPROVED, approveNeededScopes.isEmpty());
                     context.setProperty(Constants.APPROVE_NEEDED_SCOPES, approveNeededScopes);
                     context.setProperty(Constants.APPROVED_SCOPES, approvedScopes);
