@@ -191,7 +191,7 @@ public class Endpoints {
     @Path("/serverinitiated/login/ussd/")
     @Consumes("application/json")
     @Produces("application/json")
-    public void serverinitiatedLoginUssd(String jsonBody) throws SQLException, JSONException, IOException,
+    public Response serverinitiatedLoginUssd(String jsonBody) throws SQLException, JSONException, IOException,
             CommonAuthenticatorException, ConfigurationException {
         Gson gson = new GsonBuilder().serializeNulls().create();
         org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
@@ -337,7 +337,7 @@ public class Endpoints {
             spBearerToken = backChannelRequestDetails.getNotificationBearerToken();
         } else {
             log.error("Invalid session:" + originalSessionId);
-            return;
+            return null;
         }
 
         responseString = new Gson().toJson(new
@@ -348,7 +348,7 @@ public class Endpoints {
         }
 
         postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
-
+        return Response.status(responseStatus.getStatusCode()).entity(responseString).build();
     }
 
     //todo: move this to a common util for MIG

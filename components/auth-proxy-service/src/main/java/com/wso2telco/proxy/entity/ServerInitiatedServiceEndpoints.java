@@ -310,7 +310,7 @@ public class ServerInitiatedServiceEndpoints {
         String code = null;
         while (code == null) {
             HttpClient httpClient = new DefaultHttpClient();
-            HttpGet httpGet = new HttpGet(url);
+            HttpGet httpGet = new HttpGet(url.replace(" ", "%20"));
 
             HttpParams params = new BasicHttpParams();
             params.setParameter("http.protocol.handle-redirects", false);
