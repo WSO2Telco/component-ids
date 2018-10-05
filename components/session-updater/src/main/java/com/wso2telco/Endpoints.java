@@ -520,6 +520,7 @@ public class Endpoints {
 
         postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
         return Response.status(responseStatus.getStatusCode()).entity(responseString).build();
+        return Response.status(responseStatus.getStatusCode()).entity(responseString).build();
     }
 
     //todo: move this to a common util for MIG
@@ -1950,70 +1951,75 @@ public class Endpoints {
     @Path("/sms/response")
     // @Consumes("application/json")
     @Produces("text/plain")
-    public Response smsConfirm(@QueryParam("id") String sessionID)
+    public Response smsConfirm(@QueryParam("id") String sessionID, @QueryParam("action") String action)
             throws SQLException {
-        String responseString;
 
-        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
-        setStateFromAuthenticationContext(authenticationContext);
+        if (Constants.USER_CONSENT_ACTION_APRROVE.equals(action) || Constants.USER_CONSENT_ACTION_APRROVE_ALL.equals(action)) {
+            String responseString;
 
-        log.info("Processing sms confirmation");
-        if (configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig().getIsShortUrl()) {
-            // If a URL shortening service is enabled, that means, the id query parameter is the encrypted context
-            // identifier. Therefore, to get the actual context identifier, we can decrypt the value of id query param.
-            log.debug("A short URL service is enabled in mobile-connect.xml");
-            try {
-                sessionID = AESencrp.decrypt(sessionID.replaceAll(" ", "+"));
-            } catch (Exception e) {
-                log.error("An error occurred while decrypting session ID", e);
-                responseString = e.getLocalizedMessage();
-                return Response.status(500).entity(responseString).build();
-            }
-        } else {
-            // If a URL shortening service is not enabled, that means, the actual context-identifier was encrypted and
-            // a hash key was generated from the encrypted context identifier and a database entry mapping the hash key
-            // to the context identifier (not encrypted) should have been inserted.
-            // Therefore, to get the context identifier we need to look up the database.
-            log.debug("A short URL service is not enabled in mobile-connect.xml");
-            try {
-                sessionID = DbUtil.getContextIDForHashKey(sessionID);
-                if (sessionID == null) {
-                    log.debug("There is no context identifier corresponding to the hash id: " + sessionID);
+            AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+            setStateFromAuthenticationContext(authenticationContext);
+
+            log.info("Processing sms confirmation");
+            if (configurationService.getDataHolder().getMobileConnectConfig().getSmsConfig().getIsShortUrl()) {
+                // If a URL shortening service is enabled, that means, the id query parameter is the encrypted context
+                // identifier. Therefore, to get the actual context identifier, we can decrypt the value of id query param.
+                log.debug("A short URL service is enabled in mobile-connect.xml");
+                try {
+                    sessionID = AESencrp.decrypt(sessionID.replaceAll(" ", "+"));
+                } catch (Exception e) {
+                    log.error("An error occurred while decrypting session ID", e);
+                    responseString = e.getLocalizedMessage();
+                    return Response.status(500).entity(responseString).build();
                 }
-            } catch (AuthenticatorException | SQLException e) {
-                log.error("An error occurred while retriving context identifier", e);
-                return Response.status(500).entity("").build();
+            } else {
+                // If a URL shortening service is not enabled, that means, the actual context-identifier was encrypted and
+                // a hash key was generated from the encrypted context identifier and a database entry mapping the hash key
+                // to the context identifier (not encrypted) should have been inserted.
+                // Therefore, to get the context identifier we need to look up the database.
+                log.debug("A short URL service is not enabled in mobile-connect.xml");
+                try {
+                    sessionID = DbUtil.getContextIDForHashKey(sessionID);
+                    if (sessionID == null) {
+                        log.debug("There is no context identifier corresponding to the hash id: " + sessionID);
+                    }
+                } catch (AuthenticatorException | SQLException e) {
+                    log.error("An error occurred while retriving context identifier", e);
+                    return Response.status(500).entity("").build();
+                }
             }
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("Context Identifier: " + sessionID);
-        }
-        String status;
-        String userStatus = DatabaseUtils.getUSerStatus(sessionID);
-        DataPublisherUtil.UserState userState = DataPublisherUtil.UserState.SMS_URL_AUTH_FAIL;
-        if (userStatus.equalsIgnoreCase("PENDING")) {
-            DatabaseUtils.updateStatus(sessionID, "APPROVED");
-            status = "APPROVED";
-            responseString = " You are successfully authenticated via mobile-connect";
-            userState = DataPublisherUtil.UserState.SMS_URL_AUTH_SUCCESS;
-        } else if (userStatus.equalsIgnoreCase("EXPIRED")) {
-            status = "EXPIRED";
-            responseString = " Your token is expired";
+            if (log.isDebugEnabled()) {
+                log.debug("Context Identifier: " + sessionID);
+            }
+            String status;
+            String userStatus = DatabaseUtils.getUSerStatus(sessionID);
+            DataPublisherUtil.UserState userState = DataPublisherUtil.UserState.SMS_URL_AUTH_FAIL;
+            if (userStatus.equalsIgnoreCase("PENDING")) {
+                DatabaseUtils.updateStatus(sessionID, "APPROVED");
+                status = "APPROVED";
+                responseString = " You are successfully authenticated via mobile-connect";
+                userState = DataPublisherUtil.UserState.SMS_URL_AUTH_SUCCESS;
+            } else if (userStatus.equalsIgnoreCase("EXPIRED")) {
+                status = "EXPIRED";
+                responseString = " Your token is expired";
+            } else {
+                status = "EXPIRED";
+                responseString = " Your token has already approved";
+            }
+
+            responseString = "{" + "\"status\":\"" + status + "\","
+                    + "\"text\":\"" + responseString + "\"" + "}";
+
+            log.info("Sending sms confirmation response" + responseString);
+            if (authenticationContext != null) {
+                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants
+                                .USER_STATUS_DATA_PUBLISHING_PARAM),
+                        userState, "SMS URL " + status);
+            }
+            return Response.status(200).entity(responseString).build();
         } else {
-            status = "EXPIRED";
-            responseString = " Your token has already approved";
+            return Response.status(200).entity("{\"status\": \"DENIED\", \"text\": \"Authorization denied\"}").build();
         }
-
-        responseString = "{" + "\"status\":\"" + status + "\","
-                + "\"text\":\"" + responseString + "\"" + "}";
-
-        log.info("Sending sms confirmation response" + responseString);
-        if (authenticationContext != null) {
-            DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter(Constants
-                            .USER_STATUS_DATA_PUBLISHING_PARAM),
-                    userState, "SMS URL " + status);
-        }
-        return Response.status(200).entity(responseString).build();
     }
 
     /**

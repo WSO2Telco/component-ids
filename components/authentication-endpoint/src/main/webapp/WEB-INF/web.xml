@@ -242,6 +242,16 @@
     </servlet>
 
     <servlet>
+        <servlet-name>user_consent_response_bc.do</servlet-name>
+        <jsp-file>/mcx-user-registration/user_consent_response_backchannel.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
+        <servlet-name>user_consent_bc.do</servlet-name>
+        <jsp-file>/mcx-user-registration/user_consent_backchannel.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>user_attribute_consent.do</servlet-name>
         <jsp-file>/mcx-user-registration/attribute_consent.jsp</jsp-file>
     </servlet>
@@ -364,6 +374,16 @@
     <servlet-mapping>
         <servlet-name>user_consent.do</servlet-name>
         <url-pattern>/user_consent.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>user_consent_response_bc.do</servlet-name>
+        <url-pattern>/user_consent_response_bc.do</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>user_consent_bc.do</servlet-name>
+        <url-pattern>/user_consent_bc.do</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
