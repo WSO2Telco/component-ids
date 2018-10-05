@@ -52,4 +52,8 @@ public class Constants {
     public static final String CHALLENGE_ANSWER_2 = "challengeAnswer2";
 
     public static final String USER_STATUS_DATA_PUBLISHING_PARAM = "UserStatusForDataPublishing";
+
+    public static final String USER_CONSENT_ACTION_APRROVE = "approve";
+    public static final String USER_CONSENT_ACTION_APRROVE_ALL = "approveall";
+    public static final String USER_CONSENT_ACTION_DENY = "deny";
 }

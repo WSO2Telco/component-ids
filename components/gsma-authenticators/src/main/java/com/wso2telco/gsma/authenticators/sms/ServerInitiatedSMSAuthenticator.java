@@ -19,13 +19,13 @@ import com.wso2telco.Util;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.core.sp.config.utils.exception.DataAccessException;
 import com.wso2telco.core.sp.config.utils.service.SpConfigService;
 import com.wso2telco.core.sp.config.utils.service.impl.SpConfigServiceImpl;
 import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
+import com.wso2telco.gsma.authenticators.apiconsent.AbstractAPIConsent;
 import com.wso2telco.gsma.authenticators.cryptosystem.AESencrp;
 import com.wso2telco.gsma.authenticators.model.SMSMessage;
 import com.wso2telco.gsma.authenticators.util.*;
@@ -37,7 +37,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hashids.Hashids;
 import org.wso2.carbon.identity.application.authentication.framework.*;
-import org.wso2.carbon.identity.application.authentication.framework.config.ConfigurationFacade;
 import org.wso2.carbon.identity.application.authentication.framework.config.model.StepConfig;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
@@ -297,15 +296,28 @@ public class ServerInitiatedSMSAuthenticator extends AbstractApplicationAuthenti
             MobileConnectConfig.SMSConfig smsConfig = connectConfig.getSmsConfig();
 
             String encryptedContextIdentifier = AESencrp.encrypt(context.getContextIdentifier());
-            //String messageURL = connectConfig.getSmsConfig().getAuthUrl() + Constants.AUTH_URL_ID_PREFIX;
-            String messageURL =  mobileConnectConfigs.getBackChannelConfig().getSmsCallbackUrl() + Constants.AUTH_URL_ID_PREFIX; //todo: add to config
+            String messageURL = mobileConnectConfigs.getBackChannelConfig().getSmsCallbackUrl() + Constants.AUTH_URL_ID_PREFIX; //todo: add to config
 
+            boolean isApiConsent = false;
+            if (Boolean.TRUE.toString().equals(context.getProperty(Constants.IS_API_CONSENT).toString())) {
+
+                AbstractAPIConsent.setApproveNeededScope(context);
+                if (Boolean.TRUE.toString().equals(context.getProperty(Constants.ALREADY_APPROVED).toString())) {
+                    log.info("All scopes are already approved. Skipping the consent page");
+                } else {
+                    log.info("Not all scopes are approved by user. User will be asked for consent");
+
+                    isApiConsent = true;
+                    String userConsentEndpoint = connectConfig.getBackChannelConfig().getUserConsentEndpoint();
+                    messageURL = userConsentEndpoint + "?id=";
+                }
+            }
 
             Map<String, String> paramMap = Util.createQueryParamMap(queryParams);
             String client_id = paramMap.get(Constants.CLIENT_ID);
             String operator = (String) context.getProperty(Constants.OPERATOR);
 
-            if (smsConfig.isShortUrl()) {
+            if (smsConfig.isShortUrl() && !isApiConsent) {
                 // If a URL shortening service is enabled, then we need to encrypt the context identifier, create the
                 // message URL and shorten it.
                 log.info("URL shortening service is enabled");
@@ -371,6 +383,9 @@ public class ServerInitiatedSMSAuthenticator extends AbstractApplicationAuthenti
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
         log.info("Processing authentication response");
+
+        //explicitly adding to session cache since backchannel requests do not get cached automatically
+        SessionCacheUtil.addToSessionCache(context);
 
         UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
         String sessionDataKey = request.getParameter("sessionDataKey");
