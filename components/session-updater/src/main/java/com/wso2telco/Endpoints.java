@@ -520,7 +520,6 @@ public class Endpoints {
 
         postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
         return Response.status(responseStatus.getStatusCode()).entity(responseString).build();
-        return Response.status(responseStatus.getStatusCode()).entity(responseString).build();
     }
 
     //todo: move this to a common util for MIG
