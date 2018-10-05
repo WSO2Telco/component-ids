@@ -209,6 +209,8 @@ public class ServerInitiatedServiceEndpoints {
                 backChannelRequestDetails.setNotificationUrl(notificationUrl);
                 backChannelRequestDetails.setClientId(clientId);
                 backChannelRequestDetails.setRedirectUrl(redirectUrl);
+                backChannelRequestDetails.setScopes(scopeName);
+                backChannelRequestDetails.setOperator(operatorName);
 
                 DataBaseConnectUtils.addBackChannelRequestDetails(backChannelRequestDetails);
 

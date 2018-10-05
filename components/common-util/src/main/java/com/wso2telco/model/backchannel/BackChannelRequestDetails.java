@@ -30,6 +30,8 @@ public class BackChannelRequestDetails {
     private String authRequestId;
     private String clientId;
     private String redirectUrl;
+    private String scopes;
+    private String operator;
 
     public String getSessionId() {
         return sessionId;
@@ -109,6 +111,22 @@ public class BackChannelRequestDetails {
 
     public void setRedirectUrl(String redirectUrl) {
         this.redirectUrl = redirectUrl;
+    }
+
+    public String getScopes() {
+        return scopes;
+    }
+
+    public void setScopes(String scopes) {
+        this.scopes = scopes;
+    }
+
+    public String getOperator() {
+        return operator;
+    }
+
+    public void setOperator(String operator) {
+        this.operator = operator;
     }
 }
 

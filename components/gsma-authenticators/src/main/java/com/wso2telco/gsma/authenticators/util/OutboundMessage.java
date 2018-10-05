@@ -38,6 +38,7 @@ public class OutboundMessage {
         USSD_REGISTRATION,
         USSD_PIN_LOGIN,
         USSD_PIN_REGISTRATION,
+        USSD_APICONSENT,
         SMS_LOGIN,
         SMS_REGISTRATION,
         SMS_OTP
@@ -146,6 +147,8 @@ public class OutboundMessage {
                 operatorSpecificMessage = operatorSpecificMessageMap.get(operator);
             }else if (messageType == MessageType.USSD_PIN_LOGIN || messageType == MessageType.USSD_PIN_REGISTRATION) {
                 operatorSpecificMessage = operatorSpecificPinMessageMap.get(operator);
+            }else if (messageType == MessageType.USSD_APICONSENT || messageType == MessageType.USSD_APICONSENT) {
+                operatorSpecificMessage = operatorSpecificMessageMap.get(operator);
             }else if (messageType == MessageType.SMS_LOGIN || messageType == MessageType.SMS_REGISTRATION) {
                 operatorSpecificMessage = operatorSpecificSmsMessageMap.get(operator);
             }else if (messageType == MessageType.SMS_OTP ) {
@@ -164,6 +167,8 @@ public class OutboundMessage {
             template = spConfigService.getUSSDPinLoginMessage(clientId);
         }else if (messageType == MessageType.USSD_PIN_REGISTRATION) {
             template = spConfigService.getUSSDPinRegistrationMessage(clientId);
+        }else if (messageType == MessageType.USSD_APICONSENT) {
+            template = spConfigService.getUSSDAPIConsentMessage(clientId);
         }else if (messageType == MessageType.SMS_LOGIN) {
             template = spConfigService.getSMSLoginMessage(clientId);
         }else if (messageType == MessageType.SMS_REGISTRATION) {
@@ -184,6 +189,8 @@ public class OutboundMessage {
                     template = operatorSpecificMessage.getLoginMessage();
                 }else if (messageType == MessageType.USSD_PIN_REGISTRATION) {
                     template = operatorSpecificMessage.getRegistrationMessage();
+                }else if (messageType == MessageType.USSD_APICONSENT) {
+                    template = operatorSpecificMessage.getApiConsentMessage();
                 }else if (messageType == MessageType.SMS_LOGIN) {
                     template = operatorSpecificMessage.getLoginMessage();
                 }else if (messageType == MessageType.SMS_REGISTRATION) {
@@ -201,6 +208,8 @@ public class OutboundMessage {
                     template = ussdConfig.getPinLoginMessage();
                 } else if (messageType == MessageType.USSD_PIN_REGISTRATION) {
                     template = ussdConfig.getPinRegistrationMessage();
+                } else if (messageType == MessageType.USSD_APICONSENT) {
+                    template = ussdConfig.getApiConsentMessage();
                 } else if (messageType == MessageType.SMS_LOGIN) {
                     template = smsConfig.getLoginMessage();
                 } else if (messageType == MessageType.SMS_REGISTRATION) {

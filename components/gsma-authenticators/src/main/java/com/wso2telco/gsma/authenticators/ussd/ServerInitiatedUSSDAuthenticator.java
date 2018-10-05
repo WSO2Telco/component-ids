@@ -24,10 +24,8 @@ import com.wso2telco.gsma.authenticators.AuthenticatorException;
 import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
-import com.wso2telco.gsma.authenticators.ussd.command.LoginUssdCommand;
-import com.wso2telco.gsma.authenticators.ussd.command.RegistrationUssdCommand;
-import com.wso2telco.gsma.authenticators.ussd.command.ServerInitiatedLoginUssdCommand;
-import com.wso2telco.gsma.authenticators.ussd.command.UssdCommand;
+import com.wso2telco.gsma.authenticators.apiconsent.AbstractAPIConsent;
+import com.wso2telco.gsma.authenticators.ussd.command.*;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
 import com.wso2telco.gsma.authenticators.util.UserProfileManager;
@@ -101,9 +99,20 @@ public class ServerInitiatedUSSDAuthenticator extends AbstractApplicationAuthent
     }
 
     private void sendUssd(AuthenticationContext context, String msisdn, String serviceProviderName, String operator,
-                          boolean isUserExists) throws IOException {
+                          boolean isUserExists) throws IOException, AuthenticationFailedException {
         UssdCommand ussdCommand;
-        ussdCommand = new ServerInitiatedLoginUssdCommand();
+
+        if((boolean)context.getProperty(Constants.IS_API_CONSENT)){
+            AbstractAPIConsent.setApproveNeededScope(context);
+            Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
+            if(!approveNeededScopes.isEmpty()){
+                ussdCommand = new ServerInitiatedAPIConsentUssdCommand(context);
+            }else{
+                ussdCommand = new ServerInitiatedLoginUssdCommand();
+            }
+        }else{
+            ussdCommand = new ServerInitiatedLoginUssdCommand();
+        }
 
         String queryParams = FrameworkUtils.getQueryStringWithFrameworkContextId(context.getQueryParams(),
                 context.getCallerSessionKey(), context.getContextIdentifier());
