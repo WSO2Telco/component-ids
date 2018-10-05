@@ -60,6 +60,7 @@ import org.wso2.carbon.identity.mgt.stub.UserIdentityManagementAdminServiceIdent
 import org.wso2.carbon.um.ws.api.stub.RemoteUserStoreManagerServiceUserStoreExceptionException;
 
 import javax.naming.ConfigurationException;
+import javax.naming.NamingException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
@@ -80,6 +81,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Date;
 import java.sql.SQLException;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -291,6 +293,175 @@ public class Endpoints {
             /*responseString = Response.status(Response.Status.OK).entity(new Gson().toJson(new
                     BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
         } else if (validateUserInputs(rejectInputs, message)) {
+            status = "Rejected";
+
+            if (backChannelRequestDetails != null) {
+                backChannelTokenResponse = new BackChannelTokenResponse();
+                backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
+                backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+                backChannelTokenResponse.setErrorDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
+                DatabaseUtils.updateStatus(sessionID, status);
+            }
+
+            if (authenticationContext != null) {
+                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
+                                (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_REJECTED, "USSD login push rejected");
+            }
+            /*responseString = Response.status(Response.Status.BAD_REQUEST).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+            responseStatus = Response.Status.BAD_REQUEST;
+        } else {
+            status = "Rejected";
+
+            if (backChannelRequestDetails != null) {
+                backChannelTokenResponse = new BackChannelTokenResponse();
+                backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
+                DatabaseUtils.updateStatus(sessionID, status);
+                backChannelTokenResponse.setError(Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
+                backChannelTokenResponse.setErrorDescription(Response.Status.NOT_ACCEPTABLE.getReasonPhrase());
+            }
+
+            if (authenticationContext != null) {
+                DataPublisherUtil.updateAndPublishUserStatus((UserStatus) authenticationContext.getParameter
+                                (Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_FAIL, "USSD login push failed");
+            }
+            /*responseString = Response.status(Response.Status.NOT_ACCEPTABLE).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+            responseStatus = Response.Status.NOT_ACCEPTABLE;
+        }
+
+        if (backChannelRequestDetails != null) {
+            spTokenEndpoint = backChannelRequestDetails.getNotificationUrl();
+            spBearerToken = backChannelRequestDetails.getNotificationBearerToken();
+        } else {
+            log.error("Invalid session:" + originalSessionId);
+            return null;
+        }
+
+        responseString = new Gson().toJson(new
+                BackChannelTokenResponse(status, backChannelTokenResponse)).toString();
+
+        if (log.isDebugEnabled()) {
+            log.debug("ussdSessionID: " + ussdSessionID + ", Response String: " + responseString + ", Response Status: " + responseStatus);
+        }
+
+        postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
+        return Response.status(responseStatus.getStatusCode()).entity(responseString).build();
+    }
+
+    @POST
+    @Path("/serverinitiated/login/api/ussd/")
+    @Consumes("application/json")
+    @Produces("application/json")
+    public Response serverinitiatedLoginAPIUssd(String jsonBody) throws SQLException, JSONException, IOException,
+            CommonAuthenticatorException, NamingException {
+        Gson gson = new GsonBuilder().serializeNulls().create();
+        org.json.JSONObject jsonObj = new org.json.JSONObject(jsonBody);
+        String message = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("inboundUSSDMessage");
+        String sessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("clientCorrelator");
+        String spTokenEndpoint = "";
+        String spBearerToken = "";
+        String responseString;
+        Response.Status responseStatus;
+        BackChannelTokenResponse backChannelTokenResponse = new BackChannelTokenResponse();
+        String status;
+        String ussdSessionID = null;
+        BackChannelRequestDetails backChannelRequestDetails = null;
+        String originalSessionId = sessionID;
+        log.debug("Requested session Id: " + originalSessionId);
+
+
+        AuthenticationContext authenticationContext = getAuthenticationContext(sessionID);
+        setStateFromAuthenticationContext(authenticationContext);
+
+        log.info("Received login request");
+
+        if (log.isDebugEnabled()) {
+            log.debug("Json Body : " + jsonBody);
+        }
+
+        if (sessionID != null) {
+            backChannelRequestDetails = DataBaseConnectUtils.getBackChannelUserDetails(sessionID);
+        }
+
+        if (jsonObj.getJSONObject("inboundUSSDMessageRequest").has("sessionID") && !jsonObj.getJSONObject
+                ("inboundUSSDMessageRequest").isNull("sessionID")) {
+            ussdSessionID = jsonObj.getJSONObject("inboundUSSDMessageRequest").getString("sessionID");
+            if (log.isDebugEnabled()) {
+                log.debug("UssdSessionID 01 : " + ussdSessionID);
+            }
+        }
+
+        ussdSessionID = ((ussdSessionID != null) ? ussdSessionID : "");
+        if (log.isDebugEnabled()) {
+            log.debug("UssdSessionID 02 : " + ussdSessionID);
+        }
+
+        //Accept or Reject response depending on configured values
+        String approveOnceInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig()
+                .getApproveOnceInputs();
+        String approveAlwaysInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig()
+                .getApproveAlwaysInputs();
+        String denyInputs = configurationService.getDataHolder().getMobileConnectConfig().getUssdConfig()
+                .getDenyInputs();
+
+        if (validateUserInputs(approveOnceInputs, message) || validateUserInputs(approveAlwaysInputs, message)) {
+            status = "Approved";
+            DatabaseUtils.updateStatus(sessionID, status);
+
+            if (authenticationContext != null) {
+                DataPublisherUtil.updateAndPublishUserStatus(
+                        (UserStatus) authenticationContext.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM),
+                        DataPublisherUtil.UserState.RECEIVE_USSD_PUSH_APPROVED, "USSD login push approved");
+            }
+
+            if (backChannelRequestDetails != null) {
+
+                try {
+                    String clientSecret = DbUtil.getClientSecret(backChannelRequestDetails.getClientId());
+
+                    if(validateUserInputs(approveAlwaysInputs, message)){
+                        persistConsentedScopeDetails(backChannelRequestDetails);
+                    }
+                    List<NameValuePair> tokenRelatedNameValues = new ArrayList<NameValuePair>();
+                    tokenRelatedNameValues.add(new BasicNameValuePair("grant_type", "authorization_code"));
+                    tokenRelatedNameValues.add(new BasicNameValuePair("code", backChannelRequestDetails.getAuthCode()));
+                    tokenRelatedNameValues.add(new BasicNameValuePair("redirect_uri", backChannelRequestDetails
+                            .getRedirectUrl()));
+
+                    backChannelTokenResponse = getAccessTokenDetails(backChannelRequestDetails.getCorrelationId(),
+                            tokenRelatedNameValues, backChannelRequestDetails.getClientId(), clientSecret);
+                    backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                    backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
+
+                } catch (ConfigurationException | AuthenticatorException | CommonAuthenticatorException e) {
+                    backChannelTokenResponse = new BackChannelTokenResponse();
+                    log.error("Error while generating token for Session Id:" + sessionID);
+                    backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                    backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthRequestId());
+                    backChannelTokenResponse.setError("Internal Server Error");
+                    backChannelTokenResponse.setErrorDescription("An error occurred while generating Token Response");
+                    /*responseString = Response.status(500).entity(new Gson().toJson(new
+                            BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+
+                    responseString = new Gson().toJson(new
+                            BackChannelTokenResponse(status, backChannelTokenResponse)).toString();
+                    responseStatus = Response.Status.INTERNAL_SERVER_ERROR;
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("ussdSessionID: " + ussdSessionID + ", Response String: " + responseString + ", Response Status: " + responseStatus);
+                    }
+                    postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
+                }
+            }
+            responseStatus = Response.Status.OK;
+            /*responseString = Response.status(Response.Status.OK).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+        } else if (validateUserInputs(denyInputs, message)) {
             status = "Rejected";
 
             if (backChannelRequestDetails != null) {
@@ -2160,4 +2331,37 @@ public class Endpoints {
         }
         return returnValue;
     }
+
+    public static void persistConsentedScopeDetails(BackChannelRequestDetails backChannelRequestDetails) throws
+            NamingException, AuthenticatorException {
+
+
+        String msisdn = backChannelRequestDetails.getMsisdn();
+        String operator = backChannelRequestDetails.getOperator();
+        String clientId = backChannelRequestDetails.getClientId();
+        String apiScopes = backChannelRequestDetails.getScopes();
+        List<SpConsent> spConsentDetailsList = DbUtil.getScopeExpireTime(operator, clientId, apiScopes);
+        List<UserConsent> userConsentList = new ArrayList();
+
+        for (SpConsent spConsent : spConsentDetailsList) {
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            java.util.Date today = new java.util.Date();
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(today);
+            calendar.add(Calendar.DATE, spConsent.getExpPeriod());
+
+            UserConsent UserConsent = new UserConsent();
+            UserConsent.setMsisdn(msisdn);
+            UserConsent.setConsentId(spConsent.getConsentId());
+            UserConsent.setConsentExpireTime(dateFormat.format(calendar.getTime()));
+            UserConsent.setConsentStatus("true");
+            UserConsent.setClientId(clientId);
+            UserConsent.setOperatorName(operator);
+
+            userConsentList.add(UserConsent);
+        }
+        DbUtil.saveUserConsentedAttributes(userConsentList);
+    }
+
 }

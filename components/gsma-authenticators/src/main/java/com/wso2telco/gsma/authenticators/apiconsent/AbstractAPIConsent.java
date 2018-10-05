@@ -27,6 +27,7 @@ public abstract class AbstractAPIConsent {
         List<String> approvedScopes = new ArrayList<>();
         String[] scopeList = context.getProperty(Constants.SCOPE).toString().split(" ");
         StringBuilder apiScopeList = new StringBuilder();
+        StringBuilder approveNeededScopeList = new StringBuilder();
         try{
             if (scopeList != null) {
                 if (scopeList != null && scopeList.length > 0) {
@@ -51,6 +52,7 @@ public abstract class AbstractAPIConsent {
                                 approvedScopes.add(scope);
                             } else {
                                 approveNeededScopes.put(scope, consent[1]);
+                                approveNeededScopeList.append(scope).append(" ");
                             }
                             if (consent[0].equalsIgnoreCase(ValidityType.TRANSACTIONAL.name())) {
                                 enableapproveall = false;
@@ -68,6 +70,9 @@ public abstract class AbstractAPIConsent {
                     context.setProperty(Constants.APPROVE_ALL_ENABLE, enableapproveall);
                     context.setProperty(Constants.API_SCOPES, apiScopeList.toString());
 
+                    if(context.getProperty(Constants.IS_BACKCHANNEL_ALLOWED) != null && (boolean) context.getProperty(Constants.IS_BACKCHANNEL_ALLOWED) && !approveNeededScopes.isEmpty()){
+                        DBUtils.updateScopesInBackChannel(context.getProperty(Constants.CORRELATION_ID).toString(),approveNeededScopeList.deleteCharAt(approveNeededScopeList.length() -1).toString());
+                    }
                     String logoPath = DBUtils.getSPConfigValue(context.getProperty(Constants.OPERATOR).toString(), context.getProperty(Constants.CLIENT_ID).toString(), Constants.SP_LOGO);
                     if (logoPath != null && !logoPath.isEmpty()) {
                         context.setProperty(Constants.SP_LOGO, logoPath);

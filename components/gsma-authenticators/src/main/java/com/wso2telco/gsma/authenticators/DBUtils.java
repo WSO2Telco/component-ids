@@ -17,6 +17,7 @@ package com.wso2telco.gsma.authenticators;
 
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.exception.CommonAuthenticatorException;
 import com.wso2telco.gsma.authenticators.model.MSISDNHeader;
 import com.wso2telco.gsma.authenticators.model.PromptData;
 import com.wso2telco.gsma.authenticators.ussd.Pinresponse;
@@ -25,6 +26,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.core.util.IdentityDatabaseUtil;
 
+import javax.naming.ConfigurationException;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -1173,6 +1175,45 @@ public class DBUtils {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet,preparedStatement);
         }
         return scope_role;
+    }
+
+    /**
+     * Update user details in Back Channeling Scenario : update Session ID
+     *
+     * @param scopes     ID of the session
+     * @param correlationId unique ID of the user
+     */
+    public static void updateScopesInBackChannel(String correlationId, String scopes) throws
+            AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        String updateUserDetailsQuery = null;
+
+        updateUserDetailsQuery =
+                "update backchannel_request_details set scopes=? where correlation_id=?;";
+
+        try {
+            connection = getConnectDBConnection();
+
+            if (log.isDebugEnabled()) {
+                log.debug("Executing the query " + updateUserDetailsQuery);
+            }
+
+            preparedStatement = connection.prepareStatement(updateUserDetailsQuery);
+            preparedStatement.setString(1, scopes);
+            preparedStatement.setString(2, correlationId);
+            preparedStatement.executeUpdate();
+
+        } catch (SQLException e) {
+            handleException(
+                    "Error occurred while updating user details for : " + correlationId + "in " +
+                            "BackChannel Scenario.",
+                    e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
+        }
     }
 }
 

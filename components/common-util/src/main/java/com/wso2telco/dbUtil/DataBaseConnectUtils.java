@@ -94,8 +94,8 @@ public class DataBaseConnectUtils {
 
         String addUserDetailsQuery =
                 "insert into backchannel_request_details(correlation_id,msisdn,notification_bearer_token," +
-                        "notification_url,request_initiated_time,client_id,redirect_url) values(?," +
-                        "?,?,?,NOW(),?,?);";
+                        "notification_url,request_initiated_time,client_id,redirect_url,scopes,operator) values(?," +
+                        "?,?,?,NOW(),?,?,?,?);";
 
         try {
             connection = getConnectDBConnection();
@@ -111,6 +111,8 @@ public class DataBaseConnectUtils {
             preparedStatement.setString(4, backChannelUserDetails.getNotificationUrl());
             preparedStatement.setString(5, backChannelUserDetails.getClientId());
             preparedStatement.setString(6, backChannelUserDetails.getRedirectUrl());
+            preparedStatement.setString(7,backChannelUserDetails.getScopes());
+            preparedStatement.setString(8,backChannelUserDetails.getOperator());
 
             preparedStatement.execute();
 
@@ -281,6 +283,8 @@ public class DataBaseConnectUtils {
                 backChannelRequestDetails.setRequestIniticatedTime(resultSet.getString("request_initiated_time"));
                 backChannelRequestDetails.setClientId(resultSet.getString("client_id"));
                 backChannelRequestDetails.setRedirectUrl(resultSet.getString("redirect_url"));
+                backChannelRequestDetails.setScopes(resultSet.getString("scopes"));
+                backChannelRequestDetails.setOperator(resultSet.getString("operator"));
             }
         } catch (SQLException e) {
             handleException(

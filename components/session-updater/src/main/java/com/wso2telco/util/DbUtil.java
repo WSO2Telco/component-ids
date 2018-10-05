@@ -17,6 +17,8 @@ package com.wso2telco.util;
 
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.entity.SpConsent;
+import com.wso2telco.entity.UserConsent;
 import com.wso2telco.exception.AuthenticatorException;
 
 import org.apache.commons.logging.Log;
@@ -33,6 +35,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 public class DbUtil {
@@ -48,6 +54,12 @@ public class DbUtil {
     private static volatile DataSource wso2APIMDatasource = null;
 
     private static final Log log = LogFactory.getLog(DbUtil.class);
+
+    private static final String CONSENT = "consent";
+
+    private static final String SCOPE_PARAMETER = "scope_parameter";
+
+    private static final String USER_CONSENT = "user_consent";
 
     /**
      * The Configuration service
@@ -151,7 +163,7 @@ public class DbUtil {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        String sql = "update `multiplepasswords` set  attempts=? where  username=?;";
+        String sql = "update multiplepasswords" + " set  attempts=? where  username=?;";
 
         connection = getConnectDBConnection();
 
@@ -301,6 +313,168 @@ public class DbUtil {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
         return clientSecretValue;
+    }
+
+    /**
+     * get Scope Expire time for the given Client ID and scope
+     *
+     * @param consumerKey unique client ID
+     * @param operator unique operator ID
+     * @param scopes given scope
+     */
+    public static List<SpConsent> getScopeExpireTime(String operator, String consumerKey, String scopes)
+            throws NamingException, AuthenticatorException {
+
+        Connection connectionConsent = null;
+        PreparedStatement preparedStatementConsent = null;
+        ResultSet resultSetConsent = null;
+
+        String[] scopeValues = scopes.split(",");
+        List<SpConsent> spConsentList = new ArrayList();
+        try {
+            for (int i = 0; i < scopeValues.length; i++) {
+                String scope = scopeValues[i];
+                String clientId = consumerKey;
+                String operatorId = operator;
+
+                if (!consentDataAvailable(scope, operatorId, clientId)) {
+
+                    if (!consentDataAvailable(scope, "ALL", clientId)) {
+
+                        if (!consentDataAvailable(scope, operatorId, "ALL")) {
+                            clientId = "ALL";
+                            operatorId = "ALL";
+                        } else {
+                            clientId = "ALL";
+                            operatorId = operator;
+                        }
+                    } else {
+                        clientId = consumerKey;
+                        operatorId = "ALL";
+                    }
+                } else {
+                    clientId = consumerKey;
+                    operatorId = operator;
+                }
+
+
+                String query = "SELECT con.scope_id,con.exp_period,con.operator_id ,con.consent_id FROM " +
+                        CONSENT
+                        + " con INNER JOIN " +
+                        SCOPE_PARAMETER + " scp ON scp" +
+                        ".param_id=con.scope_id where con.operator_id=? AND con.client_id=? AND con.scope_id= " +
+                        "(SELECT param_id FROM " + SCOPE_PARAMETER + " WHERE scope=?);";
+
+                connectionConsent = getConnectDBConnection();
+                preparedStatementConsent = connectionConsent.prepareStatement(query);
+                preparedStatementConsent.setString(1, operatorId);
+                preparedStatementConsent.setString(2, clientId);
+                preparedStatementConsent.setString(3, scope);
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Query in method getScopeExpireTime:" + preparedStatementConsent);
+                }
+                resultSetConsent = preparedStatementConsent.executeQuery();
+                while (resultSetConsent.next()) {
+                    SpConsent spConsent = new SpConsent();
+                    spConsent.setScope(resultSetConsent.getInt("scope_id"));
+                    spConsent.setExpPeriod(resultSetConsent.getInt("exp_period"));
+                    spConsent.setOperatorID(resultSetConsent.getString("operator_id"));
+                    spConsent.setConsentId(resultSetConsent.getInt("consent_id"));
+                    spConsentList.add(spConsent);
+                }
+                IdentityDatabaseUtil.closeAllConnections(connectionConsent, resultSetConsent, preparedStatementConsent);
+            }
+
+        } catch (AuthenticatorException | SQLException e) {
+            log.error("Exception occurred while retrieving data to the database for scopes : " + scopes + ": " + e
+                    .getMessage());
+            throw new AuthenticatorException(e.getMessage(), e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connectionConsent, resultSetConsent, preparedStatementConsent);
+        }
+        return spConsentList;
+    }
+
+    /**
+     * check consent data availability for the given Client ID and scope
+     *
+     * @param clientId unique client ID
+     * @param operatorId unique operator ID
+     * @param scope given scope
+     */
+    public static boolean consentDataAvailable(String scope, String operatorId, String clientId) throws AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        boolean avalability = false;
+
+        try {
+            connection = getConnectDBConnection();
+            String query1 = "SELECT * from " + CONSENT + " where scope_id = (select param_id from " +
+                    "scope_parameter where " +
+                    "scope" +
+                    " = ?) and operator_id=? and client_id=?;";
+
+            preparedStatement = connection.prepareStatement(query1);
+            preparedStatement.setString(1, scope);
+            preparedStatement.setString(2, operatorId);
+            preparedStatement.setString(3, clientId);
+
+            resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.wasNull()) {
+                avalability = false;
+            } else {
+                avalability = true;
+            }
+        } catch (SQLException e) {
+            log.error("Exception occurred while retrieving data to the database for scope : " + scope + ": " + e
+                    .getMessage());
+            throw new AuthenticatorException(e.getMessage(), e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
+        }
+        return avalability;
+    }
+
+    public static void saveUserConsentedAttributes(List<UserConsent> userConsent) throws NamingException,
+            AuthenticatorException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        String query = "INSERT INTO " + USER_CONSENT + "(consent_id,msisdn,expire_time,consent_status," +
+                "client_id,operator) " +
+                "VALUES (?,?,?,?,?,?);";
+
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(query);
+            for (UserConsent userConsentHistory1 : userConsent) {
+
+                preparedStatement.setInt(1, userConsentHistory1.getConsentId());
+                preparedStatement.setString(2, userConsentHistory1.getMsisdn());
+                preparedStatement.setString(3, userConsentHistory1.getConsentExpireTime());
+                preparedStatement.setBoolean(4, Boolean.parseBoolean(userConsentHistory1.getConsentStatus()));
+                preparedStatement.setString(5, userConsentHistory1.getClientId());
+                preparedStatement.setString(6, userConsentHistory1.getOperatorName());
+                preparedStatement.addBatch();
+            }
+
+            if (log.isDebugEnabled()) {
+                log.debug("Query in method saveUserConsentedAttributes:" + preparedStatement);
+            }
+
+            preparedStatement.executeBatch();
+
+        } catch (SQLException e) {
+            log.error("Exception occurred while inserting data to the database for history : " + userConsent
+                    .toString() + " :" + e.getMessage());
+            throw new AuthenticatorException(e.getMessage(), e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
+        }
     }
 
     /**
