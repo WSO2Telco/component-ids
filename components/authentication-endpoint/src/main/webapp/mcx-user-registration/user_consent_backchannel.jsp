@@ -78,7 +78,30 @@
 	    Logger log=Logger.getLogger(this.getClass().getName());
         String id = request.getParameter("id");
         Boolean isRegistering = Boolean.valueOf(request.getParameter("registering"));
+        String operator = "";
+        boolean isSessionExpired = DbUtil.getSessionStatus(id);
+        Map<String,String> scopeDescription = null;
+        String spLogo =null;
+        String spName = null;
+        boolean approve_all_enable = false;
 
+        if(!isSessionExpired){
+            scopeDescription= DbUtil.getScopeDescforSession(id);
+            if(scopeDescription.isEmpty()){
+                isSessionExpired = true;
+            }else{
+                isRegistering = Boolean.valueOf(scopeDescription.get("isNewUser"));
+                operator = scopeDescription.get("operator");
+                spName = scopeDescription.get("spName");
+                approve_all_enable = Boolean.valueOf(scopeDescription.get("approve_all_enable"));
+                scopeDescription.remove("isNewUser");
+                scopeDescription.remove("operator");
+                scopeDescription.remove("spName");
+                scopeDescription.remove("approve_all_enable");
+            }
+        }
+
+/*
         String sessionDataKey = DbUtil.getContextIDForHashKey(id);
 	    AuthenticationContextCacheKey cacheKey = new AuthenticationContextCacheKey(sessionDataKey);
 	    Object cacheEntryObj = AuthenticationContextCache.getInstance().getValueFromCache(cacheKey);
@@ -99,12 +122,15 @@
             spName = authnContext.getServiceProviderName();
             approve_all_enable=Boolean.valueOf(String.valueOf(authnContext.getProperty("approve_all_enable")));
             scopeDescription= (Map<String, String>)authnContext.getProperty("approve_needed_scopes");
+            isRegistering=Boolean.valueOf(String.valueOf(authnContext.getProperty("isRegistering")));
             if(authnContext.getProperty("logo")!=null){
                 spLogo = authnContext.getProperty("logo").toString();
             }
         } else {
             isSessionExpired = true;
         }
+*/
+
         String imgPath = null;
         String termsConditionsPath = null;
         if (operator!=null && !operator.isEmpty()) {
@@ -190,6 +216,7 @@
 
                 <form  action="user_consent_response_bc.do" method="GET" class="form-horizontal" id="userconsent"  data-parsley-validate>
                     <input type="hidden" name="id" value="<%=id%>"/>
+                    <input type="hidden" name="newUser" value="<%=isRegistering%>"/>
                     <%
                         if(isRegistering) {
                     %>

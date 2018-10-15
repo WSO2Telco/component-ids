@@ -171,9 +171,6 @@ public class ServerInitiatedUSSDAuthenticator extends AbstractApplicationAuthent
             // Change behaviour depending on user action
             switch (userAction) {
                 case Constants.USER_ACTION_USER_CANCELED:
-                    //User clicked cancel button from login
-                    terminateAuthentication(context);
-                    break;
                 case Constants.USER_ACTION_REG_REJECTED:
                     //User clicked cancel button from registration
                     terminateAuthentication(context);
@@ -204,11 +201,12 @@ public class ServerInitiatedUSSDAuthenticator extends AbstractApplicationAuthent
         if (isRegistering) {
             UserProfileManager userProfileManager = new UserProfileManager();
             try {
+                DBUtils.removeApprovedAPIsforNewUser(context.getProperty(Constants.MSISDN).toString());
                 userProfileManager.createUserProfileLoa2(msisdn,operator,isAttributeScope,spType,attrShareType,true);
             } catch (UserRegistrationAdminServiceIdentityException e) {
                 log.error("ERROR in Registering new User", e);
                 throw new AuthenticationFailedException(e.getMessage(), e);
-            } catch (RemoteException e) {
+            } catch (RemoteException | AuthenticatorException e) {
                 log.error("ERROR in Registering new User", e);
                 throw new AuthenticationFailedException(e.getMessage(), e);
             }
@@ -220,6 +218,8 @@ public class ServerInitiatedUSSDAuthenticator extends AbstractApplicationAuthent
             if (log.isDebugEnabled()) {
                 log.debug("responseStatus : " + responseStatus);
             }
+            if(context.getProperty(Constants.API_SCOPES) != null)
+                new UserProfileManager().updateMIGUserRoles(msisdn, context.getProperty(Constants.CLIENT_ID).toString(), context.getProperty(Constants.API_SCOPES).toString());
         } catch (IOException | AuthenticatorException e) {
             DataPublisherUtil
                     .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.USSD_AUTH_PROCESSING_FAIL,

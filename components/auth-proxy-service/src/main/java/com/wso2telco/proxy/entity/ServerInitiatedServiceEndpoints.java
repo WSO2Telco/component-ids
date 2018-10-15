@@ -211,6 +211,7 @@ public class ServerInitiatedServiceEndpoints {
                 backChannelRequestDetails.setRedirectUrl(redirectUrl);
                 backChannelRequestDetails.setScopes(scopeName);
                 backChannelRequestDetails.setOperator(operatorName);
+                backChannelRequestDetails.setNewUser(false);
 
                 DataBaseConnectUtils.addBackChannelRequestDetails(backChannelRequestDetails);
 

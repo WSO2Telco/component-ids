@@ -182,6 +182,11 @@
     </servlet>
 
     <servlet>
+        <servlet-name>sms_auth_bc</servlet-name>
+        <jsp-file>/mcx-user-registration/sms_auth_bc.jsp</jsp-file>
+    </servlet>
+
+    <servlet>
         <servlet-name>oauth2_error.do</servlet-name>
         <jsp-file>/oauth2_error.jsp</jsp-file>
     </servlet>
@@ -309,6 +314,11 @@
     <servlet-mapping>
         <servlet-name>sms_auth</servlet-name>
         <url-pattern>/sms/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>sms_auth_bc</servlet-name>
+        <url-pattern>/si/sms/*</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>

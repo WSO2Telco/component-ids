@@ -75,7 +75,8 @@ public abstract class AbstractAPIConsent {
                     context.setProperty(Constants.API_SCOPES, apiScopeList.toString());
 
                     if(context.getProperty(Constants.IS_BACKCHANNEL_ALLOWED) != null && (boolean) context.getProperty(Constants.IS_BACKCHANNEL_ALLOWED) && !approveNeededScopes.isEmpty()){
-                        DBUtils.updateScopesInBackChannel(context.getProperty(Constants.CORRELATION_ID).toString(),approveNeededScopeList.deleteCharAt(approveNeededScopeList.length() -1).toString());
+                        DBUtils.updateScopesInBackChannel(context.getProperty(Constants.CORRELATION_ID).toString(),approveNeededScopeList.deleteCharAt(approveNeededScopeList.length() -1).toString(),
+                                        context.getServiceProviderName(), enableapproveall);
                     }
                     String logoPath = DBUtils.getSPConfigValue(context.getProperty(Constants.OPERATOR).toString(), context.getProperty(Constants.CLIENT_ID).toString(), Constants.SP_LOGO);
                     if (logoPath != null && !logoPath.isEmpty()) {

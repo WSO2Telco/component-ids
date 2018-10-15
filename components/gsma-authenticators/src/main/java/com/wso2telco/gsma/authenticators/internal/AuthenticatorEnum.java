@@ -43,7 +43,8 @@ public class AuthenticatorEnum {
     public enum AttributeShareScopeTypes {
 
         VERIFICATION_SCOPE("ATT_VERIFICATION"),
-        PROVISIONING_SCOPE("ATT_SHARE");
+        PROVISIONING_SCOPE("ATT_SHARE"),
+        APICONSENT_SCOPE("APICONSENT");
 
         private final String attributeShareScopeType;
 

@@ -30,6 +30,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class DbUtil {
@@ -104,6 +106,98 @@ public class DbUtil {
             IdentityDatabaseUtil.closeAllConnections(connection, rs, ps);
         }
         return sessionDataKey;
+    }
+
+    public static Map<String, String> getScopeDescforSession (String hashKey) throws AuthenticatorException {
+        Map<String,String> scopeDescription= new HashMap<String,String>();
+        String scopes = null;
+        Boolean newUser = false;
+        String operator = null;
+        String spName = null;
+        Boolean enable_approve_all = false;
+        StringBuilder sql = new StringBuilder();
+        sql.append("select isNewUser, scopes, operator, spName, isLongLive from backchannel_request_details brd INNER JOIN sms_hashkey_contextid_mapping shcm ")
+           .append("on shcm.contextid = brd.session_id where hashkey=?");
+
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            connection = getConnectDBConnection();
+            ps = connection.prepareStatement(sql.toString());
+            ps.setString(1, hashKey);
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                scopes = rs.getString("scopes");
+                newUser = rs.getBoolean("isNewUser");
+                operator = rs.getString("operator");
+                spName = rs.getString("spName");
+                enable_approve_all = rs.getBoolean("isLongLive");
+            }
+            String[] scopeList = scopes.split(" ");
+            ps.close();
+            rs.close();
+            sql = new StringBuilder();
+            sql.append("select scope, description from scope_parameter where scope in (");
+            for (int i = 0; i < scopeList.length; i++){
+                sql.append("?,");
+            }
+            sql.deleteCharAt(sql.length()-1);
+            sql.append(");");
+            ps = connection.prepareStatement(sql.toString());
+            for (int i = 0; i < scopeList.length; i++){
+                ps.setString(i+1, scopeList[i]);
+            }
+            rs = ps.executeQuery();
+            while (rs.next()){
+                scopeDescription.put(rs.getString("scope"), rs.getString("description"));
+            }
+            scopeDescription.put("isNewUser", String.valueOf(newUser));
+            scopeDescription.put("operator", operator);
+            scopeDescription.put("spName", spName);
+            scopeDescription.put("approve_all_enable", String.valueOf(enable_approve_all));
+        } catch (SQLException e) {
+            handleException(e.getMessage(), e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, rs, ps);
+        }
+        return scopeDescription;
+    }
+
+    public static Boolean getSessionStatus(String sessionID) throws SQLException, AuthenticatorException {
+        Connection connection = null;
+        PreparedStatement ps = null;
+        String userStatus = null;
+        ResultSet rs = null;
+        Boolean status = false;
+
+        String sql = "select status from regstatus inner join sms_hashkey_contextid_mapping shcm " +
+                "on regstatus.uuid = shcm.contextid where shcm.hashkey=?";
+        try {
+            connection = getConnectDBConnection();
+
+            ps = connection.prepareStatement(sql);
+
+            ps.setString(1, sessionID);
+
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                userStatus = rs.getString("status");
+            }
+            if(userStatus.equalsIgnoreCase("PENDING")){
+                status = false;
+            }else{
+                status = true;
+            }
+        } catch (SQLException e) {
+            log.error("Error while retrieving user status", e);
+        } finally {
+            connection.close();
+            ps.close();
+            rs.close();
+        }
+        return status;
     }
 
     /**
