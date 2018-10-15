@@ -82,7 +82,12 @@ public class ServerInitiatedAPIConsentUssdCommand extends UssdCommand {
                                          String client_id) {
         MobileConnectConfig.USSDConfig ussdConfig = configurationService.getDataHolder().getMobileConnectConfig()
                 .getUssdConfig();
-        String ussdNotifyUrl = mobileConnectConfigs.getBackChannelConfig().getUssdApiNotifyUrl();
+        String ussdNotifyUrl;
+        if((boolean) context.getProperty(Constants.IS_REGISTERING)){
+            ussdNotifyUrl = mobileConnectConfigs.getBackChannelConfig().getUssdApiRegNotifyUrl();
+        }else {
+            ussdNotifyUrl = mobileConnectConfigs.getBackChannelConfig().getUssdApiNotifyUrl();
+        }
         StringBuilder apiScopes = new StringBuilder();
         StringBuilder inputs = new StringBuilder();
         Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);

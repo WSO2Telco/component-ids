@@ -295,6 +295,9 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
                 context.setProperty(Constants.IS_STATUS_TO_CHANGE, isConvertToActive);
                 context.setProperty(Constants.IS_REGISTERING, !isUserExists);
+                if(!isUserExists && isBackChannelAllowed){
+                    DBUtils.updateUserStatusInBackChannel(context.getContextIdentifier(), !isUserExists);
+                }
                 DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getProperty(
                         Constants.USER_STATUS_DATA_PUBLISHING_PARAM), msisdnStatus,
                         "MSISDN value set in LOACompositeAuthenticator",

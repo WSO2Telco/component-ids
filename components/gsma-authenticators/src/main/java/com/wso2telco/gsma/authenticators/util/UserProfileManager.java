@@ -130,7 +130,11 @@ public class UserProfileManager {
                                 .name()) && attrbShareType.equalsIgnoreCase(AuthenticatorEnum
                                 .AttributeShareScopeTypes.PROVISIONING_SCOPE.getAttributeShareScopeType())) {
                             userFieldDTOs[count].setFieldValue(STATUS_ACTIVE);
-                        } else if (isAttributeScope || isBackChannel) {
+                        }else if (!spType.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED
+                                .name()) && attrbShareType.equalsIgnoreCase(AuthenticatorEnum
+                                .AttributeShareScopeTypes.APICONSENT_SCOPE.getAttributeShareScopeType())) {
+                            userFieldDTOs[count].setFieldValue(STATUS_PARTIALLY_ACTIVE);
+                        }else if (isAttributeScope || isBackChannel) {
                             userFieldDTOs[count].setFieldValue(STATUS_PARTIALLY_ACTIVE);
                         } else
                             userFieldDTOs[count].setFieldValue(STATUS_ACTIVE);
@@ -524,6 +528,10 @@ public class UserProfileManager {
                     attrbShareType.equalsIgnoreCase(AuthenticatorEnum.AttributeShareScopeTypes.PROVISIONING_SCOPE
                             .getAttributeShareScopeType())) {
                 updateUserStatus(userStatus, userName, STATUS_ACTIVE);
+            } else if (!spType.equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED
+                    .name()) && attrbShareType.equalsIgnoreCase(AuthenticatorEnum
+                    .AttributeShareScopeTypes.APICONSENT_SCOPE.getAttributeShareScopeType())) {
+                updateUserStatus(userStatus, userName, STATUS_PARTIALLY_ACTIVE);
             } else if (isAttributeScope) {
                 updateUserStatus(userStatus, userName, STATUS_PARTIALLY_ACTIVE);
             } else {

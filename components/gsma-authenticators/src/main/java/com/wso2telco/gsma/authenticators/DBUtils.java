@@ -459,7 +459,7 @@ public class DBUtils {
         Connection connection = null;
 //        String sql = "insert into pendingussd (msisdn, requesttype) values (?,?)";
         String sql = "insert into pendingussd (msisdn, requesttype) values (?,?) ON DUPLICATE KEY UPDATE " +
-                "requesttype=VALUES(requesttype)";
+                "requesttype= VALUES(requesttype)";
         try {
             connection = getConnectDBConnection();
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -482,7 +482,7 @@ public class DBUtils {
 
         Connection connection = null;
         PreparedStatement ps = null;
-        String sql = "INSERT INTO `regstatus` (`uuid`,`username`, `status`) VALUES (?,?,?);";
+        String sql = "INSERT INTO regstatus (uuid,username, status) VALUES (?,?,?);";
         connection = getConnectDBConnection();
         ps = connection.prepareStatement(sql);
         ps.setString(1, uuid);
@@ -536,7 +536,7 @@ public class DBUtils {
         PreparedStatement ps;
 
         String sql =
-                "update `regstatus` set "
+                "update regstatus set "
                         + "status=? where "
                         + "username=?;";
 
@@ -559,7 +559,7 @@ public class DBUtils {
         Connection connection = null;
         PreparedStatement ps = null;
         String sql =
-                "update `authenticated_login` set "
+                "update authenticated_login set "
                         + "status=? where "
                         + "msisdn=?;";
 
@@ -608,7 +608,7 @@ public class DBUtils {
         Connection connection = null;
         PreparedStatement ps = null;
 
-        String sql = "update `multiplepasswords` set  attempts=? where  username=?;";
+        String sql = "update multiplepasswords set  attempts=? where  username=?;";
 
         connection = getConnectDBConnection();
 
@@ -1183,7 +1183,7 @@ public class DBUtils {
      * @param scopes     ID of the session
      * @param correlationId unique ID of the user
      */
-    public static void updateScopesInBackChannel(String correlationId, String scopes) throws
+    public static void updateScopesInBackChannel(String correlationId, String scopes, String spName, boolean isLongLive) throws
             AuthenticatorException {
 
         Connection connection = null;
@@ -1192,7 +1192,8 @@ public class DBUtils {
         String updateUserDetailsQuery = null;
 
         updateUserDetailsQuery =
-                "update backchannel_request_details set scopes=? where correlation_id=?;";
+                "update backchannel_request_details set scopes=?,"+
+                        " spName=?, isLongLive=? where correlation_id=?;";
 
         try {
             connection = getConnectDBConnection();
@@ -1203,6 +1204,47 @@ public class DBUtils {
 
             preparedStatement = connection.prepareStatement(updateUserDetailsQuery);
             preparedStatement.setString(1, scopes);
+            preparedStatement.setString(2, spName);
+            preparedStatement.setBoolean(3, isLongLive);
+            preparedStatement.setString(4, correlationId);
+            preparedStatement.executeUpdate();
+
+        } catch (SQLException e) {
+            handleException(
+                    "Error occurred while updating user details for : " + correlationId + "in " +
+                            "BackChannel Scenario.",
+                    e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
+        }
+    }
+
+    /**
+     * Update user details in Back Channeling Scenario : update Session ID
+     *
+     * @param isNewUser     ID of the session
+     * @param correlationId unique ID of the user
+     */
+    public static void updateUserStatusInBackChannel(String correlationId, boolean isNewUser) throws
+            AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        String updateUserDetailsQuery = null;
+
+        updateUserDetailsQuery =
+                "update backchannel_request_details set isNewUser=? where session_id=?;";
+
+        try {
+            connection = getConnectDBConnection();
+
+            if (log.isDebugEnabled()) {
+                log.debug("Executing the query " + updateUserDetailsQuery);
+            }
+
+            preparedStatement = connection.prepareStatement(updateUserDetailsQuery);
+            preparedStatement.setBoolean(1, isNewUser);
             preparedStatement.setString(2, correlationId);
             preparedStatement.executeUpdate();
 

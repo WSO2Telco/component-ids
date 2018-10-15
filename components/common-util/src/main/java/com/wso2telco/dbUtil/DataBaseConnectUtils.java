@@ -94,8 +94,8 @@ public class DataBaseConnectUtils {
 
         String addUserDetailsQuery =
                 "insert into backchannel_request_details(correlation_id,msisdn,notification_bearer_token," +
-                        "notification_url,request_initiated_time,client_id,redirect_url,scopes,operator) values(?," +
-                        "?,?,?,NOW(),?,?,?,?);";
+                        "notification_url,request_initiated_time,client_id,redirect_url,scopes,operator, isNewUser) values(?," +
+                        "?,?,?,NOW(),?,?,?,?,?);";
 
         try {
             connection = getConnectDBConnection();
@@ -113,7 +113,7 @@ public class DataBaseConnectUtils {
             preparedStatement.setString(6, backChannelUserDetails.getRedirectUrl());
             preparedStatement.setString(7,backChannelUserDetails.getScopes());
             preparedStatement.setString(8,backChannelUserDetails.getOperator());
-
+            preparedStatement.setBoolean(9,backChannelUserDetails.isNewUser());
             preparedStatement.execute();
 
         } catch (SQLException e) {
@@ -285,6 +285,9 @@ public class DataBaseConnectUtils {
                 backChannelRequestDetails.setRedirectUrl(resultSet.getString("redirect_url"));
                 backChannelRequestDetails.setScopes(resultSet.getString("scopes"));
                 backChannelRequestDetails.setOperator(resultSet.getString("operator"));
+                backChannelRequestDetails.setNewUser(resultSet.getBoolean("isNewUser"));
+                backChannelRequestDetails.setSpName(resultSet.getString("spName"));
+                backChannelRequestDetails.setLongLive(resultSet.getBoolean("isLongLive"));
             }
         } catch (SQLException e) {
             handleException(

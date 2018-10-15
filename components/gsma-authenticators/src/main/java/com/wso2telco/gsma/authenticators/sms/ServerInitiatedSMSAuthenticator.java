@@ -221,7 +221,7 @@ public class ServerInitiatedSMSAuthenticator extends AbstractApplicationAuthenti
                 BasicFutureCallback futureCallback =
                         userStatus != null ? new SMSFutureCallback(userStatus.cloneUserStatus(), "SMS") : new SMSFutureCallback();
                 smsMessage.setFutureCallback(futureCallback);
-                String smsResponse = new SendSMS()
+                String smsResponse = new ServerInitiatedSendSMS()
                         .sendSMS(smsMessage.getMsisdn(), smsMessage.getMessageText(), smsMessage.getOperator(),
                                 smsMessage.getFutureCallback());
             } catch (IOException e) {
@@ -397,13 +397,15 @@ public class ServerInitiatedSMSAuthenticator extends AbstractApplicationAuthenti
         String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
 
         if (isRegistering) {
+
             UserProfileManager userProfileManager = new UserProfileManager();
             try {
+                DBUtils.removeApprovedAPIsforNewUser(context.getProperty(Constants.MSISDN).toString());
                 userProfileManager.createUserProfileLoa2(msisdn,operator,isAttributeScope,spType,attrShareType,true);
             } catch (UserRegistrationAdminServiceIdentityException e) {
                 log.error("ERROR in Registering new User", e);
                 throw new AuthenticationFailedException(e.getMessage(), e);
-            } catch (RemoteException e) {
+            } catch (RemoteException | AuthenticatorException e) {
                 log.error("ERROR in Registering new User", e);
                 throw new AuthenticationFailedException(e.getMessage(), e);
             }

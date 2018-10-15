@@ -32,6 +32,9 @@ public class BackChannelRequestDetails {
     private String redirectUrl;
     private String scopes;
     private String operator;
+    private boolean isNewUser;
+    private String spName;
+    private boolean isLongLive;
 
     public String getSessionId() {
         return sessionId;
@@ -127,6 +130,30 @@ public class BackChannelRequestDetails {
 
     public void setOperator(String operator) {
         this.operator = operator;
+    }
+
+    public boolean isNewUser() {
+        return isNewUser;
+    }
+
+    public void setNewUser(boolean newUser) {
+        isNewUser = newUser;
+    }
+
+    public String getSpName() {
+        return spName;
+    }
+
+    public void setSpName(String spName) {
+        this.spName = spName;
+    }
+
+    public boolean isLongLive() {
+        return isLongLive;
+    }
+
+    public void setLongLive(boolean longLive) {
+        isLongLive = longLive;
     }
 }
 

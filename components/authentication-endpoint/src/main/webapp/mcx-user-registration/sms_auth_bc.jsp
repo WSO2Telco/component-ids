@@ -11,7 +11,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no">
 
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="stylesheet" href="mcx-user-registration/mcresources/css/style.css">
+    <link rel="stylesheet" href="../../css/style.css">
 
     <noscript>
         <!-- Fallback synchronous download, halt page rendering if load is slow  -->
@@ -23,34 +23,25 @@
             src="https://code.jquery.com/jquery-2.2.4.min.js"
             integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
             crossorigin="anonymous"></script>
-    <%
-            String action = request.getParameter("action");
-            String id = request.getParameter("id");
-            String endpoint = "/sessionupdater/tnspoints/endpoint/serverinitiated/api/sms/response/"+id;
-            boolean newUser = Boolean.valueOf(request.getParameter("newUser"));
-    %>
     <script type="application/javascript">
         $(document).ready(function() {
 
+            var sessionID = getIdParameter();
             getUserChallanges();
             var finalResult;
 
             function getUserChallanges() {
 
-                var url = "<%=endpoint%>";
+                var url = "/sessionupdater/tnspoints/endpoint/serverinitiated/sms/response/" + encodeURIComponent(sessionID);
 
                 $.ajax({
                     type: "GET",
                     url: url,
-                    data: {"id": "<%=id%>", "action": "<%=action%>", "newUser":"<%=newUser%>"},
                     success: function (result) {
                         var json = JSON.parse(result);
                         finalResult = json.status;
 
-                        if (finalResult == "REJECTED") {
-                            $('#failedImage').show();
-                            $('#rejectedText').show();
-                        } else if(finalResult != "APPROVED"){
+                        if (finalResult != "APPROVED") {
                             $('#failedImage').show();
                             $('#failedText').show();
                         } else {
@@ -61,8 +52,30 @@
                 });
             }
 
+            function getUrlParameter(sParam) {
+                var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+                        sURLVariables = sPageURL.split('&'),
+                        sParameterName,
+                        i;
 
+                for (i = 0; i < sURLVariables.length; i++) {
+                    sParameterName = sURLVariables[i].split('=');
 
+                    if (sParameterName[0] === sParam) {
+                        return sParameterName[1] === undefined ? true : sParameterName[1];
+                    }
+                }
+            }
+
+            function getIdParameter() {
+                var sPageURL = window.location.href,
+                    sURLVariables = sPageURL.split('/'),
+                    lengthOfSlash = sURLVariables.length;
+
+                    if(lengthOfSlash != 0){
+                        return sURLVariables[sURLVariables.length -1];
+                    }
+            }
         });
     </script>
     <!-- Adds IE root class without breaking doctype -->
@@ -76,7 +89,7 @@
     <header class="site-header">
         <div class="site-header__inner site__wrap">
             <h1 class="visuallyhidden">Mobile&nbsp;Connect</h1>
-            <a href="#"><img src="mcx-user-registration/mcresources/img/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150"
+            <a href="#"><img src="../../images/svg/mobile-connect.svg" alt="Mobile Connect&nbsp;Logo" width="150"
                              class="site-header__logo"></a>
 
 
@@ -94,17 +107,14 @@
             <p id="successText" style="display: none">
                <fmt:message key='sms-label-authenticator-success'/>
             </p>
-            <p id="rejectedText" style="display:none">
-               <fmt:message key='sms-label-authenticator-rejected'/>
-            </p>
         </header>
 
         <div class="page__illustration v-grow v-align-content">
             <div id="successImage" style="display: none">
-                <img src="mcx-user-registration/mcresources/img/svg/successful-action.svg" alt="Reset successful" width="126" height="126">
+                <img src="../../images/svg/successful-action.svg" alt="Reset successful" width="126" height="126">
             </div>
             <div id="failedImage" style="display: none">
-                <img src="mcx-user-registration/mcresources/img/svg/failed.svg" alt="Reset successful" width="126" height="126">
+                <img src="../../images/svg/failed.svg" alt="Reset successful" width="126" height="126">
             </div>
         </div>
     </main>

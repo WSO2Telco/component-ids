@@ -4,10 +4,7 @@ import com.wso2telco.Util;
 import com.wso2telco.core.config.model.MobileConnectConfig;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
-import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
-import com.wso2telco.gsma.authenticators.Constants;
-import com.wso2telco.gsma.authenticators.DBUtils;
-import com.wso2telco.gsma.authenticators.Utility;
+import com.wso2telco.gsma.authenticators.*;
 import com.wso2telco.gsma.authenticators.cryptosystem.AESencrp;
 import com.wso2telco.gsma.authenticators.model.SMSMessage;
 import com.wso2telco.gsma.authenticators.util.*;
@@ -127,11 +124,12 @@ public class ServerInitiatedSMSOTPAuthenticator extends AbstractApplicationAuthe
         if (isRegistering) {
             UserProfileManager userProfileManager = new UserProfileManager();
             try {
+                DBUtils.removeApprovedAPIsforNewUser(context.getProperty(Constants.MSISDN).toString());
                 userProfileManager.createUserProfileLoa2(msisdn,operator,isAttributeScope,spType,attrShareType,true);
             } catch (UserRegistrationAdminServiceIdentityException e) {
                 log.error("ERROR in Registering new User", e);
                 throw new AuthenticationFailedException(e.getMessage(), e);
-            } catch (RemoteException e) {
+            } catch (RemoteException | AuthenticatorException e) {
                 log.error("ERROR in Registering new User", e);
                 throw new AuthenticationFailedException(e.getMessage(), e);
             }
@@ -195,7 +193,7 @@ public class ServerInitiatedSMSOTPAuthenticator extends AbstractApplicationAuthe
                 BasicFutureCallback futureCallback = userStatus != null ? new SMSFutureCallback(
                         userStatus.cloneUserStatus(), "SMSOTP") : new SMSFutureCallback();
                 smsMessage.setFutureCallback(futureCallback);
-                String smsResponse = new SendSMS().sendSMS(smsMessage.getMsisdn(), smsMessage.getMessageText(),smsMessage.getOperator(), smsMessage.getFutureCallback());
+                String smsResponse = new ServerInitiatedSendSMS().sendSMS(smsMessage.getMsisdn(), smsMessage.getMessageText(),smsMessage.getOperator(), smsMessage.getFutureCallback());
             } catch (Exception ex) {
                 DataPublisherUtil.updateAndPublishUserStatus(userStatus,
                         DataPublisherUtil.UserState.SMS_AUTH_PROCESSING_FAIL, ex.getMessage());
