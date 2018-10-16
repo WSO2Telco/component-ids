@@ -188,7 +188,9 @@ public class DbUtil {
         ps = connection.prepareStatement(sql);
         ps.setString(1, status);
         ps.setString(2, uuid);
-        log.info(ps.toString());
+        if (log.isDebugEnabled()) {
+            log.debug(ps.toString());
+        }
         ps.execute();
 
         if (connection != null) {
