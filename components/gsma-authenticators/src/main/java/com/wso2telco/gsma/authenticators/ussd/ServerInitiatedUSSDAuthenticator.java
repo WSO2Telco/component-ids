@@ -25,6 +25,7 @@ import com.wso2telco.gsma.authenticators.BaseApplicationAuthenticator;
 import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.apiconsent.AbstractAPIConsent;
+import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;
 import com.wso2telco.gsma.authenticators.ussd.command.*;
 import com.wso2telco.gsma.authenticators.util.AuthenticationContextHelper;
 import com.wso2telco.gsma.authenticators.util.FrameworkServiceDataHolder;
@@ -103,7 +104,6 @@ public class ServerInitiatedUSSDAuthenticator extends AbstractApplicationAuthent
         UssdCommand ussdCommand;
 
         if((boolean)context.getProperty(Constants.IS_API_CONSENT)){
-            AbstractAPIConsent.setApproveNeededScope(context);
             Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
             if(!approveNeededScopes.isEmpty()){
                 ussdCommand = new ServerInitiatedAPIConsentUssdCommand(context);
@@ -213,14 +213,21 @@ public class ServerInitiatedUSSDAuthenticator extends AbstractApplicationAuthent
         }
 
         try {
-            sendUssd(context, msisdn, serviceProviderName, operator, isUserExists);
+            Map<String, String> approveNeededScopes = (Map<String, String>)context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
+            if((AuthenticatorEnum.TrustedStatus.UNTRUSTED.name().equalsIgnoreCase
+                    (context.getProperty(Constants.TRUSTED_STATUS).toString())) || (AuthenticatorEnum.TrustedStatus.TRUSTED.name().equalsIgnoreCase
+                    (context.getProperty(Constants.TRUSTED_STATUS).toString()) && approveNeededScopes != null && !approveNeededScopes.isEmpty())) {
+                sendUssd(context, msisdn, serviceProviderName, operator, isUserExists);
+            }else{
+                DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
+            }
             String responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
             if (log.isDebugEnabled()) {
                 log.debug("responseStatus : " + responseStatus);
             }
             if(context.getProperty(Constants.API_SCOPES) != null)
                 new UserProfileManager().updateMIGUserRoles(msisdn, context.getProperty(Constants.CLIENT_ID).toString(), context.getProperty(Constants.API_SCOPES).toString());
-        } catch (IOException | AuthenticatorException e) {
+        } catch (IOException | AuthenticatorException | SQLException e) {
             DataPublisherUtil
                     .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.USSD_AUTH_PROCESSING_FAIL,
                             e.getMessage());

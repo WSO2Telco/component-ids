@@ -27,6 +27,7 @@ import com.wso2telco.gsma.authenticators.Constants;
 import com.wso2telco.gsma.authenticators.DBUtils;
 import com.wso2telco.gsma.authenticators.apiconsent.AbstractAPIConsent;
 import com.wso2telco.gsma.authenticators.cryptosystem.AESencrp;
+import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;
 import com.wso2telco.gsma.authenticators.model.SMSMessage;
 import com.wso2telco.gsma.authenticators.util.*;
 import com.wso2telco.gsma.shorten.SelectShortUrl;
@@ -50,6 +51,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.rmi.RemoteException;
+import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -301,7 +303,6 @@ public class ServerInitiatedSMSAuthenticator extends AbstractApplicationAuthenti
             boolean isApiConsent = false;
             if (Boolean.TRUE.toString().equals(context.getProperty(Constants.IS_API_CONSENT).toString())) {
 
-                AbstractAPIConsent.setApproveNeededScope(context);
                 if (Boolean.TRUE.toString().equals(context.getProperty(Constants.ALREADY_APPROVED).toString())) {
                     log.info("All scopes are already approved. Skipping the consent page");
                 } else {
@@ -418,8 +419,22 @@ public class ServerInitiatedSMSAuthenticator extends AbstractApplicationAuthenti
         }
 
         try {
-            sendSMS(response, context);
+            Map<String, String> approveNeededScopes = (Map<String, String>)context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
+            if((AuthenticatorEnum.TrustedStatus.UNTRUSTED.name().equalsIgnoreCase
+                    (context.getProperty(Constants.TRUSTED_STATUS).toString())) || (AuthenticatorEnum.TrustedStatus.TRUSTED.name().equalsIgnoreCase
+                    (context.getProperty(Constants.TRUSTED_STATUS).toString()) && approveNeededScopes != null && !approveNeededScopes.isEmpty())) {
+                sendSMS(response, context);
+            } else{
+                DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
+            }
         } catch (LogoutFailedException e) {
+            log.error("Logout Fail error ", e);
+            throw new AuthenticationFailedException(e.getMessage(), e);
+        } catch (AuthenticatorException e) {
+            log.error("Authentication error ", e);
+            throw new AuthenticationFailedException(e.getMessage(), e);
+        } catch (SQLException e) {
+            log.error("SQL error ", e);
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
 

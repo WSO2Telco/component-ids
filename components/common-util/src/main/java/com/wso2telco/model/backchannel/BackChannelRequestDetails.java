@@ -35,6 +35,7 @@ public class BackChannelRequestDetails {
     private boolean isNewUser;
     private String spName;
     private boolean isLongLive;
+    private boolean isFullyTrusted;
 
     public String getSessionId() {
         return sessionId;
@@ -154,6 +155,14 @@ public class BackChannelRequestDetails {
 
     public void setLongLive(boolean longLive) {
         isLongLive = longLive;
+    }
+
+    public boolean isFullyTrusted() {
+        return isFullyTrusted;
+    }
+
+    public void setFullyTrusted(boolean fullyTrusted) {
+        isFullyTrusted = fullyTrusted;
     }
 }
 

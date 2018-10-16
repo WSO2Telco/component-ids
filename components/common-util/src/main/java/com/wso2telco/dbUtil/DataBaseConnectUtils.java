@@ -288,6 +288,7 @@ public class DataBaseConnectUtils {
                 backChannelRequestDetails.setNewUser(resultSet.getBoolean("isNewUser"));
                 backChannelRequestDetails.setSpName(resultSet.getString("spName"));
                 backChannelRequestDetails.setLongLive(resultSet.getBoolean("isLongLive"));
+                backChannelRequestDetails.setFullyTrusted(resultSet.getBoolean("isFullyTrusted"));
             }
         } catch (SQLException e) {
             handleException(
@@ -333,13 +334,21 @@ public class DataBaseConnectUtils {
 
             if (resultSet.next()) {
                 backchannelRequestDetails = new BackChannelRequestDetails();
-                backchannelRequestDetails.setSessionId(resultSet.getString("session_id"));
-                backchannelRequestDetails.setAuthCode(resultSet.getString("auth_code"));
                 backchannelRequestDetails.setCorrelationId(resultSet.getString("correlation_id"));
-                backchannelRequestDetails.setMsisdn(resultSet.getString("msisdn"));
-                backchannelRequestDetails.setNotificationBearerToken(resultSet.getString("notification_bearer_token"));
+                backchannelRequestDetails.setSessionId(resultSet.getString("session_id"));
                 backchannelRequestDetails.setNotificationUrl(resultSet.getString("notification_url"));
+                backchannelRequestDetails.setNotificationBearerToken(resultSet.getString("notification_bearer_token"));
+                backchannelRequestDetails.setAuthCode(resultSet.getString("auth_code"));
+                backchannelRequestDetails.setMsisdn(resultSet.getString("msisdn"));
+                backchannelRequestDetails.setRequestIniticatedTime(resultSet.getString("request_initiated_time"));
                 backchannelRequestDetails.setClientId(resultSet.getString("client_id"));
+                backchannelRequestDetails.setRedirectUrl(resultSet.getString("redirect_url"));
+                backchannelRequestDetails.setScopes(resultSet.getString("scopes"));
+                backchannelRequestDetails.setOperator(resultSet.getString("operator"));
+                backchannelRequestDetails.setNewUser(resultSet.getBoolean("isNewUser"));
+                backchannelRequestDetails.setSpName(resultSet.getString("spName"));
+                backchannelRequestDetails.setLongLive(resultSet.getBoolean("isLongLive"));
+                backchannelRequestDetails.setFullyTrusted(resultSet.getBoolean("isFullyTrusted"));
             }
         } catch (SQLException e) {
             handleException(
@@ -510,6 +519,50 @@ public class DataBaseConnectUtils {
         return isBackChannelAllowed;
     }
 
+    /**
+     * Check the scope is backChannel allowed
+     *
+     * @param correlation_id correlation id
+     * @return allowed or not allowed
+     * @throws ConfigurationException on errors
+     */
+    public static boolean isBackChannelFullyTrusted(String correlation_id) throws
+            ConfigurationException, CommonAuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        boolean isFullyTrustedSP = false;
+
+        String sql = "SELECT isFullyTrusted FROM backchannel_request_details WHERE correlation_id=?";
+
+        if (log.isDebugEnabled()) {
+            log.debug("Executing the query to check the scope is backChannel allowed: " + sql);
+        }
+
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, correlation_id);
+
+            resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+                isFullyTrustedSP = resultSet.getBoolean("isFullyTrusted");
+            }
+
+        } catch (SQLException e) {
+            handleException(
+                    "Error occurred while checking the trusted status of backchennel request",
+                    e);
+        } catch (NamingException e) {
+            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+        } finally {
+            closeAllConnections(preparedStatement, connection, resultSet);
+        }
+        return isFullyTrustedSP;
+
+    }
     private static void closeAllConnections(PreparedStatement preparedStatement,
                                             Connection connection, ResultSet resultSet) {
         closeResultSet(resultSet);

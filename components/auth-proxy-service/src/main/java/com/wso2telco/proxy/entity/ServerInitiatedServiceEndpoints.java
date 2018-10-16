@@ -109,6 +109,7 @@ public class ServerInitiatedServiceEndpoints {
         String redirectUrl;
         BackChannelOauthResponse backChannelOauthResponse = new BackChannelOauthResponse();
         String authorizeEndpointUrl = mobileConnectConfigs.getBackChannelConfig().getAuthorizeEndpoint();
+        String trustedEndpointUrl = mobileConnectConfigs.getBackChannelConfig().getTrustedNotifyUrl();
         String backChanelAcrValue = "11";
 
         try {
@@ -253,6 +254,19 @@ public class ServerInitiatedServiceEndpoints {
                     backChannelOauthResponse.setCorrelationId(correlationId);
                     backChannelOauthResponse.setAuthReqId(code);
                     DataBaseConnectUtils.updateCodeInBackChannel(correlationId, code);
+                    if(DataBaseConnectUtils.isBackChannelFullyTrusted(correlationId)){
+                        codeUrlBuilder = new StringBuilder();
+                        codeUrlBuilder.append(trustedEndpointUrl).append("/")
+                                .append(correlationId);
+                        if(getTokenCall(codeUrlBuilder.toString())){
+                            return Response.status(Response.Status.OK.getStatusCode()).entity(new Gson().toJson
+                                    (backChannelOauthResponse))
+                                    .build();
+                        }else{
+                            return Response.status(Response.Status.BAD_REQUEST.getStatusCode()).entity(new Gson().toJson
+                                    (backChannelOauthResponse)).build();
+                        }
+                    }
                     return Response.status(Response.Status.OK.getStatusCode()).entity(new Gson().toJson
                             (backChannelOauthResponse))
                             .build();
@@ -342,6 +356,28 @@ public class ServerInitiatedServiceEndpoints {
             }
         }
         return null;
+    }
+
+    private boolean getTokenCall(String url) {
+        String code = null;
+        HttpClient httpClient = new DefaultHttpClient();
+        HttpGet httpGet = new HttpGet(url.replace(" ", "%20"));
+
+        HttpParams params = new BasicHttpParams();
+        params.setParameter("http.protocol.handle-redirects", false);
+        httpGet.setParams(params);
+
+        HttpResponse httpResponse = null;
+        try {
+            httpResponse = httpClient.execute(httpGet);
+        } catch (IOException e) {
+            log.info("Error while handling httpClient redirection. ", e);
+            return false;
+        }
+        if (httpResponse.getStatusLine().getStatusCode() == 200) {
+            return true;
+        }
+        return false;
     }
 
     private String getParamValueFromURL(String requiredParamName, String url) throws URISyntaxException {
