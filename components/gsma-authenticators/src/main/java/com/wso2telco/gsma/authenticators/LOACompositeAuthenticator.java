@@ -370,8 +370,26 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
 
         while (true) {
-            List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList =
-                    mifeAuthentication.getAuthenticatorList();
+            List<MIFEAuthentication.MIFEAbstractAuthenticator> authenticatorList = new ArrayList<MIFEAuthentication.MIFEAbstractAuthenticator>();
+            if(!isAuthenticatorSelectionEnabledForSP && !isAuthenticatorSelectionEnabledForMNO){
+                authenticatorList = mifeAuthentication.getAuthenticatorList();
+            }else if(isAuthenticatorSelectionEnabledForSP){
+                for(String authenticatorName : authenticatorsAllowedForSP){
+                    MIFEAuthentication.MIFEAbstractAuthenticator authenticator = new MIFEAuthentication.MIFEAbstractAuthenticator();
+                    authenticator.setAuthenticator(authenticatorName);
+                    authenticator.setOnFailAction(Constants.BREAK.toLowerCase());
+                    authenticator.setSupportFlow(Constants.ANY);
+                    authenticatorList.add(authenticator);
+                }
+            }else{
+                for(String authenticatorName : authenticatorsAllowedForMNO){
+                    MIFEAuthentication.MIFEAbstractAuthenticator authenticator = new MIFEAuthentication.MIFEAbstractAuthenticator();
+                    authenticator.setAuthenticator(authenticatorName);
+                    authenticator.setOnFailAction(Constants.BREAK.toLowerCase());
+                    authenticator.setSupportFlow(Constants.ANY);
+                    authenticatorList.add(authenticator);
+                }
+            }
             String fallBack = mifeAuthentication.getLevelToFail();
 
             for (MIFEAuthentication.MIFEAbstractAuthenticator authenticator : authenticatorList) {
@@ -380,7 +398,7 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
                         authenticatorsAllowedForSP, authenticator)) {
                     String onFailAction = authenticator.getOnFailAction();
                     String supportiveFlow = authenticator.getSupportFlow();
-                    if (supportiveFlow.equals("any") || supportiveFlow.equals(flowType)) {
+                    if (supportiveFlow.equals(Constants.ANY) || supportiveFlow.equals(flowType)) {
                         StepConfig stepConfig = new StepConfig();
                         stepConfig.setOrder(stepOrder);
                         if (stepOrder == 2) {
