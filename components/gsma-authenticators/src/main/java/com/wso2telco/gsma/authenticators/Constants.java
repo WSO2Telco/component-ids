@@ -531,4 +531,6 @@ public final class Constants {
     public static final String DENIED_SCOPE = "denied_scope";
 
     public static final String USER_ACTION = "user_action";
+
+    public static final String ANY = "any";
 }
