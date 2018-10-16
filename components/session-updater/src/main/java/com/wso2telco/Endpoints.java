@@ -1257,6 +1257,143 @@ public class Endpoints {
 
     }
 
+    @GET
+    @Path("/serverinitiated/token/{id}")
+    @Produces("text/plain")
+    public Response serverInitiatedTokenCall(@PathParam("id") String corelation_id)
+            throws SQLException, CommonAuthenticatorException, ConfigurationException, IOException, UserStoreException {
+        String responseString;
+        Response.Status responseStatus;
+        AuthenticationContext authenticationContext = getAuthenticationContext(corelation_id);
+        setStateFromAuthenticationContext(authenticationContext);
+        String spTokenEndpoint = "";
+        String spBearerToken = "";
+        BackChannelTokenResponse backChannelTokenResponse = null;
+        String status = null;
+        BackChannelRequestDetails backChannelRequestDetails = new BackChannelRequestDetails();
+
+        String originalCorrelationId = corelation_id;
+        log.debug("Requested session Id: " + originalCorrelationId);
+
+        log.info("Processing sms confirmation");
+
+        if (log.isDebugEnabled()) {
+            log.debug("Context Identifier: " + corelation_id);
+        }
+
+        backChannelRequestDetails = DataBaseConnectUtils.getRequestDetailsById(corelation_id);
+        String userStatus = DatabaseUtils.getUSerStatus(backChannelRequestDetails.getSessionId());
+        DataPublisherUtil.UserState userState = DataPublisherUtil.UserState.SMS_URL_AUTH_FAIL;
+
+        if (backChannelRequestDetails != null) {
+            spTokenEndpoint = backChannelRequestDetails.getNotificationUrl();
+            spBearerToken = backChannelRequestDetails.getNotificationBearerToken();
+        } else {
+            log.error("Invalid session:" + originalCorrelationId);
+            return Response.status(500).entity("Invalid session:" + originalCorrelationId).build();
+        }
+
+        if (userStatus.equalsIgnoreCase("PENDING")) {
+            DatabaseUtils.updateStatus(corelation_id, "APPROVED");
+            status = "APPROVED";
+
+            if (backChannelRequestDetails != null) {
+                try {
+                    String clientSecret = DbUtil.getClientSecret(backChannelRequestDetails.getClientId());
+
+                    List<NameValuePair> tokenRelatedNameValues = new ArrayList<NameValuePair>();
+                    tokenRelatedNameValues.add(new BasicNameValuePair("grant_type", "authorization_code"));
+                    tokenRelatedNameValues.add(new BasicNameValuePair("code", backChannelRequestDetails.getAuthCode()));
+                    tokenRelatedNameValues.add(new BasicNameValuePair("redirect_uri", backChannelRequestDetails
+                            .getRedirectUrl()));
+
+                    backChannelTokenResponse = getAccessTokenDetails(backChannelRequestDetails.getCorrelationId(),
+                            tokenRelatedNameValues, backChannelRequestDetails.getClientId(), clientSecret);
+                    backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                    backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
+
+                } catch (ConfigurationException | AuthenticatorException | CommonAuthenticatorException e) {
+                    backChannelTokenResponse = new BackChannelTokenResponse();
+                    log.error("Error while generating token for Session Id:" + corelation_id);
+                    if(backChannelRequestDetails.isNewUser()){
+                        AdminServiceUtil.deleteExistingUser(backChannelRequestDetails.getMsisdn());
+                    }
+                    backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+                    backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
+                    backChannelTokenResponse.setError("Internal Server Error");
+                    backChannelTokenResponse.setErrorDescription("An error occurred while generating Token Response");
+
+                    /*responseString = Response.status(500).entity(new Gson().toJson(new
+                            BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+
+                    responseString = new Gson().toJson(new
+                            BackChannelTokenResponse(status, backChannelTokenResponse));
+                    responseStatus = Response.Status.INTERNAL_SERVER_ERROR;
+
+                    if (log.isDebugEnabled()) {
+                        log.debug("ussdSessionID: " + corelation_id + ", Response String: " + responseString + ", Response Status: " + responseStatus);
+                    }
+
+                    postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
+                }
+
+
+            }
+           /* responseString = Response.status(Response.Status.OK).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+            responseStatus = Response.Status.OK;
+
+        } else if (userStatus.equalsIgnoreCase("EXPIRED")) {
+            status = "EXPIRED";
+            if(backChannelRequestDetails.isNewUser()){
+                AdminServiceUtil.deleteExistingUser(backChannelRequestDetails.getMsisdn());
+            }
+            backChannelTokenResponse = new BackChannelTokenResponse();
+            backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+            backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
+            backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+            backChannelTokenResponse.setErrorDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
+            backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+
+           /* responseString = Response.status(Response.Status.BAD_REQUEST).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+            responseStatus = Response.Status.BAD_REQUEST;
+        } else {
+            status = "EXPIRED";
+            if(backChannelRequestDetails.isNewUser()){
+                AdminServiceUtil.deleteExistingUser(backChannelRequestDetails.getMsisdn());
+            }
+            backChannelTokenResponse = new BackChannelTokenResponse();
+            backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+            backChannelTokenResponse.setAuthReqId(backChannelRequestDetails.getAuthCode());
+            backChannelTokenResponse.setError(Response.Status.BAD_REQUEST.getReasonPhrase());
+            backChannelTokenResponse.setErrorDescription(Response.Status.BAD_REQUEST.getReasonPhrase());
+            backChannelTokenResponse.setCorrelationId(backChannelRequestDetails.getCorrelationId());
+
+            /*responseString = Response.status(Response.Status.BAD_REQUEST).entity(new Gson().toJson(new
+                    BackChannelTokenResponse(status, backChannelTokenResponse))).build().toString();*/
+            responseStatus = Response.Status.BAD_REQUEST;
+        }
+
+
+        responseString = new Gson().toJson(new
+                BackChannelTokenResponse(status, backChannelTokenResponse));
+
+        if (log.isDebugEnabled()) {
+            log.debug("ussdSessionID: " + corelation_id + ", Response String: " + responseString + ", Response Status: " + responseStatus);
+        }
+
+        postTokenRequest(spTokenEndpoint, responseString, spBearerToken);
+        if(responseStatus.equals(Response.Status.OK)) {
+            responseString = "{" + "\"status\":\"" + status + "\","
+                    + "\"text\":\"" + "Successfully Authenticated the User" + "\"" + "}";
+        }else{
+            responseString = "{" + "\"status\":\"" + status + "\","
+                    + "\"text\":\"" + "Authentication Failed for the User" + "\"" + "}";
+        }
+        return Response.status(200).entity(responseString).build();
+    }
+
     public BackChannelTokenResponse getAccessTokenDetails(String correlationId, List<NameValuePair>
             tokenRelatedNameValues, String
                                                                   consumerKey, String consumerSecret) throws

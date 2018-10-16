@@ -1257,5 +1257,46 @@ public class DBUtils {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
     }
+
+    /**
+     * Update user details in Back Channeling Scenario : update Session ID
+     *
+     * @param isNewUser     ID of the session
+     * @param correlationId unique ID of the user
+     * @param trustedStatus trusted status for sp
+     */
+    public static void updateUserStatusInBackChannel(String correlationId, boolean isNewUser, boolean trustedStatus) throws
+            AuthenticatorException {
+
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        String updateUserDetailsQuery = null;
+
+        updateUserDetailsQuery =
+                "update backchannel_request_details set isNewUser=?,isFullyTrusted=? where session_id=?;";
+
+        try {
+            connection = getConnectDBConnection();
+
+            if (log.isDebugEnabled()) {
+                log.debug("Executing the query " + updateUserDetailsQuery);
+            }
+
+            preparedStatement = connection.prepareStatement(updateUserDetailsQuery);
+            preparedStatement.setBoolean(1, isNewUser);
+            preparedStatement.setBoolean(2,trustedStatus);
+            preparedStatement.setString(3, correlationId);
+            preparedStatement.executeUpdate();
+
+        } catch (SQLException e) {
+            handleException(
+                    "Error occurred while updating user details for : " + correlationId + "in " +
+                            "BackChannel Scenario.",
+                    e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
+        }
+    }
 }
 

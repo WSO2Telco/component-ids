@@ -21,6 +21,9 @@ import com.wso2telco.core.config.MIFEAuthentication;
 import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
+import com.wso2telco.gsma.authenticators.apiconsent.AbstractAPIConsent;
+import com.wso2telco.gsma.authenticators.attributeshare.TrustedSp;
+import com.wso2telco.gsma.authenticators.internal.AuthenticatorEnum;
 import com.wso2telco.gsma.authenticators.model.PromptData;
 import com.wso2telco.gsma.authenticators.util.AdminServiceUtil;
 import com.wso2telco.gsma.authenticators.util.DecryptionAES;
@@ -295,8 +298,17 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
 
                 context.setProperty(Constants.IS_STATUS_TO_CHANGE, isConvertToActive);
                 context.setProperty(Constants.IS_REGISTERING, !isUserExists);
-                if(!isUserExists && isBackChannelAllowed){
-                    DBUtils.updateUserStatusInBackChannel(context.getContextIdentifier(), !isUserExists);
+                if(isBackChannelAllowed){
+                    if(isAPIConsent)
+                        AbstractAPIConsent.setApproveNeededScope(context);
+                    approveNeededScopes = (Map<String, String>)context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
+                    if(trustedStatus!= null)
+                        DBUtils.updateUserStatusInBackChannel(context.getContextIdentifier(), !isUserExists,!((AuthenticatorEnum.TrustedStatus.UNTRUSTED.name().equalsIgnoreCase
+                                (context.getProperty(Constants.TRUSTED_STATUS).toString())) || (AuthenticatorEnum.TrustedStatus.TRUSTED.name().equalsIgnoreCase
+                                (context.getProperty(Constants.TRUSTED_STATUS).toString()) && approveNeededScopes != null && !approveNeededScopes.isEmpty())));
+                    else if (!isUserExists)
+                        DBUtils.updateUserStatusInBackChannel(context.getContextIdentifier(), !isUserExists);
+
                 }
                 DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getProperty(
                         Constants.USER_STATUS_DATA_PUBLISHING_PARAM), msisdnStatus,
