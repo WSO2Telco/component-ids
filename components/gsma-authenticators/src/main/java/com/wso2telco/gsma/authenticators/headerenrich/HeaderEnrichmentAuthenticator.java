@@ -160,6 +160,9 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                 String msisdn = context.getProperty(Constants.MSISDN).toString();
                 Map<String, String> attributeSet;
                 boolean isDisplayScopes;
+                UserStatus userStatus = (UserStatus) context.getParameter(Constants.USER_STATUS_DATA_PUBLISHING_PARAM);
+
+                validateOperator(request, context, msisdn, context.getProperty(Constants.OPERATOR).toString(), userStatus);
 
                 if (!isRegistering && isAttribute && Constants.NO.equalsIgnoreCase(context.getProperty(Constants
                         .IS_CONSENTED).toString()) && StringUtils.isNotEmpty(msisdn)) {
@@ -508,8 +511,6 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
             boolean isShowConcent = (boolean) context.getProperty(Constants.IS_SHOW_CONSENT);
 
-            validateOperator(request, context, msisdn, operator, userStatus);
-
             if (requestedLoa == 3) {
                 // if acr is 3, pass the user to next authenticator
             }
@@ -623,6 +624,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
         if (ipValidation && !validOperator) {
             log.info("Header Enrichment Authentication failed");
             context.setProperty("faileduser", msisdn);
+            actionBasedOnHEFailureResult(context);
             DataPublisherUtil
                     .updateAndPublishUserStatus(userStatus, DataPublisherUtil.UserState.IP_HEADER_NOT_IN_RANGE,
                             "IP address not in range");

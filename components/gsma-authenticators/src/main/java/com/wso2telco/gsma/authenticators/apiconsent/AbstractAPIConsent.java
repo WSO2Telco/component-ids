@@ -57,7 +57,7 @@ public abstract class AbstractAPIConsent {
                             if (consent[0].equalsIgnoreCase(ValidityType.TRANSACTIONAL.name())) {
                                 enableapproveall = false;
                             }
-                        }else if (consent != null && consent.length == 2 && !consent[0].isEmpty() && consent[0].equalsIgnoreCase(ValidityType.DENY.name())){
+                        }else if (consent != null && consent.length == 3 && !consent[0].isEmpty() && consent[0].equalsIgnoreCase(ValidityType.DENY.name())){
                             context.setProperty(Constants.DENIED_SCOPE, true);
                             log.error("Authenticator failed- Denied scopes are found");
                             throw new AuthenticationFailedException("Authenticator failed- Denied scopes are found");
