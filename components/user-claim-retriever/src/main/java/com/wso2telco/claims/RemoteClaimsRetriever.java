@@ -35,7 +35,7 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
 
     private static Log log = LogFactory.getLog(RemoteClaimsRetriever.class);
 
-    private static Map<String, ScopeDetailsConfig.Scope> scopeConfigsMap = new HashMap();
+    private Map<String, ScopeDetailsConfig.Scope> scopeConfigsMap = new HashMap();
 
     private static List<MobileConnectConfig.OperatorData> operators = com.wso2telco.core.config.ConfigLoader
             .getInstance().getMobileConnectConfig().getOperatorsList().getOperatorData();
@@ -47,14 +47,9 @@ public class RemoteClaimsRetriever implements ClaimsRetriever {
     private static Map<String, Object[]> remoteClaimsMap = new HashMap();
 
     private void populateScopeConfigs(List<ScopeDetailsConfig.Scope> scopeConfigs) {
-        if (scopeConfigsMap.size() == 0) {
-            for (ScopeDetailsConfig.Scope scope : scopeConfigs) {
-                scopeConfigsMap.put(scope.getName(), scope);
-            }
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Could not load user-info claims.");
-            }
+        scopeConfigsMap = new HashMap();
+        for (ScopeDetailsConfig.Scope scope : scopeConfigs) {
+            scopeConfigsMap.put(scope.getName(), scope);
         }
     }
 

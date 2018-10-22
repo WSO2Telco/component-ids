@@ -429,7 +429,7 @@ public class DBUtils {
         return remainingTime;
     }
 
-    public static boolean isSPAllowedScope(String scopeName, String clientId)
+    public static boolean isSPAllowedScope(String scopeName, String clientId, String operator)
             throws ConfigurationException, AuthenticatorException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
@@ -445,7 +445,7 @@ public class DBUtils {
                 "select count(*) as record_count from " +
                         "( select client_id,config_key,config_value " +
                         "FROM `sp_configuration` " +
-                        "WHERE `client_id`=? AND `config_key`=? AND  `config_value` in (" + params + ") " +
+                        "WHERE `client_id`=? AND `config_key`=? AND  `config_value` in (" + params + ") AND `operator` in (?,?)" +
                         "group by client_id,config_key,config_value" +
                         ") as spscopes";
         boolean isSPAllowedScope = false;
@@ -459,10 +459,67 @@ public class DBUtils {
             for (int i = 0; i < scopeValues.length; i++) {
                 preparedStatement.setString(i + 3, scopeValues[i]);
             }
+            preparedStatement.setString(scopeValues.length + 3, operator);
+            preparedStatement.setString(scopeValues.length + 4, "all");
 
             resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
                 isSPAllowedScope = resultSet.getInt("record_count") == scopeValues.length;
+            }
+        } catch (SQLException e) {
+            handleException(
+                    "Error occurred while SP Configurations for ClientId - " + clientId + " and Scope - " + scopeName,
+                    e);
+        } catch (NamingException e) {
+            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+        } finally {
+            closeAllConnections(preparedStatement, connection, resultSet);
+        }
+        return isSPAllowedScope;
+    }
+
+    public static boolean isSPAllowedConsentScope(String scopeName, String clientId, String operator)
+            throws ConfigurationException, AuthenticatorException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
+        String[] scopeValues = scopeName.split("\\s+|\\+");
+        StringBuilder params = new StringBuilder("?");
+        for (int i = 1; i < scopeValues.length; i++) {
+            params.append(",?");
+        }
+
+        StringBuilder querry = new StringBuilder();
+                querry.append("select count(*) as record_count from ")
+                .append("( select param_id from scope_parameter where ")
+                .append("(scope_type = 'APICONSENT' OR scope_type = 'ATT_SHARE') AND ")
+                .append("scope in (").append(params.toString()).append(") AND ")
+                .append("param_id not in (")
+                .append("select scope_id  from consent where operator_id =? AND")
+                .append(" client_id =? AND scope_id in ")
+                .append("(select param_id from scope_parameter where ")
+                .append("(scope_type = 'APICONSENT' OR scope_type = 'ATT_SHARE') AND ")
+                .append("scope in (").append(params.toString())
+                .append(")))) as spscopes");
+        boolean isSPAllowedScope = false;
+
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(querry.toString());
+            for (int i = 0; i < scopeValues.length; i++) {
+                preparedStatement.setString(i + 1, scopeValues[i]);
+            }
+            preparedStatement.setString(scopeValues.length + 1, operator);
+            preparedStatement.setString(scopeValues.length + 2, clientId);
+
+            for (int i = 0; i < scopeValues.length; i++) {
+                preparedStatement.setString(scopeValues.length + i + 3, scopeValues[i]);
+            }
+
+            resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                isSPAllowedScope = resultSet.getInt("record_count") == 0;
             }
         } catch (SQLException e) {
             handleException(

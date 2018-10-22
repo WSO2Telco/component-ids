@@ -999,16 +999,17 @@ public class DBUtils {
         sql.append(     "SELECT consent.consent_id ");
         sql.append(     "FROM consent ");
         sql.append(     "INNER JOIN scope_parameter ON scope_parameter.param_id=consent.scope_id ");
-        sql.append(     "WHERE scope_parameter.scope=? )");
-        sql.append(     "AND msisdn=? and client_id=? and operator=? ");
+        sql.append(     "WHERE scope_parameter.scope=? ");
+        sql.append(     "AND consent.operator_id=? )");
+        sql.append(     "AND msisdn=? and client_id=? ");
         sql.append(     "ORDER BY user_consent_id  DESC LIMIT 1");
         try {
             connection = getConnectDBConnection();
             preparedStatement = connection.prepareStatement(sql.toString());
             preparedStatement.setString(1, scope);
-            preparedStatement.setString(2, msisdn);
-            preparedStatement.setString(3, clientID);
-            preparedStatement.setString(4, operator);
+            preparedStatement.setString(2, operator);
+            preparedStatement.setString(3, msisdn);
+            preparedStatement.setString(4, clientID);
             resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 expiryDate=resultSet.getString("expire_time");

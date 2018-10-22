@@ -33,18 +33,13 @@ public class LocalClaimsRetriever implements ClaimsRetriever {
      * The log.
      */
     private static Log log = LogFactory.getLog(LocalClaimsRetriever.class);
-    private static Map<String, ScopeDetailsConfig.Scope> scopeConfigsMap = new HashMap();
+    private Map<String, ScopeDetailsConfig.Scope> scopeConfigsMap = new HashMap();
 
 
     private void populateScopeConfigs(List<ScopeDetailsConfig.Scope> scopeConfigs) {
-        if (scopeConfigsMap.isEmpty()) {
-            for (ScopeDetailsConfig.Scope scope : scopeConfigs) {
-                scopeConfigsMap.put(scope.getName(), scope);
-            }
-        } else {
-            if (log.isDebugEnabled()) {
-                log.debug("Could not load user-info claims.");
-            }
+        scopeConfigsMap = new HashMap();
+        for (ScopeDetailsConfig.Scope scope : scopeConfigs) {
+            scopeConfigsMap.put(scope.getName(), scope);
         }
     }
 
