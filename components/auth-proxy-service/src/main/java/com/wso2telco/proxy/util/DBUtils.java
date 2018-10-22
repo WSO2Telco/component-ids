@@ -429,7 +429,7 @@ public class DBUtils {
         return remainingTime;
     }
 
-    public static boolean isSPAllowedScope(String scopeName, String clientId)
+    public static boolean isSPAllowedScope(String scopeName, String clientId, String operator)
             throws ConfigurationException, AuthenticatorException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
@@ -445,7 +445,7 @@ public class DBUtils {
                 "select count(*) as record_count from " +
                         "( select client_id,config_key,config_value " +
                         "FROM `sp_configuration` " +
-                        "WHERE `client_id`=? AND `config_key`=? AND  `config_value` in (" + params + ") " +
+                        "WHERE `client_id`=? AND `config_key`=? AND  `config_value` in (" + params + ") AND `operator` in (?,?)" +
                         "group by client_id,config_key,config_value" +
                         ") as spscopes";
         boolean isSPAllowedScope = false;
@@ -459,6 +459,8 @@ public class DBUtils {
             for (int i = 0; i < scopeValues.length; i++) {
                 preparedStatement.setString(i + 3, scopeValues[i]);
             }
+            preparedStatement.setString(scopeValues.length + 3, operator);
+            preparedStatement.setString(scopeValues.length + 4, "all");
 
             resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
