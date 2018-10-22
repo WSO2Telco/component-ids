@@ -193,15 +193,13 @@ public class Endpoints {
                     null);
 
 
-            if (!configurationService.getDataHolder().getMobileConnectConfig().isSpValidationDisabled() && !isValidScope
-                    (scopeName, clientId)) {
+            if (!isValidScope(scopeName, clientId, operatorName)) {
                 String errMsg = "Scope [ " + scopeName + " ] is not allowed for client [ " + clientId + " ]";
                 log.error(errMsg);
                 DataPublisherUtil.updateAndPublishUserStatus(
                         userStatus, DataPublisherUtil.UserState.INVALID_REQUEST, errMsg);
 
                 redirectURL = redirectURL + "?error=access_denied";
-                invalid = true;
             } else {
                 String loginHint = null;
                 String ipAddress = null;
@@ -426,9 +424,9 @@ public class Endpoints {
      * @param clientId
      * @return true if scope is allowed, else false
      */
-    private boolean isValidScope(String scopeName, String clientId)
+    private boolean isValidScope(String scopeName, String clientId, String operator)
             throws AuthenticatorException, ConfigurationException {
-        return DBUtils.isSPAllowedScope(scopeName, clientId);
+        return DBUtils.isSPAllowedScope(scopeName, clientId,operator);
     }
 
 
