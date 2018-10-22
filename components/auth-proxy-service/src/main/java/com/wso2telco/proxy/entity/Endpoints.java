@@ -193,7 +193,8 @@ public class Endpoints {
                     null);
 
 
-            if (!isValidScope(scopeName, clientId, operatorName)) {
+            if ((!configurationService.getDataHolder().getMobileConnectConfig().isSpValidationDisabled() && !isValidScope(scopeName, clientId))
+                    || !isValidConsentScope(scopeName, clientId, operatorName)) {
                 String errMsg = "Scope [ " + scopeName + " ] is not allowed for client [ " + clientId + " ]";
                 log.error(errMsg);
                 DataPublisherUtil.updateAndPublishUserStatus(
@@ -418,15 +419,27 @@ public class Endpoints {
     }
 
     /**
+     * Check if the Consent Scope is allowed for SP
+     *
+     * @param scopeName
+     * @param clientId
+     * @return true if scope is allowed, else false
+     */
+    private boolean isValidConsentScope(String scopeName, String clientId, String operator)
+            throws AuthenticatorException, ConfigurationException {
+        return DBUtils.isSPAllowedConsentScope(scopeName, clientId,operator);
+    }
+
+    /**
      * Check if the Scope is allowed for SP
      *
      * @param scopeName
      * @param clientId
      * @return true if scope is allowed, else false
      */
-    private boolean isValidScope(String scopeName, String clientId, String operator)
+    private boolean isValidScope(String scopeName, String clientId)
             throws AuthenticatorException, ConfigurationException {
-        return DBUtils.isSPAllowedScope(scopeName, clientId,operator);
+        return DBUtils.isSPAllowedScope(scopeName, clientId);
     }
 
 

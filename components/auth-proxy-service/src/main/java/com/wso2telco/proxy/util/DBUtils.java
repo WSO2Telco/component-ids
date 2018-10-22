@@ -429,7 +429,54 @@ public class DBUtils {
         return remainingTime;
     }
 
-    public static boolean isSPAllowedScope(String scopeName, String clientId, String operator)
+    public static boolean isSPAllowedScope(String scopeName, String clientId)
+            throws ConfigurationException, AuthenticatorException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
+        String[] scopeValues = scopeName.split("\\s+|\\+");
+        StringBuilder params = new StringBuilder("?");
+        for (int i = 1; i < scopeValues.length; i++) {
+            params.append(",?");
+        }
+
+        String queryToGetOperatorProperty =
+                "select count(*) as record_count from " +
+                        "( select client_id,config_key,config_value " +
+                        "FROM `sp_configuration` " +
+                        "WHERE `client_id`=? AND `config_key`=? AND  `config_value` in (" + params + ") " +
+                        "group by client_id,config_key,config_value" +
+                        ") as spscopes";
+        boolean isSPAllowedScope = false;
+
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(queryToGetOperatorProperty);
+            preparedStatement.setString(1, clientId);
+            preparedStatement.setString(2, "scope");
+
+            for (int i = 0; i < scopeValues.length; i++) {
+                preparedStatement.setString(i + 3, scopeValues[i]);
+            }
+
+            resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                isSPAllowedScope = resultSet.getInt("record_count") == scopeValues.length;
+            }
+        } catch (SQLException e) {
+            handleException(
+                    "Error occurred while SP Configurations for ClientId - " + clientId + " and Scope - " + scopeName,
+                    e);
+        } catch (NamingException e) {
+            throw new ConfigurationException("DataSource could not be found in mobile-connect.xml");
+        } finally {
+            closeAllConnections(preparedStatement, connection, resultSet);
+        }
+        return isSPAllowedScope;
+    }
+
+    public static boolean isSPAllowedConsentScope(String scopeName, String clientId, String operator)
             throws ConfigurationException, AuthenticatorException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
