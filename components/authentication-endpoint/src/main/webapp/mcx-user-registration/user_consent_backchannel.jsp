@@ -217,16 +217,6 @@
                 <form  action="user_consent_response_bc.do" method="GET" class="form-horizontal" id="userconsent"  data-parsley-validate>
                     <input type="hidden" name="id" value="<%=id%>"/>
                     <input type="hidden" name="newUser" value="<%=isRegistering%>"/>
-                    <%
-                        if(isRegistering) {
-                    %>
-                    <div class="page__copy" class="page_term">
-                        <label
-                                class="checkbox-inline"><input id="tc_checkbox" type="checkbox" required value="">&nbsp;Looks like you don't yet have an account. Want to set one up? It's quick and&nbsp;easy.By setting up an account, you are agreeing to the <a href="/authenticationendpoint/terms_and_conditions" target="_blank">Terms and Conditions.</a>
-                        </label>
-                    </div>
-                    <br>
-                    <%  } %>
 
                     <div class="grid">
                         <div class="grid__item one-half">
@@ -252,14 +242,7 @@
     </div>
     <script type="text/javascript">
 
-        <% if(isRegistering) { %>
-        $(document).ready(function() {
-            $( "#deny-btn" ).click(function() {
-                $('#tc_checkbox').removeAttr('required');
-                return true;
-            });
-        });
-        <%  } %>
+
         $(function() {
           $('.collapse').on('show.bs.collapse', function() {
             var toggle = $('[data-target="#' + this.id + '"]');
