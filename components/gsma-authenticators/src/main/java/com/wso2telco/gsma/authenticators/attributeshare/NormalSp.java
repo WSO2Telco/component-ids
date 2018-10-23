@@ -43,7 +43,6 @@ public class NormalSp extends AbstractAttributeShare {
         String displayScopes = "";
         String isDisplayScope = "false";
         String authenticationFlowStatus = "false";
-        String isTncForNewUser;
         boolean isRegistering = false;
 
         Map<String, List<String>> attributeSet = getAttributeMap(context);
@@ -60,8 +59,7 @@ public class NormalSp extends AbstractAttributeShare {
         }
 
         if (isRegistering) {
-            isTncForNewUser = "true";
-            attributeShareDetails.put(Constants.IS_TNC, isTncForNewUser);
+            attributeShareDetails.put(Constants.IS_TNC, context.getProperty(Constants.IS_SHOW_TNC).toString());
         }
         context.setProperty(Constants.IS_CONSENTED, Constants.YES);
 
