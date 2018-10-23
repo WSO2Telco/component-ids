@@ -209,7 +209,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
                 getConsentFromUser(request, response, context, attributeSet, retryParam);
             } else if (context.getProperty(Constants.IS_REGISTERING) != null && (boolean) context.getProperty(Constants.IS_REGISTERING)){
-                response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + "registering=true&"+queryParams)) + "&redirect_uri=" +
+                response.sendRedirect(response.encodeRedirectURL(loginPage + ("?" + "registering="+context.getProperty(Constants.IS_SHOW_TNC).toString()+"&"+queryParams)) + "&redirect_uri=" +
                         request.getParameter("redirect_uri") + "&authenticators="
                         + getName() + ":" + "LOCAL" + retryParam);
             } else{
