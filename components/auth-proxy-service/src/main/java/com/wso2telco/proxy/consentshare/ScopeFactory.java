@@ -22,6 +22,8 @@ public class ScopeFactory {
     private static ProvisionScope provisionScope;
     private static VerificationScope verificationScope;
     private static APIConsentScope apiConsentScope;
+    private static MainScope mainScope;
+    private static OtherScope otherScope;
 
     private ScopeFactory() {
     }
@@ -56,6 +58,12 @@ public class ScopeFactory {
                         apiConsentScope = new APIConsentScope();
                     }
                     consentShareScope = apiConsentScope;
+                    break;
+                case MAIN:
+                    if (mainScope == null){
+                        mainScope = new MainScope();
+                    }
+                    consentShareScope = mainScope;
                     break;
                 default:
                     break;

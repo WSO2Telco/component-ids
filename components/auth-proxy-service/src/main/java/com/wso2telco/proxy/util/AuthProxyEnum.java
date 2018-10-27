@@ -58,6 +58,8 @@ public class AuthProxyEnum {
     public enum SCOPETYPE {
         ATT_VERIFICATION,
         ATT_SHARE,
-        APICONSENT;
+        APICONSENT,
+        MAIN,
+        OTHER;
     }
 }
