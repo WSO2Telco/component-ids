@@ -884,27 +884,27 @@
             <dependency>
                 <groupId>com.wso2telco.core</groupId>
                 <artifactId>mnc-resolver</artifactId>
-                <version>2.4.4</version>
+                <version>${com.wso2telco.core.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.wso2telco.core</groupId>
                 <artifactId>sp-config-util</artifactId>
-                <version>2.4.4</version>
+                <version>${com.wso2telco.core.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.wso2telco.core</groupId>
                 <artifactId>pcr-service</artifactId>
-                <version>2.4.4</version>
+                <version>${com.wso2telco.core.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.wso2telco.core</groupId>
                 <artifactId>config-util</artifactId>
-                <version>2.4.4</version>
+                <version>${com.wso2telco.core.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.wso2telco.core</groupId>
                 <artifactId>dbutils</artifactId>
-                <version>2.4.4</version>
+                <version>${com.wso2telco.core.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.wso2telco.ids</groupId>
