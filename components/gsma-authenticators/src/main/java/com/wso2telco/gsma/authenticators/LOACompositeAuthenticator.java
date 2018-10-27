@@ -299,15 +299,16 @@ public class LOACompositeAuthenticator implements ApplicationAuthenticator,
                 context.setProperty(Constants.IS_STATUS_TO_CHANGE, isConvertToActive);
                 context.setProperty(Constants.IS_REGISTERING, !isUserExists);
                 if(isBackChannelAllowed){
-                    if(isAPIConsent)
+                    if(isAPIConsent) {
                         AbstractAPIConsent.setApproveNeededScope(context);
-                    approveNeededScopes = (Map<String, String>)context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
-                    if(trustedStatus!= null)
+                        approveNeededScopes = (Map<String, String>)context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
                         DBUtils.updateUserStatusInBackChannel(context.getContextIdentifier(), !isUserExists,!((AuthenticatorEnum.TrustedStatus.UNTRUSTED.name().equalsIgnoreCase
                                 (context.getProperty(Constants.TRUSTED_STATUS).toString())) || (AuthenticatorEnum.TrustedStatus.TRUSTED.name().equalsIgnoreCase
                                 (context.getProperty(Constants.TRUSTED_STATUS).toString()) && approveNeededScopes != null && !approveNeededScopes.isEmpty())));
-                    else if (!isUserExists)
-                        DBUtils.updateUserStatusInBackChannel(context.getContextIdentifier(), !isUserExists);
+                    }else {
+                        DBUtils.updateUserStatusInBackChannel(context.getContextIdentifier(), !isUserExists, !AuthenticatorEnum.TrustedStatus.UNTRUSTED.name().equalsIgnoreCase
+                                (context.getProperty(Constants.TRUSTED_STATUS).toString()));
+                    }
 
                 }
                 DataPublisherUtil.updateAndPublishUserStatus((UserStatus) context.getProperty(
