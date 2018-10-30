@@ -180,7 +180,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 }
             }
 
-            if ((isAttribute || isAPIConsent)  && Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString())) {
+            if (Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString())) {
 
                 if (request.getParameter(Constants.ACTION) != null || context.getProperty(Constants.MSISDN) != null) {
                     msisdn = ((request.getParameter(Constants.ACTION) != null) ? request.getParameter(Constants
@@ -426,7 +426,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                 boolean isDisplayScopes;
                 String retryParam = "";
 
-                if ((isattribute || isapiconsent)  &&  !(context.getProperty(Constants
+                if (!(context.getProperty(Constants
                         .TRUSTED_STATUS)).toString().equalsIgnoreCase(AuthenticatorEnum.TrustedStatus.UNTRUSTED.name
                         ()) && triggerInitiateAuthRequest(context)) {
                     try {
@@ -439,6 +439,9 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                         if (Boolean.valueOf(context.getProperty(Constants.AUTHENTICATED_USER).toString())) {
                             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
                         }
+                        if (context.getProperty(Constants.DENIED_SCOPE) != null && (Boolean)context.getProperty(Constants.DENIED_SCOPE)){
+                            terminateAuthentication(context);
+                        }
                     }
                     context.setCurrentAuthenticator(getName());
                     return AuthenticatorFlowStatus.INCOMPLETE;
@@ -446,7 +449,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
                 processAuthenticationResponse(request, response, context);
 
-                if ((isattribute || isapiconsent) && Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString
+                if (Constants.NO.equalsIgnoreCase(context.getProperty(Constants.IS_CONSENTED).toString
                         ())) {
 
                     if (request.getParameter(Constants.MSISDN) != null || context.getProperty(Constants.MSISDN) !=
@@ -704,7 +707,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
 
     private void handleAttributeShareResponse(AuthenticationContext context) throws AuthenticationFailedException {
 
-        if (context.getProperty(Constants.LONGLIVEDSCOPES) != null && (!(boolean)context.getProperty(Constants.IS_API_CONSENT))) {
+        if (context.getProperty(Constants.LONGLIVEDSCOPES) != null && (boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE)) {
             try {
                 AbstractAttributeShare.persistConsentedScopeDetails(context);
             } catch (Exception e) {

@@ -202,6 +202,23 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                         context.setCurrentAuthenticator(getName());
                         return AuthenticatorFlowStatus.INCOMPLETE;
                     }
+                }else if (!isRegistering && StringUtils.isNotEmpty(msisdn)) {
+
+                    attributeSet = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants
+                            .TRUSTED_STATUS).toString()).getAttributeShareDetails(context);
+                    boolean flowStatus = Boolean.valueOf(attributeSet.get(Constants.IS_AUNTHENTICATION_CONTINUE));
+                    isDisplayScopes = Boolean.parseBoolean(attributeSet.get(Constants.IS_DISPLAYSCOPE).toString());
+
+                    if (flowStatus) {
+
+
+
+                    } else  {
+
+                        getConsentFromUser(request, response, context, attributeSet);
+                        context.setCurrentAuthenticator(getName());
+                        return AuthenticatorFlowStatus.INCOMPLETE;
+                    }
                 }
 
 
@@ -391,7 +408,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                             .USER_STATUS_DATA_PUBLISHING_PARAM), DataPublisherUtil.UserState
                             .REDIRECT_TO_CONSENT_PAGE, "Redirecting to consent page");
 
-            if ((isAttribute || isAPIConsent) && StringUtils.isNotEmpty(msisdn)) {
+            if (StringUtils.isNotEmpty(msisdn)) {
                 attributeSet = AttributeShareFactory.getAttributeSharable(context.getProperty(Constants
                         .TRUSTED_STATUS).toString()).getAttributeShareDetails(context);
                 isExplicitScope = Boolean.parseBoolean(attributeSet.get(Constants.IS_DISPLAYSCOPE));
@@ -480,13 +497,9 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
                         break;
                     case Constants.USER_ACTION_REG_REJECTED:
-                        log.info("User rejected the consent");
-                        //User rejected to registration consent
-                        terminateAuthentication(context);
-                        break;
                     case Constants.STATUS_DENY:
-                        //User rejected to registration consent
                         log.info("User rejected the consent");
+                        //User rejected to registration consent
                         terminateAuthentication(context);
                         break;
                 }
@@ -528,9 +541,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                             WelcomeSmsUtil.handleWelcomeSms(context, userStatus, msisdn, operator, smsConfig);
                         }
 
-                        if (isAttributeScope || isAPIConsentScope) {
-                            handleAttributeShareResponse(context);
-                        }
+                        handleAttributeShareResponse(context);
 
                     } catch (RemoteException | UserRegistrationAdminServiceIdentityException e) {
                         DataPublisherUtil.updateAndPublishUserStatus(userStatus,
@@ -968,7 +979,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
 
     private void handleAttributeShareResponse(AuthenticationContext context) throws AuthenticationFailedException {
 
-        if (context.getProperty(Constants.LONGLIVEDSCOPES) != null && !(boolean)context.getProperty(Constants.IS_API_CONSENT)) {
+        if (context.getProperty(Constants.LONGLIVEDSCOPES) != null && (boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE)) {
             try {
                 AbstractAttributeShare.persistConsentedScopeDetails(context);
             } catch (Exception e) {
