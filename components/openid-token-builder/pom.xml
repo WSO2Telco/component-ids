@@ -93,6 +93,16 @@
 			<groupId>com.wso2telco.core</groupId>
 			<artifactId>pcr-service</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.wso2.carbon.apimgt</groupId>
+			<artifactId>org.wso2.carbon.apimgt.keymgt</artifactId>
+			<version>6.0.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.wso2.carbon.apimgt</groupId>
+			<artifactId>org.wso2.carbon.apimgt.impl</artifactId>
+			<version>6.0.4</version>
+		</dependency>
     </dependencies>
 
 
@@ -198,7 +208,8 @@
 							com.wso2telco.claimhandler.*, com.wso2telco.dao.*, com.wso2telco.model.*,
 							com.wso2telco.openidtokenbuilder.*,com.wso2telco.grant.*,
 							 com.wso2telco.reqpathsequencehandler.*, com.wso2telco.transaction.log.*, 
-							 com.wso2telco.util.*,!com.wso2telco.internal.*
+							 com.wso2telco.util.*,!com.wso2telco.internal.*,com.wso2telco.commonutils.*,
+							com.wso2telco.dbutils.*,com.wso2telco.exception.*
 						</Export-Package>
 						<Embed-Dependency>
 							nimbus-jose-jwt|json-smart;scope=compile|runtime;inline=false

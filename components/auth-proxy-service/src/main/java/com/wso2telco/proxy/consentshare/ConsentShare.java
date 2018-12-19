@@ -69,6 +69,7 @@ public class ConsentShare {
         boolean isAttributeShare = false;
         boolean isAPIConsent = false;
         String scopeType = null;
+        String scopeType2 = null;
         Map<String, Object> scopeDetails = new HashMap<>();
         try {
 
@@ -83,6 +84,7 @@ public class ConsentShare {
                         scopeType = scopeTypes.get(scope);
                         if (AuthProxyEnum.SCOPETYPE.APICONSENT.name().equals(scopeType)) {
                             isAPIConsent = true;
+                            scopeType2 = scopeType;
                             ConsentSharable consentShare = ScopeFactory.getConsentSharable(scopeType);
                             if (consentShare != null) {
                                 trustedStatus = consentShare.getConsentShareDetails
@@ -90,6 +92,7 @@ public class ConsentShare {
                             }
                         } else if (scopeType != null) {
                             isAttributeShare = true;
+                            scopeType2 = scopeType;
                             ConsentSharable consentShare = ScopeFactory.getConsentSharable(scopeType);
                             if (consentShare != null) {
                                 trustedStatus = consentShare.getConsentShareDetails
@@ -114,7 +117,7 @@ public class ConsentShare {
         }
         scopeDetails.put(AuthProxyConstants.ATTR_SHARE_SCOPE, Boolean.toString(isAttributeShare));
         scopeDetails.put(AuthProxyConstants.TRUSTED_STATUS, trustedStatus);
-        scopeDetails.put(AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE, scopeType);
+        scopeDetails.put(AuthProxyConstants.ATTR_SHARE_SCOPE_TYPE, scopeType2);
         scopeDetails.put(AuthProxyConstants.IS_API_CONSENT, Boolean.toString(isAPIConsent));
 
 

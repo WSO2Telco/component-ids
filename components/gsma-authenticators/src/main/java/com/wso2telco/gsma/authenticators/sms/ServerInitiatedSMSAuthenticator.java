@@ -427,6 +427,12 @@ public class ServerInitiatedSMSAuthenticator extends AbstractApplicationAuthenti
             } else{
                 DBUtils.insertAuthFlowStatus(msisdn, Constants.STATUS_PENDING, context.getContextIdentifier());
             }
+            String responseStatus = DBUtils.getAuthFlowStatus(sessionDataKey);
+            if (log.isDebugEnabled()) {
+                log.debug("responseStatus : " + responseStatus);
+            }
+            if(context.getProperty(Constants.API_SCOPES) != null)
+                new UserProfileManager().updateMIGUserRoles(msisdn, context.getProperty(Constants.CLIENT_ID).toString(), context.getProperty(Constants.API_SCOPES).toString());
         } catch (LogoutFailedException e) {
             log.error("Logout Fail error ", e);
             throw new AuthenticationFailedException(e.getMessage(), e);

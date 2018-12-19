@@ -83,6 +83,7 @@
         Map<String,String> scopeDescription = null;
         String spLogo =null;
         String spName = null;
+        String appName = null;
         boolean approve_all_enable = false;
 
         if(!isSessionExpired){
@@ -93,11 +94,15 @@
                 isRegistering = Boolean.valueOf(scopeDescription.get("isNewUser"));
                 operator = scopeDescription.get("operator");
                 spName = scopeDescription.get("spName");
+                appName = spName;
                 approve_all_enable = Boolean.valueOf(scopeDescription.get("approve_all_enable"));
                 scopeDescription.remove("isNewUser");
                 scopeDescription.remove("operator");
                 scopeDescription.remove("spName");
                 scopeDescription.remove("approve_all_enable");
+                if(spName.contains("PRODUCTION")){
+                    spName = spName.split("_")[1];
+                }
             }
         }
 
@@ -181,7 +186,7 @@
                        %>
                          <div class="grid__item three-quarters">
                             <h2 class="page__heading"><%=spName%></h2>
-                            <p>You are granting <b><%=spName%></b> the rights to access the following</p>
+                            <p>You are granting <b><%=appName%></b> the rights to access the following</p>
                          </div>
                     </div>
 

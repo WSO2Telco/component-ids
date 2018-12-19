@@ -88,6 +88,11 @@
         log.info( "operator :"+operator );
         String spName = authnContext.getServiceProviderName();
         log.info( "ServiceProvider :"+spName );
+        String appName = spName;
+        if(spName.contains("PRODUCTION")){
+            appName = spName.split("_")[1];
+            spName = spName.split("_")[0];
+        }
         if(authnContext.getProperty("logo")!=null){
         	spLogo = authnContext.getProperty("logo").toString();
         }
@@ -139,7 +144,7 @@
                  </div>
                  <div class="grid__item three-quarters">
                     <h2 class="page__heading"><%=spName%></h2>
-                    <p>You are granting <b><%=spName%></b> the rights to access following attribute data:</p>
+                    <p>You are granting <b><%=appName%></b> the rights to access following attribute data:</p>
                  </div>
         </div>
    

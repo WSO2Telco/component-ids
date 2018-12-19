@@ -34,9 +34,9 @@ public abstract class AbstractAPIConsent {
                     boolean enableapproveall = true;
                     for (String scope : scopeList) {
                         String consent[] = DBUtils.getConsentStatus(scope, context.getProperty(Constants.CLIENT_ID).toString(), context.getProperty(Constants.OPERATOR).toString());
-                        if (consent != null && consent.length == 3 && !consent[0].isEmpty() && (consent[0].equalsIgnoreCase(ValidityType.TRANSACTIONAL.name()) || consent[0].equalsIgnoreCase(ValidityType.LONG_LIVE.name()))) {
+                        if (consent != null && consent.length == 3 && !consent[0].isEmpty() && (consent[0].equalsIgnoreCase(ValidityType.TRANSACTIONAL.name()) || consent[0].equalsIgnoreCase(ValidityType.LONG_LIVE.name()) || consent[0].equalsIgnoreCase(ValidityType.UNDEFINED.name()))) {
                             apiScopeList.append(scope).append(",");
-                            if(consent[2].equalsIgnoreCase(AuthenticatorEnum.ConsentType.IMPLICIT.name())){
+                            if(!consent[2].equalsIgnoreCase(AuthenticatorEnum.ConsentType.EXPLICIT.name())){
                                 continue;
                             }
 

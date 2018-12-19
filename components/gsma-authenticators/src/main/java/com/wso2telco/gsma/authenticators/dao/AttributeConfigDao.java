@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.dao;
 
+import com.wso2telco.core.config.model.ScopeDetailsConfig;
 import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.dbutils.DBUtilException;
 import com.wso2telco.gsma.authenticators.model.SpConsent;
@@ -29,6 +30,8 @@ public interface AttributeConfigDao {
     List<SpConsent> getScopeExpireTime(String operator, String consumerKey, String scope) throws NamingException,
             DBUtilException;
 
+    List<Integer> getScopeIds(List<String> scopes) throws DBUtilException, NamingException;
+
     UserConsentDetails getUserConsentDetails(UserConsentDetails userConsentDetails) throws NamingException,
             DBUtilException;
 
@@ -41,5 +44,7 @@ public interface AttributeConfigDao {
     List<ScopeParam> getScopeParams(String scopes, String operator, String consumerKey, boolean transactional) throws NamingException,
             DBUtilException;
 
+    void insertConsentHistoryDetails(List<UserConsentHistory> userConsentHistory)
+            throws DBUtilException, NamingException;
 
 }
