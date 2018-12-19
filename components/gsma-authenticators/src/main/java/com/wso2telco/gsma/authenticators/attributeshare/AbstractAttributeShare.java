@@ -108,6 +108,7 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
         scopesList.put(Constants.EXPLICIT_SCOPES, explicitScopes);
         scopesList.put(Constants.IMPLICIT_SCOPES, implicitScopes);
         scopesList.put(Constants.NO_CONSENT_SCOPES, noConsentScopes);
+        context.setProperty(Constants.EXPLICIT_SCOPES, explicitScopes);
         if (!longLivedScopes.isEmpty()) {
             context.setProperty(Constants.LONGLIVEDSCOPES, longLivedScopes.toString().replaceAll(", ", ","));
         }
@@ -236,6 +237,30 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
         attributeConfigDao.saveUserConsentedAttributes(userConsentHistoryList);
     }
 
+    public static void insertConsentHistoryDetails(AuthenticationContext context) throws DBUtilException,
+            NamingException {
+
+        AttributeConfigDao attributeConfigDao = new AttributeConfigDaoImpl();
+
+        String msisdn = context.getProperty(Constants.MSISDN).toString();
+        String operator = context.getProperty(Constants.OPERATOR).toString();
+        String clientId = context.getProperty(Constants.CLIENT_ID).toString();
+
+        List<String> spConsentDetailsList = (List<String>) context.getProperty(Constants.EXPLICIT_SCOPES);
+        List<UserConsentHistory> userConsentHistoryDetailsList = new ArrayList();
+        List<Integer> scopeIds = attributeConfigDao.getScopeIds(spConsentDetailsList);
+        for (int scopeId : scopeIds) {
+            UserConsentHistory userConsentHistory = new UserConsentHistory();
+            userConsentHistory.setMsisdn(msisdn);
+            userConsentHistory.setConsentId(scopeId);
+            userConsentHistory.setConsentStatus((String) context.getProperty(Constants.USER_ACTION));
+            userConsentHistory.setClientId(clientId);
+            userConsentHistory.setOperatorName(operator);
+            userConsentHistoryDetailsList.add(userConsentHistory);
+        }
+        attributeConfigDao.insertConsentHistoryDetails(userConsentHistoryDetailsList);
+    }
+
     public static void createUserProfile(AuthenticationContext context) throws AuthenticationFailedException {
 
         String msisdn = context.getProperty(Constants.MSISDN).toString();
@@ -255,4 +280,17 @@ public abstract class AbstractAttributeShare implements AttributeSharable {
             throw new AuthenticationFailedException(e.getMessage(), e);
         }
     }
+
+    public static void updateMIGUserRoles(AuthenticationContext context) throws AuthenticationFailedException {
+        String msisdn = context.getProperty(Constants.MSISDN).toString();
+        try {
+            if(context.getProperty(Constants.API_SCOPES) != null)
+                new UserProfileManager().updateMIGUserRoles(msisdn, context.getProperty(Constants.CLIENT_ID).toString(),context.getProperty(Constants.API_SCOPES).toString());
+
+        } catch (AuthenticatorException e) {
+            log.error("error occurred while create user profile : " + e.getMessage());
+            throw new AuthenticationFailedException(e.getMessage(), e);
+        }
+    }
+
 }

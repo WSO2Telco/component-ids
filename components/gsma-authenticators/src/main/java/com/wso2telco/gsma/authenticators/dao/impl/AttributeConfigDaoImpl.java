@@ -15,6 +15,7 @@
  ******************************************************************************/
 package com.wso2telco.gsma.authenticators.dao.impl;
 
+import com.wso2telco.core.config.model.ScopeDetailsConfig;
 import com.wso2telco.core.config.model.ScopeParam;
 import com.wso2telco.core.config.service.ConfigurationService;
 import com.wso2telco.core.config.service.ConfigurationServiceImpl;
@@ -158,6 +159,43 @@ public class AttributeConfigDaoImpl implements AttributeConfigDao {
         return spConsentList;
     }
 
+    public void insertConsentHistoryDetails(List<UserConsentHistory> userConsentHistory)
+            throws DBUtilException, NamingException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        StringBuilder sql = new StringBuilder();
+        sql.append("INSERT INTO consent_user_history (msisdn, consent_id, approve_status,consent_date) ");
+        sql.append("SELECT ?,");
+        sql.append("(SELECT consent.consent_id FROM consent ");
+        sql.append(     "where consent.scope_id=? AND consent.client_id=? AND (consent.operator_id=? OR consent.operator_id=?) ORDER BY consent_id ASC LIMIT 1),");
+        sql.append("?,?");
+
+        try {
+            connection = getConnectDBConnection();
+            preparedStatement = connection.prepareStatement(sql.toString());
+            for (UserConsentHistory userConsentHistory1 : userConsentHistory) {
+
+                preparedStatement.setString(1, userConsentHistory1.getMsisdn());
+                preparedStatement.setInt(2, userConsentHistory1.getConsentId());
+                preparedStatement.setString(3, userConsentHistory1.getClientId());
+                preparedStatement.setString(4, userConsentHistory1.getOperatorName());
+                preparedStatement.setString(5, "all");
+                preparedStatement.setString(6, userConsentHistory1.getConsentStatus());
+                preparedStatement.setTimestamp(7, new java.sql.Timestamp(new java.util.Date().getTime()));
+                preparedStatement.addBatch();
+            }
+
+            preparedStatement.executeBatch();
+        } catch (SQLException e) {
+            log.error("Error occurred while inserting consent history details for msisdn :- "+ userConsentHistory.get(0).getMsisdn(),e);
+            throw new DBUtilException(e.getMessage(), e);
+
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet,preparedStatement);
+        }
+    }
+
     public List<ScopeParam> getScopeParams(String scopes, String operator, String consumerKey, boolean transactional) throws
             NamingException, DBUtilException {
 
@@ -234,6 +272,41 @@ public class AttributeConfigDaoImpl implements AttributeConfigDao {
             IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
         }
         return scopeParamsList;
+    }
+
+    public List<Integer> getScopeIds(List<String> scopes) throws NamingException, DBUtilException {
+        List<Integer> scopeIds = new ArrayList<Integer>();
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        StringBuilder query = new StringBuilder();
+        try {
+            connection = getConnectDBConnection();
+            query.append("SELECT param_id from ").append(TableName.SCOPE_PARAMETER).
+                    append(" where scope in (");
+            for(String scope : scopes){
+                query.append("?,");
+            }
+            query.deleteCharAt(query.length() -1 );
+            query.append(");");
+
+            preparedStatement = connection.prepareStatement(query.toString());
+            for(int i= 1; i <= scopes.size(); i++){
+                preparedStatement.setString(i, scopes.get(i-1));
+            }
+
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                scopeIds.add(resultSet.getInt("param_id"));
+            }
+        } catch (SQLException | NamingException e) {
+            log.error("Exception occurred while retrieving data from the scope_parameter " + e
+                    .getMessage());
+            throw new DBUtilException(e.getMessage(), e);
+        } finally {
+            IdentityDatabaseUtil.closeAllConnections(connection, resultSet, preparedStatement);
+        }
+        return scopeIds;
     }
 
     public boolean consentDataAvailable(String scope, String operatorId, String clientId) throws

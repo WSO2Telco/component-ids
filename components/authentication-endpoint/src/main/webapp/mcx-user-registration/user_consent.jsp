@@ -88,16 +88,22 @@
         String spLogo =null;
         String operator=null;
         String spName=null;
+        String appName=null;
         boolean approve_all_enable = false;
         Map<String,String> scopeDescription= new HashMap<String,String>();
 
         if(authnContext!=null){
             operator = authnContext.getProperty("operator").toString();
             spName = authnContext.getServiceProviderName();
+            appName = spName;
             approve_all_enable=Boolean.valueOf(String.valueOf(authnContext.getProperty("approve_all_enable")));
             scopeDescription= (Map<String, String>)authnContext.getProperty("approve_needed_scopes");
             if(authnContext.getProperty("logo")!=null){
                 spLogo = authnContext.getProperty("logo").toString();
+            }
+            if(spName.contains("PRODUCTION")){
+                appName = spName.split("_")[1];
+                spName = spName.split("_")[0];
             }
         }
         String imgPath = null;
@@ -140,7 +146,7 @@
                    %>
                      <div class="grid__item three-quarters">
                         <h2 class="page__heading"><%=spName%></h2>
-                        <p>You are granting <b><%=spName%></b> the rights to access the following</p>
+                        <p>You are granting <b><%=appName%></b> the rights to access the following</p>
                      </div>
                 </div>
 

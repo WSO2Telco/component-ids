@@ -334,9 +334,18 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                             }
                             break;
                         case Constants.USER_ACTION_REG_REJECTED:
-                        case Constants.STATUS_DENY:
                             //User rejected to registration consent
                             log.info("User rejected the consent");
+                            terminateAuthentication(context);
+                            break;
+                        case Constants.STATUS_DENY:
+                            log.info("User rejected the consent");
+                            //User rejected to registration consent
+                            try {
+                                AbstractAttributeShare.insertConsentHistoryDetails(context);
+                            } catch (Exception e) {
+                                throw new AuthenticationFailedException("error occurred while entering history data");
+                            }
                             terminateAuthentication(context);
                             break;
                         default:
@@ -464,7 +473,8 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
                         isDisplayScopes = Boolean.parseBoolean(attributeset.get(Constants.IS_DISPLAYSCOPE).toString());
 
                         if (flowStatus) {
-
+                            if(context.getProperty(Constants.API_SCOPES) != null)
+                                AbstractAttributeShare.updateMIGUserRoles(context);
                             AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN)
                                     .toString());
                             context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
@@ -703,7 +713,7 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
     }
 
     private void handleAttributeShareResponse(AuthenticationContext context) throws AuthenticationFailedException {
-
+        List<String> explicitScopes = (List<String>) context.getProperty(Constants.EXPLICIT_SCOPES);
         if (context.getProperty(Constants.LONGLIVEDSCOPES) != null && (!(boolean)context.getProperty(Constants.IS_API_CONSENT))) {
             try {
                 AbstractAttributeShare.persistConsentedScopeDetails(context);
@@ -720,11 +730,21 @@ public class MSISDNAuthenticator extends AbstractApplicationAuthenticator
             }
         }
 
+        if(explicitScopes != null && explicitScopes.size() != 0 && (String) context.getProperty(Constants.USER_ACTION) != null){
+            try {
+                AbstractAttributeShare.insertConsentHistoryDetails(context);
+            } catch (Exception e) {
+                throw new AuthenticationFailedException("error occurred while entering history data");
+            }
+        }
+
         if (!AuthenticatorEnum.TrustedStatus.UNTRUSTED.toString().equalsIgnoreCase(context.getProperty(Constants
                 .TRUSTED_STATUS).toString())) {
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
             if (isRegistering) {
                 AbstractAttributeShare.createUserProfile(context);
+            }else{
+                AbstractAttributeShare.updateMIGUserRoles(context);
             }
             AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN).toString());
             context.setProperty(Constants.AUTHENTICATED_USER, "true");

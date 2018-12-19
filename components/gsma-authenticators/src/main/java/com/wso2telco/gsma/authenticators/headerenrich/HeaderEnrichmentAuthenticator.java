@@ -187,6 +187,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                     AbstractAPIConsent.setApproveNeededScope(context);
                     Map<String, String> approveNeededScopes = (Map<String, String>) context.getProperty(Constants.APPROVE_NEEDED_SCOPES);
                     if((Boolean) context.getProperty(Constants.ALREADY_APPROVED)){
+                        new UserProfileManager().updateMIGUserRoles(msisdn, context.getProperty(Constants.CLIENT_ID).toString(), context.getProperty(Constants.API_SCOPES).toString());
                         AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN)
                                 .toString());
                         context.setProperty(Constants.TERMINATE_BY_REMOVE_FOLLOWING_STEPS, "true");
@@ -485,8 +486,13 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
                         terminateAuthentication(context);
                         break;
                     case Constants.STATUS_DENY:
-                        //User rejected to registration consent
                         log.info("User rejected the consent");
+                        //User rejected to registration consent
+                        try {
+                            AbstractAttributeShare.insertConsentHistoryDetails(context);
+                        } catch (Exception e) {
+                            throw new AuthenticationFailedException("error occurred while entering history data");
+                        }
                         terminateAuthentication(context);
                         break;
                 }
@@ -506,7 +512,7 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
             boolean isAttributeScope = (Boolean) context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE);
             boolean isAPIConsentScope = (Boolean) context.getProperty(Constants.IS_API_CONSENT);
-            boolean isStatusUpdate = (boolean) context.getProperty(Constants.IS_API_CONSENT);
+            boolean isStatusUpdate = (boolean) context.getProperty(Constants.IS_STATUS_TO_CHANGE);
             String spType = context.getProperty(Constants.TRUSTED_STATUS).toString();
             String attrShareType = context.getProperty(Constants.ATTRSHARE_SCOPE_TYPE).toString();
             boolean isShowConcent = (boolean) context.getProperty(Constants.IS_SHOW_CONSENT);
@@ -967,8 +973,8 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
     }
 
     private void handleAttributeShareResponse(AuthenticationContext context) throws AuthenticationFailedException {
-
-        if (context.getProperty(Constants.LONGLIVEDSCOPES) != null && !(boolean)context.getProperty(Constants.IS_API_CONSENT)) {
+        List<String> explicitScopes = (List<String>) context.getProperty(Constants.EXPLICIT_SCOPES);
+        if (context.getProperty(Constants.LONGLIVEDSCOPES) != null && (boolean)context.getProperty(Constants.IS_ATTRIBUTE_SHARING_SCOPE)) {
             try {
                 AbstractAttributeShare.persistConsentedScopeDetails(context);
             } catch (Exception e) {
@@ -982,12 +988,22 @@ public class HeaderEnrichmentAuthenticator extends AbstractApplicationAuthentica
             }
         }
 
+        if(explicitScopes != null && explicitScopes.size() != 0 && (String) context.getProperty(Constants.USER_ACTION) != null){
+            try {
+                AbstractAttributeShare.insertConsentHistoryDetails(context);
+            } catch (Exception e) {
+                throw new AuthenticationFailedException("error occurred while entering history data");
+            }
+        }
+
         if (!AuthenticatorEnum.TrustedStatus.UNTRUSTED.toString().equalsIgnoreCase(context.getProperty(Constants
                 .TRUSTED_STATUS).toString())) {
             boolean isRegistering = (boolean) context.getProperty(Constants.IS_REGISTERING);
 
             if (isRegistering) {
                 AbstractAttributeShare.createUserProfile(context);
+            }else{
+                AbstractAttributeShare.updateMIGUserRoles(context);
             }
             AuthenticationContextHelper.setSubject(context, context.getProperty(Constants.MSISDN).toString());
             context.setProperty(Constants.AUTHENTICATED_USER, "true");
