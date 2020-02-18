@@ -8,9 +8,10 @@
 	OR CONDITIONS OF ANY KIND, either express or implied. See the License for 
 	the specific language governing permissions and limitations under the License.
    folk test M	-->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
     <dependencies>
         <dependency>
             <groupId>commons-logging</groupId>
@@ -21,75 +22,74 @@
     <!--groupId>org.wso2.carbon.identity</groupId> <artifactId>carbon-identity</artifactId>
         <packaging>pom</packaging> <version>5.0.8-SNAPSHOT</version> <name>WSO2 Carbon
         - Platform Aggregator Pom</name> <url>http://wso2.org</url -->
-	<parent>
-       		<groupId>org.wso2</groupId>
-       		<artifactId>wso2</artifactId>
-       		<version>1</version>
-   	</parent>
-	<groupId>com.wso2telco.ids</groupId>
-	<artifactId>component-ids</artifactId>
-	<packaging>pom</packaging>
-	<version>2.3.0</version>
-	<name>WSO2Telco Core - Component</name>
-	<description>WSO2Telco Core Aggregate Pom</description>
-	<url>http://wso2telco.com</url>
-	<developers>
-		<developer>
-			<name>WSO2Telco</name>
-			<email>core-product-tech@wso2telco.com</email>
-		</developer>
-	</developers>
+    <parent>
+        <groupId>org.wso2</groupId>
+        <artifactId>wso2</artifactId>
+        <version>1</version>
+    </parent>
+    <groupId>com.wso2telco.ids</groupId>
+    <artifactId>component-ids</artifactId>
+    <packaging>pom</packaging>
+    <version>2.3.0</version>
+    <name>WSO2Telco Core - Component</name>
+    <description>WSO2Telco Core Aggregate Pom</description>
+    <url>http://wso2telco.com</url>
+    <developers>
+        <developer>
+            <name>WSO2Telco</name>
+            <email>core-product-tech@wso2telco.com</email>
+        </developer>
+    </developers>
 
-	<prerequisites>
-		<maven>3.0.0</maven>
-	</prerequisites>
-	
-	<distributionManagement>
-                <snapshotRepository>
-                        <id>wso2Telco.snapshots</id>
-                        <name>Snapshot repo</name>
-                        <url>http://maven.wso2telco.com/nexus/content/repositories/snapshots</url>
-                </snapshotRepository>
-                <!-- Publish the versioned releases here -->
-                <repository>
-                        <id>wso2telco.releases</id>
-                        <name>release repo</name>
-                        <url>http://maven.wso2telco.com/nexus/content/repositories/releases/</url>
-                </repository>
-        </distributionManagement>
+    <prerequisites>
+        <maven>3.0.0</maven>
+    </prerequisites>
 
-	
-	<modules>
-		<module>parent</module>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>wso2Telco.snapshots</id>
+            <name>Snapshot repo</name>
+            <url>http://maven.wso2telco.com/nexus/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <!-- Publish the versioned releases here -->
+        <repository>
+            <id>wso2telco.releases</id>
+            <name>release repo</name>
+            <url>http://maven.wso2telco.com/nexus/content/repositories/releases/</url>
+        </repository>
+    </distributionManagement>
+
+
+    <modules>
+        <module>parent</module>
         <module>components/ids-data-publisher</module>
-		<module>components/url-shorten</module>
-		<module>components/user-claim-retriever</module>
-	    <module>components/authenticate-selector</module>
-		<module>components/openid-token-builder</module>
+        <module>components/url-shorten</module>
+        <module>components/user-claim-retriever</module>
+        <module>components/authenticate-selector</module>
+        <module>components/openid-token-builder</module>
         <module>components/gsma-authenticators</module>
-		<module>components/auth-proxy-service</module>
-		<module>components/sign</module>
-		<module>components/session-updater</module>
-		<module>components/portal</module>
-		<module>components/dashboard</module>
-		<module>components/authentication-endpoint</module>
+        <module>components/auth-proxy-service</module>
+        <module>components/sign</module>
+        <module>components/session-updater</module>
+        <module>components/portal</module>
+        <module>components/dashboard</module>
+        <module>components/authentication-endpoint</module>
         <module>components/saa-server</module>
         <module>components/openid-extension</module>
         <module>components/token-introspection</module>
-		<module>features</module>
+        <module>features</module>
     </modules>
 
-	<scm>
-		<url>https://github.com/WSO2Telco/component-ids.git</url>
-		<developerConnection>scm:git:https://github.com/WSO2Telco/component-ids.git</developerConnection>
-		<connection>scm:git:https://github.com/WSO2Telco/component-ids.git</connection>
-		<tag>v2_3_0</tag>
-	</scm>
-
+    <scm>
+        <url>https://github.com/WSO2Telco/component-ids.git</url>
+        <developerConnection>scm:git:https://github.com/WSO2Telco/component-ids.git</developerConnection>
+        <connection>scm:git:https://github.com/WSO2Telco/component-ids.git</connection>
+        <tag>v2_3_0</tag>
+    </scm>
 
 
     <build>
-     
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -99,7 +99,7 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
-          
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
@@ -107,13 +107,13 @@
                     <preparationGoals>clean install</preparationGoals>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                 </configuration>
-		<dependencies>
-                <dependency>
-                    <groupId>org.apache.maven.scm</groupId>
-                    <artifactId>maven-scm-provider-gitexe</artifactId>
-                    <version>1.9</version>
-                </dependency>
-            </dependencies>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-provider-gitexe</artifactId>
+                        <version>1.9</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
