@@ -29,11 +29,11 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.wso2.carbon.identity</groupId>
+			<groupId>org.wso2.carbon.identity.inbound.auth.oauth2</groupId>
 			<artifactId>org.wso2.carbon.identity.oauth</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.wso2.carbon.identity</groupId>
+			<groupId>org.wso2.carbon.identity.framework</groupId>
 			<artifactId>org.wso2.carbon.identity.application.common</artifactId>
 		</dependency>
 		<!--<dependency>-->
@@ -51,7 +51,7 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.wso2.carbon.identity</groupId>
+			<groupId>org.wso2.carbon.identity.framework</groupId>
 			<artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
 		</dependency>
 		<dependency>
@@ -72,7 +72,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.wso2.carbon.identity</groupId>
+			<groupId>org.wso2.carbon.identity.framework</groupId>
 			<artifactId>org.wso2.carbon.identity.core</artifactId>
 		</dependency>
 		<dependency>

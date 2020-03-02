@@ -22,16 +22,23 @@ import org.apache.oltu.openidconnect.as.OIDC;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
+import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.base.IdentityException;
+import org.wso2.carbon.identity.core.util.IdentityUtil;
 import org.wso2.carbon.identity.oauth.cache.AuthorizationGrantCache;
 import org.wso2.carbon.identity.oauth.cache.AuthorizationGrantCacheEntry;
 import org.wso2.carbon.identity.oauth.cache.AuthorizationGrantCacheKey;
 import org.wso2.carbon.identity.oauth.cache.OAuthCacheKey;
 import org.wso2.carbon.identity.oauth2.IdentityOAuth2Exception;
+import org.wso2.carbon.identity.oauth2.dao.OAuthTokenPersistenceFactory;
 import org.wso2.carbon.identity.oauth2.dto.OAuth2AccessTokenRespDTO;
 import org.wso2.carbon.identity.oauth2.model.AccessTokenDO;
+import org.wso2.carbon.identity.oauth2.model.AuthzCodeDO;
 import org.wso2.carbon.identity.oauth2.token.OAuthTokenReqMessageContext;
 import org.wso2.carbon.identity.oauth2.token.handlers.grant.AuthorizationCodeGrantHandler;
 import org.wso2.carbon.identity.oauth2.util.OAuth2Util;
+
+import static org.wso2.carbon.identity.openidconnect.OIDCConstants.CODE_ID;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -258,19 +265,30 @@ public class CustomAuthCodeGrant extends AuthorizationCodeGrantHandler {
                     + tokReqMsgCtx.getOauth2AccessTokenReqDTO().getClientId() + " from database");
         }
 
-        invalidateAuthCode(tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode(),
-                existingAccessTokenDO.getTokenId());
+        deactivateAuthzCode(tokReqMsgCtx, existingAccessTokenDO.getTokenId(),
+                tokReqMsgCtx.getOauth2AccessTokenReqDTO().getAuthorizationCode());
         clearCacheForAuthCode(tokReqMsgCtx);
         tokenRespDTO = prepareFromExistingToken(existingAccessTokenDO, tokReqMsgCtx);
         return tokenRespDTO;
     }
 
-    private void invalidateAuthCode(String authCode, String tokenId) throws IdentityOAuth2Exception {
-
-        this.tokenMgtDAO.deactivateAuthorizationCode(authCode, tokenId);
-
-        if (isdebug) {
-            log.debug(" Successfully deactivated the authcode used to generate access token, authCode : " + authCode);
+    private void deactivateAuthzCode(OAuthTokenReqMessageContext tokReqMsgCtx, String tokenId,
+                                     String authzCode) throws IdentityOAuth2Exception {
+        try {
+            // Here we deactivate the authorization and in the process update the tokenId against the authorization
+            // code so that we can correlate the current access token that is valid against the authorization code.
+            AuthzCodeDO authzCodeDO = new AuthzCodeDO();
+            authzCodeDO.setAuthorizationCode(authzCode);
+            authzCodeDO.setOauthTokenId(tokenId);
+            authzCodeDO.setAuthzCodeId(tokReqMsgCtx.getProperty(CODE_ID).toString());
+            OAuthTokenPersistenceFactory.getInstance().getAuthorizationCodeDAO()
+                    .deactivateAuthorizationCode(authzCodeDO);
+            if (log.isDebugEnabled()
+                    && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.AUTHORIZATION_CODE)) {
+                log.debug("Deactivated authorization code : " + authzCode);
+            }
+        } catch (IdentityException e) {
+            throw new IdentityOAuth2Exception("Error occurred while deactivating authorization code", e);
         }
     }
 

@@ -35,12 +35,12 @@
             <scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.wso2.carbon.identity</groupId>
+			<groupId>org.wso2.carbon.identity.framework</groupId>
 			<artifactId>org.wso2.carbon.identity.mgt.stub</artifactId>
             <scope>provided</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.wso2.carbon.identity</groupId>
+			<groupId>org.wso2.carbon.identity.user.ws</groupId>
 			<artifactId>org.wso2.carbon.um.ws.api.stub</artifactId>
             <scope>provided</scope>
 		</dependency>
@@ -87,7 +87,7 @@
 			<scope>provided</scope>
 		</dependency>
         <dependency>
-            <groupId>org.wso2.carbon.identity</groupId>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
             <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
 			<scope>provided</scope>
         </dependency>
